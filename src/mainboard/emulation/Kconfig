@@ -1,0 +1,22 @@
+if VENDOR_EMULATION
+
+choice
+	prompt "Mainboard model"
+	default BOARD_EMULATION_QEMU_X86_I440FX
+
+source "src/mainboard/emulation/*/Kconfig.name"
+
+endchoice
+
+config BOARD_EMULATION_QEMU_X86
+	bool
+	default y
+	depends on BOARD_EMULATION_QEMU_X86_I440FX || BOARD_EMULATION_QEMU_X86_Q35
+
+source "src/mainboard/emulation/*/Kconfig"
+
+config MAINBOARD_VENDOR
+	string
+	default "Emulation"
+
+endif # VENDOR_EMULATION

@@ -1,0 +1,56 @@
+if BOARD_EMULATION_QEMU_X86_Q35
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select CPU_QEMU_X86
+	select SOUTHBRIDGE_INTEL_I82801IX
+	select IOAPIC_INTERRUPTS_ON_APIC_SERIAL_BUS
+	select HAVE_OPTION_TABLE
+#	select HAVE_PIRQ_TABLE
+	select HAVE_ACPI_TABLES
+	select BOARD_ROMSIZE_KB_2048
+	select MAINBOARD_HAS_NATIVE_VGA_INIT
+	select MAINBOARD_FORCE_NATIVE_VGA_INIT
+	select NO_CAR_GLOBAL_MIGRATION
+
+config MAINBOARD_DIR
+	string
+	default emulation/qemu-q35
+
+config MAINBOARD_PART_NUMBER
+	string
+	default "QEMU x86 q35/ich9"
+
+config BOOTBLOCK_MAINBOARD_INIT
+	string
+	default "mainboard/emulation/qemu-q35/bootblock.c"
+
+config MMCONF_BASE_ADDRESS
+	hex
+	default 0xb0000000
+
+# Skip the first 64KiB as coreboot table pointer is installed
+# at address 0
+config DCACHE_RAM_BASE
+	hex
+	default 0x10000
+
+# Memory at 0xa0000 decodes to VGA
+config DCACHE_RAM_SIZE
+	hex
+	default 0x90000
+
+# Do not show IFD/blob options since QEMU doesn't care
+config HAVE_INTEL_FIRMWARE
+	bool
+	default n
+
+config C_ENV_BOOTBLOCK_SIZE
+	hex
+	default 0x4000
+
+config DCACHE_BSP_STACK_SIZE
+	hex
+	default 0x4000
+
+endif # BOARD_EMULATION_QEMU_X86_Q35

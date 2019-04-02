@@ -1,0 +1,38 @@
+##
+## This file is part of the coreboot project.
+##
+## Copyright (C) 2014 Google Inc.
+##
+## This software is licensed under the terms of the GNU General Public
+## License version 2, as published by the Free Software Foundation, and
+## may be copied, distributed, and modified under those terms.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+if BOARD_EMULATION_SPIKE_RISCV
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select ARCH_RISCV_RV64
+	select SOC_UCB_RISCV
+	select BOARD_ROMSIZE_KB_4096
+	select DRIVERS_UART_8250MEM
+	select BOOT_DEVICE_NOT_SPI_FLASH
+	select MISSING_BOARD_RESET
+
+config MAINBOARD_DIR
+	string
+	default emulation/spike-riscv
+
+config MAINBOARD_PART_NUMBER
+	string
+	default "SPIKE RISCV"
+
+config MAX_CPUS
+	int
+	default 1
+
+endif #  BOARD_EMULATION_SPIKE_RISCV
