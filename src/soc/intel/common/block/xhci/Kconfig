@@ -1,4 +1,0 @@
-config SOC_INTEL_COMMON_BLOCK_XHCI
-	bool
-	help
-	  Intel Processor common XHCI support

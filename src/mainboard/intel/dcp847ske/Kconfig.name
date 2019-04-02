@@ -1,2 +1,0 @@
-config BOARD_INTEL_DCP847SKE
-	bool "Intel NUC DCP847SKE"

@@ -1,2 +1,0 @@
-config BOARD_INTEL_D510MO
-	bool "D510MO / D410PT"

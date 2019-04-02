@@ -1,6 +1,0 @@
-Vendor name: Google
-Board name: Fizz Kabylake Reference Board
-Category: desktop
-ROM protocol: SPI
-ROM socketed: n
-Flashrom support: y

@@ -1,2 +1,0 @@
-config VENDOR_GIGABYTE
-	bool "GIGABYTE"

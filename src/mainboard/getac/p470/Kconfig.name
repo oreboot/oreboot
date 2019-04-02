@@ -1,2 +1,0 @@
-config BOARD_GETAC_P470
-	bool "P470"

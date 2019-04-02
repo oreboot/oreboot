@@ -1,2 +1,0 @@
-config BOARD_SAMSUNG_LUMPY
-	bool "Lumpy"

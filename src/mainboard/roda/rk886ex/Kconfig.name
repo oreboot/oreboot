@@ -1,2 +1,0 @@
-config BOARD_RODA_RK886EX
-	bool "RK886EX"

@@ -1,2 +1,0 @@
-config BOARD_INTEL_BASKING_RIDGE
-	bool "Basking Ridge CRB"

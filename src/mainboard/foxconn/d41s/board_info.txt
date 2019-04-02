@@ -1,6 +1,0 @@
-Category: mini
-Board URL: http://www.foxconnchannel.com/ProductDetail.aspx?T=motherboard&U=en-us0000481
-ROM package: DIP-8
-ROM protocol: SPI
-ROM socketed: y
-Flashrom support: y

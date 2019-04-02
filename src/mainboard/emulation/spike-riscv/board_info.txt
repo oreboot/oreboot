@@ -1,3 +1,0 @@
-Board name: Spike RISCV
-Category: emulation
-Board URL: https://github.com/riscv/riscv-isa-sim

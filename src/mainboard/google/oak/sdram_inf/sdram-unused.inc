@@ -1,3 +1,0 @@
-{
-	.type = TYPE_INVALID,
-},

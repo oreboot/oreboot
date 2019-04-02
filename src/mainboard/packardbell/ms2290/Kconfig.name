@@ -1,2 +1,0 @@
-config BOARD_PACKARDBELL_MS2290
-	bool "EasyNote LM85 (MS2290)"

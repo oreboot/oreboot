@@ -1,2 +1,0 @@
-config BOARD_INTEL_SKLSDLBRK
-	bool "Skylake Saddle Brook"

@@ -1,2 +1,0 @@
-config VENDOR_KONTRON
-	bool "Kontron"

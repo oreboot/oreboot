@@ -1,6 +1,0 @@
-Vendor name: Google
-Board name: Edgar
-Category: laptop
-ROM protocol: SPI
-ROM socketed: n
-Flashrom support: y

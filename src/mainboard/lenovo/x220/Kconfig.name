@@ -1,8 +1,0 @@
-config BOARD_LENOVO_X220
-	bool "ThinkPad X220"
-
-config BOARD_LENOVO_X220I
-	bool "ThinkPad X220i"
-
-config BOARD_LENOVO_X1
-	bool "ThinkPad X1"

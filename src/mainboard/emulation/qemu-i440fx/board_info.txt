@@ -1,2 +1,0 @@
-Category: emulation
-Board URL: http://wiki.qemu.org/Main_Page

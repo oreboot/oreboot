@@ -1,2 +1,0 @@
-config BOARD_COMPULAB_INTENSE_PC
-	bool "Intense-PC"
