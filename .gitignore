@@ -132,3 +132,11 @@ Documentation/*.pdf
 Documentation/_build
 
 doxygen/*
+
+
+#Added by cargo
+#
+#already existing elements are commented out
+
+/target
+**/*.rs.bk

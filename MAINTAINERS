@@ -135,8 +135,6 @@ Maintainers List (try to look for most precise areas first)
 
 RISC-V ARCHITECTURE
 M:	Ronald Minnich <rminnich@gmail.com>
-M:	Jonathan Neuschäfer <j.neuschaefer@gmx.net>
-R:	Philipp Hug <philipp@hug.cx>
 S:	Maintained
 F:	src/arch/riscv/
 F:	src/soc/sifive/
@@ -145,53 +143,8 @@ F:	src/mainboard/emulation/*-riscv/
 F:	src/mainboard/sifive/
 F:	util/riscv/
 
-PPC64 ARCHITECTURE
-M:	Ronald Minnich <rminnich@gmail.com>
-M:	Timothy Pearson <tpearson@raptorengineeringinc.com>
-S:	Maintained
-F:	src/arch/ppc64/
-F:	src/cpu/qemu-power8/
-F:	src/mainboard/emulation/qemu-power8/
-
-ABUILD
-M:	Patrick Georgi <patrick@georgi-clan.de>
-M:	Martin Roth <gaumless@gmail.com>
-S:	Supported
-F:	util/abuild/
-
-LZ4 COMPRESSION
-M:	Julius Werner <jwerner@chromium.org>
-S:	Supported
-F:	src/commonlib/lz4*
-F:	payloads/libpayload/liblz4/
-F:	util/cbfstool/lz4/
-
 BOARD STATUS
 F:	util/board_status/
-
-BINARY OBJECTS
-F:	3rdparty/blobs/
-
-VERIFIED BOOT
-F:	3rdparty/vboot/
-F:	src/vendorcode/google/chromeos/
-F:	src/include/tpm.h
-F:	src/include/tpm_lite/
-
-RESOURCE ALLOCATOR
-F:	src/device/*
-F:	src/include/device/
-F:	src/include/cpu/cpu.h
-
-CBFS
-F:	src/include/cbfs.h
-F:	src/include/cbfs_serialized.h
-F:	util/cbfstool/
-
-CBMEM
-F:	src/include/cbmem.h
-F:	src/include/cbmem_id.h
-F:	util/cbmem/
 
 CONSOLE
 F:	src/console/

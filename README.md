@@ -12,8 +12,8 @@ oreboot currently only plans to support LinuxBoot payloads.
 Supported Hardware
 ------------------
 
-coreboot supports a wide range of chipsets, devices, and mainboards, 
-but no systems that require C or binary blobs. For now, that means no x86.
+coreboot supports almost nothing, and will
+support no systems that require C or binary blobs. For now, that means no x86.
 
 Build Requirements
 ------------------
@@ -26,25 +26,10 @@ Building oreboot
 Testing oreboot Without Modifying Your Hardware
 ------------------------------------------------
 
-If you want to test oreboot without any risks before you really decide
-to use it on your hardware, you can use the QEMU system emulator to run
-oreboot virtually in QEMU.
-
-Please see <https://www.oreboot.org/QEMU> for details.
-
-
 Website and Mailing List
 ------------------------
 
-Further details on the project, a FAQ, many HOWTOs, news, development
-guidelines and more can be found on the oreboot website:
-
-  <https://www.oreboot.org>
-
-You can contact us directly on the oreboot mailing list:
-
-  <https://www.oreboot.org/Mailinglist>
-
+Not yet.
 
 Copyright and License
 ---------------------
