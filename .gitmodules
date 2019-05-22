@@ -1,3 +1,0 @@
-[submodule "util/nvidia-cbootimage"]
-	path = util/nvidia/cbootimage
-	url = ../nvidia-cbootimage.git
