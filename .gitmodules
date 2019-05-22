@@ -1,28 +1,3 @@
-[submodule "3rdparty/blobs"]
-	path = 3rdparty/blobs
-	url = ../blobs.git
-	update = none
-	ignore = dirty
 [submodule "util/nvidia-cbootimage"]
 	path = util/nvidia/cbootimage
 	url = ../nvidia-cbootimage.git
-[submodule "vboot"]
-	path = 3rdparty/vboot
-	url = ../vboot.git
-[submodule "arm-trusted-firmware"]
-	path = 3rdparty/arm-trusted-firmware
-	url = ../arm-trusted-firmware.git
-[submodule "3rdparty/chromeec"]
-	path = 3rdparty/chromeec
-	url = ../chrome-ec.git
-[submodule "libhwbase"]
-	path = 3rdparty/libhwbase
-	url = ../libhwbase.git
-[submodule "libgfxinit"]
-	path = 3rdparty/libgfxinit
-	url = ../libgfxinit.git
-[submodule "3rdparty/fsp"]
-	path = 3rdparty/fsp
-	url = ../fsp.git
-	update = none
-	ignore = dirty
