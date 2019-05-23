@@ -23,6 +23,15 @@ Build Requirements
 Building oreboot
 -----------------
 
+We are still trying to figure this out but:
+
+```
+curl https://sh.rustup.rs -sSf | sh
+rustup override add nightly
+cargo install xargo
+rustup component add rust-src
+```
+
 Testing oreboot Without Modifying Your Hardware
 ------------------------------------------------
 
@@ -30,6 +39,16 @@ Website and Mailing List
 ------------------------
 
 Not yet.
+
+Ground Rules
+------------------------
+
+* The build tool is xargo; there will be no Makefiles.
+* Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel. 
+* All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
+* There will be no C.
+* We will not run our own Gerrit. We are using Github for now, and the github Pull Request review mechanism.
+* We will not run our own Jenkins. We will use the most appropriate CI; for now, that is Azure but we will be flexible.
 
 Copyright and License
 ---------------------
