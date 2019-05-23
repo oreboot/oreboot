@@ -1,0 +1,13 @@
+[package]
+name = "qemu-q35"
+version = "0.1.0"
+authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
