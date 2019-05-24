@@ -12,5 +12,8 @@
   "panic-strategy": "abort",
   "morestack": false,
   "dynamic-linking-available": false,
-  "split-stacks-supported": false
+    "split-stacks-supported": false,
+    "panic-strategy": "abort",
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld"
 }

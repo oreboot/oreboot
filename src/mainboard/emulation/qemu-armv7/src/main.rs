@@ -5,6 +5,7 @@
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
+#![feature(global_asm)] 
 use core::intrinsics;
 
 #[no_mangle]
@@ -36,3 +37,5 @@ pub fn halt() -> ! {
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+global_asm!(include_str!("boot_cores.S"));
