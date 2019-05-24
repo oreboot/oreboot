@@ -1,5 +1,5 @@
 [package]
-name = "qemu-q35"
+name = "qemu-armv7"
 version = "0.1.0"
 authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
 edition = "2018"

@@ -1,0 +1,5 @@
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-none-eabi-ld"
+
+[build]
+target = "armv7-unknown-linux-gnueabihf"
