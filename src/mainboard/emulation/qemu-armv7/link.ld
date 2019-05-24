@@ -39,5 +39,9 @@ SECTIONS
         KEEP(*(.text .text.*));
     }
 
-    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
+    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
+	    	/* Unused exception related info that only wastes space */
+		*(.ARM.exidx.*);
+		*(.ARM.extab.*);
+		}
 }
