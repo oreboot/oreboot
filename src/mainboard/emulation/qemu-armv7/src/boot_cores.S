@@ -31,6 +31,6 @@
 
 _boot_cores:
 1:  
-    b       1b
+    b       _start
 .align 13
 
