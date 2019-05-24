@@ -1,0 +1,16 @@
+{
+  "llvm-target": "arm-unknown-eabihf",
+  "data-layout": "e-m:e-p:32:32-i1:8:32-i8:8:32-i16:16:32-i64:64-v128:64:128-a:0:32-n32-S64",
+  "arch": "arm",
+  "target-endian": "little",
+  "target-pointer-width": "32",
+  "target-c-int-width": "32",
+  "os": "none",
+  "executables": true,
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
+  "panic-strategy": "abort",
+  "morestack": false,
+  "dynamic-linking-available": false,
+  "split-stacks-supported": false
+}

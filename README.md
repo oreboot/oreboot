@@ -29,29 +29,26 @@ We are still trying to figure this out but:
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
-# Install rust nightly for ARM toolchain
+# Default to nightly on this directory
 rustup override add nightly
-rustup target install armv7-unknown-linux-gnueabihf
 
-# Install GCC for linking
-sudo apt-get install gcc-arm-none-eabi
-
-# Install xargo
-cargo install xargo
+# Install xargo and xbuild
 rustup component add rust-src
+cargo install xargo
+cargo install cargo-xbuild
 
 # Ocassionally run:
 rustup update
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
-xargo build
+cargo xbuild
 
 # Optimized build
-xargo build --release
+cargo xbuild --release
 
 # View disassembly
-arm-none-eabi-objdump -S target/armv7-unknown-linux-gnueabihf/release/qemu-armv7
+arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
 ```
 
 QEMU
@@ -59,7 +56,7 @@ QEMU
 
 ```
 # TODO: this should use the -bios flag instead. This will probably requires some assembly.
-qemu-system-arm -machine virt -kernel target/armv7-unknown-linux-gnueabihf/release/qemu-armv7 -nographic
+qemu-system-arm -machine virt -kernel target/arm-none-eabihf/release/qemu-armv7 -nographic
 
 # Quit qemu with CTRL-A X
 ```
