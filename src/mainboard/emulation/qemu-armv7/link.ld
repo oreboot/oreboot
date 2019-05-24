@@ -29,7 +29,7 @@ SECTIONS
     . = 0x0;
 	.boot : 
 	{
-	KEEP(*(.text.boot));
+	KEEP(*(.boot.boot));
 	}
 
     . = 0x8000;

@@ -25,7 +25,7 @@
  *
  */
 
-.section ".text.boot", "a"
+.section ".boot.boot", "a"
 
 .global _boot_cores
 
