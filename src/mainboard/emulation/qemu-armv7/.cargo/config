@@ -1,2 +1,7 @@
 [build]
 target = "arm-none-eabihf"
+
+[target.arm-none-eabihf]
+rustflags = [
+  "-C", "link-arg=-Tlink.ld",
+]
