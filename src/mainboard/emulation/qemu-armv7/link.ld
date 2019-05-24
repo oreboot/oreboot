@@ -26,11 +26,17 @@ ENTRY(_boot_cores);
 
 SECTIONS
 {
+    . = 0x0;
+	.boot : 
+	{
+	*(.text.boot);
+	}
+
     . = 0x8000;
 
     .text :
     {
-        KEEP(*(.text.boot)) *(.text .text.*)
+        *(.text .text.*);
     }
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
