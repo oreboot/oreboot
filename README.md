@@ -12,7 +12,7 @@ oreboot currently only plans to support LinuxBoot payloads.
 Supported Hardware
 ------------------
 
-coreboot supports almost nothing, and will
+oreboot supports almost nothing, and will
 support no systems that require C or binary blobs. For now, that means no x86.
 
 Build Requirements
