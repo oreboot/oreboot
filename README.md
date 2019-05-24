@@ -26,10 +26,39 @@ Building oreboot
 We are still trying to figure this out but:
 
 ```
+# Install rustup
 curl https://sh.rustup.rs -sSf | sh
+
+# Default to nightly on this directory
 rustup override add nightly
-cargo install xargo
+
+# Install xargo and xbuild
 rustup component add rust-src
+cargo install xargo
+cargo install cargo-xbuild
+
+# Ocassionally run:
+rustup update
+
+# Build for ARMv7
+cd src/mainboard/emulation/qemu-armv7
+cargo xbuild
+
+# Optimized build
+cargo xbuild --release
+
+# View disassembly
+arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
+```
+
+QEMU
+----
+
+```
+# TODO: this should use the -bios flag instead. This will probably requires some assembly.
+qemu-system-arm -machine virt -kernel target/arm-none-eabihf/release/qemu-armv7 -nographic
+
+# Quit qemu with CTRL-A X
 ```
 
 Testing oreboot Without Modifying Your Hardware
@@ -44,7 +73,7 @@ Ground Rules
 ------------------------
 
 * The build tool is xargo; there will be no Makefiles.
-* Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel. 
+* Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel.
 * All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
 * There will be no C.
 * We will not run our own Gerrit. We are using Github for now, and the github Pull Request review mechanism.
