@@ -55,8 +55,11 @@ QEMU
 ----
 
 ```
-# TODO: this should use the -bios flag instead. This will probably requires some assembly.
-qemu-system-arm -machine virt -kernel target/arm-none-eabihf/release/qemu-armv7 -nographic
+# Create a headerless binary from the ELF
+arm-none-eabi-objcopy -O binary target/arm-none-eabihf/release/qemu-armv7 bios.bin
+
+# Run oreboot. Should print 'Welcome to oreboot'
+qemu-system-arm -machine virt -bios bios.bin -nographic
 
 # Quit qemu with CTRL-A X
 ```
