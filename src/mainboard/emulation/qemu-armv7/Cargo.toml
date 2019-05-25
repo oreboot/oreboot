@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 
+[profile.release]
+opt-level = 'z'  # Optimize for size.

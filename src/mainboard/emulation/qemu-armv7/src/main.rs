@@ -1,19 +1,17 @@
-// main.rs
-
 #![feature(core_intrinsics)]
 #![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)] 
+#![feature(global_asm)]
 use core::intrinsics;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-	for &i in b"Welcome to oreboot" {
-		putc(i);
-	}
-	halt()
+    for &i in b"Welcome to oreboot\r\n" {
+        putc(i);
+    }
+    halt()
 }
 use core::panic::PanicInfo;
 
@@ -27,6 +25,7 @@ fn putc(data: u8) {
 
 pub fn halt() -> ! {
     loop {
+        // Bug with LLVM marks empty loops as undefined behaviour.
         // See: https://github.com/rust-lang/rust/issues/28728
         unsafe { asm!("" :::: "volatile") }
     }
@@ -35,7 +34,7 @@ pub fn halt() -> ! {
 /// This function is called on panic.
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    halt()
 }
 
-global_asm!(include_str!("boot_cores.S"));
+global_asm!(include_str!("vector_table.S"));
