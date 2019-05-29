@@ -1,10 +1,8 @@
 use crate::halt;
 
 pub fn romstage() -> ! {
-   console_init();
-   halt()
+    console_init();
+    halt()
 }
 
-fn console_init() {
-}
-
+fn console_init() {}
