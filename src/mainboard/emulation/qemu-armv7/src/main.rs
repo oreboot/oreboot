@@ -13,6 +13,7 @@ pub extern "C" fn _start() -> ! {
     for &i in b"Welcome to oreboot\r\n" {
         putc(i);
     }
+    cpu::init();
     romstage::romstage()
 }
 use core::panic::PanicInfo;
