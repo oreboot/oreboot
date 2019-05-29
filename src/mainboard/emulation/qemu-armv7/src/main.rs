@@ -6,12 +6,14 @@
 #![feature(global_asm)]
 use core::intrinsics;
 
+mod romstage;
+
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     for &i in b"Welcome to oreboot\r\n" {
         putc(i);
     }
-    halt()
+    romstage::romstage()
 }
 use core::panic::PanicInfo;
 
