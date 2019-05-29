@@ -6,5 +6,3 @@ pub fn romstage() -> ! {
     //console_init();
     halt()
 }
-
-

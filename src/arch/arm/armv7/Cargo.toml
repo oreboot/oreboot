@@ -1,12 +1,11 @@
 
 [package]
-name = "cpu"
+name = "arch"
 version = "0.1.0"
 authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-arch = { path = "../../../arch/arm/armv7"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
