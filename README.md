@@ -42,10 +42,11 @@ rustup update
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
-cargo xbuild
+cargo xbuild            # Debug
+cargo xbuild --release  # Optimized
 
-# Optimized build
-cargo xbuild --release
+# Create a ROM image
+arm-none-eabi-objcopy -O binary target/arm-none-eabihf/release/qemu-armv7 oreboot.rom
 
 # View disassembly
 arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
@@ -55,8 +56,7 @@ QEMU
 ----
 
 ```
-# TODO: this should use the -bios flag instead. This will probably requires some assembly.
-qemu-system-arm -machine virt -kernel target/arm-none-eabihf/release/qemu-armv7 -nographic
+qemu-system-arm -machine virt -bios target/arm-none-eabihf/release/qemu-armv7 -nographic
 
 # Quit qemu with CTRL-A X
 ```

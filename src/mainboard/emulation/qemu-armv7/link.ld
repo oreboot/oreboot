@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
-ENTRY(_boot_cores);
+ENTRY(_vector_table);
 
 SECTIONS
 {
     . = 0x0;
-	.boot : 
+	.bootblock :
 	{
-	KEEP(*(.boot.boot));
+	KEEP(*(.bootblock.vectortable));
 	}
 
     . = 0x8000;
