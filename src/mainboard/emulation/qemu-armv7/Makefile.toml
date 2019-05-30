@@ -2,10 +2,18 @@
 # no default tasks
 skip_core_tasks = true
 
+[env.development]
+CARGO_ARGS = "--verbose"
+TARGET_DIR = "target/arm-none-eabihf/debug/"
+
+[env.release]
+CARGO_ARGS = "--release --verbose"
+TARGET_DIR = "target/arm-none-eabihf/release/"
+
 [tasks.default]
 dependencies = [ "build" ]
 script = [
-	"arm-none-eabi-objcopy -O binary target/arm-none-eabihf/release/qemu-armv7 target/arm-none-eabihf/release/bios.bin"
+	"arm-none-eabi-objcopy -O binary ${TARGET_DIR}/qemu-armv7 ${TARGET_DIR}/oreboot.bin"
 ]
 
 [tasks.install-rust-src]
@@ -15,9 +23,9 @@ install_crate = { rustup_component_name = "rust-src" }
 dependencies = [ "install-rust-src" ]
 toolchain = "nightly"
 command = "cargo"
-args = ["xbuild", "--release"]
+args = ["xbuild", "@@split(CARGO_ARGS, )"]
 
 [tasks.run]
-dependencies = ["build"]
+dependencies = ["default"]
 command = "qemu-system-arm"
-args = ["-machine", "virt", "-bios", "target/arm-none-eabihf/release/bios.bin", "-nographic"]
+args = ["-machine", "virt", "-bios", "${TARGET_DIR}/oreboot.bin", "-nographic"]

@@ -29,24 +29,16 @@ We are still trying to figure this out but:
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
-# Default to nightly on this directory
-rustup override add nightly
-
-# Install xargo and xbuild
-rustup component add rust-src
-cargo install xargo
-cargo install cargo-xbuild
+# Install cargo-make
+cargo install cargo-make
 
 # Ocassionally run:
 rustup update
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
-cargo xbuild            # Debug
-cargo xbuild --release  # Optimized
-
-# Create a ROM image
-arm-none-eabi-objcopy -O binary target/arm-none-eabihf/release/qemu-armv7 oreboot.rom
+cargo make              # Debug
+cargo make -p release   # Optimized
 
 # View disassembly
 arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
@@ -56,7 +48,7 @@ QEMU
 ----
 
 ```
-qemu-system-arm -machine virt -bios target/arm-none-eabihf/release/qemu-armv7 -nographic
+cargo make run -p release
 
 # Quit qemu with CTRL-A X
 ```
