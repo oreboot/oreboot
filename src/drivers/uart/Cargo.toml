@@ -1,0 +1,16 @@
+[package]
+name = "uart"
+version = "0.1.0"
+authors = ["Ryan O'Leary <ryan@ryanoleary.ca>"]
+edition = "2018"
+
+[lib]
+name = "pl011"
+path = "pl011.rs"
+
+[dependencies]
+register = "0.3.2"
+driver = { path = "../driver"}
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
