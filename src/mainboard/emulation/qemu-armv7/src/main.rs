@@ -6,6 +6,7 @@
 #![feature(global_asm)]
 use core::intrinsics;
 
+mod print;
 mod romstage;
 
 #[no_mangle]
@@ -14,6 +15,7 @@ pub extern "C" fn _start() -> ! {
         putc(i);
     }
     cpu::init();
+    print::print("hi");
     romstage::romstage()
 }
 use core::panic::PanicInfo;
