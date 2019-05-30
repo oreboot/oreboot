@@ -1,8 +1,8 @@
 use crate::halt;
 
+//mod console;
+
 pub fn romstage() -> ! {
-    console_init();
+    //console_init();
     halt()
 }
-
-fn console_init() {}
