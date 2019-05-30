@@ -1,0 +1,23 @@
+[config]
+# no default tasks
+skip_core_tasks = true
+
+[tasks.default]
+dependencies = [ "build" ]
+script = [
+	"arm-none-eabi-objcopy -O binary target/arm-none-eabihf/release/qemu-armv7 target/arm-none-eabihf/release/bios.bin"
+]
+
+[tasks.install-rust-src]
+install_crate = { rustup_component_name = "rust-src" }
+
+[tasks.build]
+dependencies = [ "install-rust-src" ]
+toolchain = "nightly"
+command = "cargo"
+args = ["xbuild", "--release"]
+
+[tasks.run]
+dependencies = ["build"]
+command = "qemu-system-arm"
+args = ["-machine", "virt", "-bios", "target/arm-none-eabihf/release/bios.bin", "-nographic"]
