@@ -1,30 +1,22 @@
-#![feature(core_intrinsics)]
 #![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
-use core::intrinsics;
 
 mod romstage;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    for &i in b"Welcome to oreboot\r\n" {
-        putc(i);
-    }
+    let pl011 = pl011::PL011::new(0x09000000, 115200);
+    let uart_driver : &driver::Driver = &pl011;
+    uart_driver.init();
+    uart_driver.write(b"Welcome to oreboot\r\n");
+
     cpu::init();
     romstage::romstage()
 }
 use core::panic::PanicInfo;
-
-fn putc(data: u8) {
-    // UART address is specific to QEMU's virt machine.
-    let uart_rx = 0x09000000 as *mut u32;
-    unsafe {
-        intrinsics::volatile_store(uart_rx, data as u32);
-    }
-}
 
 pub fn halt() -> ! {
     loop {

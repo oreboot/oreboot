@@ -29,7 +29,7 @@ SECTIONS
     . = 0x0;
 	.bootblock :
 	{
-	KEEP(*(.bootblock.vectortable));
+	    KEEP(*(.bootblock.vectortable));
 	}
 
     . = 0x8000;
@@ -37,6 +37,10 @@ SECTIONS
     .text :
     {
         KEEP(*(.text .text.*));
+    }
+    .rodata :
+    {
+        KEEP(*(.rodata .rodata.*));
     }
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)

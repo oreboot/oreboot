@@ -37,8 +37,10 @@ rustup update
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
-cargo make              # Debug
-cargo make -p release   # Optimized
+# TODO: Currently, we have to prepend RUST_TARGET_PATH so the compiler finds the
+#       path to the target json.
+RUST_TARGET_PATH=$(pwd) cargo make              # Debug
+RUST_TARGET_PATH=$(pwd) cargo make -p release   # Optimized
 
 # View disassembly
 arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
@@ -48,7 +50,7 @@ QEMU
 ----
 
 ```
-cargo make run -p release
+RUST_TARGET_PATH=$(pwd) cargo make run -p release
 
 # Quit qemu with CTRL-A X
 ```
