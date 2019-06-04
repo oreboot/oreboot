@@ -20,13 +20,19 @@ name = "driver"
 version = "0.1.0"
 
 [[package]]
+name = "payload"
+version = "0.1.0"
+
+[[package]]
 name = "qemu-armv7"
 version = "0.1.0"
 dependencies = [
  "console 0.1.0",
  "cpu 0.1.0",
  "driver 0.1.0",
+ "payload 0.1.0",
  "uart 0.1.0",
+ "zimage 0.1.0",
 ]
 
 [[package]]
@@ -48,6 +54,13 @@ version = "0.1.0"
 dependencies = [
  "driver 0.1.0",
  "register 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "zimage"
+version = "0.1.0"
+dependencies = [
+ "payload 0.1.0",
 ]
 
 [metadata]
