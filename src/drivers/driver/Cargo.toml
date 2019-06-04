@@ -5,8 +5,9 @@ authors = ["Ryan O'Leary <ryan@ryanoleary.ca>"]
 edition = "2018"
 
 [lib]
-name = "driver"
-path = "driver.rs"
+name="driver"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
+
+[dependencies]

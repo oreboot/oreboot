@@ -1,4 +1,3 @@
-
 use core::fmt;
 
 pub struct WriteTo<'a> {
