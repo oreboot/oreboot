@@ -1,8 +1,9 @@
 use crate::halt;
 
-//mod console;
-
 pub fn romstage() -> ! {
-    //console_init();
+    let p = zimage::PAYLOAD;
+    p.load();
+    p.run();
+
     halt()
 }
