@@ -2,7 +2,7 @@
 #![feature(const_slice_len)]
 
 const KERNEL: &'static [u8] = include_bytes!("zImage");
-const DTB: &'static [u8] = include_bytes!("qemu_fdt.dtb");
+pub const DTB: &'static [u8] = include_bytes!("qemu_fdt.dtb");
 
 // TODO: Create a struct which tells you where the available memory is.
 const MEM: u32 = 0x40200000;

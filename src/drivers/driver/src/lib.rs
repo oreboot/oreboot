@@ -97,21 +97,16 @@ impl<'a> SliceReader<'a> {
     }
 }
 
-// Check that the slice [offset:offset+len] is in [0:upper_bound].
-fn in_bounds(offset: usize, len: usize, upper_bound: usize) -> bool {
-    // Protects against overflows.
-    len < upper_bound && offset < upper_bound - len
-}
-
 impl<'a> Driver for SliceReader<'a> {
     fn init(&mut self) {
     }
 
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
-        if !in_bounds(pos, data.len(), self.data.len()) {
+        if pos > self.data.len() {
             return EOF
         }
-        data.copy_from_slice(&self.data[pos..pos+data.len()]);
+        let count = core::cmp::min(data.len(), self.data.len() - pos);
+        data[..count].copy_from_slice(&self.data[pos..pos+count]);
         Ok(data.len())
     }
 
@@ -123,16 +118,16 @@ impl<'a> Driver for SliceReader<'a> {
     }
 }
 
-/// The driver reads/writes from/to a section (offset+size) of another driver.
-pub struct Section<'a> {
-    driver: &'a mut Driver,
+/// The driver reads from a section (offset+size) of another driver.
+pub struct SectionReader<'a> {
+    driver: &'a Driver,
     offset: usize,
     size: usize,
 }
 
-impl<'a> Section<'a> {
-    pub fn new(driver: &'a mut Driver, offset: usize, size: usize) -> Section {
-        return Section{
+impl<'a> SectionReader<'a> {
+    pub fn new(driver: &'a Driver, offset: usize, size: usize) -> SectionReader {
+        return SectionReader{
             driver: driver,
             offset: offset,
             size: size,
@@ -140,26 +135,22 @@ impl<'a> Section<'a> {
     }
 }
 
-impl<'a> Driver for Section<'a> {
+impl<'a> Driver for SectionReader<'a> {
     fn init(&mut self) {
-        self.driver.init()
     }
 
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
-        if !in_bounds(pos, data.len(), self.size) {
+        if pos > self.size {
             return EOF
         }
-        self.driver.pread(data, pos + self.offset)
+        let count = core::cmp::min(data.len(), self.size - pos);
+        self.driver.pread(&mut data[..count], pos + self.offset)
     }
 
-    fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize> {
-        if !in_bounds(pos, data.len(), self.size) {
-            return EOF
-        }
-        self.driver.pwrite(data, pos + self.offset)
+    fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn close(&mut self) {
-        self.driver.close()
     }
 }
