@@ -4,7 +4,7 @@
 use core::intrinsics::{copy, transmute};
 
 /// compression types
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum ctype {
@@ -14,7 +14,7 @@ pub enum ctype {
 }
 
 /// cbfs file attrs
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum fattr {
@@ -27,7 +27,7 @@ pub enum fattr {
 }
 
 /// cbfs architecture types,
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum atype {
@@ -37,7 +37,7 @@ pub enum atype {
 }
 
 /// cbfs header types,
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum htype {
@@ -47,7 +47,7 @@ pub enum htype {
 }
 
 /// cbfs file types
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum ftype {
@@ -74,7 +74,7 @@ pub enum ftype {
 }
 
 /// Payload segments types
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum stype {
@@ -86,6 +86,7 @@ pub enum stype {
 }
 
 /// A payload. oreboot will only have payloads for anything past the romstage.
+#[derive(Debug)]
 pub struct Payload<'a> {
     /// Type of payload
     pub typ: ftype,
@@ -103,6 +104,7 @@ pub struct Payload<'a> {
     pub segs: &'a [Segment<'a>],
 }
 
+#[derive(Debug)]
 pub struct Segment<'a> {
     /// Type
     pub typ: stype,
