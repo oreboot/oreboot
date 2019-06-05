@@ -43,7 +43,7 @@ impl PL011 {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 
