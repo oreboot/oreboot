@@ -24,6 +24,7 @@ struct RegisterBlock {
     UARTDMACR: ReadWrite<u32>,
 }
 
+#[allow(dead_code)]
 pub struct PL011 {
     regs: *const RegisterBlock,
     baudrate: u32,
@@ -86,7 +87,7 @@ impl Driver for PL011 {
             if !self.poll_status(UARTFR::TXFF, false) {
                 return Ok(i);
             }
-            unsafe { (*self.regs).UARTDR.set(c as u32) };
+            unsafe { (*self.regs).UARTDR.set(u32::from(c)) };
         }
         Ok(data.len())
     }
