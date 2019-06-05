@@ -1,12 +1,11 @@
 [package]
-name = "payload"
+name = "cbfs"
 version = "0.1.0"
 authors = ["Ryan O'Leary <ryan@ryanoleary.ca>"]
 edition = "2018"
 
 [lib]
-name = "payload"
-path = "payload.rs"
+name = "cbfs"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
