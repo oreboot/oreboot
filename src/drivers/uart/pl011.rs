@@ -51,7 +51,7 @@ impl PL011 {
 }
 
 impl driver::Driver for PL011 {
-    fn init(&self) {
+    fn init(&mut self) {
         // TODO: actually use the given baud rate
         // 115200
         unsafe {
@@ -63,25 +63,25 @@ impl driver::Driver for PL011 {
         //(*self.regs).LOW = 0xBF;
     }
 
-    fn read(&self, data: &mut [u8]) -> usize {
+    fn pread(&self, data: &mut [u8], _offset: usize) -> driver::Result<usize> {
         for c in data.iter_mut() {
             while unsafe { (*self.regs).UARTFR.is_set(UARTFR::RXFE) } {}
             *c = unsafe { (*self.regs).UARTDR.read(UARTDR::DATA) as u8 };
         }
-        data.len()
+        Ok(data.len())
     }
 
-    fn write(&self, data: &[u8]) -> usize {
+    fn pwrite(&mut self, data: &[u8], _offset: usize) -> driver::Result<usize> {
         for (i, &c) in data.iter().enumerate() {
             if !self.poll_status(UARTFR::TXFF, false) {
-                return i;
+                return Ok(i);
             }
             unsafe { (*self.regs).UARTDR.set(c as u32) };
         }
-        data.len()
+        Ok(data.len())
     }
 
-    fn close(&self) {
+    fn close(&mut self) {
         // flush the fifo
         self.poll_status(UARTFR::RXFF, false);
     }
