@@ -29,6 +29,9 @@ We are still trying to figure this out but:
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
+# Switch to nightly
+rustup default nightly
+
 # Install cargo-make
 cargo install cargo-make
 
