@@ -46,19 +46,15 @@ pub fn print_fdt(console: &mut driver::Driver) -> driver::Result<()> {
 
     for entry in device_tree::FdtReader::new(&spi)?.walk() {
         match entry {
-            Node{path: p} => {
-                fmt::write(&mut w, format_args!(
-                        "{:depth$}{}\r\n",
-                        "", p.name(), depth=p.depth()*2)).unwrap();
-            },
-            Property{path: p, value: v} => {
+            Node { path: p } => {
+                fmt::write(&mut w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
+            }
+            Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = device_tree::infer_type(&buf[..len]);
-                fmt::write(&mut w, format_args!(
-                        "{:depth$}{} = {}\r\n",
-                        "", p.name(), val, depth=p.depth()*2)).unwrap();
-            },
+                fmt::write(&mut w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
+            }
         }
     }
     Ok(())
