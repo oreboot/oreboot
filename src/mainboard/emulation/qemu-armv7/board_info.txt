@@ -1,3 +1,0 @@
-Board name: QEMU armv7 (vexpress-a9)
-Category: emulation
-Board URL: http://wiki.qemu.org/Main_Page
