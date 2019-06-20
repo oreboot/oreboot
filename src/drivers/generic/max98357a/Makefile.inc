@@ -1,1 +1,0 @@
-ramstage-$(CONFIG_DRIVERS_GENERIC_MAX98357A) += max98357a.c

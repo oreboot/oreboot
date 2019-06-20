@@ -1,1 +1,0 @@
-ramstage-$(CONFIG_DRIVERS_GENERIC_BH720) += bh720.c

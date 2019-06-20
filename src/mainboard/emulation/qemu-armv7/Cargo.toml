@@ -6,12 +6,14 @@ edition = "2018"
 
 [dependencies]
 console = { path = "../../../console" }
-driver = { path = "../../../drivers/driver"}
-uart = { path = "../../../drivers/uart"}
 cpu = { path = "../../../cpu/armltd/cortex-a9"}
 payload = { path = "../../../../payloads/payload"}
 zimage = { path = "../../../../payloads/external/zimage"}
 device_tree = { path = "../../../lib/device_tree" }
+
+[dependencies.drivers]
+path = "../../../../drivers"
+features = ["pl011"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

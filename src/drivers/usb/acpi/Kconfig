@@ -1,4 +1,0 @@
-config DRIVERS_USB_ACPI
-	bool
-	default n
-	depends on HAVE_ACPI_TABLES

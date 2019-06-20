@@ -1,4 +1,0 @@
-config VGA
-	bool
-	help
-	  Include legacy VGA support code.

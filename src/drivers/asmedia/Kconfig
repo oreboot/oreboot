@@ -1,2 +1,0 @@
-config DRIVERS_ASMEDIA_ASPM_BLACKLIST
-	bool

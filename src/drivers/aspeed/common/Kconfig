@@ -1,3 +1,0 @@
-config DRIVERS_ASPEED_AST_COMMON
-	bool
-	select VGA
