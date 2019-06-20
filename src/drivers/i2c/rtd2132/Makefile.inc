@@ -1,1 +1,0 @@
-ramstage-$(CONFIG_DRIVERS_I2C_RTD2132) += rtd2132.c

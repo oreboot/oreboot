@@ -1,11 +1,12 @@
 use core::fmt;
+use drivers::model::Driver;
 
 pub struct WriteTo<'a> {
-    drv: &'a mut driver::Driver,
+    drv: &'a mut Driver,
 }
 
 impl<'a> WriteTo<'a> {
-    pub fn new(drv: &'a mut driver::Driver) -> Self {
+    pub fn new(drv: &'a mut Driver) -> Self {
         WriteTo { drv: drv }
     }
 }

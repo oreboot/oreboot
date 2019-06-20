@@ -1,3 +1,4 @@
+src/mainboard/emulation/qemu-armv7/fixed-dtfs.dtb
 payloads/libpayload/install/
 payloads/nvramcui/build
 payloads/nvramcui/libpayload

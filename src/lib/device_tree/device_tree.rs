@@ -5,6 +5,8 @@ extern crate num_derive;
 
 use core::fmt;
 use byteorder::{BigEndian, ByteOrder};
+use drivers::model::{Driver, Result};
+use drivers::wrappers::SectionReader;
 
 const MAGIC: u32 = 0xd00dfeed;
 const MAX_DEPTH: usize = 16;
@@ -57,25 +59,25 @@ impl Path {
 }
 
 pub struct FdtReader<'a> {
-    _mem_reservation_block: driver::SectionReader<'a>,
-    struct_block: driver::SectionReader<'a>,
-    strings_block: driver::SectionReader<'a>,
+    _mem_reservation_block: SectionReader<'a>,
+    struct_block: SectionReader<'a>,
+    strings_block: SectionReader<'a>,
 }
 
-fn read_u32(drv: &driver::Driver, offset: usize) -> driver::Result<u32> {
+fn read_u32(drv: &Driver, offset: usize) -> Result<u32> {
     let mut data = [0; 4];
     drv.pread(&mut data, offset)?;
     Ok(BigEndian::read_u32(&data))
 }
 
-fn cursor_u32(drv: &driver::Driver, cursor: &mut usize) -> driver::Result<u32> {
+fn cursor_u32(drv: &Driver, cursor: &mut usize) -> Result<u32> {
     let mut data = [0; 4];
     *cursor += drv.pread(&mut data, *cursor)?;
     Ok(BigEndian::read_u32(&data))
 }
 
 // Reads a string (including null-terminator). Returns bytes read.
-fn cursor_string(drv: &driver::Driver, cursor: &mut usize, buf: &mut [u8]) -> driver::Result<usize> {
+fn cursor_string(drv: &Driver, cursor: &mut usize, buf: &mut [u8]) -> Result<usize> {
     for i in 0..buf.len() {
         *cursor += drv.pread(&mut buf[i..i + 1], *cursor)?;
         if buf[i] == 0 {
@@ -92,7 +94,7 @@ fn align4(x: usize) -> usize {
 /// In-memory device tree traversal.
 /// Does not perform any sanity checks.
 impl<'a> FdtReader<'a> {
-    pub fn new(drv: &'a driver::Driver) -> driver::Result<FdtReader<'a>> {
+    pub fn new(drv: &'a Driver) -> Result<FdtReader<'a>> {
         let header = FdtHeader {
             magic: read_u32(drv, 0x0)?,
             total_size: read_u32(drv, 0x4)?,
@@ -111,13 +113,13 @@ impl<'a> FdtReader<'a> {
         }
 
         Ok(FdtReader::<'a> {
-            _mem_reservation_block: driver::SectionReader::new(
+            _mem_reservation_block: SectionReader::new(
                 drv, header.off_mem_rsvmap as usize,
                 (header.total_size - header.off_dt_struct) as usize),
-            struct_block: driver::SectionReader::new(
+            struct_block: SectionReader::new(
                 drv, header.off_dt_struct as usize,
                 header.size_dt_struct as usize),
-            strings_block: driver::SectionReader::new(
+            strings_block: SectionReader::new(
                 drv, header.off_dt_strings as usize,
                 header.size_dt_strings as usize),
         })
@@ -173,7 +175,7 @@ impl<'a> Iterator for FdtIterator<'a> {
                     let mut nameoff = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
                     self.len_buf[self.depth] = cursor_string(
                         &self.dt.strings_block, &mut nameoff, &mut self.path_buf[self.depth][..]).unwrap() as usize;
-                    let value = driver::SectionReader::new(&self.dt.struct_block, self.cursor, len);
+                    let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     return Some(Entry::Property::<'a> {
                         path: Path{depth: self.depth+1, len: self.len_buf, buf: self.path_buf},
@@ -194,7 +196,7 @@ pub enum Entry<'a> {
     },
     Property {
         path: Path,
-        value: driver::SectionReader<'a>,
+        value: SectionReader<'a>,
     },
 }
 

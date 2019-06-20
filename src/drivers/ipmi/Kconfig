@@ -1,3 +1,0 @@
-config IPMI_KCS
-	bool
-	default n

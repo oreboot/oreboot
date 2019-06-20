@@ -9,16 +9,18 @@ mod romstage;
 use core::fmt;
 
 use device_tree::Entry::{Node, Property};
-use driver::Driver;
+use drivers::model::{Driver, Result};
+use drivers::uart;
+use drivers::wrappers::{DoD, SliceReader};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let mut pl011 = pl011::PL011::new(0x09000000, 115200);
-    let uart_driver: &mut driver::Driver = &mut pl011;
+    let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
+    let uart_driver: &mut Driver = &mut pl011;
     uart_driver.init();
     uart_driver.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     let s = &mut [uart_driver];
-    let console = &mut driver::DoD::new(s);
+    let console = &mut DoD::new(s);
 
     if let Err(err) = print_fdt(console) {
         let mut w = print::WriteTo::new(console);
@@ -40,9 +42,9 @@ pub extern "C" fn _start() -> ! {
 }
 use core::panic::PanicInfo;
 
-pub fn print_fdt(console: &mut driver::Driver) -> driver::Result<()> {
+pub fn print_fdt(console: &mut Driver) -> Result<()> {
     let mut w = print::WriteTo::new(console);
-    let spi = driver::SliceReader::new(zimage::DTB);
+    let spi = SliceReader::new(zimage::DTB);
 
     for entry in device_tree::FdtReader::new(&spi)?.walk() {
         match entry {

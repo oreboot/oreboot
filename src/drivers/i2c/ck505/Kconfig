@@ -1,2 +1,0 @@
-config DRIVERS_I2C_CK505
-	bool

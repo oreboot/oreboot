@@ -1,2 +1,0 @@
-config DRIVERS_I2C_WW_RING
-	bool

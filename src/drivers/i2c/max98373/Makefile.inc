@@ -1,1 +1,0 @@
-ramstage-$(CONFIG_DRIVERS_I2C_MAX98373) += max98373.c
