@@ -45,7 +45,7 @@ _vector_table:
 
 _asm_start:
     // TODO: initialize the stack to something better
-    ldr sp, =0x40100000
+    ldr sp, =0x1E73FFF0
 	/*
 	 * set the cpu to SVC32 mode
 	 */
