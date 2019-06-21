@@ -29,14 +29,18 @@ We are still trying to figure this out but:
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
-# Use the nightly channel
-rustup default nightly
+# Run this in the oreboot project directory. This uses the nightly rust
+# compiler for the oreboot directory.
+rustup override set nightly
 
 # Install cargo-make
 cargo install cargo-make
 
 # Ocassionally run:
 rustup update
+
+# Install gcc for objdump and objcopy.
+sudo apt-get install gcc-arm-none-eabi
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
@@ -53,6 +57,7 @@ QEMU
 ----
 
 ```
+sudo apt-get install qemu-system-arm
 RUST_TARGET_PATH=$(pwd) cargo make run -p release
 
 # Quit qemu with CTRL-A X
