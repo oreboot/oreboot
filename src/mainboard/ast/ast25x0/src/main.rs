@@ -12,17 +12,21 @@ use crate::romstage::asmram;
 
 use device_tree::Entry::{Node, Property};
 use drivers::model::{Driver, Result};
-use drivers::uart;
+use drivers::uart::pl011::PL011;
 use drivers::wrappers::{DoD, SliceReader};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
-    let uart_driver: &mut Driver = &mut pl011;
-    uart_driver.init();
-    uart_driver.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-    let s = &mut [uart_driver];
-    let console = &mut DoD::new(s);
+    let mut uarts = [
+        &mut PL011::new(0x1E78_3000, 115200) as &mut Driver,
+        // TODO: PL011::new(0x1E78_D000, 115200),
+        // TODO: PL011::new(0x1E78_E000, 115200),
+        // TODO: PL011::new(0x1E78_F000, 115200),
+        // TODO: PL011::new(0x1E78_4000, 115200),
+    ];
+    let console = &mut DoD::new(&mut uarts[..]);
+    console.init();
+    console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     cpu::init();
     let w = &mut print::WriteTo::new(console);
