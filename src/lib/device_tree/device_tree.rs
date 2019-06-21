@@ -64,20 +64,20 @@ pub struct FdtReader<'a> {
     strings_block: SectionReader<'a>,
 }
 
-fn read_u32(drv: &Driver, offset: usize) -> Result<u32> {
+fn read_u32(drv: &dyn Driver, offset: usize) -> Result<u32> {
     let mut data = [0; 4];
     drv.pread(&mut data, offset)?;
     Ok(BigEndian::read_u32(&data))
 }
 
-fn cursor_u32(drv: &Driver, cursor: &mut usize) -> Result<u32> {
+fn cursor_u32(drv: &dyn Driver, cursor: &mut usize) -> Result<u32> {
     let mut data = [0; 4];
     *cursor += drv.pread(&mut data, *cursor)?;
     Ok(BigEndian::read_u32(&data))
 }
 
 // Reads a string (including null-terminator). Returns bytes read.
-fn cursor_string(drv: &Driver, cursor: &mut usize, buf: &mut [u8]) -> Result<usize> {
+fn cursor_string(drv: &dyn Driver, cursor: &mut usize, buf: &mut [u8]) -> Result<usize> {
     for i in 0..buf.len() {
         *cursor += drv.pread(&mut buf[i..i + 1], *cursor)?;
         if buf[i] == 0 {
@@ -94,7 +94,7 @@ fn align4(x: usize) -> usize {
 /// In-memory device tree traversal.
 /// Does not perform any sanity checks.
 impl<'a> FdtReader<'a> {
-    pub fn new(drv: &'a Driver) -> Result<FdtReader<'a>> {
+    pub fn new(drv: &'a dyn Driver) -> Result<FdtReader<'a>> {
         let header = FdtHeader {
             magic: read_u32(drv, 0x0)?,
             total_size: read_u32(drv, 0x4)?,

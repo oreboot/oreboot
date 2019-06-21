@@ -42,7 +42,7 @@ pub extern "C" fn _start() -> ! {
 }
 use core::panic::PanicInfo;
 
-pub fn print_fdt(console: &mut Driver) -> Result<()> {
+pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
     let mut w = print::WriteTo::new(console);
     let spi = SliceReader::new(zimage::DTB);
 
