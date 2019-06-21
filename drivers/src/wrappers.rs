@@ -4,11 +4,11 @@ use core::slice::{from_raw_parts, from_raw_parts_mut};
 use crate::model::*;
 
 pub struct DoD<'a> {
-    drivers: &'a mut [&'a mut Driver],
+    drivers: &'a mut [&'a mut dyn Driver],
 }
 
 impl<'a> DoD<'a> {
-    pub fn new(drivers: &'a mut [&'a mut Driver]) -> DoD<'a> {
+    pub fn new(drivers: &'a mut [&'a mut dyn Driver]) -> DoD<'a> {
         DoD { drivers }
     }
 }
@@ -87,13 +87,13 @@ impl<'a> Driver for SliceReader<'a> {
 
 /// The driver reads from a section (offset+size) of another driver.
 pub struct SectionReader<'a> {
-    driver: &'a Driver,
+    driver: &'a dyn Driver,
     offset: usize,
     size: usize,
 }
 
 impl<'a> SectionReader<'a> {
-    pub fn new(driver: &'a Driver, offset: usize, size: usize) -> SectionReader {
+    pub fn new(driver: &'a dyn Driver, offset: usize, size: usize) -> SectionReader {
         SectionReader { driver, offset, size }
     }
 }
