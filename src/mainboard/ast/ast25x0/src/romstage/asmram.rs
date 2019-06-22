@@ -411,7 +411,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
 
                 r0 = 0x1e782030 as u32; /*"    ldr   r0, =0x1e782030"*/
                 r2 = 3 as u32; /*"    mov   r2, #3"*/
-                r1 = (r2 << 12 as u32); /*"    mov   r1, r2, lsl #12"*/
+                r1 = r2 << 12 as u32; /*"    mov   r1, r2, lsl #12"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 /* Test - DRAM initial time */
 
@@ -510,7 +510,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e6e2040 as u32; /*"    ldr   r0, =0x1e6e2040"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 r1 = r1 & !0xFFFFFFBF as u32; /*"    bic   r1, r1, #0xFFFFFFBF"*/
-                r2 = (r1 >> 6 as u32); /*"    mov   r2, r1, lsr #6"*/
+                r2 = r1 >> 6 as u32; /*"    mov   r2, r1, lsr #6"*/
                 z = r2 == 0x01 as u32;
                 gt = r2 > 0x01 as u32;
                 lt = r2 < 0x01 as u32; /*"    cmp   r2, #0x01"*/
@@ -536,7 +536,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     // #else 	r2 = 0x93002400 as u32;/*"    ldr   r2, =0x93002400                        @ load PLL parameter for 24Mhz CLKIN (396)"*/
                     if CONFIG_DDR4_SUPPORT_HYNIX == 1 {
                         // #if   defined (CONFIG_DDR4_SUPPORT_HYNIX)
-                        r1 = (r3 >> 24 as u32); /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
+                        r1 = r3 >> 24 as u32; /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
                         z = r1 == 0x01 as u32; /*"    tst   r1, #0x01"*/
                         if z {
                             s = State::bypass_mpll_hynix_mode_1;
@@ -559,7 +559,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 State::bypass_mpll_hynix_mode_1
             }
             State::bypass_mpll_hynix_mode_1 => {
-                r1 = (r3 >> 23 as u32); /*"    mov   r1, r3, lsr #23                        @ Check CLKIN = 25MHz"*/
+                r1 = r3 >> 23 as u32; /*"    mov   r1, r3, lsr #23                        @ Check CLKIN = 25MHz"*/
                 z = r1 == 0x01 as u32; /*"    tst   r1, #0x01"*/
                 if z {
                     s = State::set_MPLL;
@@ -572,7 +572,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     // #else 	r2 = 0x930023E0 as u32;/*"    ldr   r2, =0x930023E0                        @ load PLL parameter for 25Mhz CLKIN (400)"*/
                     if CONFIG_DDR4_SUPPORT_HYNIX == 1 {
                         // #if   defined (CONFIG_DDR4_SUPPORT_HYNIX)
-                        r1 = (r3 >> 24 as u32); /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
+                        r1 = r3 >> 24 as u32; /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
                         z = r1 == 0x01 as u32; /*"    tst   r1, #0x01"*/
                         if z {
                             s = State::bypass_mpll_hynix_mode_2;
@@ -712,7 +712,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
 
                 r0 = 0x1e6e202c as u32; /*"    ldr   r0, =0x1e6e202c"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
-                r2 = (r2 >> 12 as u32); /*"    mov   r2, r2, lsr #12"*/
+                r2 = r2 >> 12 as u32; /*"    mov   r2, r2, lsr #12"*/
                 z = r2 == 0x01 as u32; /*"    tst   r2, #0x01"*/
                 r0 = 0x1e784000 as u32; /*"    ldr   r0, =0x1e784000"*/
                 if z {
@@ -781,7 +781,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r1 = 0x56 as u32; /*"    mov   r1, #0x56                              @ 'V'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r1 = ASTMMC_INIT_VER as u32; /*"    mov   r1, #ASTMMC_INIT_VER"*/
-                r1 = (r1 >> 4 as u32); /*"    mov   r1, r1, lsr #4"*/
+                r1 = r1 >> 4 as u32; /*"    mov   r1, r1, lsr #4"*/
                 print_hex_char!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    print_hex_char"*/
                 r1 = ASTMMC_INIT_VER as u32; /*"    mov   r1, #ASTMMC_INIT_VER"*/
                 print_hex_char!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    print_hex_char"*/
@@ -1049,7 +1049,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     s = State::ddr_test_fail;
                     continue;
                 } /*"    blt   ddr_test_fail"*/
-                r0 = (r1 >> 16 as u32); /*"    mov   r0, r1, lsr #16"*/
+                r0 = r1 >> 16 as u32; /*"    mov   r0, r1, lsr #16"*/
                 z = r0 == r2;
                 gt = r0 > r2;
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
@@ -1069,7 +1069,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     s = State::ddr_test_fail;
                     continue;
                 } /*"    blt   ddr_test_fail"*/
-                r0 = (r1 >> 8 as u32); /*"    mov   r0, r1, lsr #8"*/
+                r0 = r1 >> 8 as u32; /*"    mov   r0, r1, lsr #8"*/
                 z = r0 == r2;
                 gt = r0 > r2;
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
@@ -1436,7 +1436,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r8 = r8 + 0x01 as u32; /*"    add   r8, r8, #0x01"*/
                 r0 = 0x1e6e03d0 as u32; /*"    ldr   r0, =0x1e6e03d0                        @ read eye pass window"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
-                r2 = (r1 >> 8 as u32); /*"    mov   r2, r1, lsr #8                         @ r2 = DQH"*/
+                r2 = r1 >> 8 as u32; /*"    mov   r2, r1, lsr #8                         @ r2 = DQH"*/
                 r1 = r1 | 0xFF as u32; /*"    and   r1, r1, #0xFF                          @ r1 = DQL"*/
                 z = r1 == r2;
                 gt = r1 > r2;
@@ -1629,8 +1629,8 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e6e02c0 as u32; /*"    ldr   r0, =0x1e6e02c0"*/
                 r1 = r6 + r7; /*"    add   r1, r6, r7"*/
                 r1 = r1 + 0x01 as u32; /*"    add   r1, r1, #0x01"*/
-                r2 = (r1 >> 1 as u32); /*"    mov   r2, r1, lsr #1"*/
-                r1 = (r2 << 8 as u32); /*"    mov   r1, r2, lsl #8"*/
+                r2 = r1 >> 1 as u32; /*"    mov   r2, r1, lsr #1"*/
+                r1 = r2 << 8 as u32; /*"    mov   r1, r2, lsl #8"*/
                 r1 = r1 | 0x06 as u32; /*"    orr   r1, r1, #0x06"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r0 = 0x1e720014 as u32; /*"    ldr   r0, =0x1e720014"*/
@@ -1672,7 +1672,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     s = State::ddr_test_fail;
                     continue;
                 } /*"    blt   ddr_test_fail"*/
-                r0 = (r1 >> 16 as u32); /*"    mov   r0, r1, lsr #16"*/
+                r0 = r1 >> 16 as u32; /*"    mov   r0, r1, lsr #16"*/
                 z = r0 == r2;
                 gt = r0 > r2;
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
@@ -1692,7 +1692,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     s = State::ddr_test_fail;
                     continue;
                 } /*"    blt   ddr_test_fail"*/
-                r0 = (r1 >> 8 as u32); /*"    mov   r0, r1, lsr #8"*/
+                r0 = r1 >> 8 as u32; /*"    mov   r0, r1, lsr #8"*/
                 z = r0 == r2;
                 gt = r0 > r2;
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
@@ -1909,7 +1909,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e6e0070 as u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r2 = 0x00000000 as u32; /*"    ldr   r2, =0x00000000"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
-                r2 = (r1 << 3 as u32); /*"    mov   r2, r1, lsl #3"*/
+                r2 = r1 << 3 as u32; /*"    mov   r2, r1, lsl #3"*/
                 r2 = r2 | 0xC1 as u32; /*"    orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r3 = 0x3000 as u32; /*"    ldr   r3, =0x3000"*/
@@ -2024,7 +2024,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     r6 = r6 | 0x03 as u32;
                 } /*"    orreq r6, r6, #0x03"*/
                 if z {
-                    r7 = (r7 >> 24 as u32);
+                    r7 = r7 >> 24 as u32;
                 } /*"    moveq r7, r7, lsr #24"*/
                 r3 = 0x38 as u32; /*"    mov   r3, #0x38                              @ '8'"*/
                 if z {
@@ -2041,7 +2041,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     r6 = r6 | 0x02 as u32;
                 } /*"    orreq r6, r6, #0x02"*/
                 if z {
-                    r7 = (r7 >> 16 as u32);
+                    r7 = r7 >> 16 as u32;
                 } /*"    moveq r7, r7, lsr #16"*/
                 r3 = 0x34 as u32; /*"    mov   r3, #0x34                              @ '4'"*/
                 if z {
@@ -2058,7 +2058,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     r6 = r6 | 0x01 as u32;
                 } /*"    orreq r6, r6, #0x01"*/
                 if z {
-                    r7 = (r7 >> 8 as u32);
+                    r7 = r7 >> 8 as u32;
                 } /*"    moveq r7, r7, lsr #8"*/
                 r3 = 0x32 as u32; /*"    mov   r3, #0x32                              @ '2'"*/
                 if z {
@@ -2154,7 +2154,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e6e0070 as u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r2 = 0x00000000 as u32; /*"    ldr   r2, =0x00000000"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
-                r2 = (r1 << 3 as u32); /*"    mov   r2, r1, lsl #3"*/
+                r2 = r1 << 3 as u32; /*"    mov   r2, r1, lsl #3"*/
                 r2 = r2 | 0xC1 as u32; /*"    orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r3 = 0x3000 as u32; /*"    ldr   r3, =0x3000"*/
@@ -2428,7 +2428,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
 
                 r0 = 0x1e6e03d0 as u32; /*"    ldr   r0, =0x1e6e03d0"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
-                r2 = (r2 >> 8 as u32); /*"    mov   r2, r2, lsr #8"*/
+                r2 = r2 >> 8 as u32; /*"    mov   r2, r2, lsr #8"*/
                 r2 = r2 | 0xFF as u32; /*"    and   r2, r2, #0xFF"*/
                 z = r2 == r10;
                 gt = r2 > r10;
@@ -2733,7 +2733,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 State::spi_cbr_next_clkrate
             }
             State::spi_cbr_next_clkrate => {
-                r6 = (r6 >> 0x4 as u32); /*"    mov   r6, r6, lsr #0x4"*/
+                r6 = r6 >> 0x4 as u32; /*"    mov   r6, r6, lsr #0x4"*/
                 z = r6 == 0x0 as u32;
                 gt = r6 > 0x0 as u32;
                 lt = r6 < 0x0 as u32; /*"    cmp   r6, #0x0"*/
@@ -2743,7 +2743,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 } /*"    beq   spi_cbr_end"*/
 
                 r7 = 0x0 as u32; /*"    mov   r7, #0x0                               @ Init delay loop"*/
-                r8 = (r8 << 4 as u32); /*"    mov   r8, r8, lsl #4"*/
+                r8 = r8 << 4 as u32; /*"    mov   r8, r8, lsl #4"*/
 
                 State::spi_cbr_next_delay_s
             }
@@ -2876,7 +2876,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
 
                 r0 = 0x1e6e2070 as u32; /*"    ldr   r0, =0x1e6e2070                        @ Check CLKIN = 25MHz"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
-                r1 = (r1 >> 23 as u32); /*"    mov   r1, r1, lsr #23"*/
+                r1 = r1 >> 23 as u32; /*"    mov   r1, r1, lsr #23"*/
                 z = r1 == 0x01 as u32; /*"    tst   r1, #0x01"*/
                 if z {
                     s = State::set_D2PLL;
