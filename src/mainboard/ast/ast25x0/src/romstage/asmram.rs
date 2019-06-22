@@ -14,6 +14,9 @@ pub mod ram;
 use core::ptr;
 use core::fmt;
 use crate::print;
+
+const UART5DR: u32 = 0x1E78_4000;
+
 // u-bmc modified
 // Setting lifted from ast-g5-phy.h from OpenBMC u-boot
 const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
@@ -122,7 +125,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
     let mut z = false;
     let mut gt;
     let mut lt;
-    let mut s = State::init_dram;
+    let mut s = State::uartSETUP;
     fmt::write(w, format_args!("hi\n")).expect("oh no");
     loop {
         s = match s {
@@ -130,6 +133,18 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 fmt::write(w, format_args!("DRAM done\n")).expect("oh no");
                 break;
 
+                State::init_dram
+            }
+            State::uartSETUP => {
+                // Put only the bare minimum code here needed for uart5.
+                // There shall be no magic numbers.
+                //
+                // let's see if it worked ...
+                loop {
+                r0 = UART5DR; /*"    ldr   r0, =0x1e784000"*/
+                r1 = 'O' as u32; 
+                poke(r1, r0); /*"    str   r1, [r0]"*/
+                }
                 State::init_dram
             }
             State::init_dram => {
@@ -3050,5 +3065,6 @@ enum State {
     spi_cbr_next_delay_e = 84,
     spi_cbr_end = 85,
     set_D2PLL = 86,
+    uartSETUP,
     Exit,
 }
