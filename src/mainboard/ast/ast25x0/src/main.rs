@@ -18,11 +18,12 @@ use drivers::wrappers::{DoD, SliceReader};
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     let mut uarts = [
-        &mut PL011::new(0x1E78_3000, 115200) as &mut Driver,
+        // Only Uart5 is connected.
+        // TODO: PL011::new(0x1E78_3000, 115200),
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        // TODO: PL011::new(0x1E78_4000, 115200),
+        &mut PL011::new(0x1E78_4000, 115200) as &mut Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
