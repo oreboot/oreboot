@@ -28,4 +28,4 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["default"]
 command = "qemu-system-arm"
-args = ["-machine", "virt", "-bios", "${TARGET_DIR}/oreboot.bin", "-nographic"]
+args = ["-machine", "virt", "-bios", "${TARGET_DIR}/oreboot.bin", "-nographic", "-m", "1024M"]
