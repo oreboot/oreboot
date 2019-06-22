@@ -10,7 +10,7 @@ macro_rules! init_delay_timer {
 
         $r0 = 0x1e782030u32; /*"    ldr   $r0, =0x1e782030                        @ Enable Time$r3"*/
         $r2 = 7u32; /*"    mov   $r2, #7"*/
-        $r1 = ($r2 << 8u32); /*"    mov   $r1, $r2, lsl #8"*/
+        $r1 = $r2 << 8u32; /*"    mov   $r1, $r2, lsl #8"*/
         poke($r1, $r0); /*"    str   $r1, [$r0]"*/
 
         $r0 = 0x1e6c0090u32; /*"    ldr   $r0, =0x1e6c0090                        @ Check ISR for Time$r3 timeout"*/
@@ -22,10 +22,8 @@ macro_rules! check_delay_timer {
         /*"    .macro check_delay_timer"*/
         $r1 = peek($r0); /*"    ldr   $r1, [$r0]"*/
         $r1 = $r1 & !0xFFFBFFFFu32; /*"    bic   $r1, $r1, #0xFFFBFFFF"*/
-        $r2 = ($r1 >> 18u32); /*"    mov   $r2, $r1, lsr #18"*/
+        $r2 = $r1 >> 18u32; /*"    mov   $r2, $r1, lsr #18"*/
         $z = $r2 == 0x01u32;
-        $gt = $r2 > 0x01u32;
-        $lt = $r2 < 0x01u32; /*"    cmp   $r2, #0x01"*/
     };
 } /*"    .endm"*/
 
@@ -34,7 +32,7 @@ macro_rules! clear_delay_timer {
         /*"    .macro clear_delay_timer"*/
         $r0 = 0x1e78203Cu32; /*"    ldr   $r0, =0x1e78203C                        @ Disable Time$r3"*/
         $r2 = 0xFu32; /*"    mov   $r2, #0xF"*/
-        $r1 = ($r2 << 8u32); /*"    mov   $r1, $r2, lsl #8"*/
+        $r1 = $r2 << 8u32; /*"    mov   $r1, $r2, lsl #8"*/
         poke($r1, $r0); /*"    str   $r1, [$r0]"*/
 
         $r0 = 0x1e6c0038u32; /*"    ldr   $r0, =0x1e6c0038                        @ Clear Time$r3 ISR"*/
