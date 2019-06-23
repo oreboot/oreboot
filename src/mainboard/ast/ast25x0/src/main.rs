@@ -23,7 +23,7 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut PL011::new(0x1E78_4000, 115200) as &mut Driver,
+        &mut PL011::new(0x1E78_4000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
@@ -37,7 +37,7 @@ pub extern "C" fn _start() -> ! {
 }
 use core::panic::PanicInfo;
 
-pub fn print_fdt(console: &mut Driver) -> Result<()> {
+pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
     let mut w = print::WriteTo::new(console);
     let spi = SliceReader::new(zimage::DTB);
 
