@@ -11,9 +11,9 @@
 pub mod ramtable;
 #[macro_use]
 pub mod ram;
-use core::ptr;
-use core::fmt;
 use crate::print;
+use core::fmt;
+use core::ptr;
 use soc::aspeed::ast2500;
 
 const UART5DR: u32 = 0x1E78_4000;
@@ -138,18 +138,16 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             }
             // This will be duplicative of init_dram for now. All we're trying to do
             // first is get some kinda serial output on power on. Nothing more.
-            State::PowerOn => {
-                State::uartSETUP
-            }
+            State::PowerOn => State::uartSETUP,
             State::uartSETUP => {
                 // Put only the bare minimum code here needed for uart5.
                 // There shall be no magic numbers.
                 //
                 // let's see if it worked ...
                 loop {
-                r0 = UART5DR; /*"    ldr   r0, =0x1e784000"*/
-                r1 = 'O' as u32; 
-                poke(r1, r0); /*"    str   r1, [r0]"*/
+                    r0 = UART5DR; /*"    ldr   r0, =0x1e784000"*/
+                    r1 = 'O' as u32;
+                    poke(r1, r0); /*"    str   r1, [r0]"*/
                 }
                 State::init_dram
             }
@@ -187,7 +185,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e785010 as u32; /*"    ldr   r0, =0x1e785010"*/
                 r3 = peek(r0); /*"    ldr   r3, [r0]"*/
                 z = r3 == 0x0 as u32;
-
 
                 if z {
                     s = State::start_first_reset;
@@ -249,19 +246,26 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     r0 = 0x1e78701c as u32; /*"    ldr   r0, =0x1e78701c"*/
                     poke(r2, r0); /*"    str   r2, [r0]"*/
                     r0 = 0x1e787014 as u32; /*"    ldr   r0, =0x1e787014                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e787018 as u32; /*"    ldr   r0, =0x1e787018                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e787008 as u32; /*"    ldr   r0, =0x1e787008                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78301c as u32; /*"    ldr   r0, =0x1e78301c                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78d01c as u32; /*"    ldr   r0, =0x1e78d01c                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78e01c as u32; /*"    ldr   r0, =0x1e78e01c                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78f01c as u32; /*"    ldr   r0, =0x1e78f01c                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e788020 as u32; /*"    ldr   r0, =0x1e788020"*/
                     poke(r2, r0); /*"    str   r2, [r0]"*/
                     r0 = 0x1e788034 as u32; /*"    ldr   r0, =0x1e788034"*/
@@ -274,15 +278,20 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     r1 = 0x40 as u32; /*"    mov   r1, #0x40"*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
                     r0 = 0x1e789024 as u32; /*"    ldr   r0, =0x1e789024                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e789028 as u32; /*"    ldr   r0, =0x1e789028                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78902c as u32; /*"    ldr   r0, =0x1e78902c                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e789114 as u32; /*"    ldr   r0, =0x1e789114                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e789124 as u32; /*"    ldr   r0, =0x1e789124                        @ read clear"*/
-                    /*r1 = */peek(r0); /*"    ldr   r1, [r0]"*/
+                    /*r1 = */
+                    peek(r0); /*"    ldr   r1, [r0]"*/
                     r0 = 0x1e78903c as u32; /*"    ldr   r0, =0x1e78903c"*/
                     poke(r2, r0); /*"    str   r2, [r0]"*/
                     r0 = 0x1e789040 as u32; /*"    ldr   r0, =0x1e789040"*/
@@ -534,7 +543,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r2 = r1 >> 6 as u32; /*"    mov   r2, r1, lsr #6"*/
                 z = r2 == 0x01 as u32;
 
-
                 if z {
                     s = State::platform_exit;
                     continue;
@@ -688,7 +696,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == 0x1 as u32;
-
 
                 if !z {
                     s = State::wait_mmc_reset_done;
@@ -1417,7 +1424,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r10 = r10 + 0x01 as u32; /*"    add   r10, r10, #0x01"*/
                 z = r10 == 0x80 as u32;
 
-
                 if z {
                     s = State::ddr4_vref_phy_test_fail;
                     continue;
@@ -1448,7 +1454,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = r0 + r10; /*"    add   r0, r0, r10, lsl #2"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 z = r9 == 0x01 as u32;
-
 
                 if !z {
                     s = State::ddr4_vref_phy_test_fail;
@@ -1482,13 +1487,11 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             State::ddr4_vref_phy_test_fail => {
                 z = r8 == 0x0 as u32;
 
-
                 if !z {
                     s = State::ddr4_vref_phy_loop_end;
                     continue;
                 } /*"    bne   ddr4_vref_phy_loop_end"*/
                 z = r10 == 0x80 as u32;
-
 
                 if z {
                     s = State::ddr4_vref_phy_cal_start;
@@ -1564,7 +1567,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r10 = r10 + 0x01 as u32; /*"    add   r10, r10, #0x01"*/
                 z = r10 == 0x40 as u32;
 
-
                 if z {
                     s = State::ddr4_vref_ddr_test_fail;
                     continue;
@@ -1592,7 +1594,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             State::ddr4_vref_ddr_cbrtest_done => {
                 z = r9 == 0x01 as u32;
 
-
                 if !z {
                     s = State::ddr4_vref_ddr_test_fail;
                     continue;
@@ -1618,13 +1619,11 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             State::ddr4_vref_ddr_test_fail => {
                 z = r8 == 0x0 as u32;
 
-
                 if !z {
                     s = State::ddr4_vref_ddr_loop_end;
                     continue;
                 } /*"    bne   ddr4_vref_ddr_loop_end"*/
                 z = r10 == 0x40 as u32;
-
 
                 if z {
                     s = State::ddr4_vref_ddr_cal_start;
@@ -1838,20 +1837,17 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0 as u32;
 
-
                 if z {
                     s = State::ddr3_phyinit_done;
                     continue;
                 } /*"    beq   ddr3_phyinit_done"*/
                 z = r1 == 1 as u32;
 
-
                 if z {
                     s = State::ddr4_vref_phy_phyinit_done;
                     continue;
                 } /*"    beq   ddr4_vref_phy_phyinit_done"*/
                 z = r1 == 2 as u32;
-
 
                 if z {
                     s = State::ddr4_vref_ddr_phyinit_done;
@@ -1860,7 +1856,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 if ASTMMC_DDR4_MANUAL_RPU == 1 {
                     // #ifdef ASTMMC_DDR4_MANUAL_RPU
                     z = r1 == 4 as u32;
-
 
                     if z {
                         s = State::ddr4_ron_phyinit_done;
@@ -1962,7 +1957,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r1 = r1 + 1 as u32; /*"    add   r1, r1, #1                             @ increase the test mode index"*/
                 z = r1 == 0x04 as u32;
 
-
                 if !z {
                     s = State::cbr_test_burst_loop;
                     continue;
@@ -1992,7 +1986,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r0 = 0x1e6e0120 as u32; /*"    ldr   r0, =0x1e6e0120"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 1 as u32;
-
 
                 if z {
                     s = State::ddr4_vref_phy_cbrtest_done;
@@ -2040,7 +2033,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r1;
 
-
                 if z {
                     r6 = r6 | 0x03 as u32;
                 } /*"    orreq r6, r6, #0x03"*/
@@ -2057,7 +2049,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r1;
 
-
                 if z {
                     r6 = r6 | 0x02 as u32;
                 } /*"    orreq r6, r6, #0x02"*/
@@ -2073,7 +2064,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r1 = 0x292A2B2C as u32; /*"    ldr   r1, =0x292A2B2C"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r1;
-
 
                 if z {
                     r6 = r6 | 0x01 as u32;
@@ -2206,7 +2196,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
 
                 r1 = r1 + 1 as u32; /*"    add   r1, r1, #1                             @ increase the test mode index"*/
                 z = r1 == 0x01 as u32;
-
 
                 if !z {
                     s = State::ddr_test_burst_loop;
@@ -2416,7 +2405,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 } /*"    beq   print_DQH_eye_margin"*/
                 z = r2 == 0x0 as u32;
 
-
                 if z {
                     s = State::print_DQH_eye_margin;
                     continue;
@@ -2512,7 +2500,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 } /*"    beq   print_DQ_eye_margin_last"*/
                 z = r2 == 0x0 as u32;
 
-
                 if z {
                     s = State::print_DQ_eye_margin_last;
                     continue;
@@ -2575,7 +2562,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 z = r9 == 0 as u32;
-
 
                 if z {
                     s = State::print_DQ_margin_last;
@@ -2757,7 +2743,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r6 = r6 >> 0x4 as u32; /*"    mov   r6, r6, lsr #0x4"*/
                 z = r6 == 0x0 as u32;
 
-
                 if z {
                     s = State::spi_cbr_end;
                     continue;
@@ -2787,7 +2772,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 z = r2 == r5;
 
-
                 if !z {
                     s = State::spi_cbr_next_delay_e;
                     continue;
@@ -2810,7 +2794,6 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 r1 = 0x0 as u32; /*"    mov   r1, #0x0"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 z = r2 == r5;
-
 
                 if !z {
                     s = State::spi_cbr_next_delay_e;
