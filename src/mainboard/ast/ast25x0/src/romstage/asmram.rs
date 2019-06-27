@@ -14,6 +14,7 @@ pub mod ram;
 use core::ptr;
 use core::fmt;
 use crate::print;
+use soc::aspeed::ast2500;
 
 const UART5DR: u32 = 0x1E78_4000;
 
@@ -125,7 +126,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
     let mut z = false;
     let mut gt;
     let mut lt;
-    let mut s = State::uartSETUP;
+    let mut s = State::PowerOn;
     fmt::write(w, format_args!("hi\n")).expect("oh no");
     loop {
         s = match s {
@@ -134,6 +135,11 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 break;
 
                 State::init_dram
+            }
+            // This will be duplicative of init_dram for now. All we're trying to do
+            // first is get some kinda serial output on power on. Nothing more.
+            State::PowerOn => {
+                State::uartSETUP
             }
             State::uartSETUP => {
                 // Put only the bare minimum code here needed for uart5.
@@ -187,6 +193,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     s = State::start_first_reset;
                     continue;
                 } /*"    beq   start_first_reset"*/
+                // The real question: what is this code? It's not first reset, not bypass first reset.
                 r0 = r0 + 0x04 as u32; /*"    add   r0, r0, #0x04"*/
                 r3 = 0x77 as u32; /*"    mov   r3, #0x77"*/
                 poke(r3, r0); /*"    str   r3, [r0]"*/
@@ -3066,5 +3073,6 @@ enum State {
     spi_cbr_end = 85,
     set_D2PLL = 86,
     uartSETUP,
+    PowerOn,
     Exit,
 }

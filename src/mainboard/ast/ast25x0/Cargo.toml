@@ -10,6 +10,7 @@ cpu = { path = "../../../cpu/armltd/cortex-a9"}
 payload = { path = "../../../../payloads/payload"}
 zimage = { path = "../../../../payloads/external/zimage"}
 device_tree = { path = "../../../lib/device_tree" }
+soc = { path = "../../../../soc" }
 register = "0.3.2"
 static-ref = "0.1.1"
 

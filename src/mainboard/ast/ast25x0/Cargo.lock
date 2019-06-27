@@ -14,6 +14,7 @@ dependencies = [
  "drivers 0.1.0",
  "payload 0.1.0",
  "register 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "soc 0.1.0",
  "static-ref 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "zimage 0.1.0",
 ]
@@ -100,6 +101,13 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "tock-registers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "soc"
+version = "0.1.0"
+dependencies = [
+ "register 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
