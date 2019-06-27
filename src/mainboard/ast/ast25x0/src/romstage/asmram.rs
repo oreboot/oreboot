@@ -84,20 +84,48 @@ const ASTMMC_REGIDX_RFC: u32 = 0x3C / 4;
 const ASTMMC_REGIDX_PLL: u32 = 0x40 / 4;
 const ASTMMC_INIT_RESET_MODE_FULL: u32 = 0x0;
 
-// We need to figure out the settings for these at some point.
+// From bluecmd:
 const CONFIG_DRAM_1333: u32 = 0;
+//Do not activate. I don't see any board that ever used that, and 1600 seems to be the default.
+
 const CONFIG_DRAM_ECC: u32 = 0;
+
 const CONFIG_DDR4_SUPPORT_HYNIX: u32 = 0;
+//Do not set, seems to be for Hynix only memory type. Possibly remove.
+
 const CONFIG_DDR4_HYNIX_SET_1536: u32 = 0;
+//Do not set, seems to be for Hynix only memory type. Possibly remove.
+
 const CONFIG_DDR4_HYNIX_SET_1488: u32 = 0;
+//Do not set, seems to be for Hynix only memory type. Possibly remove.
+
 const CONFIG_DRAM_UART_TO_UART1: u32 = 0;
+//Do not set. Set motherboard pin J118 and J119 to 2-3 to route to UART5.
+
 const CONFIG_DRAM_UART_38400: u32 = 0;
 const CONFIG_DRAM_UART_57600: u32 = 0;
+const CONFIG_DRAM_UART_115200: u32 = 1;
+//I recommend 57600 (or better yet: create a 115200 because it's 2019).
+//The reason 57600 was chosen was that the OCP Leopards have it, happy to move as much as possible to 115200.
+
 const CONFIG_DDR3_8GSTACK: u32 = 0;
+//I guess irrelevant as we're using DDR4.
+
 const CONFIG_DRAM_EXT_TEMP: u32 = 0;
+//Leave unset, don't see any other boards setting it and seems to be for higher temperature ranges.
+
 const CONFIG_DDR4_4GX8: u32 = 0;
+//Unsure, but I guess disable as I don't see any other users of this. This is the one I'm least sure about though.
+
 const ASTMMC_DDR4_MANUAL_RPD: u32 = 0;
 const ASTMMC_DDR4_MANUAL_RPU: u32 = 0;
+//Disable, which will leave it on auto it seems.
+
+// That will result in DDR4 @ 1600 MHz. However, if that does work you can try CONFIG_DDR4_SUPPORT_HYNIX = 1, that will configure the DDR4 to be Hynix and 1440 MHz.
+// The EVB also has Hynix DDR4 on it but it works fine with the defaults so not sure the Hynix overrides are that needed.
+
+// And finally, I would not set ECC - guessing it is not used as I cannot find any reference to it either on the memory chip or other users.
+// Some users set the ECC_SIZE but not activate the use of ECC.
 
 fn poke(a: u32, v: u32) -> () {
     let y = a as *mut u32;
