@@ -6,9 +6,9 @@
 
 mod print;
 mod romstage;
-use core::fmt;
-use crate::romstage::chain::chain;
 use crate::romstage::asmram;
+use crate::romstage::chain::chain;
+use core::fmt;
 
 use device_tree::Entry::{Node, Property};
 use drivers::model::{Driver, Result};
