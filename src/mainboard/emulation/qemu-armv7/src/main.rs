@@ -12,11 +12,12 @@ use device_tree::Entry::{Node, Property};
 use drivers::model::{Driver, Result};
 use drivers::uart;
 use drivers::wrappers::{DoD, SliceReader};
+use payloads::external::zimage::DTB;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
-    let uart_driver: &mut Driver = &mut pl011;
+    let uart_driver: &mut dyn Driver = &mut pl011;
     uart_driver.init();
     uart_driver.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     let s = &mut [uart_driver];
@@ -44,7 +45,7 @@ use core::panic::PanicInfo;
 
 pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
     let mut w = print::WriteTo::new(console);
-    let spi = SliceReader::new(zimage::DTB);
+    let spi = SliceReader::new(DTB);
 
     for entry in device_tree::FdtReader::new(&spi)?.walk() {
         match entry {
