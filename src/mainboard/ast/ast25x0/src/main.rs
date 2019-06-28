@@ -10,7 +10,7 @@ use crate::romstage::asmram;
 use crate::romstage::chain::chain;
 
 use drivers::model::Driver;
-use drivers::uart::pl011::PL011;
+use drivers::uart::ns16550::NS16550;
 use drivers::wrappers::DoD;
 
 #[no_mangle]
@@ -21,7 +21,7 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut PL011::new(0x1E78_4000, 115200) as &mut dyn Driver,
+        &mut NS16550::new(0x1E78_4000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();

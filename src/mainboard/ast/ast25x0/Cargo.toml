@@ -15,7 +15,7 @@ static-ref = "0.1.1"
 
 [dependencies.drivers]
 path = "../../../../drivers"
-features = ["pl011"]
+features = ["ns16550"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
