@@ -61,7 +61,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "payload"
+name = "payloads"
 version = "0.1.0"
 
 [[package]]
@@ -80,8 +80,7 @@ dependencies = [
  "cpu 0.1.0",
  "device_tree 0.1.0",
  "drivers 0.1.0",
- "payload 0.1.0",
- "zimage 0.1.0",
+ "payloads 0.1.0",
 ]
 
 [[package]]
@@ -119,13 +118,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "unicode-xid"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "zimage"
-version = "0.1.0"
-dependencies = [
- "payload 0.1.0",
-]
 
 [metadata]
 "checksum autocfg 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "0e49efa51329a5fd37e7c79db4621af617cd4e3e5bc224939808d076077077bf"

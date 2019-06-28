@@ -8,12 +8,10 @@ mod print;
 mod romstage;
 use crate::romstage::asmram;
 use crate::romstage::chain::chain;
-use core::fmt;
 
-use device_tree::Entry::{Node, Property};
-use drivers::model::{Driver, Result};
+use drivers::model::Driver;
 use drivers::uart::pl011::PL011;
-use drivers::wrappers::{DoD, SliceReader};
+use drivers::wrappers::DoD;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -36,26 +34,6 @@ pub extern "C" fn _start() -> ! {
     //romstage::romstage()
 }
 use core::panic::PanicInfo;
-
-pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
-    let mut w = print::WriteTo::new(console);
-    let spi = SliceReader::new(zimage::DTB);
-
-    for entry in device_tree::FdtReader::new(&spi)?.walk() {
-        match entry {
-            Node { path: p } => {
-                fmt::write(&mut w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
-            }
-            Property { path: p, value: v } => {
-                let buf = &mut [0; 1024];
-                let len = v.pread(buf, 0)?;
-                let val = device_tree::infer_type(&buf[..len]);
-                fmt::write(&mut w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
-            }
-        }
-    }
-    Ok(())
-}
 
 pub fn halt() -> ! {
     loop {
