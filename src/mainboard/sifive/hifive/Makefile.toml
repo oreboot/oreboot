@@ -11,9 +11,16 @@ CARGO_ARGS = "--release --verbose"
 TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
 
 [tasks.default]
+dependencies = ["bootblob"]
+script = [
+	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
+	"cargo run --manifest-path ../../../../tools/layoutflash/Cargo.toml --target-dir ../../../../tools/layoutflash/target --target x86_64-unknown-linux-gnu -- ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+]
+
+[tasks.bootblob]
 dependencies = [ "build" ]
 command = "cargo"
-args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/hifive", "${TARGET_DIR}/oreboot.bin"]
+args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/hifive", "${TARGET_DIR}/bootblob.bin"]
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
@@ -25,17 +32,17 @@ command = "cargo"
 args = ["xbuild", "@@split(CARGO_ARGS, )"]
 
 [tasks.run]
-dependencies = ["default"]
+dependencies = ["build"]
 command = "qemu-system-riscv64"
 args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", ]
 
 [tasks.trace]
-dependencies = ["default"]
+dependencies = ["build"]
 command = "qemu-system-riscv64"
 args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors,in_asm"]
 
 [tasks.gdb]
-dependencies = ["default"]
+dependencies = ["build"]
 command = "qemu-system-riscv64"
 args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors", "-s", "-S"]
 

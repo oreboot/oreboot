@@ -8,7 +8,6 @@ edition = "2018"
 console = { path = "../../../console" }
 payloads = { path = "../../../../payloads"}
 architecture = { path = "../../../arch/riscv/rv64"}
-device_tree = { path = "../../../lib/device_tree" }
 soc = { path = "../../../soc/sifive/fu540" }
 clock = { path = "../../../drivers/clock" }
 register = "0.3.2"

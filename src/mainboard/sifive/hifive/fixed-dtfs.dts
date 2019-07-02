@@ -6,23 +6,23 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "QEMU armv7";
-        category = "emulation";
-        board-url = "http://wiki.qemu.org/Main_Page";
+        board-name = "HiFive Unleashed";
+        category = "SiFive";
+        board-url = "https://www.sifive.com/boards/hifive-unleashed";
         areas {
             area@0 {
                 description = "Boot Blob";
                 compatible = "ore-bootblob";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "target/arm-none-eabihf/release/bootblob.bin";
+                file = "target/riscv64imac-unknown-none-elf/release/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 offset = <0x80000>;
                 size = <0x80000>; // 512KiB
-                file = "fixed-dtfs.dtb";
+                file = "target/riscv64imac-unknown-none-elf/release/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "NVRAM A";
@@ -65,6 +65,11 @@
                 half = <1>;
                 offset = <0xa00000>;
                 size = <0x600000>; // 6MiB
+            };
+            area@8 {
+                description = "Empty Space";
+                offset = <0x1000000>;
+                size = <0x1000000>; // 16MiB
             };
         };
     };
