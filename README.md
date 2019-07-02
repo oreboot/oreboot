@@ -48,6 +48,7 @@ rustup update
 # Install objcopy and other compiler tools.
 cargo install cargo-binutils
 rustup component add llvm-tools-preview
+sudo apt-get install device-tree-compiler
 
 # Build for RISC-V
 cd src/mainboard/sifive/hifive

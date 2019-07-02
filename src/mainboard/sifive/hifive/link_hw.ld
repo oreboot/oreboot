@@ -27,17 +27,10 @@ ENTRY(_boot);
 SECTIONS
 {
     . = 0x20000000;
-	.bootblock :
-	{
-	    KEEP(*(.bootblock.boot));
-	}
-
-	. = 0x20010000;
-    .stack : 
-	{
-		KEEP(*(.bootblock.stack));
-	}
-	. = 0x20100000;
+    .bootblock :
+    {
+        KEEP(*(.bootblock.boot));
+    }
     .text :
     {
         KEEP(*(.text .text.*));

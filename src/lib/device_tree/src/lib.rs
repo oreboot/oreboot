@@ -8,11 +8,11 @@ use core::fmt;
 use model::{Driver, Result};
 use wrappers::SectionReader;
 
-const MAGIC: u32 = 0xd00dfeed;
-const MAX_DEPTH: usize = 16;
+pub const MAGIC: u32 = 0xd00dfeed;
+pub const MAX_DEPTH: usize = 16;
 // Maximum length of a node or property name. This is 31 for the name, 32 for the unit name and 1
 // for the null terminator. An error is returned for longer names.
-const MAX_NAME_SIZE: usize = 31 + 32 + 1;
+pub const MAX_NAME_SIZE: usize = 31 + 32 + 1;
 
 struct FdtHeader {
     magic: u32,
@@ -215,5 +215,5 @@ pub fn infer_type(data: &[u8]) -> Type {
 }
 
 fn is_print(c: u8) -> bool {
-    0x20 < c && c < 0xff
+    0x20 <= c && c < 0xff
 }

@@ -19,6 +19,7 @@ steps:
     cargo install cargo-binutils
     rustup component add llvm-tools-preview
     cargo install cargo-make
+    sudo apt-get install device-tree-compiler
   displayName: 'Install Rust Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
