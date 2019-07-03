@@ -12,6 +12,8 @@ use crate::romstage::chain::chain;
 use drivers::model::Driver;
 use drivers::uart::ns16550::NS16550;
 use drivers::wrappers::DoD;
+use core::fmt;
+use core::fmt::Write;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -27,11 +29,25 @@ pub extern "C" fn _start() -> ! {
     console.init();
     console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
-    cpu::init();
     let w = &mut print::WriteTo::new(console);
+    fmt::write(w, format_args!("{} {}\r\n", "Formatted output:", 7)).unwrap();
+
+    w.write_str("Starting CPU init\r\n").unwrap();
+    cpu::init(); // TODO: does this do anything yet?
+    w.write_str("Completed CPU init\r\n").unwrap();
+
+    w.write_str("Starting RAM init\r\n").unwrap();
     asmram::ram(w);
-    chain()
-    //romstage::romstage()
+    w.write_str("Completed RAM init\r\n").unwrap();
+
+    w.write_str("Starting chain\r\n").unwrap();
+    chain(); // TODO: What is chain supposed to do? It doesn't return.
+    w.write_str("Completed chain\r\n").unwrap();
+
+    w.write_str("Starting romstage\r\n").unwrap();
+    // TODO: romstage::romstage();
+    w.write_str("Romstage exited -- halting\r\n").unwrap();
+    halt()
 }
 use core::panic::PanicInfo;
 
