@@ -155,8 +155,9 @@ pub fn ram(w: &mut print::WriteTo) -> () {
     let mut gt;
     let mut lt;
     let mut s = State::PowerOn;
-    fmt::write(w, format_args!("hi\n")).expect("oh no");
+    fmt::write(w, format_args!("Start s is {:#?}\n", s)).expect("oh no");
     loop {
+        fmt::write(w, format_args!("loop s is {:?}\n", s)).expect("oh no");
         s = match s {
             State::Exit => {
                 fmt::write(w, format_args!("DRAM done\n")).expect("oh no");
@@ -166,7 +167,9 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             }
             // This will be duplicative of init_dram for now. All we're trying to do
             // first is get some kinda serial output on power on. Nothing more.
-            State::PowerOn => State::uartSETUP,
+            State::PowerOn => {
+                State::uartSETUP
+            }
             State::uartSETUP => {
                 // Put only the bare minimum code here needed for uart5.
                 // There shall be no magic numbers.
@@ -2995,6 +2998,8 @@ pub fn ram(w: &mut print::WriteTo) -> () {
         }
     }
 }
+
+#[derive(Debug)]
 enum State {
     init_dram = 0,
     start_first_reset = 1,
