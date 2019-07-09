@@ -446,6 +446,9 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 State::wait_first_reset
             }
             State::wait_first_reset => {
+                // What are we doing here? Simply put, we've kicked off a reset from
+                // above, and we loop here. At some point the reset comes in and we're back to
+                // the beginning.
                 s = State::wait_first_reset;
                 continue; /*"    b     wait_first_reset"*/
 
