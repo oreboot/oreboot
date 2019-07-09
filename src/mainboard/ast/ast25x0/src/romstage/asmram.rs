@@ -127,7 +127,7 @@ const ASTMMC_DDR4_MANUAL_RPU: u32 = 0;
 // And finally, I would not set ECC - guessing it is not used as I cannot find any reference to it either on the memory chip or other users.
 // Some users set the ECC_SIZE but not activate the use of ECC.
 
-fn poke(a: u32, v: u32) -> () {
+fn poke(v: u32, a: u32) -> () {
     let y = a as *mut u32;
     unsafe {
         ptr::write_volatile(y, v);
