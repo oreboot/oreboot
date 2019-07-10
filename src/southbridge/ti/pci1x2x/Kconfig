@@ -1,2 +1,0 @@
-config SOUTHBRIDGE_TI_PCI1X2X
-	bool

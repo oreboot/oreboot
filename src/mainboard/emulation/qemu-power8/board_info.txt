@@ -1,2 +1,0 @@
-Board name: QEMU POWER8
-Category: emulation
