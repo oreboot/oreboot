@@ -1,6 +1,0 @@
- rm coreboot.rom;
-./cbfstool coreboot.rom create -m x86 -s 256K -B /tmp/coreboot.strip -o 0x1000
-./cbfstool coreboot.rom add-stage -f romstage.bin -n fallback/romstage
-./cbfstool coreboot.rom add-payload -f /tmp/filo.elf -n normal/payload -c lzma
-./cbfstool coreboot.rom print
-qemu-system-i386 -bios coreboot.rom -nographic

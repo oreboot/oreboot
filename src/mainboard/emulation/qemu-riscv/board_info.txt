@@ -1,3 +1,0 @@
-Board name: QEMU RISCV
-Category: emulation
-Board URL: https://github.com/riscv/riscv-qemu

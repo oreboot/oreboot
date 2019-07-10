@@ -1,9 +1,0 @@
-ramstage-y += biosemu.c
-ramstage-y += debug.c
-ramstage-y += device.c
-ramstage-y += interrupt.c
-ramstage-y += io.c
-ramstage-y += mem.c
-ramstage-y += pmm.c
-ramstage-y += vbe.c
-subdirs-y += compat

@@ -1,1 +1,0 @@
-coreboot test targets `Make`

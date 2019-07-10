@@ -1,4 +1,0 @@
-bootblock-$(CONFIG_EC_KONTRON_KEMPLD) += early_kempld.c
-ramstage-$(CONFIG_EC_KONTRON_KEMPLD) += early_kempld.c
-ramstage-$(CONFIG_EC_KONTRON_KEMPLD) += kempld.c
-ramstage-$(CONFIG_EC_KONTRON_KEMPLD) += kempld_i2c.c
