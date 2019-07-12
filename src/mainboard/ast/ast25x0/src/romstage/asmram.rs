@@ -173,11 +173,12 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 // There shall be no magic numbers.
                 //
                 // let's see if it worked ...
-                loop {
+                for _ in 0..32 {
                     r0 = UART5DR; /*"    ldr   r0, =0x1e784000"*/
                     r1 = 'O' as u32;
                     poke(r1, r0); /*"    str   r1, [r0]"*/
                 }
+                loop {}
                 State::init_dram
             }
             State::init_dram => {
