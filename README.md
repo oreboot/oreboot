@@ -9,6 +9,12 @@ oreboot is mostly written in Rust, with assembly where needed.
 oreboot currently only plans to support LinuxBoot payloads.
 
 
+Demo
+----
+
+[![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
+
+
 Supported Hardware
 ------------------
 
