@@ -17,6 +17,9 @@ use drivers::wrappers::DoD;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    let mmu = &mut arch::MMU::new();
+    // not a lot to do if this fails.
+    mmu.pwrite(b"off", 0).unwrap();
     let mut uarts = [
         // Only Uart5 is connected.
         // TODO: PL011::new(0x1E78_3000, 115200),
@@ -34,6 +37,7 @@ pub extern "C" fn _start() -> ! {
 
     w.write_str("Starting CPU init\r\n").unwrap();
     cpu::init(); // TODO: does this do anything yet?
+
     w.write_str("Completed CPU init\r\n").unwrap();
 
     w.write_str("Starting RAM init\r\n").unwrap();

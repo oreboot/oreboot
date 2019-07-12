@@ -3,11 +3,15 @@
 [[package]]
 name = "arch"
 version = "0.1.0"
+dependencies = [
+ "drivers 0.1.0",
+]
 
 [[package]]
 name = "ast25x0"
 version = "0.1.0"
 dependencies = [
+ "arch 0.1.0",
  "console 0.1.0",
  "cpu 0.1.0",
  "device_tree 0.1.0",
