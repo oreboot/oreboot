@@ -2,6 +2,7 @@ oreboot README
 ===============
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
+jalsdkfjlaskdjf
 
 oreboot will only target truly open systems requiring no binary blobs.
 oreboot is mostly written in Rust, with assembly where needed.
