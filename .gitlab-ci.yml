@@ -1,8 +1,16 @@
+image: rustlang/rust:nightly
+
 before_script:
 - rustup component add clippy rustfmt
-script:
-- cargo fmt --all -- --check
-- cargo clippy -- -D warnings
+
+lint:
+  script:
+    - cargo fmt --all -- --check
+
+clippy:
+  script:
+    - cargo clippy -- -D warnings
+
 # TODO: cargo-make
 # - cargo build
 # TODO: we have no test yet...
