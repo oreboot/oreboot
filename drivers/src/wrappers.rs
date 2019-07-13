@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use core::slice::{from_raw_parts, from_raw_parts_mut};
 use crate::model::*;
+use core::slice::{from_raw_parts, from_raw_parts_mut};
 
 pub struct DoD<'a> {
     drivers: &'a mut [&'a mut dyn Driver],

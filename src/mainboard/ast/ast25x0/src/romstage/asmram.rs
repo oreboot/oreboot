@@ -167,9 +167,7 @@ pub fn ram(w: &mut print::WriteTo) -> () {
             }
             // This will be duplicative of init_dram for now. All we're trying to do
             // first is get some kinda serial output on power on. Nothing more.
-            State::PowerOn => {
-                State::uartSETUP
-            }
+            State::PowerOn => State::uartSETUP,
             State::uartSETUP => {
                 // Put only the bare minimum code here needed for uart5.
                 // There shall be no magic numbers.

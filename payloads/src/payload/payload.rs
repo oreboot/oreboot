@@ -1,7 +1,7 @@
 use core::intrinsics::{copy, transmute};
 
 /// compression types
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum ctype {
@@ -11,7 +11,7 @@ pub enum ctype {
 }
 
 /// cbfs file attrs
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum fattr {
@@ -24,7 +24,7 @@ pub enum fattr {
 }
 
 /// cbfs architecture types,
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum atype {
@@ -34,7 +34,7 @@ pub enum atype {
 }
 
 /// cbfs header types,
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum htype {
@@ -44,7 +44,7 @@ pub enum htype {
 }
 
 /// cbfs file types
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum ftype {
@@ -71,7 +71,7 @@ pub enum ftype {
 }
 
 /// Payload segments types
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 pub enum stype {
