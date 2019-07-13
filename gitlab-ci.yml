@@ -1,0 +1,9 @@
+before_script:
+- rustup component add clippy rustfmt
+script:
+- cargo fmt --all -- --check
+- cargo clippy -- -D warnings
+# TODO: cargo-make
+# - cargo build
+# TODO: we have no test yet...
+# - cargo test
