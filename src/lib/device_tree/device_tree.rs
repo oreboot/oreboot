@@ -3,8 +3,8 @@
 #[macro_use]
 extern crate num_derive;
 
-use core::fmt;
 use byteorder::{BigEndian, ByteOrder};
+use core::fmt;
 use drivers::model::{Driver, Result};
 use drivers::wrappers::SectionReader;
 
@@ -53,8 +53,8 @@ impl Path {
     }
 
     pub fn name(&self) -> &str {
-        let name = self.at(self.depth-1);
-        unsafe{core::str::from_utf8_unchecked(name)}
+        let name = self.at(self.depth - 1);
+        unsafe { core::str::from_utf8_unchecked(name) }
     }
 }
 
@@ -113,26 +113,14 @@ impl<'a> FdtReader<'a> {
         }
 
         Ok(FdtReader::<'a> {
-            _mem_reservation_block: SectionReader::new(
-                drv, header.off_mem_rsvmap as usize,
-                (header.total_size - header.off_dt_struct) as usize),
-            struct_block: SectionReader::new(
-                drv, header.off_dt_struct as usize,
-                header.size_dt_struct as usize),
-            strings_block: SectionReader::new(
-                drv, header.off_dt_strings as usize,
-                header.size_dt_strings as usize),
+            _mem_reservation_block: SectionReader::new(drv, header.off_mem_rsvmap as usize, (header.total_size - header.off_dt_struct) as usize),
+            struct_block: SectionReader::new(drv, header.off_dt_struct as usize, header.size_dt_struct as usize),
+            strings_block: SectionReader::new(drv, header.off_dt_strings as usize, header.size_dt_strings as usize),
         })
     }
 
     pub fn walk(&'a self) -> FdtIterator<'a> {
-        FdtIterator {
-            dt: self,
-            cursor: 0,
-            depth: 0,
-            len_buf: [0; MAX_DEPTH],
-            path_buf: [[0; MAX_NAME_SIZE]; MAX_DEPTH],
-        }
+        FdtIterator { dt: self, cursor: 0, depth: 0, len_buf: [0; MAX_DEPTH], path_buf: [[0; MAX_NAME_SIZE]; MAX_DEPTH] }
     }
 }
 
@@ -156,13 +144,10 @@ impl<'a> Iterator for FdtIterator<'a> {
                     if self.depth == MAX_DEPTH {
                         panic!("max depth");
                     }
-                    self.len_buf[self.depth] = cursor_string(
-                        &self.dt.struct_block, &mut self.cursor, &mut self.path_buf[self.depth]).unwrap() as usize;
+                    self.len_buf[self.depth] = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.path_buf[self.depth]).unwrap() as usize;
                     self.cursor = align4(self.cursor);
                     self.depth += 1;
-                    return Some(Entry::Node{
-                        path: Path{depth: self.depth, len: self.len_buf, buf: self.path_buf},
-                    })
+                    return Some(Entry::Node { path: Path { depth: self.depth, len: self.len_buf, buf: self.path_buf } });
                 }
                 Some(Token::EndNode) => {
                     self.depth -= 1;
@@ -173,14 +158,10 @@ impl<'a> Iterator for FdtIterator<'a> {
                     }
                     let len = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
                     let mut nameoff = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    self.len_buf[self.depth] = cursor_string(
-                        &self.dt.strings_block, &mut nameoff, &mut self.path_buf[self.depth][..]).unwrap() as usize;
+                    self.len_buf[self.depth] = cursor_string(&self.dt.strings_block, &mut nameoff, &mut self.path_buf[self.depth][..]).unwrap() as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
-                    return Some(Entry::Property::<'a> {
-                        path: Path{depth: self.depth+1, len: self.len_buf, buf: self.path_buf},
-                        value: value
-                    });
+                    return Some(Entry::Property::<'a> { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value: value });
                 }
                 Some(Token::Nop) => continue,
                 Some(Token::End) => return None,
@@ -191,13 +172,8 @@ impl<'a> Iterator for FdtIterator<'a> {
 }
 
 pub enum Entry<'a> {
-    Node {
-        path: Path,
-    },
-    Property {
-        path: Path,
-        value: SectionReader<'a>,
-    },
+    Node { path: Path },
+    Property { path: Path, value: SectionReader<'a> },
 }
 
 pub enum Type<'a> {
@@ -208,7 +184,7 @@ pub enum Type<'a> {
     PropEncodedArray(&'a [u8]),
 }
 
-impl <'a>core::fmt::Display for Type<'a> {
+impl<'a> core::fmt::Display for Type<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Type::Empty => write!(f, "<>"),
@@ -226,7 +202,7 @@ pub fn infer_type(data: &[u8]) -> Type {
     }
     if let Some(i) = data.iter().position(|&c| !is_print(c)) {
         if i == data.len() - 1 && data[i] == 0 {
-            return Type::String(unsafe{core::str::from_utf8_unchecked(&data[..data.len()-1])});
+            return Type::String(unsafe { core::str::from_utf8_unchecked(&data[..data.len() - 1]) });
         }
     }
     if data.len() == 4 {

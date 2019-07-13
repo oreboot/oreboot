@@ -21,7 +21,6 @@ pub struct NS16550 {
     baudrate: u32,
 }
 
-
 impl ops::Deref for NS16550 {
     type Target = RegisterBlock;
 
@@ -31,11 +30,8 @@ impl ops::Deref for NS16550 {
 }
 
 impl NS16550 {
-    pub fn new(base : usize, baudrate : u32) -> NS16550 {
-        NS16550 {
-            base: base,
-            baudrate: baudrate,
-        }
+    pub fn new(base: usize, baudrate: u32) -> NS16550 {
+        NS16550 { base: base, baudrate: baudrate }
     }
 
     /// Returns a pointer to the register block
@@ -66,7 +62,7 @@ impl Driver for NS16550 {
             14400 => (0x11, 0x17),
             2400 => (0x68, 0xB),
             110 => (0x8E0, 0x2F),
-            _ => (0x0, 0x3) // Default values 
+            _ => (0x0, 0x3), // Default values
         };
         self.IE.set(0u32);
         self.LC.write(LC::DivisorLatchAccessBit::BaudRate);
@@ -97,8 +93,7 @@ impl Driver for NS16550 {
         Ok(data.len())
     }
 
-    fn close(&mut self) {
-    }
+    fn close(&mut self) {}
 }
 
 // TODO: bitfields
@@ -141,4 +136,3 @@ register_bitfields! {
         OE OFFSET(1) NUMBITS(1) []
     ]
 }
-

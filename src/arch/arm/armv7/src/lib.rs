@@ -1,4 +1,3 @@
 #![no_std]
 
-pub fn init() {
-}
+pub fn init() {}

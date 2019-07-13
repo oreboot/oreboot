@@ -30,11 +30,8 @@ pub struct PL011 {
 }
 
 impl PL011 {
-    pub fn new(base : usize, baudrate : u32) -> PL011 {
-        PL011 {
-            regs: base as *const RegisterBlock,
-            baudrate: baudrate,
-        }
+    pub fn new(base: usize, baudrate: u32) -> PL011 {
+        PL011 { regs: base as *const RegisterBlock, baudrate: baudrate }
     }
 
     /// Poll the status register until the specified field is set to the given value.
@@ -61,7 +58,7 @@ impl Driver for PL011 {
             14400 => (0x11, 0x17),
             2400 => (0x68, 0xB),
             110 => (0x8E0, 0x2F),
-            _ => (0x0, 0x3) // Default values 
+            _ => (0x0, 0x3), // Default values
         };
         unsafe {
             (*self.regs).UARTIBRD.set(high);
