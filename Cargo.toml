@@ -1,0 +1,13 @@
+[workspace]
+
+members = [
+    "soc",
+    "payloads",
+    "src/cpu/armltd/cortex-a9",
+    "src/lib/device_tree",
+    "src/arch/arm/armv7",
+    "src/console",
+    "src/mainboard/emulation/qemu-armv7",
+    "src/mainboard/ast/ast25x0",
+    "drivers",
+]

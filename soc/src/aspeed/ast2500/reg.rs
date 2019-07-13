@@ -1,7 +1,7 @@
 const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
 const BASE: u32 = 0x1E60_0000;
 const	Protection_Key : u32 = BASE+0xC00;
-const	AHB_Bus_Command_Recording_Control/Status : u32 = BASE+0xC40;
+const	AHB_Bus_Command_Recording_Control_Status : u32 = BASE+0xC40;
 const	Log_Buffer_Base_Write_Pointer : u32 = BASE+0xC44;
 const	Polling_Address : u32 = BASE+0xC48;
 const	Hardware_FIFO_Status : u32 = BASE+0xC4C;
