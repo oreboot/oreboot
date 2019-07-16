@@ -91,7 +91,7 @@ impl Driver for PL011 {
         Ok(data.len())
     }
 
-    fn close(&mut self) {
+    fn shutdown(&mut self) {
         // flush the fifo
         self.poll_status(UARTFR::RXFF, false);
     }
