@@ -47,7 +47,7 @@ impl Driver for MMU {
     }
 
     // Shutdown. Hmm.
-    fn close(&mut self) {
+    fn shutdown(&mut self) {
     }
 }
 

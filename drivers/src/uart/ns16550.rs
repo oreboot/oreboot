@@ -93,7 +93,7 @@ impl Driver for NS16550 {
         Ok(data.len())
     }
 
-    fn close(&mut self) {}
+    fn shutdown(&mut self) {}
 }
 
 // TODO: bitfields

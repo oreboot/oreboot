@@ -33,8 +33,8 @@ impl<'a> Driver for DoD<'a> {
         })
     }
 
-    fn close(&mut self) {
-        self.drivers.iter_mut().for_each(|d| d.close())
+    fn shutdown(&mut self) {
+        self.drivers.iter_mut().for_each(|d| d.shutdown())
     }
 }
 
@@ -54,7 +54,7 @@ impl Driver for Memory {
         Ok(data.len())
     }
 
-    fn close(&mut self) {}
+    fn shutdown(&mut self) {}
 }
 
 /// The driver reads from a slice.
@@ -82,7 +82,7 @@ impl<'a> Driver for SliceReader<'a> {
         NOT_IMPLEMENTED
     }
 
-    fn close(&mut self) {}
+    fn shutdown(&mut self) {}
 }
 
 /// The driver reads from a section (offset+size) of another driver.
@@ -111,5 +111,5 @@ impl<'a> Driver for SectionReader<'a> {
         NOT_IMPLEMENTED
     }
 
-    fn close(&mut self) {}
+    fn shutdown(&mut self) {}
 }

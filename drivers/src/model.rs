@@ -4,12 +4,12 @@ pub const EOF: Result<usize> = Err("EOF");
 pub const NOT_IMPLEMENTED: Result<usize> = Err("not implemented");
 
 pub trait Driver {
-    /// Initialize the driver.
+    /// Initialize the device.
     fn init(&mut self) {}
-    /// Returns number of bytes read.
+    /// Positional read. Returns number of bytes read.
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize>;
-    /// Returns number of bytes written.
+    /// Positional write. Returns number of bytes written.
     fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize>;
-    /// Cleanup the driver.
-    fn close(&mut self);
+    /// Shutdown the device.
+    fn shutdown(&mut self);
 }

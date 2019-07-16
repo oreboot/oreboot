@@ -3,6 +3,9 @@
 [[package]]
 name = "arch"
 version = "0.1.0"
+dependencies = [
+ "drivers 0.1.0",
+]
 
 [[package]]
 name = "autocfg"
