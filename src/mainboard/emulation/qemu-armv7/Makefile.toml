@@ -4,11 +4,11 @@ skip_core_tasks = true
 
 [env.development]
 CARGO_ARGS = "--verbose"
-TARGET_DIR = "target/arm-none-eabihf/debug/"
+TARGET_DIR = "target/arm-none-eabihf/debug"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
-TARGET_DIR = "target/arm-none-eabihf/release/"
+TARGET_DIR = "target/arm-none-eabihf/release"
 
 [tasks.default]
 dependencies = [ "build" ]
