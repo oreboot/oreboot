@@ -35,3 +35,8 @@ args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=$
 dependencies = ["default"]
 command = "qemu-system-arm"
 args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=${TARGET_DIR}oreboot.bin,format=raw,if=mtd", "-d", "guest_errors", "-s", "-S"]
+
+[tasks.flash]
+dependencies = ["default"]
+command = "sudo"
+args = ["flashrom", "-p", "dediprog", "-w", "target/arm-none-eabihf/release/oreboot.bin"]
