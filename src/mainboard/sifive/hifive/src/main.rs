@@ -9,6 +9,7 @@ pub extern "C" fn _start() -> ! {
     halt()
 }
 use core::panic::PanicInfo;
+use soc::sifive::fu540;
 
 pub fn halt() -> ! {
     loop {

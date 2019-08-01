@@ -13,3 +13,4 @@ register = "0.3.2"
 [features]
 pl011 = []
 ns16550 = []
+sifive = []
