@@ -29,7 +29,7 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}oreboot.bin", "-d", "guest_errors"]
+args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}oreboot.bin", "-d", "guest_errors,in_asm"]
 
 [tasks.gdb]
 dependencies = ["default"]
