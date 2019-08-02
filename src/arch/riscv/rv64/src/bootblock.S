@@ -61,7 +61,7 @@ _boot:
 	# set up the mstatus register
 	call mstatus_init
 	*/
-	tail main
+	tail _start
 
 	// These codes need to be implemented on a specific SoC.
 //	.weak cache_as_ram

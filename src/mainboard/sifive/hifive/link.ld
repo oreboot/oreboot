@@ -22,17 +22,15 @@
  * SOFTWARE.
  */
 
-ENTRY(_vector_table);
+ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x0;
+    . = 0x08000000;
 	.bootblock :
 	{
-	    KEEP(*(.bootblock.vectortable));
+	    KEEP(*(.bootblock.boot));
 	}
-
-    . = 0x8000;
 
     .text :
     {
