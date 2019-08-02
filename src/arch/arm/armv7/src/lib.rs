@@ -4,7 +4,7 @@
 
 pub fn init() {}
 
-use drivers::model::{Driver, NOT_IMPLEMENTED, Result};
+use model::{Driver, NOT_IMPLEMENTED, Result};
 
 pub struct MMU {
 }

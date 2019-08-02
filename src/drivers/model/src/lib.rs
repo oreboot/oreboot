@@ -1,3 +1,5 @@
+#![no_std]
+
 pub type Result<T> = core::result::Result<T, &'static str>;
 
 pub const EOF: Result<usize> = Err("EOF");

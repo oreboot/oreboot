@@ -1,11 +1,11 @@
 [package]
-name = "arch"
+name = "wrappers"
 version = "0.1.0"
-authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
+authors = ["Ryan O'Leary <ryan@ryanoleary.ca>"]
 edition = "2018"
 
 [dependencies]
-model = { path = "../../../drivers/model" }
+model = { path = "../model"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
