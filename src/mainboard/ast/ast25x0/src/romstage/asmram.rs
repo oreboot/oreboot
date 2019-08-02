@@ -14,7 +14,6 @@ pub mod ram;
 use crate::print;
 use core::fmt;
 use core::ptr;
-use soc::aspeed::ast2500;
 
 const UART5DR: u32 = 0x1E78_4000;
 
