@@ -10,7 +10,7 @@ cpu = { path = "../../../cpu/armltd/cortex-a9"}
 arch = { path = "../../../arch/arm/armv7"}
 payloads = { path = "../../../../payloads"}
 device_tree = { path = "../../../lib/device_tree" }
-soc = { path = "../../../soc" }
+soc = { path = "../../../soc/aspeed/ast2500" }
 register = "0.3.2"
 static-ref = "0.1.1"
 

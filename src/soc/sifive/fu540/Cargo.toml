@@ -10,5 +10,3 @@ opt-level = 'z'  # Optimize for size.
 [dependencies]
 register = "0.3.2"
 
-[features]
-ast2500 = []
