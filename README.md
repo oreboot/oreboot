@@ -45,8 +45,9 @@ cargo install cargo-make
 # Ocassionally run:
 rustup update
 
-# Install gcc for objdump and objcopy.
-sudo apt-get install gcc-arm-none-eabi
+# Install gcc for objdump and objcopy for your architecture.
+sudo apt install gcc-arm-none-eabi
+sudo apt install gcc-riscv64-linux-gnu
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
