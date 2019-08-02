@@ -13,7 +13,7 @@ TARGET_DIR = "target/riscv64imac-unknown-none-elf/release/"
 [tasks.default]
 dependencies = [ "build" ]
 script = [
-	"riscv64imac-unknown-none-elf-objcopy -O binary ${TARGET_DIR}/hifive ${TARGET_DIR}/oreboot.bin",
+	"riscv64-linux-gnu-objcopy -O binary ${TARGET_DIR}/hifive ${TARGET_DIR}/oreboot.bin",
 	"truncate -s 33554432 ${TARGET_DIR}/oreboot.bin"
 ]
 
