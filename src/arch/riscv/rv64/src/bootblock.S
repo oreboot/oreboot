@@ -27,7 +27,7 @@ _boot:
 	# time.
 	#
 	csrw mscratch, a1
-/*
+
 	# initialize cache as ram
 	call cache_as_ram
 
@@ -36,11 +36,11 @@ _boot:
 	# 0xDEADBEEF used to check stack overflow
 	csrr a0, mhartid
 	la   t0, _stack
-	slli t1, a0, RISCV_PGSHIFT
+	slli t1, a0, 12 # PageShift
 	add  t0, t0, t1
 	li   t1, 0xDEADBEEF
-	STORE t1, 0(t0)
-	li   t1, RISCV_PGSIZE - HLS_SIZE
+	//store t1, 0(t0)
+	li   t1, 4096 - 88 # RISCV_PGSIZE - HLS_SIZE
 	add  sp, t0, t1
 
 	# initialize hart-local storage
@@ -48,7 +48,7 @@ _boot:
 	csrrw a1, mscratch, zero
 	call hls_init
 
-	li   a0, CONFIG_RISCV_WORKING_HARTID
+	li   a0, 0 # CONFIG_RISCV_WORKING_HARTID
 	call smp_pause
 
 	# initialize entry of interrupt/exception
@@ -59,11 +59,19 @@ _boot:
 	csrwi mip, 0
 
 	# set up the mstatus register
-	call mstatus_init
-	*/
+	//call mstatus_init
 	tail _start
 
 	// These codes need to be implemented on a specific SoC.
 //	.weak cache_as_ram
 cache_as_ram:
 	ret
+smp_pause:
+	ret
+trap_entry:
+	ret
+hls_init:
+	ret
+_stack:
+	.space 4096
+
