@@ -28,10 +28,10 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 
 [tasks.run]
 dependencies = ["default"]
-command = "qemu-system-arm"
-args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=${TARGET_DIR}oreboot.bin,format=raw,if=mtd", "-d", "guest_errors"]
+command = "qemu-system-riscv64"
+args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}oreboot.bin", "-d", "guest_errors"]
 
 [tasks.gdb]
 dependencies = ["default"]
-command = "qemu-system-arm"
-args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=${TARGET_DIR}oreboot.bin,format=raw,if=mtd", "-d", "guest_errors", "-s", "-S"]
+command = "qemu-system-riscv64"
+args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}oreboot.bin", "-d", "guest_errors", "-s", "-S"]
