@@ -10,7 +10,7 @@ path = "device_tree.rs"
 
 [dependencies]
 byteorder = { version = "1", default-features = false }
-drivers = { path = "../../../drivers"}
+drivers = { path = "../../drivers"}
 num-traits = { version = "0.2", default-features = false }
 num-derive = { version = "0.2", default-features = false }
 

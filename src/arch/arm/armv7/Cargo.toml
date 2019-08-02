@@ -6,7 +6,7 @@ authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-drivers = { path = "../../../../drivers" }
+drivers = { path = "../../../drivers" }
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
