@@ -46,8 +46,8 @@ cargo install cargo-make
 rustup update
 
 # Install gcc for objdump and objcopy for your architecture.
-sudo apt install gcc-arm-none-eabi
-sudo apt install gcc-riscv64-linux-gnu
+sudo apt install gcc-arm-none-eabi gdb-multiarch
+sudo apt install gcc-riscv64-linux-gnu gdb-multiarch
 
 # Build for ARMv7
 cd src/mainboard/emulation/qemu-armv7
@@ -58,6 +58,7 @@ RUST_TARGET_PATH=$(pwd) cargo make -p release   # Optimized
 
 # View disassembly
 arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
+# use -d instead of -S if you don't need to see the source
 ```
 
 QEMU
