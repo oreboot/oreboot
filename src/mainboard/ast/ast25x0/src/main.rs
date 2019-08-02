@@ -11,9 +11,9 @@ use crate::romstage::chain::chain;
 
 use core::fmt;
 use core::fmt::Write;
-use drivers::model::Driver;
-use drivers::uart::ns16550::NS16550;
-use drivers::wrappers::DoD;
+use model::Driver;
+use uart::ns16550::NS16550;
+use wrappers::DoD;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {

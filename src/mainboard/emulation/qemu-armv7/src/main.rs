@@ -9,9 +9,9 @@ mod romstage;
 use core::fmt;
 
 use device_tree::Entry::{Node, Property};
-use drivers::model::{Driver, Result};
-use drivers::uart;
-use drivers::wrappers::{DoD, SliceReader};
+use model::{Driver, Result};
+use uart;
+use wrappers::{DoD, SliceReader};
 use payloads::external::zimage::DTB;
 
 #[no_mangle]

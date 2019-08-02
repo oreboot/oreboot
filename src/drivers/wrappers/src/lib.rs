@@ -1,6 +1,7 @@
+#![no_std]
 #![allow(non_snake_case)]
 
-use crate::model::*;
+use model::*;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 
 pub struct DoD<'a> {

@@ -5,8 +5,8 @@ extern crate num_derive;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
-use drivers::model::{Driver, Result};
-use drivers::wrappers::SectionReader;
+use model::{Driver, Result};
+use wrappers::SectionReader;
 
 const MAGIC: u32 = 0xd00dfeed;
 const MAX_DEPTH: usize = 16;

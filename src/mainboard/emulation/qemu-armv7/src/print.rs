@@ -1,5 +1,5 @@
 use core::fmt;
-use drivers::model::Driver;
+use model::Driver;
 
 pub struct WriteTo<'a> {
     drv: &'a mut dyn Driver,

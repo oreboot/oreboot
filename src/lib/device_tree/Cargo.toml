@@ -4,15 +4,12 @@ version = "0.1.0"
 authors = ["Ryan O'Leary <ryan@ryanoleary.ca>"]
 edition = "2018"
 
-[lib]
-name = "device_tree"
-path = "device_tree.rs"
-
 [dependencies]
 byteorder = { version = "1", default-features = false }
-drivers = { path = "../../drivers"}
-num-traits = { version = "0.2", default-features = false }
+model = { path = "../../drivers/model"}
 num-derive = { version = "0.2", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+wrappers = { path = "../../drivers/wrappers"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

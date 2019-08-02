@@ -14,7 +14,7 @@ register = "0.3.2"
 static-ref = "0.1.1"
 
 [dependencies.drivers]
-path = "../../../drivers"
+path = "../../../drivers/uart"
 features = ["sifive"]
 
 [profile.release]
