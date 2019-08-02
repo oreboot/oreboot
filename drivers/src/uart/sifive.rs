@@ -29,7 +29,7 @@ use register::{register_bitfields, Field};
 #[repr(C)]
 pub struct RegisterBlock {
     TD: ReadWrite<u32, TD::Register>,	/* Transmit data register */
-    RD: ReadOnly<u32, TD::Register>,	/* Receive data register */
+    RD: ReadOnly<u32, RD::Register>,	/* Receive data register */
     TXC: ReadWrite<u32, TXC::Register>,	/* Transmit control register */
     RXC: ReadWrite<u32, RXC::Register>,	/* Receive control register */
     IE: ReadWrite<u32, IE::Register>,	/* UART interrupt enable */
@@ -52,30 +52,34 @@ impl ops::Deref for SiFive {
 register_bitfields! {
     u32,
     TD [
-        DATA OFFSET(0) NUMBITS(8) [],
-        Full OFFSET(31) NUMBITS(1) [],
+        Data OFFSET(0) NUMBITS(8) [],
+        Full OFFSET(31) NUMBITS(1) []
     ],
     RD [
-        DATA OFFSET(0) NUMBITS(8) [],
-        Empty OFFSET(31) NUMBITS(1) [],
+        Data OFFSET(0) NUMBITS(8) [],
+        Empty OFFSET(31) NUMBITS(1) []
     ],
     IE[
         TX OFFSET(0) NUMBITS(1) [],
-        RX OFFSET(1) NUMBITS(1) [],
+        RX OFFSET(1) NUMBITS(1) []
     ],
     TXC [
         Enable OFFSET(0) NUMBITS(1) [],
-        StopBits OFFSET(1) NUMBITS(1) [],
+        StopBits OFFSET(1) NUMBITS(1) []
      //   TXCnt OFFSET(16) NUMBITS(16) [],
     ],
     RXC [
-        Enable OFFSET(0) NUMBITS(1) [],
+        Enable OFFSET(0) NUMBITS(1) []
     //    TXCnt OFFSET(16) NUMBITS(16) [],
     ],
     IP [
         TXWM OFFSET(0) NUMBITS(1) [],
-        RXWM OFFSET(1) NUMBITS(1) [],
+        RXWM OFFSET(1) NUMBITS(1) []
     ],
+    BR [
+        BaudRate OFFSET(0) NUMBITS(32) []
+    ]
+
 }
 
 impl SiFive {
@@ -95,13 +99,13 @@ impl Driver for SiFive {
 //        self.BR.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
-        self.TXC.Enable.set(1);
+        //self.TXC.Enable.set(1);
     }
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         for c in data.iter_mut() {
             while ! self.RD.is_set(RD::Empty) {}
-            *c = self.D.read(D::DATA) as u8;
+            *c = self.RD.read(RD::Data) as u8;
         }
         Ok(data.len())
     }
@@ -111,7 +115,7 @@ impl Driver for SiFive {
             if self.TD.is_set(TD::Full) {
                 return Ok(i);
             }
-            self.TD.set(TD::Data as u8);
+            // ? self.TD.Data.set(c);
         }
         Ok(data.len())
     }

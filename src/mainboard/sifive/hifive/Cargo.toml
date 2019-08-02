@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 console = { path = "../../../console" }
 payloads = { path = "../../../../payloads"}
+arch = { path = "../../../arch/riscv/rv64"}
 device_tree = { path = "../../../lib/device_tree" }
 soc = { path = "../../../../soc" }
 register = "0.3.2"
