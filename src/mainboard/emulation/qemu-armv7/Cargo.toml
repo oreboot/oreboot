@@ -11,7 +11,7 @@ payloads = { path = "../../../../payloads"}
 device_tree = { path = "../../../lib/device_tree" }
 
 [dependencies.drivers]
-path = "../../../../drivers"
+path = "../../../drivers"
 features = ["pl011"]
 
 [profile.release]
