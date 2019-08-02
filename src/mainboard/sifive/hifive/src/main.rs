@@ -4,13 +4,10 @@
 #![no_main]
 #![feature(global_asm)]
 
-use arch::riscv::rv64::*;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    halt()
+    architecture::halt()
 }
-//use soc::sifive::fu540;
-//use arch::riscv::rv64;
 
 

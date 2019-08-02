@@ -1,4 +1,4 @@
 #[cfg(feature = "rv64")]
-pub mod init;
+pub mod lib;
 pub mod reg;
 
