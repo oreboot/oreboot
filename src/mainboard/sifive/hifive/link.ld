@@ -26,7 +26,7 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x08000000;
+    . = 0x80000000;
 	.bootblock :
 	{
 	    KEEP(*(.bootblock.boot));
@@ -43,7 +43,5 @@ SECTIONS
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
 	    	/* Unused exception related info that only wastes space */
-		*(.ARM.exidx.*);
-		*(.ARM.extab.*);
 		}
 }
