@@ -70,6 +70,17 @@ RUST_TARGET_PATH=$(pwd) cargo make run -p release
 # Quit qemu with CTRL-A X
 ```
 
+To build QEMU from source for riscv:
+
+```
+git clone https://github.com/qemu/qemu && cd qemu
+mkdir build-riscv && cd build-riscv
+../configure --help
+../configure --target-list=riscv64-softmmu
+make -j16
+stat riscv64-softmmu/qemu-system-riscv64
+```
+
 Testing oreboot Without Modifying Your Hardware
 ------------------------------------------------
 
