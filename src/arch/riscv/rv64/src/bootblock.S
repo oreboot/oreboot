@@ -39,7 +39,7 @@ _boot:
 	slli t1, a0, 12 # PageShift
 	add  t0, t0, t1
 	li   t1, 0xDEADBEEF
-	//store t1, 0(t0)
+	sd t1, 0(t0)
 	li   t1, 4096 - 88 # RISCV_PGSIZE - HLS_SIZE
 	add  sp, t0, t1
 
