@@ -26,7 +26,7 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut NS16550::new(0x1E78_4000, 115200) as &mut dyn Driver,
+        &mut SiFive::new(/*soc::UART0*/0x10010000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
