@@ -23,16 +23,10 @@ name = "device_tree"
 version = "0.1.0"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "drivers 0.1.0",
+ "model 0.1.0",
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "drivers"
-version = "0.1.0"
-dependencies = [
- "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wrappers 0.1.0",
 ]
 
 [[package]]
@@ -42,12 +36,18 @@ dependencies = [
  "architecture 0.1.0",
  "console 0.1.0",
  "device_tree 0.1.0",
- "drivers 0.1.0",
+ "model 0.1.0",
  "payloads 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "soc 0.1.0",
  "static-ref 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uart 0.1.0",
+ "wrappers 0.1.0",
 ]
+
+[[package]]
+name = "model"
+version = "0.1.0"
 
 [[package]]
 name = "num-derive"
@@ -123,9 +123,24 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "uart"
+version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+ "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "unicode-xid"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "wrappers"
+version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
 
 [metadata]
 "checksum autocfg 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "22130e92352b948e7e82a49cdb0aa94f2211761117f29e052dd397c1ac33542b"
