@@ -32,6 +32,12 @@ SECTIONS
 	    KEEP(*(.bootblock.boot));
 	}
 
+	. = 0x80010000;
+    .stack : 
+	{
+		KEEP(*(.bootblock.stack));
+	}
+	. = 0x80100000;
     .text :
     {
         KEEP(*(.text .text.*));

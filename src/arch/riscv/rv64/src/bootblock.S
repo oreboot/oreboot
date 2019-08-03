@@ -42,6 +42,7 @@ _boot:
 	sd t1, 0(t0)
 	li   t1, 4096 - 88 # RISCV_PGSIZE - HLS_SIZE
 	add  sp, t0, t1
+	// call forever
 
 	# initialize hart-local storage
 	csrr a0, mhartid
@@ -60,10 +61,11 @@ _boot:
 
 	# set up the mstatus register
 	//call mstatus_init
-	tail _start
+	call _start
 
 	// These codes need to be implemented on a specific SoC.
 //	.weak cache_as_ram
+forever: tail forever
 cache_as_ram:
 	ret
 smp_pause:
@@ -72,6 +74,9 @@ trap_entry:
 	ret
 hls_init:
 	ret
-_stack:
-	.space 4096
+.global abort
+abort: j abort
 
+.section ".bootblock.stack", "aw", %progbits
+_stack:
+.space 65536
