@@ -19,7 +19,7 @@
  */
 
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
-use crate::model::*;
+use model::*;
 use core::ops;
 
 use register::mmio::{ReadOnly, ReadWrite};
