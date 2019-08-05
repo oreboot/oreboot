@@ -6,3 +6,5 @@ pub mod ns16550;
 pub mod pl011;
 #[cfg(feature = "sifive")]
 pub mod sifive;
+#[cfg(feature = "log")]
+pub mod log;

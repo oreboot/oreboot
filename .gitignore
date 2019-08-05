@@ -10,6 +10,7 @@ defconfig
 .coreboot-version
 .xcompile
 .ccwrap
+oreboot.asm
 build/
 coreboot-builds/
 payloads/coreinfo/lpbuild/

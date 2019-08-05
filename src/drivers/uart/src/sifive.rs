@@ -95,8 +95,7 @@ impl SiFive {
 
 impl Driver for SiFive {
     fn init(&mut self) {
-        self.IE.set(0xaa55aa55u32);
-        loop{};
+        self.IE.set(0 as u32);
 //        self.BR.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
@@ -113,12 +112,12 @@ impl Driver for SiFive {
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        return Ok(0);
         for (i, &c) in data.iter().enumerate() {
-            if self.TD.is_set(TD::Full) {
-                return Ok(i);
-            }
-            // ? self.TD.Data.set(c);
+            // TODO: give up after 100k tries.
+            while self.TD.is_set(TD::Full) {}
+                //return Ok(i);
+            //}
+            self.TD.set(c.into());
         }
         Ok(data.len())
     }
