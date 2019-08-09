@@ -143,6 +143,7 @@ dependencies = [
 name = "soc"
 version = "0.1.0"
 dependencies = [
+ "model 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
