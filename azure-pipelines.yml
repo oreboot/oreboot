@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - master
 
@@ -10,10 +5,12 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    curl https://sh.rustup.rs -sSf | sh
+    rustup override set nightly
+    cargo install cargo-binutils
+    rustup component add llvm-tools-preview
+    cargo install cargo-make
+    cd src/mainboard/sifive/hifive
+    RUST_TARGET_PATH=$(pwd) cargo make -p release
+  displayName: 'Build for RISC-V'
