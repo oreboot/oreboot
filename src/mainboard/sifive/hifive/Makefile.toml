@@ -4,18 +4,16 @@ skip_core_tasks = true
 
 [env.development]
 CARGO_ARGS = "--verbose"
-TARGET_DIR = "target/riscv64imac-unknown-none-elf/debug/"
+TARGET_DIR = "target/riscv64imac-unknown-none-elf/debug"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
-TARGET_DIR = "target/riscv64imac-unknown-none-elf/release/"
+TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
 
 [tasks.default]
 dependencies = [ "build" ]
-script = [
-	"riscv64-linux-gnu-objcopy -O binary ${TARGET_DIR}/hifive ${TARGET_DIR}/oreboot.bin",
-	"riscv64-linux-gnu-objdump -d ${TARGET_DIR}/hifive > oreboot.asm"
-]
+command = "cargo"
+args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/hifive", "${TARGET_DIR}/oreboot.bin"]
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
@@ -40,3 +38,8 @@ args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_D
 dependencies = ["default"]
 command = "qemu-system-riscv64"
 args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}hifive", "-d", "guest_errors", "-s", "-S"]
+
+[tasks.objdump]
+dependencies = ["build"]
+command = "cargo"
+args = ["objdump", "--", "-d", "${TARGET_DIR}/hifive"]
