@@ -10,7 +10,6 @@ use heapless::Vec;
 use heapless::consts::*;
 
 use core::fmt;
-use core::fmt::Write;
 use model::Driver;
 use uart::sifive::SiFive;
 use uart::log::Log;

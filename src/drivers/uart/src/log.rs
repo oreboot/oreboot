@@ -33,13 +33,13 @@ impl<'a> Log<'a> {
 impl<'a> Driver for Log<'a> {
     fn init(&mut self) {   }
 
-    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         return Ok(0);
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (i, &c) in data.iter().enumerate() {
-            self.dat.push(c);
+        for (_, &c) in data.iter().enumerate() {
+            self.dat.push(c).unwrap();
         }
         Ok(data.len())
     }
