@@ -23,7 +23,7 @@ use model::*;
 use core::ops;
 
 use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields, Field};
+use register::{register_bitfields};
 
 #[allow(non_snake_case)]
 #[repr(C)]
@@ -39,7 +39,8 @@ pub struct RegisterBlock {
 
 pub struct SiFive {
     base: usize,
-    baudrate: u32,
+    // TODO: implement baudrate
+    _baudrate: u32,
 }
 
 impl ops::Deref for SiFive {
@@ -84,7 +85,7 @@ register_bitfields! {
 
 impl SiFive {
     pub fn new(base: usize, baudrate: u32) -> SiFive {
-        SiFive{base: base, baudrate: baudrate}
+        SiFive{base: base, _baudrate: baudrate}
     }
 
     /// Returns a pointer to the register block
@@ -96,23 +97,25 @@ impl SiFive {
 impl Driver for SiFive {
     fn init(&mut self) {
         self.IE.set(0 as u32);
+        // TODO: set baudrate
 //        self.BR.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
         //self.TXC.Enable.set(1);
     }
 
-    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         return Ok(0);
-        for c in data.iter_mut() {
-            while ! self.RD.is_set(RD::Empty) {}
-            *c = self.RD.read(RD::Data) as u8;
-        }
-        Ok(data.len())
+        // TODO
+        //for c in data.iter_mut() {
+        //    while ! self.RD.is_set(RD::Empty) {}
+        //    *c = self.RD.read(RD::Data) as u8;
+        //}
+        //Ok(data.len())
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (i, &c) in data.iter().enumerate() {
+        for (_, &c) in data.iter().enumerate() {
             // TODO: give up after 100k tries.
             while self.TD.is_set(TD::Full) {}
                 //return Ok(i);
