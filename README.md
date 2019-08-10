@@ -45,20 +45,17 @@ cargo install cargo-make
 # Ocassionally run:
 rustup update
 
-# Install gcc for objdump and objcopy for your architecture.
-sudo apt install gcc-arm-none-eabi gdb-multiarch
-sudo apt install gcc-riscv64-linux-gnu gdb-multiarch
+# Install objcopy and other compiler tools.
+cargo install cargo-binutils
+rustup component add llvm-tools-preview
 
-# Build for ARMv7
-cd src/mainboard/emulation/qemu-armv7
-# TODO: Currently, we have to prepend RUST_TARGET_PATH so the compiler finds the
-#       path to the target json.
-RUST_TARGET_PATH=$(pwd) cargo make              # Debug
-RUST_TARGET_PATH=$(pwd) cargo make -p release   # Optimized
+# Build for RISC-V
+cd src/mainboard/sifive/hifive
+cargo make              # Debug
+cargo make -p release   # Optimized
 
 # View disassembly
-arm-none-eabi-objdump -S target/arm-none-eabihf/release/qemu-armv7
-# use -d instead of -S if you don't need to see the source
+cargo make objdump -p release
 ```
 
 QEMU
@@ -66,7 +63,7 @@ QEMU
 
 ```
 sudo apt-get install qemu-system-arm
-RUST_TARGET_PATH=$(pwd) cargo make run -p release
+cargo make run -p release
 
 # Quit qemu with CTRL-A X
 ```
