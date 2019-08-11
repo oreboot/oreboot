@@ -10,6 +10,7 @@ use heapless::Vec;
 use heapless::consts::*;
 
 use core::fmt;
+use core::fmt::Write;
 use model::Driver;
 use uart::sifive::SiFive;
 use uart::log::Log;
@@ -30,7 +31,7 @@ pub extern "C" fn _start() -> ! {
     let w = &mut print::WriteTo::new(console);
     fmt::write(w, format_args!("{} {}\r\n", "Formatted output:", 7)).unwrap();
 
+    w.write_str("TESTTESTTEST\r\n").unwrap();
     architecture::halt()
 }
-
 
