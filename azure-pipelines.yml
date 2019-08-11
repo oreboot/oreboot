@@ -19,6 +19,21 @@ steps:
     cargo install cargo-binutils
     rustup component add llvm-tools-preview
     cargo install cargo-make
+  displayName: 'Install Rust Dependencies'
+- script: |
     cd src/mainboard/sifive/hifive
-    RUST_TARGET_PATH=$(pwd) cargo make -p release
+    cargo make -p release
   displayName: 'Build for RISC-V'
+- script: |
+    set -e
+    git clone https://github.com/qemu/qemu && cd qemu
+    mkdir build-riscv64 && cd build-riscv64
+    ../configure --target-list=riscv64-softmmu
+    make -j16
+    sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
+  displayName: 'Install RISC-V QEMU Dependencies'
+- script: |
+    cd src/mainboard/sifive/hifive
+    timeout 5s cargo make run -p release | tee serial
+    grep TESTTESTTEST serial
+  displayName: 'RISC-V QEMU Test'

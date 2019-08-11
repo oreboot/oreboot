@@ -72,7 +72,7 @@ To build QEMU from source for riscv:
 
 ```
 git clone https://github.com/qemu/qemu && cd qemu
-mkdir build-riscv && cd build-riscv
+mkdir build-riscv64 && cd build-riscv64
 ../configure --help
 ../configure --target-list=riscv64-softmmu
 make -j16
