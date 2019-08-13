@@ -13,6 +13,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- task: CacheBeta@0
+  inputs:
+    key: $(Build.SourcesDirectory)/src/mainboard/sifive/hifive/Cargo.lock
+    path: $(Pipeline.Workspace)/.cargo/registry
+  displayName: Cache Cargo Registry
 - script: |
     curl https://sh.rustup.rs -sSf | sh
     rustup override set nightly
