@@ -3,199 +3,237 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* See the file LICENSE for further information */
 
-// #ifndef _SIFIVE_UX00DDR_H
-// #define _SIFIVE_UX00DDR_H
+use crate::ddrregs;
+use crate::reg;
+use core::ptr;
 
-// #ifndef __ASSEMBLER__
+// #define _REG32((reg:DDR_CTRL,p, i) (*(volatile u32 *)((p) + (i)))
+pub const DRAM_CLASS_OFFSET: u32 = 8;
+pub const DRAM_CLASS_DDR4: u32 = 0xA;
+pub const OPTIMAL_RMODW_EN_OFFSET: u32 = 0;
+pub const DISABLE_RD_INTERLEAVE_OFFSET: u32 = 16;
+pub const OUT_OF_RANGE_OFFSET: u32 = 1;
+pub const MULTIPLE_OUT_OF_RANGE_OFFSET: u32 = 2;
+pub const PORT_COMMAND_CHANNEL_ERROR_OFFSET: u32 = 7;
+pub const MC_INIT_COMPLETE_OFFSET: u32 = 8;
+pub const LEVELING_OPERATION_COMPLETED_OFFSET: u32 = 22;
+pub const DFI_PHY_WRLELV_MODE_OFFSET: u32 = 24;
+pub const DFI_PHY_RDLVL_MODE_OFFSET: u32 = 24;
+pub const DFI_PHY_RDLVL_GATE_MODE_OFFSET: u32 = 0;
+pub const VREF_EN_OFFSET: u32 = 24;
+pub const PORT_ADDR_PROTECTION_EN_OFFSET: u32 = 0;
+pub const AXI0_ADDRESS_RANGE_ENABLE: u32 = 8;
+pub const AXI0_RANGE_PROT_BITS_0_OFFSET: u32 = 24;
+pub const RDLVL_EN_OFFSET: u32 = 16;
+pub const RDLVL_GATE_EN_OFFSET: u32 = 24;
+pub const WRLVL_EN_OFFSET: u32 = 0;
 
-// #include <stdint.h>
-// #include <stddef.h>
+pub const PHY_RX_CAL_DQ0_0_OFFSET: u64 = 0;
+pub const PHY_RX_CAL_DQ1_0_OFFSET: u64 = 16;
 
-// #define _REG32(p, i) (*(volatile uint32_t *)((p) + (i)))
+// This is nasty but at the same time, the way the code is written, we need to
+// make this change slowly.
 
-// #define DRAM_CLASS_OFFSET                   8
-// #define DRAM_CLASS_DDR4                     0xA
-// #define OPTIMAL_RMODW_EN_OFFSET             0
-// #define DISABLE_RD_INTERLEAVE_OFFSET        16
-// #define OUT_OF_RANGE_OFFSET                 1
-// #define MULTIPLE_OUT_OF_RANGE_OFFSET        2
-// #define PORT_COMMAND_CHANNEL_ERROR_OFFSET   7
-// #define MC_INIT_COMPLETE_OFFSET             8
-// #define LEVELING_OPERATION_COMPLETED_OFFSET 22
-// #define DFI_PHY_WRLELV_MODE_OFFSET          24
-// #define DFI_PHY_RDLVL_MODE_OFFSET           24
-// #define DFI_PHY_RDLVL_GATE_MODE_OFFSET      0
-// #define VREF_EN_OFFSET                      24
-// #define PORT_ADDR_PROTECTION_EN_OFFSET      0
-// #define AXI0_ADDRESS_RANGE_ENABLE           8
-// #define AXI0_RANGE_PROT_BITS_0_OFFSET       24
-// #define RDLVL_EN_OFFSET                     16
-// #define RDLVL_GATE_EN_OFFSET                24
-// #define WRLVL_EN_OFFSET                     0
+// This is a 64-bit machine but all this action seems to be on 32-bit values.
+// No idea why this is.
+// Index is a word offset.
+fn poke(Pointer: u32, Index: u32, Value: u32) -> () {
+    let addr = (Pointer + Index << 2) as *mut u32;
+    unsafe {
+        ptr::write_volatile(addr, Value.into());
+    }
+}
 
-// #define PHY_RX_CAL_DQ0_0_OFFSET             0
-// #define PHY_RX_CAL_DQ1_0_OFFSET             16
+fn poke64(Pointer: u32, Index: u32, Value: u64) -> () {
+    let addr = (Pointer + Index << 2) as *mut u32;
+    let addr1 = (Pointer + Index << 2 + 4) as *mut u32;
+    unsafe {
+        let v1: u32 = (Value >> 32) as u32;
+        ptr::write_volatile(addr, v1);
+        let v2: u32 = (Value) as u32;
+        ptr::write_volatile(addr1, v2);
+    }
+}
 
-// static inline void phy_reset(volatile uint32_t *ddrphyreg, const uint32_t *physettings) {
-//   unsigned int i;
-//   for (i=1152;i<=1214;i++) {
-//     uint32_t physet = physettings[i];
-//     /*if (physet!=0)*/ ddrphyreg[i] = physet;
-//   }
-//   for (i=0;i<=1151;i++) {
-//     uint32_t physet = physettings[i];
-//     /*if (physet!=0)*/ ddrphyreg[i] = physet;
-//   }
-// }
+fn set(Pointer: u32, Index: u32, Value: u32) -> () {
+    let v = peek(Pointer, Index);
+    poke(Pointer, Index, v | Value);
+}
 
-// static inline void ux00ddr_writeregmap(size_t ahbregaddr, const uint32_t *ctlsettings, const uint32_t *physettings) {
-//   volatile uint32_t *ddrctlreg = (volatile uint32_t *) ahbregaddr;
-//   volatile uint32_t *ddrphyreg = ((volatile uint32_t *) ahbregaddr) + (0x2000 / sizeof(uint32_t));
+fn clr(Pointer: u32, Index: u32, Value: u32) -> () {
+    let v = peek(Pointer, Index);
+    poke(Pointer, Index, v & Value);
+}
 
-//   unsigned int i;
-//   for (i=0;i<=264;i++) {
-//     uint32_t ctlset = ctlsettings[i];
-//     /*if (ctlset!=0)*/ ddrctlreg[i] = ctlset;
-//   }
+fn peek(Pointer: u32, Index: u32) -> u32 {
+    let addr = (Pointer + Index << 2) as *const u32;
+    unsafe { ptr::read_volatile(addr) }
+}
 
-//   phy_reset(ddrphyreg, physettings);
-// }
+// #define _REG32((reg::DDR_CTRL,p, i) (*(volatile u32 *)((p) + (i)))
 
-// static inline void ux00ddr_start(size_t ahbregaddr, size_t filteraddr, size_t ddrend) {
-//   // START register at ddrctl register base offset 0
-//   uint32_t regdata = _REG32(0<<2, ahbregaddr);
-//   regdata |= 0x1;
-//   _REG32(0<<2, ahbregaddr) = regdata;
-//   // WAIT for initialization complete : bit 8 of INT_STATUS (DENALI_CTL_132) 0x210
-//   while ((_REG32(132<<2, ahbregaddr) & (1<<MC_INIT_COMPLETE_OFFSET)) == 0) {}
+pub fn phy_reset() {
+    for i in 1152..1214 {
+        poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
+        //u32 physet = DenaliPhyData[i];
+        // /*if (physet!=0)*/ DDR_PHY[i] = physet;
+    }
+    for i in 0..1151 {
+        poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
+        //for (i=0;i<=1151;i++) {
+        //    u32 physet = DenaliPhyData[i];
+        //if (physet!=0)*/ DDR_PHY[i] = physet;
+    }
+}
 
-//   // Disable the BusBlocker in front of the controller AXI slave ports
-//   volatile uint64_t *filterreg = (volatile uint64_t *)filteraddr;
-//   filterreg[0] = 0x0f00000000000000UL | (ddrend >> 2);
-//   //                ^^ RWX + TOR
-// }
+pub fn ux00ddr_writeregmap() {
+    for i in 0..265 {
+        //  for (i=0;i<=264;i++) {
+        poke(reg::DDR_CTRL, i as u32, ddrregs::DenaliCtlData[i]);
+        // u32 ctlset = DenaliCtlData[i];
+        // /*if (ctlset!=0)*/ DDR_CTRL[i] = ctlset;
+    }
 
-// static inline void ux00ddr_mask_mc_init_complete_interrupt(size_t ahbregaddr) {
-//   // Mask off Bit 8 of Interrupt Status
-//   // Bit [8] The MC initialization has been completed
-//   _REG32(136<<2, ahbregaddr) |= (1<<MC_INIT_COMPLETE_OFFSET);
-// }
+    phy_reset();
+}
 
-// static inline void ux00ddr_mask_outofrange_interrupts(size_t ahbregaddr) {
-//   // Mask off Bit 8, Bit 2 and Bit 1 of Interrupt Status
-//   // Bit [2] Multiple accesses outside the defined PHYSICAL memory space have occured
-//   // Bit [1] A memory access outside the defined PHYSICAL memory space has occured
-//   _REG32(136<<2, ahbregaddr) |= ((1<<OUT_OF_RANGE_OFFSET) | (1<<MULTIPLE_OUT_OF_RANGE_OFFSET));
-// }
+pub fn ux00ddr_start(filteraddr: u64, ddrend: u64) {
+    //   // START register at ddrctl register base offset 0
+    let regdata = peek(reg::DDR_CTRL, 0) | 1;
+    poke(reg::DDR_CTRL, 0, regdata);
+    // WAIT for initialization complete : bit 8 of INT_STATUS (DENALI_CTL_132) 0x210
+    // 132 * 4
+    loop {
+        let r = peek(reg::DDR_CTRL, 132);
+        let m = 1 << MC_INIT_COMPLETE_OFFSET;
+        if (r & m) != 0 {
+            break;
+        }
+    }
 
-// static inline void ux00ddr_mask_port_command_error_interrupt(size_t ahbregaddr) {
-//   // Mask off Bit 7 of Interrupt Status
-//   // Bit [7] An error occured on the port command channel
-//   _REG32(136<<2, ahbregaddr) |= (1<<PORT_COMMAND_CHANNEL_ERROR_OFFSET);
-// }
+    // Disable the BusBlocker in front of the controller AXI slave ports
+    let freg = peek(filteraddr as u32, 0);
+    poke64(freg, 0, (0x0f00000000000000 | (ddrend >> 2)) as u64);
+    //         volatile u64 *filterreg = (volatile uint64_t *)filteraddr;
+    //   filterreg[0] = 0x0f00000000000000UL | (ddrend >> 2);
+    //   //                ^^ RWX + TOR
+}
 
-// static inline void ux00ddr_mask_leveling_completed_interrupt(size_t ahbregaddr) {
-//   // Mask off Bit 22 of Interrupt Status
-//   // Bit [22] The leveling operation has completed
-//   _REG32(136<<2, ahbregaddr) |= (1<<LEVELING_OPERATION_COMPLETED_OFFSET);
-// }
+pub fn ux00ddr_mask_mc_init_complete_interrupt() {
+    // Mask off Bit 8 of Interrupt Status
+    // Bit [8] The MC initialization has been completed
+    set(reg::DDR_CTRL, 136, 1 << MC_INIT_COMPLETE_OFFSET);
+}
 
-// static inline void ux00ddr_setuprangeprotection(size_t ahbregaddr, size_t end_addr) {
-//   _REG32(209<<2, ahbregaddr) = 0x0;
-//   size_t end_addr_16Kblocks = ((end_addr >> 14) & 0x7FFFFF)-1;
-//   _REG32(210<<2, ahbregaddr) = ((uint32_t) end_addr_16Kblocks);
-//   _REG32(212<<2, ahbregaddr) = 0x0;
-//   _REG32(214<<2, ahbregaddr) = 0x0;
-//   _REG32(216<<2, ahbregaddr) = 0x0;
-//   _REG32(224<<2, ahbregaddr) |= (0x3 << AXI0_RANGE_PROT_BITS_0_OFFSET);
-//   _REG32(225<<2, ahbregaddr) = 0xFFFFFFFF;
-//   _REG32(208<<2, ahbregaddr) |= (1 << AXI0_ADDRESS_RANGE_ENABLE);
-//   _REG32(208<<2, ahbregaddr) |= (1 << PORT_ADDR_PROTECTION_EN_OFFSET);
+pub fn ux00ddr_mask_outofrange_interrupts() {
+    // Mask off Bit 8, Bit 2 and Bit 1 of Interrupt Status
+    // Bit [2] Multiple accesses outside the defined PHYSICAL memory space have occured
+    // Bit [1] A memory access outside the defined PHYSICAL memory space has occured
+    set(reg::DDR_CTRL, 136, (1 << OUT_OF_RANGE_OFFSET) | (1 << MULTIPLE_OUT_OF_RANGE_OFFSET));
+}
 
-// }
+pub fn ux00ddr_mask_port_command_error_interrupt() {
+    // Mask off Bit 7 of Interrupt Status
+    // Bit [7] An error occured on the port command channel
+    set(reg::DDR_CTRL, 136, 1 << PORT_COMMAND_CHANNEL_ERROR_OFFSET);
+}
 
-// static inline void ux00ddr_disableaxireadinterleave(size_t ahbregaddr) {
-//   _REG32(120<<2, ahbregaddr) |= (1<<DISABLE_RD_INTERLEAVE_OFFSET);
-// }
+pub fn ux00ddr_mask_leveling_completed_interrupt() {
+    // Mask off Bit 22 of Interrupt Status
+    // Bit [22] The leveling operation has completed
+    set(reg::DDR_CTRL, 136, 1 << LEVELING_OPERATION_COMPLETED_OFFSET);
+}
 
-// static inline void ux00ddr_disableoptimalrmodw(size_t ahbregaddr) {
-//   _REG32(21<<2, ahbregaddr) &= (~(1<<OPTIMAL_RMODW_EN_OFFSET));
-// }
+pub fn ux00ddr_setuprangeprotection(end_addr: u64) {
+    poke(reg::DDR_CTRL, 209, 0x0);
+    let end_addr_16Kblocks: u32 = (((end_addr >> 14) & 0x7FFFFF) - 1) as u32;
+    poke(reg::DDR_CTRL, 210, end_addr_16Kblocks);
+    poke(reg::DDR_CTRL, 212, 0x0);
+    poke(reg::DDR_CTRL, 214, 0x0);
+    poke(reg::DDR_CTRL, 216, 0x0);
+    set(reg::DDR_CTRL, 224, 0x3 << AXI0_RANGE_PROT_BITS_0_OFFSET);
+    poke(reg::DDR_CTRL, 225, 0xFFFFFFFF);
+    set(reg::DDR_CTRL, 208, 1 << AXI0_ADDRESS_RANGE_ENABLE);
+    set(reg::DDR_CTRL, 208, 1 << PORT_ADDR_PROTECTION_EN_OFFSET);
+}
 
-// static inline void ux00ddr_enablewriteleveling(size_t ahbregaddr) {
-//   _REG32(170<<2, ahbregaddr) |= ((1<<WRLVL_EN_OFFSET) | (1<<DFI_PHY_WRLELV_MODE_OFFSET));
-// }
+pub fn ux00ddr_disableaxireadinterleave() {
+    set(reg::DDR_CTRL, 120, 1 << DISABLE_RD_INTERLEAVE_OFFSET);
+}
 
-// static inline void ux00ddr_enablereadleveling(size_t ahbregaddr) {
-//   _REG32(181<<2, ahbregaddr) |= (1<<DFI_PHY_RDLVL_MODE_OFFSET);
-//   _REG32(260<<2, ahbregaddr) |= (1<<RDLVL_EN_OFFSET);
-// }
+pub fn ux00ddr_disableoptimalrmodw() {
+    clr(reg::DDR_CTRL, 21, !(1 << OPTIMAL_RMODW_EN_OFFSET));
+}
 
-// static inline void ux00ddr_enablereadlevelinggate(size_t ahbregaddr) {
-//   _REG32(260<<2, ahbregaddr) |= (1<<RDLVL_GATE_EN_OFFSET);
-//   _REG32(182<<2, ahbregaddr) |= (1<<DFI_PHY_RDLVL_GATE_MODE_OFFSET);
-// }
+pub fn ux00ddr_enablewriteleveling() {
+    set(reg::DDR_CTRL, 170, (1 << WRLVL_EN_OFFSET) | (1 << DFI_PHY_WRLELV_MODE_OFFSET));
+}
 
-// static inline void ux00ddr_enablevreftraining(size_t ahbregaddr) {
-//   _REG32(184<<2, ahbregaddr) |= (1<<VREF_EN_OFFSET);
-// }
+pub fn ux00ddr_enablereadleveling() {
+    set(reg::DDR_CTRL, 181, 1 << DFI_PHY_RDLVL_MODE_OFFSET);
+    set(reg::DDR_CTRL, 260, 1 << RDLVL_EN_OFFSET);
+}
 
-// static inline uint32_t ux00ddr_getdramclass(size_t ahbregaddr) {
-//   return ((_REG32(0, ahbregaddr) >> DRAM_CLASS_OFFSET) & 0xF);
-// }
+pub fn ux00ddr_enablereadlevelinggate() {
+    set(reg::DDR_CTRL, 260, 1 << RDLVL_GATE_EN_OFFSET);
+    set(reg::DDR_CTRL, 182, 1 << DFI_PHY_RDLVL_GATE_MODE_OFFSET);
+}
 
-// static inline uint64_t ux00ddr_phy_fixup(size_t ahbregaddr) {
-//   // return bitmask of failed lanes
+pub fn ux00ddr_enablevreftraining() {
+    set(reg::DDR_CTRL, 184, 1 << VREF_EN_OFFSET);
+}
 
-//   size_t ddrphyreg = ahbregaddr + 0x2000;
+pub fn ux00ddr_getdramclass() -> u32 {
+    (peek(reg::DDR_CTRL, 0) >> DRAM_CLASS_OFFSET) & 0xF
+}
 
-//   uint64_t fails=0;
-//   uint32_t slicebase = 0;
-//   uint32_t dq = 0;
+// TODO: scrub this mess. coreboot had some bugs.
+pub fn ux00ddr_phy_fixup() -> u64 {
+    // return bitmask of failed lanes
 
-//   // check errata condition
-//   for (uint32_t slice = 0; slice < 8; slice++) {
-//     uint32_t regbase = slicebase + 34;
-//     for (uint32_t reg = 0 ; reg < 4; reg++) {
-//       uint32_t updownreg = _REG32((regbase+reg)<<2, ddrphyreg);
-//       for (uint32_t bit = 0; bit < 2; bit++) {
-//         uint32_t phy_rx_cal_dqn_0_offset;
+    let ddrphyreg: u32 = reg::DDR_CTRL + 0x2000;
 
-//         if (bit==0) {
-//           phy_rx_cal_dqn_0_offset = PHY_RX_CAL_DQ0_0_OFFSET;
-//         }else{
-//           phy_rx_cal_dqn_0_offset = PHY_RX_CAL_DQ1_0_OFFSET;
-//         }
+    let mut fails: u64 = 0;
+    let mut slicebase: u32 = 0;
+    let mut dq: u32 = 0;
+    for slice in 0..8 {
+        // check errata condition
+        let regbase: u32 = slicebase;
+        for reg in 0..4 {
+            // what the hell?
+            let updownreg: u32 = peek((regbase + reg) << 2, ddrphyreg);
+            for bit in 0..2 {
+                let mut phy_rx_cal_dqn_0_offset: u64 = 0;
+                if bit == 0 {
+                    phy_rx_cal_dqn_0_offset = PHY_RX_CAL_DQ0_0_OFFSET;
+                } else {
+                    phy_rx_cal_dqn_0_offset = PHY_RX_CAL_DQ1_0_OFFSET;
+                }
+                let down: u32 = (updownreg >> phy_rx_cal_dqn_0_offset) & 0x3F;
+                let up: u32 = (updownreg >> (phy_rx_cal_dqn_0_offset + 6)) & 0x3F;
+                let failc0: bool = ((down == 0) && (up == 0x3F));
+                let failc1: bool = ((up == 0) && (down == 0x3F));
 
-//         uint32_t down = (updownreg >> phy_rx_cal_dqn_0_offset) & 0x3F;
-//         uint32_t up = (updownreg >> (phy_rx_cal_dqn_0_offset+6)) & 0x3F;
-
-//         uint8_t failc0 = ((down == 0) && (up == 0x3F));
-//         uint8_t failc1 = ((up == 0) && (down == 0x3F));
-
-//         // print error message on failure
-//         if (failc0 || failc1) {
-//           //if (fails==0) uart_puts((void*) UART0_CTRL_ADDR, "DDR error in fixing up \n");
-//           fails |= (1<<dq);
-//           char slicelsc = '0';
-//           char slicemsc = '0';
-//           slicelsc += (dq % 10);
-//           slicemsc += (dq / 10);
-//           //uart_puts((void*) UART0_CTRL_ADDR, "S ");
-//           //uart_puts((void*) UART0_CTRL_ADDR, &slicemsc);
-//           //uart_puts((void*) UART0_CTRL_ADDR, &slicelsc);
-//           //if (failc0) uart_puts((void*) UART0_CTRL_ADDR, "U");
-//           //else uart_puts((void*) UART0_CTRL_ADDR, "D");
-//           //uart_puts((void*) UART0_CTRL_ADDR, "\n");
-//         }
-//         dq++;
-//       }
-//     }
-//     slicebase+=128;
-//   }
-//   return (0);
-// }
-
-// #endif
-
-// #endif
+                // print error message on failure
+                if failc0 || failc1 {
+                    // good news: we can use fmt; skip this nonsense.
+                    //if (fails==0) uart_puts((void*) UART0_CTRL_ADDR, "DDR error in fixing up \n");
+                    fails |= (1 << dq);
+                    let mut slicelsc: u8 = 48;
+                    let mut slicemsc: u8 = 48;
+                    slicelsc += (dq % 10) as u8;
+                    slicemsc += (dq / 10) as u8;
+                    //uart_puts((void*) UART0_CTRL_ADDR, "S ");
+                    //uart_puts((void*) UART0_CTRL_ADDR, &slicemsc);
+                    //uart_puts((void*) UART0_CTRL_ADDR, &slicelsc);
+                    //if (failc0) uart_puts((void*) UART0_CTRL_ADDR, "U");
+                    //else uart_puts((void*) UART0_CTRL_ADDR, "D");
+                    //uart_puts((void*) UART0_CTRL_ADDR, "\n");
+                }
+                dq = dq + 1;
+            }
+        }
+        slicebase += 128;
+    }
+    0
+}

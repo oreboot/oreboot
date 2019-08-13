@@ -165,9 +165,8 @@ impl Driver for Clock {
             b"on" => {
                 self.clock_init();
                 Ok(1)
-            },
-            _ =>
-                Ok(0)
+            }
+            _ => Ok(0),
         }
     }
 
@@ -252,7 +251,7 @@ impl Clock {
 
     fn clock_init(&self) {
         if is_qemu() {
-            return
+            return;
         }
 
         /*
