@@ -12,10 +12,10 @@ use heapless::Vec;
 use core::fmt;
 use core::fmt::Write;
 use model::Driver;
+use soc::clock::Clock;
 use uart::log::Log;
 use uart::sifive::SiFive;
 use wrappers::DoD;
-use soc::clock::Clock;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
