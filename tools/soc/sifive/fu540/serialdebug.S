@@ -1,12 +1,6 @@
 // Prints A to serial forever.
 
-#ifdef QEMU
-// TODO: Why does QEMU use a different base?
-#define BASE 0x10013000
-#else
 #define BASE 0x10010000
-#endif
-
 #define TD (BASE + 0x0)
 #define TXC (BASE + 0x8)
 
