@@ -27,6 +27,7 @@ steps:
 - script: |
     set -e
     git clone https://github.com/qemu/qemu && cd qemu
+    git apply ../tools/soc/sifive/fu540/uart-qemu.diff
     mkdir build-riscv64 && cd build-riscv64
     ../configure --target-list=riscv64-softmmu
     make -j16
