@@ -8,6 +8,7 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
+architecture = { path = "../../../arch/riscv/rv64"}
 model = { path = "../../../drivers/model/"}
 register = "0.3.2"
 

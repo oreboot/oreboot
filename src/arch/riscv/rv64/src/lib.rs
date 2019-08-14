@@ -19,5 +19,14 @@ fn panic(_info: &PanicInfo) -> ! {
     halt()
 }
 
+pub fn fence() {
+    unsafe { asm!("fence" :::: "volatile") }
+}
+
+pub fn nop() {
+    unsafe { asm!("nop" :::: "volatile") }
+}
+
+
 global_asm!(include_str!("bootblock.S"));
 
