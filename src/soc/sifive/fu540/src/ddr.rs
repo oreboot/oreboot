@@ -1,13 +1,12 @@
-use model::*;
 use core::ops;
+use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
 #[allow(non_snake_case)]
 #[repr(C)]
-pub struct RegisterBlock {
-}
+pub struct RegisterBlock {}
 
 pub struct ddr {
     base: usize,
@@ -23,7 +22,7 @@ impl ops::Deref for ddr {
 
 impl ddr {
     pub fn new(base: usize, baudrate: u32) -> ddr {
-        ddr { base: base}
+        ddr { base: base }
     }
 
     /// Returns a pointer to the register block
@@ -33,8 +32,7 @@ impl ddr {
 }
 
 impl Driver for ddr {
-    fn init(&mut self) {
-    }
+    fn init(&mut self) {}
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         Ok(0)
