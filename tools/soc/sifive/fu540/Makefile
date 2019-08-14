@@ -13,3 +13,19 @@ objdump: serialdebug.elf
 
 clean:
 	rm -f serialdebug serialdebug.elf serialdebug_qemu serialdebug_qemu.elf
+
+cleanrom: serialdebug
+	 dd bs=32M count=1 if=/dev/zero | tr '\000' '\377' > 32m
+	 cat serialdebug 32m > bigrom
+	 dd of=rom bs=32M count=1 if=bigrom
+
+writerom: rom
+	flashrom -w rom -p dediprog
+
+rom: serialdebug hifiverom
+	cp hifiverom rom
+	dd of=rom if=serialdebug conv=notrunc
+
+hifiverom:
+	flashrom -r hifiverom -p dediprog
+
