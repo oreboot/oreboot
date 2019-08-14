@@ -101,7 +101,7 @@ impl Driver for SiFive {
 //        self.BR.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
-        //self.TXC.Enable.set(1);
+        self.TXC.modify(TXC::Enable.val(1));
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
