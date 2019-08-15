@@ -34,13 +34,13 @@ pub struct RegisterBlock {
     RXC: ReadWrite<u32, RXC::Register>,	/* Receive control register */
     IE: ReadWrite<u32, IE::Register>,	/* UART interrupt enable */
     IP: ReadWrite<u32, IP::Register>,	/* UART interrupt pending */
-    BR: ReadOnly<u32, BR::Register>,	/* Baud rate */
+    DIV: ReadWrite<u32, DIV::Register>,  /* Baud Rate Divisor */
 }
 
 pub struct SiFive {
     base: usize,
     // TODO: implement baudrate
-    _baudrate: u32,
+    baudrate: u32,
 }
 
 impl ops::Deref for SiFive {
@@ -77,15 +77,14 @@ register_bitfields! {
         TXWM OFFSET(0) NUMBITS(1) [],
         RXWM OFFSET(1) NUMBITS(1) []
     ],
-    BR [
-        BaudRate OFFSET(0) NUMBITS(32) []
+    DIV [
+        DIV OFFSET(0) NUMBITS(16) []
     ]
-
 }
 
 impl SiFive {
     pub fn new(base: usize, baudrate: u32) -> SiFive {
-        SiFive{base: base, _baudrate: baudrate}
+        SiFive{base: base, baudrate: baudrate}
     }
 
     /// Returns a pointer to the register block
@@ -97,10 +96,17 @@ impl SiFive {
 impl Driver for SiFive {
     fn init(&mut self) {
         self.IE.set(0 as u32);
-        // TODO: set baudrate
-//        self.BR.write(LC::DivisorLatchAccessBit::BaudRate);
-        // Until we know the clock rate the divisor values are kind of
-        // impossible to know. Throw in a phony value.
+
+        // TODO: The clock rate will change.
+        let hfclk = 33330000;
+        // div = tlkclk / bbaud - 1
+        //     = (33.33MHz / 2) / 115200 - 1
+        //     = 144
+        // Half the denominator is added to the numerator to round to closest int.
+        let div = (hfclk + self.baudrate) / (2 * self.baudrate) - 1;
+        self.DIV.modify(DIV::DIV.val(div));
+        // Emperical testing shows we should use this divisor:
+        //self.DIV.modify(DIV::DIV.val(577));
         self.TXC.modify(TXC::Enable.val(1));
     }
 
@@ -117,7 +123,11 @@ impl Driver for SiFive {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         for (_, &c) in data.iter().enumerate() {
             // TODO: give up after 100k tries.
-            while self.TD.is_set(TD::Full) {}
+            while self.TD.is_set(TD::Full) {
+                // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
+                //       this loop. Remove if we deem it not necessary.
+                unsafe { asm!("" :::: "volatile") }
+            }
                 //return Ok(i);
             //}
             self.TD.set(c.into());

@@ -21,8 +21,8 @@ pub extern "C" fn _start() -> ! {
     let mut v: Vec<u8, U1024> = Vec::new();
     let mut uarts = [
         &mut SiFive::new(/*soc::UART0*/0x10010000, 115200) as &mut dyn Driver,
-        &mut SiFive::new(/*soc::UART1*/0x10011000, 115200) as &mut dyn Driver,
-        &mut Log::new(&mut v) as &mut dyn Driver,
+        //&mut SiFive::new(/*soc::UART1*/0x10011000, 115200) as &mut dyn Driver,
+        //&mut Log::new(&mut v) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
