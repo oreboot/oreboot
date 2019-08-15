@@ -1,0 +1,49 @@
+diff --git a/hw/riscv/sifive_u.c b/hw/riscv/sifive_u.c
+index 71b8083c05..1e2e526870 100644
+--- a/hw/riscv/sifive_u.c
++++ b/hw/riscv/sifive_u.c
+@@ -59,8 +59,9 @@ static const struct MemmapEntry {
+     [SIFIVE_U_MROM] =     {     0x1000,    0x11000 },
+     [SIFIVE_U_CLINT] =    {  0x2000000,    0x10000 },
+     [SIFIVE_U_PLIC] =     {  0xc000000,  0x4000000 },
+-    [SIFIVE_U_UART0] =    { 0x10013000,     0x1000 },
+-    [SIFIVE_U_UART1] =    { 0x10023000,     0x1000 },
++    [SIFIVE_U_L2LIM] =    {  0x8000000,  0x1e00000 },
++    [SIFIVE_U_UART0] =    { 0x10010000,     0x1000 },
++    [SIFIVE_U_UART1] =    { 0x10011000,     0x1000 },
+     [SIFIVE_U_DRAM] =     { 0x80000000,        0x0 },
+     [SIFIVE_U_GEM] =      { 0x100900FC,     0x2000 },
+ };
+@@ -337,6 +338,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+     const struct MemmapEntry *memmap = sifive_u_memmap;
+     MemoryRegion *system_memory = get_system_memory();
+     MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
++    MemoryRegion *l2lim_mem = g_new(MemoryRegion, 1);
+     qemu_irq plic_gpios[SIFIVE_U_PLIC_NUM_SOURCES];
+     char *plic_hart_config;
+     size_t plic_hart_config_len;
+@@ -353,6 +355,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+     memory_region_add_subregion(system_memory, memmap[SIFIVE_U_MROM].base,
+                                 mask_rom);
+ 
++    /* Add fake L2-LIM */
++    memory_region_init_ram(l2lim_mem, NULL, "l2lim",
++		           memmap[SIFIVE_U_L2LIM].size, &error_fatal);
++    memory_region_add_subregion(system_memory, memmap[SIFIVE_U_L2LIM].base,
++                                l2lim_mem);
++
+     /* create PLIC hart topology configuration string */
+     plic_hart_config_len = (strlen(SIFIVE_U_PLIC_HART_CONFIG) + 1) *
+                            ms->smp.cpus;
+diff --git a/include/hw/riscv/sifive_u.h b/include/hw/riscv/sifive_u.h
+index 892f0eee21..6c676762af 100644
+--- a/include/hw/riscv/sifive_u.h
++++ b/include/hw/riscv/sifive_u.h
+@@ -50,6 +50,7 @@ enum {
+     SIFIVE_U_MROM,
+     SIFIVE_U_CLINT,
+     SIFIVE_U_PLIC,
++    SIFIVE_U_L2LIM,
+     SIFIVE_U_UART0,
+     SIFIVE_U_UART1,
+     SIFIVE_U_DRAM,
