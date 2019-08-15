@@ -39,7 +39,7 @@ spin:
 
 	# TODO: SOC-specific
 	# Set stack pointer into CAR (L2-LIM). 
-	li sp, 0x08001000
+	li sp, 0x08004000
 	li t0, 0xDEADBEEF
 	sw t0, 0(sp)
 
