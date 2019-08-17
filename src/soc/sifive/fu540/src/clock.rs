@@ -251,6 +251,10 @@ impl Clock {
     }
 
     fn clock_init(&self) {
+        if is_qemu() {
+            return
+        }
+
         /*
          * Update the peripheral clock dividers of UART, SPI and I2C to safe
          * values as we can't put them in reset before changing frequency.
@@ -315,4 +319,10 @@ fn update_peripheral_clock_dividers() {
     for i in 0..UART_DEVICES {
         poke((reg::uart(i) + UART_REG_DIV), UART_DIV_VAL);
     }
+}
+
+// TODO: There might be a better way to detect whether we are running in QEMU.
+fn is_qemu() -> bool {
+    // On hardware, the MSEL is only 4 bits, so it is impossible for it to reach this value.
+    unsafe { ptr::read_volatile(reg::MSEL as *mut u32) == 0x297 }
 }
