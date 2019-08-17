@@ -15,6 +15,7 @@ use model::Driver;
 use uart::log::Log;
 use uart::sifive::SiFive;
 use wrappers::DoD;
+use soc::clock::Clock;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -26,6 +27,9 @@ pub extern "C" fn _start() -> ! {
 
     let w = &mut print::WriteTo::new(console);
     fmt::write(w, format_args!("{} {}\r\n", "Formatted output:", 7)).unwrap();
+
+    let mut clk = Clock::new();
+    clk.pwrite(b"on", 0).unwrap();
 
     w.write_str("TESTTESTTEST\r\n").unwrap();
     architecture::halt()
