@@ -89,6 +89,7 @@ dependencies = [
  "payloads 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "soc 0.1.0",
+ "spi 0.1.0",
  "static-ref 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "uart 0.1.0",
  "wrappers 0.1.0",
@@ -149,6 +150,15 @@ name = "soc"
 version = "0.1.0"
 dependencies = [
  "architecture 0.1.0",
+ "clock 0.1.0",
+ "model 0.1.0",
+ "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "spi"
+version = "0.1.0"
+dependencies = [
  "clock 0.1.0",
  "model 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",

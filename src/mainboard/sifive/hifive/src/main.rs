@@ -12,6 +12,7 @@ use model::Driver;
 use soc::clock::Clock;
 use clock::ClockNode;
 use uart::sifive::SiFive;
+use spi::SiFiveSpi;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -19,7 +20,18 @@ pub extern "C" fn _start() -> ! {
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
-    let mut clks = [uart0 as &mut dyn ClockNode];
+    // Set SPIs to 50MHZ clock rate.
+    let spi0 = &mut SiFiveSpi::new(0x10040000, 50_000_000);
+    let spi1 = &mut SiFiveSpi::new(0x10041000, 50_000_000);
+    let spi2 = &mut SiFiveSpi::new(0x10050000, 50_000_000);
+
+    // Peripheral clocks get their dividers updated when the PLL initializes.
+    let mut clks = [
+        spi0 as &mut dyn ClockNode,
+        spi1 as &mut dyn ClockNode,
+        spi2 as &mut dyn ClockNode,
+        uart0 as &mut dyn ClockNode,
+    ];
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
 
