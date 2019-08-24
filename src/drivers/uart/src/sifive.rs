@@ -21,6 +21,7 @@
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
 use model::*;
 use core::ops;
+use clock::ClockNode;
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields};
@@ -95,18 +96,11 @@ impl SiFive {
 
 impl Driver for SiFive {
     fn init(&mut self) {
+        // Disable UART interrupts.
         self.IE.set(0 as u32);
-
-        // TODO: The clock rate will change.
-        let hfclk = 33330000;
-        // div = tlkclk / bbaud - 1
-        //     = (33.33MHz / 2) / 115200 - 1
-        //     = 144
-        // Half the denominator is added to the numerator to round to closest int.
-        let div = (hfclk + self.baudrate) / (2 * self.baudrate) - 1;
-        self.DIV.modify(DIV::DIV.val(div));
-        // Emperical testing shows we should use this divisor:
-        //self.DIV.modify(DIV::DIV.val(577));
+        // Set clock rate to the default 33.33MHz.
+        self.set_clock_rate(33330000);
+        // Enable transmit.
         self.TXC.modify(TXC::Enable.val(1));
     }
 
@@ -136,6 +130,19 @@ impl Driver for SiFive {
     }
 
     fn shutdown(&mut self) {}
+}
+
+impl ClockNode for SiFive {
+    // This uses hfclk as the input rate.
+    fn set_clock_rate(&mut self, rate: u32) {
+        // For example, using the default clock rate of 33.33MHz:
+        //   div = tlkclk / bbaud - 1
+        //       = (33.33MHz / 2) / 115200 - 1
+        //       = 144
+        // Half the denominator is added to the numerator to round to closest int.
+        let div = (rate + self.baudrate) / (2 * self.baudrate) - 1;
+        self.DIV.modify(DIV::DIV.val(div));
+    }
 }
 
 //
