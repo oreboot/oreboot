@@ -8,5 +8,6 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
-model = { path = "../../model"}
+model = { path = "../../model" }
+clock = { path = "../../clock" }
 register = "0.3.2"

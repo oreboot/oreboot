@@ -1,7 +1,9 @@
+#![no_std]
 /// This is a driver for SiFive's SPI master, documented in the FU540 manual:
 
 use model::*;
 use core::ops;
+use clock::ClockNode;
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields};
@@ -71,7 +73,7 @@ impl ops::Deref for SiFiveSpi {
 register_bitfields! {
     u32,
     SCKDIV [
-        DIV OFFSET(0) NUMBITS(11) []
+        DIV OFFSET(0) NUMBITS(12) []
     ]
 }
 
@@ -89,6 +91,7 @@ impl SiFiveSpi {
 impl Driver for SiFiveSpi {
     fn init(&mut self) {
         // TODO: Implement init
+        self.set_clock_rate(33_330_000);
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
@@ -102,4 +105,15 @@ impl Driver for SiFiveSpi {
     }
 
     fn shutdown(&mut self) {}
+}
+
+impl ClockNode for SiFiveSpi {
+    // This uses hfclk as the input rate.
+    fn set_clock_rate(&mut self, rate: u32) {
+        // Since this is a SPI master, the serial rate is fairly flexible as long as it is not
+        // faster than the SPI slave's specification. For this reason, the divisor rounds up.
+        let denominator = 4 * self.serial_rate;
+        let div = (rate + denominator - 1) / denominator;
+        self.sckdiv.modify(SCKDIV::DIV.val(div));
+    }
 }

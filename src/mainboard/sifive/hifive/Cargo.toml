@@ -16,6 +16,7 @@ static-ref = "0.1.1"
 heapless = "0.4.x"
 model = { path = "../../../drivers/model" }
 wrappers = { path = "../../../drivers/wrappers"}
+spi = { path = "../../../drivers/sifive/spi" }
 
 [dependencies.uart]
 path = "../../../drivers/uart"

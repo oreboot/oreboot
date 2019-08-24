@@ -19,7 +19,7 @@
 const FU540_BASE_FQY: usize = 33330;
 
 use clock::ClockNode;
-use core::ops;
+use core::{ops, ptr};
 use model::*;
 
 use crate::reg;
@@ -258,7 +258,6 @@ impl<'a> Clock<'a> {
 
         // Update the peripheral clock dividers of UART, SPI and I2C to safe
         // values as we can't put them in reset before changing frequency.
-        update_peripheral_clock_dividers();
         let hfclk = 1_000_000_000; // 1GHz
         for clk in self.clks.iter_mut() {
             clk.set_clock_rate(hfclk);
@@ -298,21 +297,6 @@ impl<'a> Clock<'a> {
 
         architecture::fence();
     }
-}
-
-const SPI_DIV: u32 = 0x00;
-const SPI_DIV_VAL: u32 = 4;
-use core::ptr;
-fn poke(a: u32, v: u32) -> () {
-    let y = a as *mut u32;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
-fn update_peripheral_clock_dividers() {
-    poke((reg::QSPI0 + SPI_DIV), SPI_DIV_VAL);
-    poke((reg::QSPI1 + SPI_DIV), SPI_DIV_VAL);
-    poke((reg::QSPI2 + SPI_DIV), SPI_DIV_VAL);
 }
 
 // TODO: There might be a better way to detect whether we are running in QEMU.
