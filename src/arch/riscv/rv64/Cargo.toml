@@ -2,7 +2,7 @@
 [package]
 name = "architecture"
 version = "0.1.0"
-authors = ["Ronald G. Minnich <rminnich@gmail.com>"]
+authors = ["Oreboot Authors"]
 edition = "2018"
 
 [profile.release]
