@@ -28,6 +28,8 @@ dd of=flash.rom if=target/riscv64imac-unknown-none-elf/release/oreboot.bin conv=
    Using a 16-pin Pomona clip, connect a SF100 to the board as seen in the
    image below.
 
+![Dediprog](dediprog.jpg)
+
 5. Flash it. Make sure to build flashrom from source because the debian packages tend to be too old.
 
 ```
@@ -40,6 +42,8 @@ sudo flashrom -p dediprog -w flash.rom
    flashchip, set the MSEL dip switches to the value of 0b0001. Note that the
    ON label is 0 on these switches.
 
+![MSEL](msel.jpg)
+
 7. Now connect power to a wall outlet and micro USB to your Linux computer. Use
    the big red power switch to power the board. Use the smaller red tact switch
    to reset the processor. When the board is powered, two new /dev/ttyUSBx
@@ -49,3 +53,5 @@ sudo flashrom -p dediprog -w flash.rom
 ```
 minicom -D /dev/ttyUSB1 -b 115200
 ```
+
+![USB](usb.jpg)
