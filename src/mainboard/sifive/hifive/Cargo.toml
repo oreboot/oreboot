@@ -10,6 +10,7 @@ payloads = { path = "../../../../payloads"}
 architecture = { path = "../../../arch/riscv/rv64"}
 device_tree = { path = "../../../lib/device_tree" }
 soc = { path = "../../../soc/sifive/fu540" }
+clock = { path = "../../../drivers/clock" }
 register = "0.3.2"
 static-ref = "0.1.1"
 heapless = "0.4.x"

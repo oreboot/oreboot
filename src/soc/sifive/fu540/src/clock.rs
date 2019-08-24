@@ -18,6 +18,7 @@
 // 33.33 Mhz after reset
 const FU540_BASE_FQY: usize = 33330;
 
+use clock::ClockNode;
 use core::ops;
 use model::*;
 
@@ -139,11 +140,12 @@ fn DefaultGE() -> u32 {
     r.get()
 }
 
-pub struct Clock {
+pub struct Clock<'a> {
     base: usize,
+    clks: &'a mut [&'a mut dyn ClockNode],
 }
 
-impl ops::Deref for Clock {
+impl<'a> ops::Deref for Clock<'a> {
     type Target = RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -151,7 +153,7 @@ impl ops::Deref for Clock {
     }
 }
 
-impl Driver for Clock {
+impl<'a> Driver for Clock<'a> {
     fn init(&mut self) {
         /* nothing to do. */
     }
@@ -201,9 +203,9 @@ const PRCI_CORECLKSEL_CORECLKSEL: u32 = 1;
 
 /* Clock initialization should only be done in romstage. */
 
-impl Clock {
-    pub fn new() -> Clock {
-        Clock { base: reg::PRCI as usize }
+impl<'a> Clock<'a> {
+    pub fn new(clks: &'a mut [&'a mut dyn ClockNode]) -> Clock<'a> {
+        Clock::<'a> { base: reg::PRCI as usize, clks: clks }
     }
 
     /// Returns a pointer to the register block
@@ -249,16 +251,18 @@ impl Clock {
         self.GE1.write(PLLCfg1::Ctrl::Enable);
     }
 
-    fn clock_init(&self) {
+    fn clock_init(&mut self) {
         if is_qemu() {
             return;
         }
 
-        /*
-         * Update the peripheral clock dividers of UART, SPI and I2C to safe
-         * values as we can't put them in reset before changing frequency.
-         */
+        // Update the peripheral clock dividers of UART, SPI and I2C to safe
+        // values as we can't put them in reset before changing frequency.
         update_peripheral_clock_dividers();
+        let hfclk = 1_000_000_000; // 1GHz
+        for clk in self.clks.iter_mut() {
+            clk.set_clock_rate(hfclk);
+        }
 
         self.init_coreclk();
         // put DDR and ethernet in reset
@@ -296,11 +300,6 @@ impl Clock {
     }
 }
 
-// NASTY. We'll live with it for now.
-const UART_DEVICES: u32 = 2;
-const UART_REG_DIV: u32 = 0x18;
-const UART_DIV_VAL: u32 = 4340;
-
 const SPI_DIV: u32 = 0x00;
 const SPI_DIV_VAL: u32 = 4;
 use core::ptr;
@@ -314,10 +313,6 @@ fn update_peripheral_clock_dividers() {
     poke((reg::QSPI0 + SPI_DIV), SPI_DIV_VAL);
     poke((reg::QSPI1 + SPI_DIV), SPI_DIV_VAL);
     poke((reg::QSPI2 + SPI_DIV), SPI_DIV_VAL);
-
-    for i in 0..UART_DEVICES {
-        poke((reg::uart(i) + UART_REG_DIV), UART_DIV_VAL);
-    }
 }
 
 // TODO: There might be a better way to detect whether we are running in QEMU.

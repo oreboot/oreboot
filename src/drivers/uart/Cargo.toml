@@ -9,6 +9,7 @@ opt-level = 'z'  # Optimize for size.
 
 [dependencies]
 model = { path = "../model"}
+clock = { path = "../clock"}
 register = "0.3.2"
 heapless = "0.4.x"
 
