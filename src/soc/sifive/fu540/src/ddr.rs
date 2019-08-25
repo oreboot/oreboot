@@ -3,6 +3,7 @@ use model::*;
 
 use crate::reg;
 use crate::ux00;
+use crate::is_qemu;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
@@ -12,6 +13,7 @@ use register::{register_bitfields, Field};
 pub struct BlockerRegister {
     Blocker: ReadWrite<u64, Blocker::Register>,
 }
+
 // so what I'd really like to do, given that we can have some control over deref,
 // is have this be 5 or so u32 and then, on deref, compute the correct address
 // and use it. But one war at a time. That said, counting offsets is pretty 1979.
@@ -66,7 +68,10 @@ impl Driver for DDR {
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         match data {
-            b"on" => Ok(1),
+            b"on" => {
+                sdram_init();
+                Ok(1)
+            },
             _ => Ok(0),
         }
     }
@@ -212,6 +217,10 @@ register_bitfields! {
 // 0
 // MASK interrupt due to cause INT_STATUS [31:0]
 fn sdram_init() {
+    if is_qemu() {
+        return;
+    }
+
     ux00::ux00ddr_writeregmap();
     ux00::ux00ddr_disableaxireadinterleave();
 
