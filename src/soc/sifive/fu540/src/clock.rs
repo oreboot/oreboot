@@ -23,6 +23,7 @@ use core::{ops, ptr};
 use model::*;
 
 use crate::reg;
+use crate::is_qemu;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
@@ -105,6 +106,18 @@ fn ResetMask(ddr: bool, axi: bool, ahb: bool, phy: bool, GE: bool) -> u32 {
     let mut m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f);
     if ddr {
         m.modify(ResetCtl::DDRCtl.val(0));
+    }
+    if axi {
+        m.modify(ResetCtl::DDRAXI.val(0));
+    }
+    if ahb {
+        m.modify(ResetCtl::DDRAHB.val(0));
+    }
+    if phy {
+        m.modify(ResetCtl::DDRPHY.val(0));
+    }
+    if GE {
+        m.modify(ResetCtl::GE.val(0));
     }
     m.get()
 }
@@ -213,24 +226,13 @@ impl<'a> Clock<'a> {
         self.base as *const _
     }
 
-    // This is nasty but it will get us on the air and we can convert
-    // these one by one to use Registers. I don't want to deal with
-    // a language change AND a new way of doing things.
-    fn configure_pll(r: ReadWrite<u32, PLLCfg0::Register>, v: ReadWrite<u32, PLLCfg0::Register>) {
-        r.set(v.get());
-        // Wait for PLL Lock.
-        // TODO: timeout and panic message
-        loop {
-            if r.is_set(PLLCfg0::LockRO) {
-                return;
-            }
-        }
-    }
-
     fn init_coreclk(&self) {
         self.ClkSel.write(ClkSel::Sel::HF);
 
         self.Core.set(DefaultCore());
+
+        // Spin until PLL is locked.
+        while !self.Core.is_set(PLLCfg0::LockRO) {}
 
         self.ClkSel.write(ClkSel::Sel::Core);
     }
@@ -240,13 +242,20 @@ impl<'a> Clock<'a> {
 
         self.DDR0.set(DefaultDDR());
 
-        self.DDR1.write(PLLCfg1::Ctrl::Enable);
+        // Spin until PLL is locked.
+        while !self.DDR0.is_set(PLLCfg0::LockRO) {}
+
+        // ???? The CKE is actually bit 31, not 24 like the datasheet suggests.
+        self.DDR1.set(1 << 31);
     }
 
     fn init_pll_ge(&self) {
         self.GE1.write(PLLCfg1::Ctrl::Disable);
 
         self.GE0.set(DefaultGE());
+
+        // Spin until PLL is locked.
+        while !self.GE0.is_set(PLLCfg0::LockRO) {}
 
         self.GE1.write(PLLCfg1::Ctrl::Enable);
     }
@@ -276,8 +285,9 @@ impl<'a> Clock<'a> {
 
         // get DDR out of reset
         // TODO: clean this up later
-        self.DevReset.write(ResetCtl::DDRCtl::Reset);
+        self.DevReset.set(ResetMask(false, true, true, true, true));
 
+        // Required to get the '1 full controller clock cycle'.
         architecture::fence();
 
         self.DevReset.set(ResetMask(false, false, false, false, true));
@@ -297,10 +307,4 @@ impl<'a> Clock<'a> {
 
         architecture::fence();
     }
-}
-
-// TODO: There might be a better way to detect whether we are running in QEMU.
-fn is_qemu() -> bool {
-    // On hardware, the MSEL is only 4 bits, so it is impossible for it to reach this value.
-    unsafe { ptr::read_volatile(reg::MSEL as *mut u32) == 0x297 }
 }
