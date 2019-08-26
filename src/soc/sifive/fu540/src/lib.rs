@@ -11,7 +11,7 @@ pub mod ux00;
 use core::ptr;
 
 // TODO: There might be a better way to detect whether we are running in QEMU.
-fn is_qemu() -> bool {
+pub fn is_qemu() -> bool {
     // On hardware, the MSEL is only 4 bits, so it is impossible for it to reach this value.
     unsafe { ptr::read_volatile(reg::MSEL as *mut u32) == 0x297 }
 }
