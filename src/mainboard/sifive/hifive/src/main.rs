@@ -52,7 +52,7 @@ pub extern "C" fn _start() -> ! {
     // because hardware is running off of SPI which is mapped at some other address.
     if !is_qemu() {
         w.write_str("Testing DDR...\r\n").unwrap();
-        match test_ddr(0x80000000 as *mut u32, 4) {
+        match test_ddr(0x80000000 as *mut u32, 2*1024*1024+256, w) {
             Err((a, v)) => fmt::write(w,format_args!(
                     "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
             _ => w.write_str("Passed\r\n").unwrap(),
@@ -64,12 +64,14 @@ pub extern "C" fn _start() -> ! {
 }
 
 // Returns Err((address, got)) or OK(()).
-fn test_ddr(addr: *mut u32, size: usize) -> Result<(), (*const u32, u32)> {
+fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo<>) -> Result<(), (*const u32, u32)> {
+    w.write_str("Starting to fill with data\r\n").unwrap();
     // Fill with data.
     for i in 0..(size/4) {
         unsafe { ptr::write(addr.add(i), (i+1) as u32) };
     }
 
+    w.write_str("Starting to read back data\r\n").unwrap();
     // Read back data.
     for i in 0..(size/4) {
         let v = unsafe {ptr::read(addr.add(i))};
