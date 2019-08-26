@@ -50,3 +50,9 @@ args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_D
 dependencies = ["build"]
 command = "cargo"
 args = ["objdump", "--", "-d", "${TARGET_DIR}/hifive"]
+
+[tasks.flash]
+dependencies = ["default"]
+script = [
+       "sudo $(which flashrom) -V -w ${TARGET_DIR}/oreboot.bin -p dediprog",
+]

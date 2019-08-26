@@ -81,8 +81,11 @@ make -j16
 stat riscv64-softmmu/qemu-system-riscv64
 ```
 
-Testing oreboot Without Modifying Your Hardware
-------------------------------------------------
+Oreboot on Hardware
+-------------------
+
+* [HiFive Unleashed](Documentation/sifive/setup.md)
+
 
 Website and Mailing List
 ------------------------
