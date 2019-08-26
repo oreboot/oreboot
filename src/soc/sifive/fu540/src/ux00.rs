@@ -38,15 +38,15 @@ pub const PHY_RX_CAL_DQ1_0_OFFSET: u64 = 16;
 // No idea why this is.
 // Index is a word offset.
 fn poke(Pointer: u32, Index: u32, Value: u32) -> () {
-    let addr = (Pointer + Index << 2) as *mut u32;
+    let addr = (Pointer + (Index << 2)) as *mut u32;
     unsafe {
-        ptr::write_volatile(addr, Value.into());
+        ptr::write_volatile(addr, Value);
     }
 }
 
 fn poke64(Pointer: u32, Index: u32, Value: u64) -> () {
-    let addr = (Pointer + Index << 2) as *mut u32;
-    let addr1 = (Pointer + Index << 2 + 4) as *mut u32;
+    let addr = (Pointer + (Index << 2)) as *mut u32;
+    let addr1 = (Pointer + (Index << 2) + 4) as *mut u32;
     unsafe {
         let v1: u32 = (Value >> 32) as u32;
         ptr::write_volatile(addr, v1);
@@ -66,19 +66,19 @@ fn clr(Pointer: u32, Index: u32, Value: u32) -> () {
 }
 
 fn peek(Pointer: u32, Index: u32) -> u32 {
-    let addr = (Pointer + Index << 2) as *const u32;
+    let addr = (Pointer + (Index << 2)) as *const u32;
     unsafe { ptr::read_volatile(addr) }
 }
 
 // #define _REG32((reg::DDR_CTRL,p, i) (*(volatile u32 *)((p) + (i)))
 
 pub fn phy_reset() {
-    for i in 1152..1214 {
+    for i in 1152..=1214 {
         poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
         //u32 physet = DenaliPhyData[i];
         // /*if (physet!=0)*/ DDR_PHY[i] = physet;
     }
-    for i in 0..1151 {
+    for i in 0..=1151 {
         poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
         //for (i=0;i<=1151;i++) {
         //    u32 physet = DenaliPhyData[i];
@@ -87,7 +87,7 @@ pub fn phy_reset() {
 }
 
 pub fn ux00ddr_writeregmap() {
-    for i in 0..265 {
+    for i in 0..=264 {
         //  for (i=0;i<=264;i++) {
         poke(reg::DDR_CTRL, i as u32, ddrregs::DenaliCtlData[i]);
         // u32 ctlset = DenaliCtlData[i];
