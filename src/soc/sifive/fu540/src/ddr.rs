@@ -1,4 +1,5 @@
 use core::ops;
+use uart::sifive::SiFive;
 use model::*;
 
 use crate::reg;
@@ -221,30 +222,47 @@ fn sdram_init() {
         return;
     }
 
+    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
+
+    uart0.pwrite(b"ux00::ux00ddr_writeregmap\r\n", 0).unwrap();
     ux00::ux00ddr_writeregmap();
+    uart0.pwrite(b"ux00::ux00ddr_disableaxireadinterleave\r\n", 0).unwrap();
     ux00::ux00ddr_disableaxireadinterleave();
 
+    uart0.pwrite(b"ux00::ux00ddr_disableoptimalrmodw\r\n", 0).unwrap();
     ux00::ux00ddr_disableoptimalrmodw();
 
+    uart0.pwrite(b"ux00::ux00ddr_enablewriteleveling\r\n", 0).unwrap();
     ux00::ux00ddr_enablewriteleveling();
+    uart0.pwrite(b"ux00::ux00ddr_enablereadleveling\r\n", 0).unwrap();
     ux00::ux00ddr_enablereadleveling();
+    uart0.pwrite(b"ux00::ux00ddr_enablereadlevelinggate\r\n", 0).unwrap();
     ux00::ux00ddr_enablereadlevelinggate();
+    uart0.pwrite(b"ux00::ux00ddr_getdramclass\r\n", 0).unwrap();
     if ux00::ux00ddr_getdramclass() == ux00::DRAM_CLASS_DDR4 {
+        uart0.pwrite(b"ux00::ux00ddr_enablevreftraining\r\n", 0).unwrap();
         ux00::ux00ddr_enablevreftraining();
     }
 
     //mask off interrupts for leveling completion
+    uart0.pwrite(b"ux00::ux00ddr_mask_leveling_completed_interrupt\r\n", 0).unwrap();
     ux00::ux00ddr_mask_leveling_completed_interrupt();
 
+    uart0.pwrite(b"ux00::ux00ddr_mask_mc_init_complete_interrupt\r\n", 0).unwrap();
     ux00::ux00ddr_mask_mc_init_complete_interrupt();
+    uart0.pwrite(b"ux00::ux00ddr_mask_outofrange_interrupts\r\n", 0).unwrap();
     ux00::ux00ddr_mask_outofrange_interrupts();
     let ddr_size: u64 = reg::DDR_SIZE;
+    uart0.pwrite(b"ux00::ux00ddr_setuprangeprotection\r\n", 0).unwrap();
     ux00::ux00ddr_setuprangeprotection(ddr_size);
+    uart0.pwrite(b"ux00::ux00ddr_mask_port_command_error_interrupt\r\n", 0).unwrap();
     ux00::ux00ddr_mask_port_command_error_interrupt();
 
     let ddr_end: u64 = reg::DRAM as u64 + ddr_size;
+    uart0.pwrite(b"ux00::ux00ddr_start\r\n", 0).unwrap();
     ux00::ux00ddr_start(ddr_size, ddr_end);
 
+    uart0.pwrite(b"ux00::ux00ddr_phy_fixup\r\n", 0).unwrap();
     ux00::ux00ddr_phy_fixup();
 }
 

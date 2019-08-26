@@ -11,5 +11,6 @@ opt-level = 'z'  # Optimize for size.
 architecture = { path = "../../../arch/riscv/rv64"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }
+uart = { path = "../../../drivers/uart" }
 register = "0.3.2"
 
