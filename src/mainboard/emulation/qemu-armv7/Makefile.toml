@@ -13,7 +13,9 @@ TARGET_DIR = "target/arm-none-eabihf/release/"
 [tasks.default]
 dependencies = [ "build" ]
 script = [
-	"arm-none-eabi-objcopy -O binary ${TARGET_DIR}/qemu-armv7 ${TARGET_DIR}/oreboot.bin"
+	"arm-none-eabi-objcopy -O binary ${TARGET_DIR}/qemu-armv7 ${TARGET_DIR}/bootblob.bin",
+	"dtc fixed-dtfs.dts -O dtb -o fixed-dtfs.dtb",
+	"layoutflash fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin"
 ]
 
 [tasks.install-rust-src]
