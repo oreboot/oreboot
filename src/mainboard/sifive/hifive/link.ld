@@ -26,7 +26,7 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x80000000;
+    . = 0x20000000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));

@@ -13,7 +13,7 @@ cd src/mainboard/sifive/hifive
 cargo make -p release run
 ```
 
-| ⚠️ **WARNING:** QEMU and hardware use different linker scripts. Before proceeding to the next step, you must manually copy link_hw.ld to link.ld and "rm -rf" the target directory. |
+| ⚠️ **WARNING:** If you modify the linker script lind.ld, you must "rm -rf" the target directory. |
 | --- |
 
 3. Create a flash image.

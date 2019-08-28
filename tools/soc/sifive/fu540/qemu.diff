@@ -1,8 +1,8 @@
 diff --git a/hw/riscv/sifive_u.c b/hw/riscv/sifive_u.c
-index 71b8083c05..1e2e526870 100644
+index 71b8083c05..66bbd5df95 100644
 --- a/hw/riscv/sifive_u.c
 +++ b/hw/riscv/sifive_u.c
-@@ -59,8 +59,9 @@ static const struct MemmapEntry {
+@@ -59,8 +59,10 @@ static const struct MemmapEntry {
      [SIFIVE_U_MROM] =     {     0x1000,    0x11000 },
      [SIFIVE_U_CLINT] =    {  0x2000000,    0x10000 },
      [SIFIVE_U_PLIC] =     {  0xc000000,  0x4000000 },
@@ -11,10 +11,47 @@ index 71b8083c05..1e2e526870 100644
 +    [SIFIVE_U_L2LIM] =    {  0x8000000,  0x1e00000 },
 +    [SIFIVE_U_UART0] =    { 0x10010000,     0x1000 },
 +    [SIFIVE_U_UART1] =    { 0x10011000,     0x1000 },
++    [SIFIVE_U_FLASH0] =   { 0x20000000,  0x2000000 },
      [SIFIVE_U_DRAM] =     { 0x80000000,        0x0 },
      [SIFIVE_U_GEM] =      { 0x100900FC,     0x2000 },
  };
-@@ -337,6 +338,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+@@ -253,6 +255,7 @@ static void riscv_sifive_u_init(MachineState *machine)
+     SiFiveUState *s = g_new0(SiFiveUState, 1);
+     MemoryRegion *system_memory = get_system_memory();
+     MemoryRegion *main_mem = g_new(MemoryRegion, 1);
++    MemoryRegion *flash0 = g_new(MemoryRegion, 1);
+     int i;
+ 
+     /* Initialize SoC */
+@@ -268,11 +271,17 @@ static void riscv_sifive_u_init(MachineState *machine)
+     memory_region_add_subregion(system_memory, memmap[SIFIVE_U_DRAM].base,
+                                 main_mem);
+ 
++    /* register QSPI0 Flash */
++    memory_region_init_ram(flash0, NULL, "riscv.sifive.u.flash0",
++                           memmap[SIFIVE_U_FLASH0].size, &error_fatal);
++    memory_region_add_subregion(system_memory, memmap[SIFIVE_U_FLASH0].base,
++                                flash0);
++
+     /* create device tree */
+     create_fdt(s, memmap, machine->ram_size, machine->kernel_cmdline);
+ 
+     riscv_find_and_load_firmware(machine, BIOS_FILENAME,
+-                                 memmap[SIFIVE_U_DRAM].base);
++                                 memmap[SIFIVE_U_FLASH0].base);
+ 
+     if (machine->kernel_filename) {
+         riscv_load_kernel(machine->kernel_filename);
+@@ -290,7 +299,7 @@ static void riscv_sifive_u_init(MachineState *machine)
+ #endif
+         0x00028067,                    /*     jr     t0 */
+         0x00000000,
+-        memmap[SIFIVE_U_DRAM].base, /* start: .dword DRAM_BASE */
++        memmap[SIFIVE_U_FLASH0].base, /* start: .dword FLASH0_BASE */
+         0x00000000,
+                                        /* dtb: */
+     };
+@@ -337,6 +346,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      const struct MemmapEntry *memmap = sifive_u_memmap;
      MemoryRegion *system_memory = get_system_memory();
      MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
@@ -22,12 +59,12 @@ index 71b8083c05..1e2e526870 100644
      qemu_irq plic_gpios[SIFIVE_U_PLIC_NUM_SOURCES];
      char *plic_hart_config;
      size_t plic_hart_config_len;
-@@ -353,6 +355,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+@@ -353,6 +363,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      memory_region_add_subregion(system_memory, memmap[SIFIVE_U_MROM].base,
                                  mask_rom);
  
 +    /* Add fake L2-LIM */
-+    memory_region_init_ram(l2lim_mem, NULL, "l2lim",
++    memory_region_init_ram(l2lim_mem, NULL, "riscv.sifive.u.l2lim",
 +		           memmap[SIFIVE_U_L2LIM].size, &error_fatal);
 +    memory_region_add_subregion(system_memory, memmap[SIFIVE_U_L2LIM].base,
 +                                l2lim_mem);
@@ -36,14 +73,17 @@ index 71b8083c05..1e2e526870 100644
      plic_hart_config_len = (strlen(SIFIVE_U_PLIC_HART_CONFIG) + 1) *
                             ms->smp.cpus;
 diff --git a/include/hw/riscv/sifive_u.h b/include/hw/riscv/sifive_u.h
-index 892f0eee21..6c676762af 100644
+index 892f0eee21..52bd54518e 100644
 --- a/include/hw/riscv/sifive_u.h
 +++ b/include/hw/riscv/sifive_u.h
-@@ -50,6 +50,7 @@ enum {
+@@ -50,8 +50,10 @@ enum {
      SIFIVE_U_MROM,
      SIFIVE_U_CLINT,
      SIFIVE_U_PLIC,
 +    SIFIVE_U_L2LIM,
      SIFIVE_U_UART0,
      SIFIVE_U_UART1,
++    SIFIVE_U_FLASH0,
      SIFIVE_U_DRAM,
+     SIFIVE_U_GEM
+ };

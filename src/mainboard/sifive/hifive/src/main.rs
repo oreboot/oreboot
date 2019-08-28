@@ -47,16 +47,11 @@ pub extern "C" fn _start() -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    // The memtest is broken on QEMU because QEMU loads the firmware into memory at address
-    // 0x80000000. When we try to test this memory, we hose our own program. This works on hardware
-    // because hardware is running off of SPI which is mapped at some other address.
-    if !is_qemu() {
-        w.write_str("Testing DDR...\r\n").unwrap();
-        match test_ddr(0x80000000 as *mut u32, 2*1024*1024+256, w) {
-            Err((a, v)) => fmt::write(w,format_args!(
-                    "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
-            _ => w.write_str("Passed\r\n").unwrap(),
-        }
+    w.write_str("Testing DDR...\r\n").unwrap();
+    match test_ddr(0x80000000 as *mut u32, 2*1024*1024+256, w) {
+        Err((a, v)) => fmt::write(w,format_args!(
+                "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
+        _ => w.write_str("Passed\r\n").unwrap(),
     }
 
     w.write_str("TESTTESTTEST\r\n").unwrap();
