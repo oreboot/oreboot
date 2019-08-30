@@ -34,17 +34,17 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["build"]
 command = "qemu-system-riscv64"
-args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", ]
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", ]
 
 [tasks.trace]
 dependencies = ["build"]
 command = "qemu-system-riscv64"
-args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors,in_asm"]
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors,in_asm"]
 
 [tasks.gdb]
 dependencies = ["build"]
 command = "qemu-system-riscv64"
-args = ["-m", "512m", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors", "-s", "-S"]
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-bios", "${TARGET_DIR}/hifive", "-d", "guest_errors", "-s", "-S"]
 
 [tasks.objdump]
 dependencies = ["build"]

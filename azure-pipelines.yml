@@ -36,6 +36,6 @@ steps:
   displayName: 'Install RISC-V QEMU Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
-    timeout 5s cargo make run -p release | tee serial
+    timeout 120s cargo make run -p release | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V QEMU Test'
