@@ -66,18 +66,21 @@ pub extern "C" fn _start() -> ! {
 
 // Returns Err((address, got)) or OK(()).
 fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo<>) -> Result<(), (*const u32, u32)> {
-    w.write_str("Starting to fill with data\r\n").unwrap();
-    // Fill with data.
-    for i in 0..(size/4) {
-        unsafe { ptr::write(addr.add(i), (i+1) as u32) };
-    }
+    for seed in 0..100 {
+        fmt::write(w, format_args!("Starting on seed {}\r\n", seed)).unwrap();
+        // Fill with data.
+        w.write_str("Starting to fill with data\r\n").unwrap();
+        for i in 0..(size/4) {
+            unsafe { ptr::write(addr.add(i), (seed+i+1) as u32) };
+        }
 
-    w.write_str("Starting to read back data\r\n").unwrap();
-    // Read back data.
-    for i in 0..(size/4) {
-        let v = unsafe {ptr::read(addr.add(i))};
-        if v != i as u32 + 1 {
-            return Err((unsafe {addr.add(i)}, v))
+        // Read back data.
+        w.write_str("Starting to read back data\r\n").unwrap();
+        for i in 0..(size/4) {
+            let v = unsafe {ptr::read(addr.add(i))};
+            if v != (seed+i+1) as u32 {
+                return Err((unsafe {addr.add(i)}, v))
+            }
         }
     }
     Ok(())
