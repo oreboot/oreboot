@@ -42,13 +42,19 @@ pub extern "C" fn _start() -> ! {
 
     uart0.pwrite(b"Initializing DDR...\r\n", 0).unwrap();
     let mut ddr = DDR::new();
-    ddr.pwrite(b"on", 0).unwrap();
+    let m = match ddr.pwrite(b"on", 0) {
+        Ok(size) => size,
+        Err(error) => {
+            panic!("problem initalizing DDR: {:?}", error);
+        },
+    };
     uart0.pwrite(b"Done\r\n", 0).unwrap();
-
     let w = &mut print::WriteTo::new(uart0);
 
+    fmt::write(w,format_args!("Memory size is: {:x}\r\n", m)).unwrap();
+
     w.write_str("Testing DDR...\r\n").unwrap();
-    match test_ddr(0x80000000 as *mut u32, 8*1024*1024*1024, w) {
+    match test_ddr(0x80000000 as *mut u32, m, w) {
         Err((a, v)) => fmt::write(w,format_args!(
                 "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
         _ => w.write_str("Passed\r\n").unwrap(),

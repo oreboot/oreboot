@@ -6,6 +6,7 @@ use crate::ux00;
 use crate::is_qemu;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
+use core::convert::TryInto;
 
 #[allow(non_snake_case)]
 #[repr(C)]
@@ -70,7 +71,7 @@ impl Driver for DDR {
         match data {
             b"on" => {
                 sdram_init();
-                Ok(1)
+                Ok(MemSize().try_into().unwrap())
             },
             _ => Ok(0),
         }
@@ -238,7 +239,7 @@ fn sdram_init() {
 
     ux00::ux00ddr_mask_mc_init_complete_interrupt();
     ux00::ux00ddr_mask_outofrange_interrupts();
-    let ddr_size: u64 = reg::DDR_SIZE;
+    let ddr_size: u64 = MemSize();
     ux00::ux00ddr_setuprangeprotection(ddr_size);
     ux00::ux00ddr_mask_port_command_error_interrupt();
 
@@ -250,5 +251,8 @@ fn sdram_init() {
 }
 
 pub fn MemSize() -> u64 {
-    8 * 1024
+    if is_qemu() {
+        return 1*1024*1024*1024
+    }
+    reg::DDR_SIZE
 }
