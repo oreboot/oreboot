@@ -35,7 +35,7 @@ pub const DDR_MGMT: u32 = 0x100c0000;
 pub const QSPI0_FLASH: u32 = 0x20000000;
 pub const QSPI1_FLASH: u32 = 0x30000000;
 pub const DRAM: u32 = 0x80000000;
-pub const DDR_SIZE: u64 = 0x100000000;
+pub const DDR_SIZE: u64 = 8 * 1024 * 1024 * 1024;
 
 // This is the only u64 in the entire spec.
 pub const MAX_DRAM: u64 = 0x2000000000;

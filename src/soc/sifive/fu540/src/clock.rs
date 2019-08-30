@@ -299,7 +299,7 @@ impl<'a> Clock<'a> {
         // stuff before they come out of reset. So wait.
         // TODO: Add a register to read the current reset states, or DDR Control
         // device?
-        for i in 0..255 {
+        for i in 0..=255 {
             architecture::nop();
         }
         self.init_pll_ge();
