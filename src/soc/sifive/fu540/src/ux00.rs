@@ -45,13 +45,14 @@ fn poke(Pointer: u32, Index: u32, Value: u32) -> () {
 }
 
 fn poke64(Pointer: u32, Index: u32, Value: u64) -> () {
-    let addr = (Pointer + (Index << 2)) as *mut u32;
-    let addr1 = (Pointer + (Index << 2) + 4) as *mut u32;
+    let addr = (Pointer + (Index << 2)) as *mut u64;
+    //let addr1 = (Pointer + (Index << 2) + 4) as *mut u32;
     unsafe {
-        let v1: u32 = (Value >> 32) as u32;
-        ptr::write_volatile(addr, v1);
-        let v2: u32 = (Value) as u32;
-        ptr::write_volatile(addr1, v2);
+        ptr::write_volatile(addr, Value);
+        //let v2: u32 = (Value) as u32;
+        //ptr::write_volatile(addr1, v2);
+        //let v1: u32 = (Value >> 32) as u32;
+        //ptr::write_volatile(addr, v1);
     }
 }
 
@@ -112,7 +113,7 @@ pub fn ux00ddr_start(filteraddr: u64, ddrend: u64) {
     }
 
     // Disable the BusBlocker in front of the controller AXI slave ports
-    let freg = peek(filteraddr as u32, 0);
+    let freg = filteraddr as u32;
     poke64(freg, 0, (0x0f00000000000000 | (ddrend >> 2)) as u64);
     //         volatile u64 *filterreg = (volatile uint64_t *)filteraddr;
     //   filterreg[0] = 0x0f00000000000000UL | (ddrend >> 2);
@@ -198,12 +199,12 @@ pub fn ux00ddr_phy_fixup() -> u64 {
     let mut dq: u32 = 0;
     for slice in 0..8 {
         // check errata condition
-        let regbase: u32 = slicebase;
+        let regbase: u32 = slicebase + 34;
         for reg in 0..4 {
             // what the hell?
-            let updownreg: u32 = peek((regbase + reg) << 2, ddrphyreg);
+            let updownreg: u32 = peek(ddrphyreg, (regbase + reg));
             for bit in 0..2 {
-                let mut phy_rx_cal_dqn_0_offset: u64 = 0;
+                let mut phy_rx_cal_dqn_0_offset: u64;
                 if bit == 0 {
                     phy_rx_cal_dqn_0_offset = PHY_RX_CAL_DQ0_0_OFFSET;
                 } else {

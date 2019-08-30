@@ -48,7 +48,7 @@ pub extern "C" fn _start() -> ! {
     let w = &mut print::WriteTo::new(uart0);
 
     w.write_str("Testing DDR...\r\n").unwrap();
-    match test_ddr(0x80000000 as *mut u32, 2*1024*1024+256, w) {
+    match test_ddr(0x80000000 as *mut u32, 8*1024*1024*1024, w) {
         Err((a, v)) => fmt::write(w,format_args!(
                 "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
         _ => w.write_str("Passed\r\n").unwrap(),
