@@ -1,4 +1,5 @@
 use core::intrinsics::{copy, transmute};
+use model::{Driver, EOF};
 
 /// compression types
 #[derive(PartialEq, Debug)]
@@ -83,7 +84,7 @@ pub enum stype {
 }
 
 /// A payload. oreboot will only have payloads for anything past the romstage.
-#[derive(Debug)]
+// #[derive(Debug)]
 pub struct Payload<'a> {
     /// Type of payload
     pub typ: ftype,
@@ -101,14 +102,14 @@ pub struct Payload<'a> {
     pub segs: &'a [Segment<'a>],
 }
 
-#[derive(Debug)]
+// #[derive(Debug)]
 pub struct Segment<'a> {
     /// Type
     pub typ: stype,
     /// Load address in memory
-    pub base: u32,
+    pub base: usize,
     /// The data
-    pub data: &'a [u8],
+    pub data: &'a mut dyn Driver,
 }
 
 impl<'a> Payload<'a> {
@@ -116,7 +117,19 @@ impl<'a> Payload<'a> {
     pub fn load(&self) {
         // Copy the segments into RAM.
         for s in self.segs {
-            unsafe { copy(s.data.as_ptr(), s.base as *mut u8, s.data.len()) }
+            // Copy from driver into segment.
+            let mut buf = [0u8; 512];
+            let mut off = 0;
+            loop {
+                let size = match s.data.pread(&mut buf, off) {
+                    Ok(x) => x,
+                    EOF => return,
+                    _ => panic!("driver error"),
+                };
+                // TODO: This incurs a second copy. There's probably a better way.
+                unsafe { copy(buf.as_ptr(), (s.base + off) as *mut u8, size) };
+                off += size;
+            }
         }
     }
 
@@ -126,13 +139,13 @@ impl<'a> Payload<'a> {
         // Find the segment containing the entrypoint.
         let entry = self.segs.iter().find(|&x| x.typ == stype::PAYLOAD_SEGMENT_ENTRY).expect("no entrypoint").base;
         // Find the segment containing the device tree.
-        let dtb = self.segs.iter().find(|&x| x.typ == stype::PAYLOAD_SEGMENT_DATA).expect("no device tree").base;
+        let dtb = self.segs.iter().find(|&x| x.typ == stype::PAYLOAD_SEGMENT_DATA).map_or(0, |x| x.base);
 
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
 
         unsafe {
-            let f = transmute::<usize, unsafe extern "C" fn(r0: u32, mach: u32, dtb: u32)>(entry as usize);
+            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, mach: usize, dtb: usize)>(entry as usize);
             f(0, 0xffffffff, dtb);
         }
         // TODO: error when payload returns.
