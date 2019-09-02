@@ -11,6 +11,7 @@ use core::fmt::Write;
 use core::{fmt, ptr};
 use device_tree::{FdtReader, Entry, infer_type};
 use model::Driver;
+use payloads::payload;
 use soc::clock::Clock;
 use soc::ddr::DDR;
 use spi::SiFiveSpi;
@@ -43,11 +44,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let w = &mut print::WriteTo::new(uart0);
 
     w.write_str("## ROM Device Tree\r\n").unwrap();
+    // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
     fmt::write(w, format_args!("ROM FDT address: 0x{:x}\n", fdt_address));
     // We have no idea how long the FDT really is. This caps it to 1MiB.
-    let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 1024*1024);
-    // TODO: For some reason, the following function call hangs on hardware (but passes in QEMU).
-    // It looks like the fdt_address is garbage.
+    //let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 1024*1024);
     //if let Err(err) = print_fdt(rom_fdt, w) {
     //    fmt::write(w, format_args!("error: {}\n", err)).unwrap();
     //}
@@ -72,13 +72,37 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     fmt::write(w,format_args!("Memory size is: {:x}\r\n", m)).unwrap();
 
     w.write_str("Testing DDR...\r\n").unwrap();
-    match test_ddr(0x80000000 as *mut u32, m, w) {
+    let MEM = 0x80000000;
+    match test_ddr(MEM as *mut u32, m, w) {
         Err((a, v)) => fmt::write(w,format_args!(
                 "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
         _ => w.write_str("Passed\r\n").unwrap(),
     }
 
-    w.write_str("TESTTESTTEST\r\n").unwrap();
+    // TODO; This payload structure should be loaded from SPI rather than hardcoded.
+    let payload: payload::Payload = payload::Payload {
+        typ: payload::ftype::CBFS_TYPE_RAW,
+        compression: payload::ctype::CBFS_COMPRESS_NONE,
+        offset: 0,
+        load_addr: MEM as u64,
+        // TODO: These two length fields are not used.
+        rom_len: 0 as u32,
+        mem_len: 0 as u32,
+
+        segs: &[
+            payload::Segment {
+                typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+                base: MEM,
+                data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0x400000, 1024),
+            },
+        ],
+    };
+    w.write_str("Loading payload\r\n").unwrap();
+    payload.load();
+    w.write_str("Running payload\r\n").unwrap();
+    payload.run();
+
+    w.write_str("Unexpected return from payload\r\n").unwrap();
     architecture::halt()
 }
 

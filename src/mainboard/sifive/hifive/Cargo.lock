@@ -120,6 +120,9 @@ dependencies = [
 [[package]]
 name = "payloads"
 version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
 
 [[package]]
 name = "proc-macro2"

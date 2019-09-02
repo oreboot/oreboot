@@ -71,7 +71,7 @@ impl<'a> SliceReader<'a> {
 
 impl<'a> Driver for SliceReader<'a> {
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
-        if pos > self.data.len() {
+        if pos >= self.data.len() {
             return EOF;
         }
         let count = data.len().min(self.data.len() - pos);
@@ -101,7 +101,7 @@ impl<'a> SectionReader<'a> {
 
 impl<'a> Driver for SectionReader<'a> {
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
-        if pos > self.size {
+        if pos >= self.size {
             return EOF;
         }
         let count = core::cmp::min(data.len(), self.size - pos);

@@ -58,6 +58,7 @@
                 half = <0>;
                 offset = <0x400000>;
                 size = <0x600000>; // 6MiB
+                file = "../../../../payloads/src/external/simple/testtesttest";
             };
             area@7 {
                 description = "RamPayload DTFS B";
