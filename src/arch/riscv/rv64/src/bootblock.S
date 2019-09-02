@@ -19,6 +19,10 @@
 
 .globl _boot
 _boot:
+	# The ZSBL passes these variables:
+	#   a0: hartid
+	#   a1: ROM FDT
+
 	# TODO: Support SMP.
 	# Spin all harts other than 0.
 	csrr a0, mhartid
@@ -39,7 +43,7 @@ spin:
 
 	# TODO: SOC-specific
 	# Set stack pointer into CAR (L2-LIM). 
-	li sp, 0x08004000
+	li sp, 0x08010000
 	li t0, 0xDEADBEEF
 	sw t0, 0(sp)
 
@@ -61,6 +65,9 @@ spin:
 
 	# TODO: set up the mstatus register
 	#call mstatus_init
+
+	# Pass device tree as a0 to Rust code.
+	add a0, a1, x0
 	call _start
 
 	// These codes need to be implemented on a specific SoC.
