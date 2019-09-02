@@ -6,19 +6,19 @@
 
 mod print;
 
-use core::fmt;
+use clock::ClockNode;
 use core::fmt::Write;
+use core::{fmt, ptr};
+use device_tree::{FdtReader, Entry, infer_type};
 use model::Driver;
-use soc::is_qemu;
 use soc::clock::Clock;
 use soc::ddr::DDR;
-use clock::ClockNode;
-use uart::sifive::SiFive;
 use spi::SiFiveSpi;
-use core::ptr;
+use uart::sifive::SiFive;
+use wrappers::{Memory, SectionReader};
 
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+pub extern "C" fn _start(fdt_address: usize) -> ! {
     let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
@@ -40,7 +40,26 @@ pub extern "C" fn _start() -> ! {
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
 
-    uart0.pwrite(b"Initializing DDR...\r\n", 0).unwrap();
+    let w = &mut print::WriteTo::new(uart0);
+
+    w.write_str("## ROM Device Tree\r\n").unwrap();
+    fmt::write(w, format_args!("ROM FDT address: 0x{:x}\n", fdt_address));
+    // We have no idea how long the FDT really is. This caps it to 1MiB.
+    let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 1024*1024);
+    // TODO: For some reason, the following function call hangs on hardware (but passes in QEMU).
+    // It looks like the fdt_address is garbage.
+    //if let Err(err) = print_fdt(rom_fdt, w) {
+    //    fmt::write(w, format_args!("error: {}\n", err)).unwrap();
+    //}
+
+    w.write_str("## Oreboot Fixed Device Tree\r\n").unwrap();
+    // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
+    let fixed_fdt = &mut SectionReader::new(&Memory{}, 0x20000000 + 512*1024, 512*1024);
+    if let Err(err) = print_fdt(fixed_fdt, w) {
+        fmt::write(w, format_args!("error: {}\n", err)).unwrap();
+    }
+
+    w.write_str("Initializing DDR...\r\n").unwrap();
     let mut ddr = DDR::new();
     let m = match ddr.pwrite(b"on", 0) {
         Ok(size) => size,
@@ -48,8 +67,7 @@ pub extern "C" fn _start() -> ! {
             panic!("problem initalizing DDR: {:?}", error);
         },
     };
-    uart0.pwrite(b"Done\r\n", 0).unwrap();
-    let w = &mut print::WriteTo::new(uart0);
+    w.write_str("Done\r\n").unwrap();
 
     fmt::write(w,format_args!("Memory size is: {:x}\r\n", m)).unwrap();
 
@@ -78,6 +96,24 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo<>) -> Result<(),
         let v = unsafe {ptr::read(addr.add(i))};
         if v != i as u32 + 1 {
             return Err((unsafe {addr.add(i)}, v))
+        }
+    }
+    Ok(())
+}
+
+// TODO: move out of mainboard
+pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo<>) -> Result<(), &'static str> {
+    for entry in FdtReader::new(fdt)?.walk() {
+        match entry {
+            Entry::Node { path: p } => {
+                fmt::write(w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
+            }
+            Entry::Property { path: p, value: v } => {
+                let buf = &mut [0; 1024];
+                let len = v.pread(buf, 0)?;
+                let val = infer_type(&buf[..len]);
+                fmt::write(w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
+            }
         }
     }
     Ok(())
