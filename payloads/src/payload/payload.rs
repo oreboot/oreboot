@@ -145,8 +145,8 @@ impl<'a> Payload<'a> {
         // See: linux/Documentation/arm/Booting
 
         unsafe {
-            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, mach: usize, dtb: usize)>(entry as usize);
-            f(0, 0xffffffff, dtb);
+            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, dtb: usize)>(entry as usize);
+            f(0, dtb);
         }
         // TODO: error when payload returns.
     }

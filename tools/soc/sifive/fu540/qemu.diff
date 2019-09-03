@@ -1,5 +1,5 @@
 diff --git a/hw/riscv/sifive_u.c b/hw/riscv/sifive_u.c
-index 71b8083c05..66bbd5df95 100644
+index 71b8083c05..dd27f28917 100644
 --- a/hw/riscv/sifive_u.c
 +++ b/hw/riscv/sifive_u.c
 @@ -59,8 +59,10 @@ static const struct MemmapEntry {
@@ -15,7 +15,16 @@ index 71b8083c05..66bbd5df95 100644
      [SIFIVE_U_DRAM] =     { 0x80000000,        0x0 },
      [SIFIVE_U_GEM] =      { 0x100900FC,     0x2000 },
  };
-@@ -253,6 +255,7 @@ static void riscv_sifive_u_init(MachineState *machine)
+@@ -235,6 +237,8 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
+         0x0, memmap[SIFIVE_U_UART0].size);
+     qemu_fdt_setprop_cell(fdt, nodename, "clock-frequency",
+                           SIFIVE_U_CLOCK_FREQ / 2);
++    // TODO: Linux wants a clock. Using ethclk. What could go wrong?
++    qemu_fdt_setprop_cell(fdt, nodename, "clocks", ethclk_phandle);
+     qemu_fdt_setprop_cells(fdt, nodename, "interrupt-parent", plic_phandle);
+     qemu_fdt_setprop_cells(fdt, nodename, "interrupts", SIFIVE_U_UART0_IRQ);
+ 
+@@ -253,6 +257,7 @@ static void riscv_sifive_u_init(MachineState *machine)
      SiFiveUState *s = g_new0(SiFiveUState, 1);
      MemoryRegion *system_memory = get_system_memory();
      MemoryRegion *main_mem = g_new(MemoryRegion, 1);
@@ -23,7 +32,7 @@ index 71b8083c05..66bbd5df95 100644
      int i;
  
      /* Initialize SoC */
-@@ -268,11 +271,17 @@ static void riscv_sifive_u_init(MachineState *machine)
+@@ -268,11 +273,17 @@ static void riscv_sifive_u_init(MachineState *machine)
      memory_region_add_subregion(system_memory, memmap[SIFIVE_U_DRAM].base,
                                  main_mem);
  
@@ -42,7 +51,7 @@ index 71b8083c05..66bbd5df95 100644
  
      if (machine->kernel_filename) {
          riscv_load_kernel(machine->kernel_filename);
-@@ -290,7 +299,7 @@ static void riscv_sifive_u_init(MachineState *machine)
+@@ -290,7 +301,7 @@ static void riscv_sifive_u_init(MachineState *machine)
  #endif
          0x00028067,                    /*     jr     t0 */
          0x00000000,
@@ -51,7 +60,7 @@ index 71b8083c05..66bbd5df95 100644
          0x00000000,
                                         /* dtb: */
      };
-@@ -337,6 +346,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+@@ -337,6 +348,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      const struct MemmapEntry *memmap = sifive_u_memmap;
      MemoryRegion *system_memory = get_system_memory();
      MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
@@ -59,7 +68,7 @@ index 71b8083c05..66bbd5df95 100644
      qemu_irq plic_gpios[SIFIVE_U_PLIC_NUM_SOURCES];
      char *plic_hart_config;
      size_t plic_hart_config_len;
-@@ -353,6 +363,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+@@ -353,6 +365,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      memory_region_add_subregion(system_memory, memmap[SIFIVE_U_MROM].base,
                                  mask_rom);
  
