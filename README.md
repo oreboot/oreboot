@@ -3,7 +3,7 @@ oreboot README
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 
-oreboot will only target truly open systems requiring no binary blobs.
+oreboot will only target truly open systems requiring no binary blobs. For now, that means no x86.
 oreboot is mostly written in Rust, with assembly where needed.
 
 oreboot currently only plans to support LinuxBoot payloads.
@@ -12,24 +12,24 @@ oreboot currently only plans to support LinuxBoot payloads.
 Demo
 ----
 
+Oreboot+QEMU for RISC-V HiFive Unleased:
+
+[![asciicast](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2.svg)](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2)
+
+Oreboot+QEMU for AST2500:
+
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
-
-Supported Hardware
-------------------
-
-oreboot supports almost nothing, and will
-support no systems that require C or binary blobs. For now, that means no x86.
 
 Build Requirements
 ------------------
 
  * Rust
+ * Device tree compiler
+
 
 Building oreboot
 -----------------
-
-We are still trying to figure this out but:
 
 ```
 # Install rustup
@@ -95,7 +95,7 @@ Not yet.
 Ground Rules
 ------------------------
 
-* The build tool is xargo; there will be no Makefiles.
+* The build tool is cargo-make; there will be no GNU Makefiles.
 * Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel.
 * All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
 * There will be no C.
