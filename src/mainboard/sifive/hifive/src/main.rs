@@ -14,9 +14,14 @@ use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
 use soc::ddr::DDR;
+use soc::is_qemu;
 use spi::SiFiveSpi;
 use uart::sifive::SiFive;
-use wrappers::{Memory, SectionReader};
+use wrappers::{Memory, SectionReader, SliceReader};
+
+// TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
+// tree here. TODO: The kernel ebreaks when given this device tree.
+const DTB: &'static [u8] = include_bytes!("hifive.dtb");
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
@@ -45,12 +50,15 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     w.write_str("## ROM Device Tree\r\n").unwrap();
     // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
-    fmt::write(w, format_args!("ROM FDT address: 0x{:x}\n", fdt_address));
-    // We have no idea how long the FDT really is. This caps it to 1MiB.
-    //let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 1024*1024);
-    //if let Err(err) = print_fdt(rom_fdt, w) {
-    //    fmt::write(w, format_args!("error: {}\n", err)).unwrap();
-    //}
+    fmt::write(w, format_args!("ROM FDT address: 0x{:x}\n", fdt_address)).unwrap();
+    if is_qemu() {
+        // TODO: With QEMU's device tree, our parses reaches an unexpected EOF.
+        // We have no idea how long the FDT really is. This caps it to 1MiB.
+        let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 8*1024*1024);
+        if let Err(err) = print_fdt(rom_fdt, w) {
+            fmt::write(w, format_args!("error: {}\n", err)).unwrap();
+        }
+    }
 
     w.write_str("## Oreboot Fixed Device Tree\r\n").unwrap();
     // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
@@ -72,30 +80,43 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     fmt::write(w,format_args!("Memory size is: {:x}\r\n", m)).unwrap();
 
     w.write_str("Testing DDR...\r\n").unwrap();
-    let MEM = 0x80000000;
-    match test_ddr(MEM as *mut u32, m, w) {
+    let mem = 0x80000000;
+    match test_ddr(mem as *mut u32, m / 1024, w) {
         Err((a, v)) => fmt::write(w,format_args!(
                 "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
         _ => w.write_str("Passed\r\n").unwrap(),
     }
 
     // TODO; This payload structure should be loaded from SPI rather than hardcoded.
+    let kernel_segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: mem,
+            data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0x400000, 6*1024*1024),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
+            base: fdt_address /*mem + 10*1024*1024*/,
+            data: &mut SliceReader::new(&[0u8; 0]),
+        },
+    ];
+    let simple_segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: mem,
+            data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0xa00000, 1024),
+        },
+    ];
     let payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        load_addr: MEM as u64,
+        load_addr: mem as u64,
         // TODO: These two length fields are not used.
         rom_len: 0 as u32,
         mem_len: 0 as u32,
 
-        segs: &[
-            payload::Segment {
-                typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-                base: MEM,
-                data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0x400000, 1024),
-            },
-        ],
+        segs: if is_qemu() {kernel_segs} else {simple_segs},
     };
     w.write_str("Loading payload\r\n").unwrap();
     payload.load();
