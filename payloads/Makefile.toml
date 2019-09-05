@@ -1,0 +1,28 @@
+[tasks.prebuild-simple]
+command = "riscv64-linux-gnu-gcc"
+args = [
+    "-nostdinc",
+    "-nostdlib",
+    "-ffreestanding",
+    "--static",
+    "-fPIC",
+    "-o",
+    "src/external/simple/testtesttest.elf",
+    "src/external/simple/testtesttest.S",
+    "-T",
+    "../tools/soc/sifive/fu540/link.ld"
+    ]
+
+[tasks.build-simple]
+dependencies = ["prebuild-simple"]
+command = "riscv64-linux-gnu-objcopy"
+args = [
+    "--remove-section='.note*'",
+    "-O",
+    "binary",
+    "src/external/simple/testtesttest.elf",
+    "src/external/simple/testtesttest",
+]
+
+[tasks.teste]
+command = "pwd"

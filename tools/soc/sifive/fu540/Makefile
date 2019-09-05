@@ -29,4 +29,3 @@ rom: serialdebug hifiverom
 
 hifiverom:
 	flashrom -r hifiverom -p dediprog
-
