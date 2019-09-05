@@ -1,0 +1,26 @@
+[package]
+name = "oreboot"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+architecture = { path = "../../../arch/riscv/rv64"}
+console = { path = "../../../console" }
+model = { path = "../../../drivers/model" }
+print = { path = "../../../lib/print" }
+payloads = { path = "../../../../payloads"}
+soc = { path = "../../../soc/sifive/fu540" }
+wrappers = { path = "../../../drivers/wrappers"}
+
+heapless = "0.4.x"
+register = "0.3.2"
+static-ref = "0.1.1"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["ns16550"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
