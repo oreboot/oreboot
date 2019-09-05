@@ -1,6 +1,4 @@
 overflow_delimited_expr = true
 unstable_features = true
 use_small_heuristics = "Max"
-# fn_args_density = "Compressed"
-max_width = 255
 force_multiline_blocks = true

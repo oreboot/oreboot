@@ -9,7 +9,7 @@ mod print;
 use clock::ClockNode;
 use core::fmt::Write;
 use core::{fmt, ptr};
-use device_tree::{FdtReader, Entry, infer_type};
+use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
@@ -54,7 +54,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     if is_qemu() {
         // TODO: With QEMU's device tree, our parses reaches an unexpected EOF.
         // We have no idea how long the FDT really is. This caps it to 1MiB.
-        let rom_fdt = &mut SectionReader::new(&Memory{}, fdt_address, 8*1024*1024);
+        let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 8 * 1024 * 1024);
         if let Err(err) = print_fdt(rom_fdt, w) {
             fmt::write(w, format_args!("error: {}\n", err)).unwrap();
         }
@@ -62,7 +62,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     w.write_str("## Oreboot Fixed Device Tree\r\n").unwrap();
     // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
-    let fixed_fdt = &mut SectionReader::new(&Memory{}, 0x20000000 + 512*1024, 512*1024);
+    let fixed_fdt = &mut SectionReader::new(&Memory {}, 0x20000000 + 512 * 1024, 512 * 1024);
     if let Err(err) = print_fdt(fixed_fdt, w) {
         fmt::write(w, format_args!("error: {}\n", err)).unwrap();
     }
@@ -73,17 +73,22 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         Ok(size) => size,
         Err(error) => {
             panic!("problem initalizing DDR: {:?}", error);
-        },
+        }
     };
     w.write_str("Done\r\n").unwrap();
 
-    fmt::write(w,format_args!("Memory size is: {:x}\r\n", m)).unwrap();
+    fmt::write(w, format_args!("Memory size is: {:x}\r\n", m)).unwrap();
 
     w.write_str("Testing DDR...\r\n").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
-        Err((a, v)) => fmt::write(w,format_args!(
-                "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize)).unwrap(),
+        Err((a, v)) => {
+            fmt::write(
+                w,
+                format_args!("Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize),
+            )
+            .unwrap()
+        }
         _ => w.write_str("Passed\r\n").unwrap(),
     }
 
@@ -92,21 +97,19 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
             base: mem,
-            data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0x400000, 6*1024*1024),
+            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
         },
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-            base: fdt_address /*mem + 10*1024*1024*/,
+            base: fdt_address, /*mem + 10*1024*1024*/
             data: &mut SliceReader::new(&[0u8; 0]),
         },
     ];
-    let simple_segs = &[
-        payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: mem,
-            data: &mut SectionReader::new(&Memory{}, 0x20000000 + 0xa00000, 1024),
-        },
-    ];
+    let simple_segs = &[payload::Segment {
+        typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+        base: mem,
+        data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0xa00000, 1024),
+    }];
     let payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
@@ -116,7 +119,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         rom_len: 0 as u32,
         mem_len: 0 as u32,
 
-        segs: if is_qemu() {kernel_segs} else {simple_segs},
+        segs: simple_segs,
     };
     w.write_str("Loading payload\r\n").unwrap();
     payload.load();
@@ -128,36 +131,41 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 }
 
 // Returns Err((address, got)) or OK(()).
-fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo<>) -> Result<(), (*const u32, u32)> {
+fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (*const u32, u32)> {
     w.write_str("Starting to fill with data\r\n").unwrap();
     // Fill with data.
-    for i in 0..(size/4) {
-        unsafe { ptr::write(addr.add(i), (i+1) as u32) };
+    for i in 0..(size / 4) {
+        unsafe { ptr::write(addr.add(i), (i + 1) as u32) };
     }
 
     w.write_str("Starting to read back data\r\n").unwrap();
     // Read back data.
-    for i in 0..(size/4) {
-        let v = unsafe {ptr::read(addr.add(i))};
+    for i in 0..(size / 4) {
+        let v = unsafe { ptr::read(addr.add(i)) };
         if v != i as u32 + 1 {
-            return Err((unsafe {addr.add(i)}, v))
+            return Err((unsafe { addr.add(i) }, v));
         }
     }
     Ok(())
 }
 
 // TODO: move out of mainboard
-pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo<>) -> Result<(), &'static str> {
+pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
     for entry in FdtReader::new(fdt)?.walk() {
         match entry {
             Entry::Node { path: p } => {
-                fmt::write(w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
+                fmt::write(w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2))
+                    .unwrap();
             }
             Entry::Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = infer_type(&buf[..len]);
-                fmt::write(w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
+                fmt::write(
+                    w,
+                    format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2),
+                )
+                .unwrap();
             }
         }
     }
