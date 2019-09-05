@@ -20,8 +20,7 @@ cargo make -p release run
 
 ```
 cargo make -p release
-truncate -s 32M flash.rom
-dd of=flash.rom if=target/riscv64imac-unknown-none-elf/release/oreboot.bin conv=notrunc
+# The output is target/riscv64imac-unknown-none-elf/release/oreboot.bin
 ```
 
 4. While flashing, make sure all external power is removed from the board.
@@ -30,7 +29,7 @@ dd of=flash.rom if=target/riscv64imac-unknown-none-elf/release/oreboot.bin conv=
 
 ![Dediprog](dediprog.jpg)
 
-5. Flash it. Make sure to build flashrom from source because the debian packages tend to be too old.
+5. Flash it. Make sure to build flashrom from source (https://review.coreboot.org/cgit/flashrom.git/) because the debian packages tend to be too old.
 
 ```
 sudo flashrom -p dediprog -w flash.rom
