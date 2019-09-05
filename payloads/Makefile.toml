@@ -23,6 +23,3 @@ args = [
     "src/external/simple/testtesttest.elf",
     "src/external/simple/testtesttest",
 ]
-
-[tasks.teste]
-command = "pwd"
