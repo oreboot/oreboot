@@ -42,8 +42,11 @@ spin:
 	#add  sp, t0, t1
 
 	# TODO: SOC-specific
-	# Set stack pointer into CAR (L2-LIM). 
-	li sp, 0x08010000
+	# Set stack pointer into CAR (L2-LIM).
+1:	auipc t0,     %pcrel_hi(_stack_ptr)
+	lw sp, %pcrel_lo(1b)(t0)
+	#lw sp, 0(t0)
+
 	li t0, 0xDEADBEEF
 	sw t0, 0(sp)
 
