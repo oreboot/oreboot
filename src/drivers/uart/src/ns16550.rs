@@ -52,18 +52,9 @@ impl NS16550 {
 
 impl Driver for NS16550 {
     fn init(&mut self) {
-        // Based on PL011 baud rate divisor table, set baud rate registers
-        let (_high, _low) = match self.baudrate {
-            230400 => (0x1, 0x5),
-            115200 => (0x2, 0xB),
-            76800 => (0x3, 0x10),
-            38400 => (0x6, 0x21),
-            14400 => (0x11, 0x17),
-            2400 => (0x68, 0xB),
-            110 => (0x8E0, 0x2F),
-            _ => (0x0, 0x3), // Default values
-        };
+        /* Disable all interrupts */
         self.IE.set(0u32);
+        /* Enable DLAB */
         self.LC.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
