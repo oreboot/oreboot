@@ -7,8 +7,7 @@
 mod print;
 
 use clock::ClockNode;
-use core::fmt::Write;
-use core::{fmt, ptr};
+use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
 use payloads::payload;
@@ -49,14 +48,16 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let w = &mut print::WriteTo::new(uart0);
 
     w.write_str("## ROM Device Tree\r\n").unwrap();
+
     // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
-    fmt::write(w, format_args!("ROM FDT address: 0x{:x}\n", fdt_address)).unwrap();
+    write!(w, "ROM FDT address: 0x{:x}\n", fdt_address).unwrap();
+
     if is_qemu() {
         // TODO: With QEMU's device tree, our parses reaches an unexpected EOF.
         // We have no idea how long the FDT really is. This caps it to 1MiB.
         let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 8 * 1024 * 1024);
         if let Err(err) = print_fdt(rom_fdt, w) {
-            fmt::write(w, format_args!("error: {}\n", err)).unwrap();
+            write!(w, "error: {}\n", err).unwrap();
         }
     }
 
@@ -64,30 +65,24 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
     let fixed_fdt = &mut SectionReader::new(&Memory {}, 0x20000000 + 512 * 1024, 512 * 1024);
     if let Err(err) = print_fdt(fixed_fdt, w) {
-        fmt::write(w, format_args!("error: {}\n", err)).unwrap();
+        write!(w, "error: {}\n", err).unwrap();
     }
 
     w.write_str("Initializing DDR...\r\n").unwrap();
     let mut ddr = DDR::new();
-    let m = match ddr.pwrite(b"on", 0) {
-        Ok(size) => size,
-        Err(error) => {
-            panic!("problem initalizing DDR: {:?}", error);
-        }
-    };
+
+    let m =
+        ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
+
     w.write_str("Done\r\n").unwrap();
 
-    fmt::write(w, format_args!("Memory size is: {:x}\r\n", m)).unwrap();
+    write!(w, "Memory size is: {:x}\r\n", m).unwrap();
 
     w.write_str("Testing DDR...\r\n").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
         Err((a, v)) => {
-            fmt::write(
-                w,
-                format_args!("Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize),
-            )
-            .unwrap()
+            write!(w, "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize,).unwrap()
         }
         _ => w.write_str("Passed\r\n").unwrap(),
     }
@@ -154,18 +149,14 @@ pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'s
     for entry in FdtReader::new(fdt)?.walk() {
         match entry {
             Entry::Node { path: p } => {
-                fmt::write(w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2))
-                    .unwrap();
+                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
             }
             Entry::Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = infer_type(&buf[..len]);
-                fmt::write(
-                    w,
-                    format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2),
-                )
-                .unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,)
+                    .unwrap();
             }
         }
     }

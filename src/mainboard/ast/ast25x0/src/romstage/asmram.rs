@@ -154,12 +154,12 @@ pub fn ram(w: &mut print::WriteTo) -> () {
     let mut gt;
     let mut lt;
     let mut s = State::PowerOn;
-    fmt::write(w, format_args!("Start s is {:#?}\n", s)).expect("oh no");
+    write!(w, "Start s is {:#?}\n", s).expect("oh no");
     loop {
-        fmt::write(w, format_args!("loop s is {:?}\n", s)).expect("oh no");
+        write!(w, "loop s is {:?}\n", s).expect("oh no");
         s = match s {
             State::Exit => {
-                fmt::write(w, format_args!("DRAM done\n")).expect("oh no");
+                write!(w, "DRAM done\n").expect("oh no");
                 break;
 
                 State::init_dram
