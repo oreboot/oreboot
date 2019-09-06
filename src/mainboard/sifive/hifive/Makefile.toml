@@ -14,7 +14,7 @@ TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
 dependencies = ["bootblob"]
 script = [
 	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
-	"cargo run --manifest-path ../../../../tools/layoutflash/Cargo.toml --target-dir ../../../../tools/layoutflash/target --target x86_64-unknown-linux-gnu -- ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
 ]
 
 [tasks.bootblob]
