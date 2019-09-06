@@ -30,17 +30,17 @@ use register::{register_bitfields, Field};
 #[repr(C)]
 
 pub struct RegisterBlock {
-    Crystal: ReadWrite<u32, Crystal::Register>,   /* offset 0x00 */
-    Core: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x04 */
+    crystal: ReadWrite<u32, Crystal::Register>,   /* offset 0x00 */
+    core: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x04 */
     _reserved08: u32,                             /* offset 0x08 */
-    DDR0: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x0c */
-    DDR1: ReadWrite<u32, PLLCfg1::Register>,      /* offset 0x10 */
+    ddr0: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x0c */
+    ddr1: ReadWrite<u32, PLLCfg1::Register>,      /* offset 0x10 */
     _reserved14: u32,                             /* offset 0x14 */
     _reserved18: u32,                             /* offset 0x18 */
-    GE0: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x1c */
-    GE1: ReadWrite<u32, PLLCfg1::Register>,       /* offset 0x20 */
-    ClkSel: ReadWrite<u32, ClkSel::Register>,     /* offset 0x24 */
-    DevReset: ReadWrite<u32, ResetCtl::Register>, /* offset 0x28 */
+    ge0: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x1c */
+    ge1: ReadWrite<u32, PLLCfg1::Register>,       /* offset 0x20 */
+    clk_sel: ReadWrite<u32, ClkSel::Register>,     /* offset 0x24 */
+    dev_reset: ReadWrite<u32, ResetCtl::Register>, /* offset 0x28 */
 }
 
 register_bitfields! {
@@ -96,11 +96,11 @@ register_bitfields! {
 
 // There has to be a better way but ...
 // the nicest thing would be something likes this:
-// fn ResetMask(m ...string)
+// fn reset_mask(m ...string)
 // then match on strings like
 // "ddr", "phy", whatever.
 // Or possibly a varargs of enums. Whatever.
-fn ResetMask(ddr: bool, axi: bool, ahb: bool, phy: bool, GE: bool) -> u32 {
+fn reset_mask(ddr: bool, axi: bool, ahb: bool, phy: bool, ge: bool) -> u32 {
     // The default is to reset nothing.
     let mut m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f);
     if ddr {
@@ -115,13 +115,13 @@ fn ResetMask(ddr: bool, axi: bool, ahb: bool, phy: bool, GE: bool) -> u32 {
     if phy {
         m.modify(ResetCtl::DDRPHY.val(0));
     }
-    if GE {
+    if ge {
         m.modify(ResetCtl::GE.val(0));
     }
     m.get()
 }
 
-fn DefaultCore() -> u32 {
+fn default_core() -> u32 {
     let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(59));
@@ -131,7 +131,7 @@ fn DefaultCore() -> u32 {
     r.modify(PLLCfg0::FSE.val(1));
     r.get()
 }
-fn DefaultDDR() -> u32 {
+fn default_ddr() -> u32 {
     let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(55));
@@ -141,7 +141,7 @@ fn DefaultDDR() -> u32 {
     r.modify(PLLCfg0::FSE.val(1));
     r.get()
 }
-fn DefaultGE() -> u32 {
+fn default_ge() -> u32 {
     let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(59));
@@ -226,37 +226,37 @@ impl<'a> Clock<'a> {
     }
 
     fn init_coreclk(&self) {
-        self.ClkSel.write(ClkSel::Sel::HF);
+        self.clk_sel.write(ClkSel::Sel::HF);
 
-        self.Core.set(DefaultCore());
+        self.core.set(default_core());
 
         // Spin until PLL is locked.
-        while !self.Core.is_set(PLLCfg0::LockRO) {}
+        while !self.core.is_set(PLLCfg0::LockRO) {}
 
-        self.ClkSel.write(ClkSel::Sel::Core);
+        self.clk_sel.write(ClkSel::Sel::Core);
     }
 
     fn init_pll_ddr(&self) {
-        self.DDR1.write(PLLCfg1::Ctrl::Disable);
+        self.ddr1.write(PLLCfg1::Ctrl::Disable);
 
-        self.DDR0.set(DefaultDDR());
+        self.ddr0.set(default_ddr());
 
         // Spin until PLL is locked.
-        while !self.DDR0.is_set(PLLCfg0::LockRO) {}
+        while !self.ddr0.is_set(PLLCfg0::LockRO) {}
 
         // ???? The CKE is actually bit 31, not 24 like the datasheet suggests.
-        self.DDR1.set(1 << 31);
+        self.ddr1.set(1 << 31);
     }
 
     fn init_pll_ge(&self) {
-        self.GE1.write(PLLCfg1::Ctrl::Disable);
+        self.ge1.write(PLLCfg1::Ctrl::Disable);
 
-        self.GE0.set(DefaultGE());
+        self.ge0.set(default_ge());
 
         // Spin until PLL is locked.
-        while !self.GE0.is_set(PLLCfg0::LockRO) {}
+        while !self.ge0.is_set(PLLCfg0::LockRO) {}
 
-        self.GE1.write(PLLCfg1::Ctrl::Enable);
+        self.ge1.write(PLLCfg1::Ctrl::Enable);
     }
 
     fn clock_init(&mut self) {
@@ -274,7 +274,7 @@ impl<'a> Clock<'a> {
         self.init_coreclk();
         // put DDR and ethernet in reset
         // This jams them all.
-        self.DevReset.set(ResetMask(true, true, true, true, true));
+        self.dev_reset.set(reset_mask(true, true, true, true, true));
 
         self.init_pll_ddr();
 
@@ -284,12 +284,12 @@ impl<'a> Clock<'a> {
 
         // get DDR out of reset
         // TODO: clean this up later
-        self.DevReset.set(ResetMask(false, true, true, true, true));
+        self.dev_reset.set(reset_mask(false, true, true, true, true));
 
         // Required to get the '1 full controller clock cycle'.
         architecture::fence();
 
-        self.DevReset.set(ResetMask(false, false, false, false, true));
+        self.dev_reset.set(reset_mask(false, false, false, false, true));
 
         // Required to get the '1 full controller clock cycle'.
         architecture::fence();
@@ -302,7 +302,7 @@ impl<'a> Clock<'a> {
             architecture::nop();
         }
         self.init_pll_ge();
-        self.DevReset.set(ResetMask(false, false, false, false, false));
+        self.dev_reset.set(reset_mask(false, false, false, false, false));
 
         architecture::fence();
     }

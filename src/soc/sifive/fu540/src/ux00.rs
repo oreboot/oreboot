@@ -36,38 +36,38 @@ pub const PHY_RX_CAL_DQ1_0_OFFSET: u64 = 16;
 
 // This is a 64-bit machine but all this action seems to be on 32-bit values.
 // No idea why this is.
-// Index is a word offset.
-fn poke(Pointer: u32, Index: u32, Value: u32) -> () {
-    let addr = (Pointer + (Index << 2)) as *mut u32;
+// index is a word offset.
+fn poke(pointer: u32, index: u32, value: u32) -> () {
+    let addr = (pointer + (index << 2)) as *mut u32;
     unsafe {
-        ptr::write_volatile(addr, Value);
+        ptr::write_volatile(addr, value);
     }
 }
 
-fn poke64(Pointer: u32, Index: u32, Value: u64) -> () {
-    let addr = (Pointer + (Index << 2)) as *mut u64;
-    //let addr1 = (Pointer + (Index << 2) + 4) as *mut u32;
+fn poke64(pointer: u32, index: u32, value: u64) -> () {
+    let addr = (pointer + (index << 2)) as *mut u64;
+    //let addr1 = (pointer + (index << 2) + 4) as *mut u32;
     unsafe {
-        ptr::write_volatile(addr, Value);
-        //let v2: u32 = (Value) as u32;
+        ptr::write_volatile(addr, value);
+        //let v2: u32 = (value) as u32;
         //ptr::write_volatile(addr1, v2);
-        //let v1: u32 = (Value >> 32) as u32;
+        //let v1: u32 = (value >> 32) as u32;
         //ptr::write_volatile(addr, v1);
     }
 }
 
-fn set(Pointer: u32, Index: u32, Value: u32) -> () {
-    let v = peek(Pointer, Index);
-    poke(Pointer, Index, v | Value);
+fn set(pointer: u32, index: u32, value: u32) -> () {
+    let v = peek(pointer, index);
+    poke(pointer, index, v | value);
 }
 
-fn clr(Pointer: u32, Index: u32, Value: u32) -> () {
-    let v = peek(Pointer, Index);
-    poke(Pointer, Index, v & Value);
+fn clr(pointer: u32, index: u32, value: u32) -> () {
+    let v = peek(pointer, index);
+    poke(pointer, index, v & value);
 }
 
-fn peek(Pointer: u32, Index: u32) -> u32 {
-    let addr = (Pointer + (Index << 2)) as *const u32;
+fn peek(pointer: u32, index: u32) -> u32 {
+    let addr = (pointer + (index << 2)) as *const u32;
     unsafe { ptr::read_volatile(addr) }
 }
 
@@ -75,14 +75,14 @@ fn peek(Pointer: u32, Index: u32) -> u32 {
 
 pub fn phy_reset() {
     for i in 1152..=1214 {
-        poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
-        //u32 physet = DenaliPhyData[i];
+        poke(reg::DDR_PHY, i as u32, ddrregs::DENALI_PHY_DATA[i]);
+        //u32 physet = DENALI_PHY_DATA[i];
         // /*if (physet!=0)*/ DDR_PHY[i] = physet;
     }
     for i in 0..=1151 {
-        poke(reg::DDR_PHY, i as u32, ddrregs::DenaliPhyData[i]);
+        poke(reg::DDR_PHY, i as u32, ddrregs::DENALI_PHY_DATA[i]);
         //for (i=0;i<=1151;i++) {
-        //    u32 physet = DenaliPhyData[i];
+        //    u32 physet = DENALI_PHY_DATA[i];
         //if (physet!=0)*/ DDR_PHY[i] = physet;
     }
 }
@@ -90,8 +90,8 @@ pub fn phy_reset() {
 pub fn ux00ddr_writeregmap() {
     for i in 0..=264 {
         //  for (i=0;i<=264;i++) {
-        poke(reg::DDR_CTRL, i as u32, ddrregs::DenaliCtlData[i]);
-        // u32 ctlset = DenaliCtlData[i];
+        poke(reg::DDR_CTRL, i as u32, ddrregs::DENALI_CTL_DATA[i]);
+        // u32 ctlset = DENALI_CTL_DATA[i];
         // /*if (ctlset!=0)*/ DDR_CTRL[i] = ctlset;
     }
 
@@ -147,8 +147,8 @@ pub fn ux00ddr_mask_leveling_completed_interrupt() {
 
 pub fn ux00ddr_setuprangeprotection(end_addr: u64) {
     poke(reg::DDR_CTRL, 209, 0x0);
-    let end_addr_16Kblocks: u32 = (((end_addr >> 14) & 0x7FFFFF) - 1) as u32;
-    poke(reg::DDR_CTRL, 210, end_addr_16Kblocks);
+    let end_addr_16k_blocks: u32 = (((end_addr >> 14) & 0x7FFFFF) - 1) as u32;
+    poke(reg::DDR_CTRL, 210, end_addr_16k_blocks);
     poke(reg::DDR_CTRL, 212, 0x0);
     poke(reg::DDR_CTRL, 214, 0x0);
     poke(reg::DDR_CTRL, 216, 0x0);
