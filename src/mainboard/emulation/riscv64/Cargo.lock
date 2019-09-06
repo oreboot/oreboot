@@ -78,26 +78,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hifive"
-version = "0.1.0"
-dependencies = [
- "architecture 0.1.0",
- "clock 0.1.0",
- "console 0.1.0",
- "device_tree 0.1.0",
- "heapless 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "model 0.1.0",
- "payloads 0.1.0",
- "print 0.1.0",
- "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "soc 0.1.0",
- "spi 0.1.0",
- "static-ref 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "uart 0.1.0",
- "wrappers 0.1.0",
-]
-
-[[package]]
 name = "model"
 version = "0.1.0"
 
@@ -155,6 +135,26 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "tock-registers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "riscv64"
+version = "0.1.0"
+dependencies = [
+ "architecture 0.1.0",
+ "clock 0.1.0",
+ "console 0.1.0",
+ "device_tree 0.1.0",
+ "heapless 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "model 0.1.0",
+ "payloads 0.1.0",
+ "print 0.1.0",
+ "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "soc 0.1.0",
+ "spi 0.1.0",
+ "static-ref 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uart 0.1.0",
+ "wrappers 0.1.0",
 ]
 
 [[package]]

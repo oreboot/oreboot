@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 byteorder = { version = "1", default-features = false }
 model = { path = "../../drivers/model"}
+print = { path = "../../lib/print"}
 num-derive = { version = "0.2", default-features = false }
 num-traits = { version = "0.2", default-features = false }
 wrappers = { path = "../../drivers/wrappers"}

@@ -4,16 +4,14 @@
 #![no_main]
 #![feature(global_asm)]
 
-mod print;
-
 use clock::ClockNode;
 use core::{fmt::Write, ptr};
-use device_tree::{infer_type, Entry, FdtReader};
+use device_tree::print_fdt;
 use model::Driver;
 use payloads::payload;
+use print;
 use soc::clock::Clock;
 use soc::ddr::DDR;
-use soc::is_qemu;
 use spi::SiFiveSpi;
 use uart::sifive::SiFive;
 use wrappers::{Memory, SectionReader, SliceReader};
@@ -21,12 +19,10 @@ use wrappers::{Memory, SectionReader, SliceReader};
 global_asm!(include_str!("../../../../../src/arch/riscv/rv64/src/bootblock.S"));
 global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/init.S"));
 
-// TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
-// tree here. TODO: The kernel ebreaks when given this device tree.
 const DTB: &'static [u8] = include_bytes!("hifive.dtb");
 
 #[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
+pub extern "C" fn _start(_fdt_address: usize) -> ! {
     let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
@@ -50,18 +46,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    write!(w, "## ROM Device Tree\r\n").unwrap();
-
-    // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
-    write!(w, "ROM FDT address: 0x{:x}\n", fdt_address).unwrap();
-
-    if is_qemu() {
-        // TODO: With QEMU's device tree, our parses reaches an unexpected EOF.
-        // We have no idea how long the FDT really is. This caps it to 1MiB.
-        let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 8 * 1024 * 1024);
-        if let Err(err) = print_fdt(rom_fdt, w) {
-            write!(w, "error: {}\n", err).unwrap();
-        }
+    write!(w, "## Device Tree\r\n").unwrap();
+    let rom_fdt = &mut SliceReader::new(DTB);
+    if let Err(err) = print_fdt(rom_fdt, w) {
+        write!(w, "error: {}\n", err).unwrap();
     }
 
     write!(w, "## Oreboot Fixed Device Tree\r\n").unwrap();
@@ -99,8 +87,8 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         },
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-            base: fdt_address, /*mem + 10*1024*1024*/
-            data: &mut SliceReader::new(&[0u8; 0]),
+            base: mem + 10*1024*1024,
+            data: rom_fdt,
         },
     ];
     let simple_segs = &[payload::Segment {
@@ -128,6 +116,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     architecture::halt()
 }
 
+// TODO: move to a payload.
 // Returns Err((address, got)) or OK(()).
 fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (*const u32, u32)> {
     write!(w, "Starting to fill with data\r\n").unwrap();
@@ -142,25 +131,6 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (
         let v = unsafe { ptr::read(addr.add(i)) };
         if v != i as u32 + 1 {
             return Err((unsafe { addr.add(i) }, v));
-        }
-    }
-    Ok(())
-}
-
-// TODO: move out of mainboard
-pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
-    for entry in FdtReader::new(fdt)?.walk() {
-        match entry {
-            Entry::Node { path: p } => {
-                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
-            }
-            Entry::Property { path: p, value: v } => {
-                let buf = &mut [0; 1024];
-                let len = v.pread(buf, 0)?;
-                let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,)
-                    .unwrap();
-            }
         }
     }
     Ok(())

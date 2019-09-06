@@ -21,9 +21,13 @@ steps:
     sudo apt-get install device-tree-compiler
   displayName: 'Install Rust Dependencies'
 - script: |
+    cd src/mainboard/emulation/riscv64
+    cargo make -p release
+  displayName: 'Build for RISC-V QEMU'
+- script: |
     cd src/mainboard/sifive/hifive
     cargo make -p release
-  displayName: 'Build for RISC-V'
+  displayName: 'Build for HiFive'
 - script: |
     set -e
     git clone https://github.com/qemu/qemu && cd qemu
@@ -34,7 +38,7 @@ steps:
     sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
   displayName: 'Install RISC-V QEMU Dependencies'
 - script: |
-    cd src/mainboard/sifive/hifive
+    cd src/mainboard/emulation/riscv64
     timeout 120s cargo make run -p release | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V QEMU Test'

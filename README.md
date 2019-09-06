@@ -61,14 +61,7 @@ cargo make objdump -p release
 QEMU
 ----
 
-```
-sudo apt-get install qemu-system-arm
-cargo make run -p release
-
-# Quit qemu with CTRL-A X
-```
-
-To build QEMU from source for riscv:
+To build QEMU from source for riscv64:
 
 ```
 git clone https://github.com/qemu/qemu && cd qemu
@@ -78,6 +71,15 @@ mkdir build-riscv64 && cd build-riscv64
 ../configure --target-list=riscv64-softmmu
 make -j16
 stat riscv64-softmmu/qemu-system-riscv64
+```
+
+To run:
+
+```
+cd src/mainboard/emulation/riscv64
+cargo make run -p release
+
+# Quit qemu with CTRL-A X
 ```
 
 Oreboot on Hardware

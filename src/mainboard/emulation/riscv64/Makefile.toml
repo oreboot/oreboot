@@ -1,0 +1,53 @@
+[config]
+# no default tasks
+skip_core_tasks = true
+
+[env.development]
+CARGO_ARGS = "--verbose"
+TARGET_DIR = "target/riscv64imac-unknown-none-elf/debug"
+
+[env.release]
+CARGO_ARGS = "--release --verbose"
+TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
+
+[tasks.default]
+dependencies = ["bootblob"]
+script = [
+	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
+	"cargo run --manifest-path ../../../../tools/layoutflash/Cargo.toml --target-dir ../../../../tools/layoutflash/target --target x86_64-unknown-linux-gnu -- ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+]
+
+[tasks.bootblob]
+dependencies = [ "build" ]
+command = "cargo"
+args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/riscv64", "${TARGET_DIR}/bootblob.bin"]
+
+[tasks.install-rust-src]
+install_crate = { rustup_component_name = "rust-src" }
+
+[tasks.build]
+dependencies = [ "install-rust-src" ]
+toolchain = "nightly"
+command = "cargo"
+args = ["xbuild", "@@split(CARGO_ARGS, )"]
+
+# TODO: switch to qemu virt device
+[tasks.run]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none"]
+
+[tasks.trace]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors,in_asm"]
+
+[tasks.gdb]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S"]
+
+[tasks.objdump]
+dependencies = ["build"]
+command = "cargo"
+args = ["objdump", "--", "-d", "${TARGET_DIR}/riscv64"]

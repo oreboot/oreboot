@@ -4,8 +4,10 @@
 extern crate num_derive;
 
 use byteorder::{BigEndian, ByteOrder};
+use core::fmt::Write;
 use core::fmt;
 use model::{Driver, Result};
+use print;
 use wrappers::SectionReader;
 
 pub const MAGIC: u32 = 0xd00dfeed;
@@ -216,4 +218,22 @@ pub fn infer_type(data: &[u8]) -> Type {
 
 fn is_print(c: u8) -> bool {
     0x20 <= c && c < 0xff
+}
+
+pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<()> {
+    for entry in FdtReader::new(fdt)?.walk() {
+        match entry {
+            Entry::Node { path: p } => {
+                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
+            }
+            Entry::Property { path: p, value: v } => {
+                let buf = &mut [0; 1024];
+                let len = v.pread(buf, 0)?;
+                let val = infer_type(&buf[..len]);
+                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,)
+                    .unwrap();
+            }
+        }
+    }
+    Ok(())
 }
