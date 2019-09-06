@@ -123,7 +123,7 @@ impl<'a> Payload<'a> {
             loop {
                 let size = match s.data.pread(&mut buf, off) {
                     Ok(x) => x,
-                    EOF => return,
+                    EOF => break,
                     _ => panic!("driver error"),
                 };
                 // TODO: This incurs a second copy. There's probably a better way.

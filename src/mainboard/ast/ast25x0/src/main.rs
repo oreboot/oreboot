@@ -26,31 +26,31 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut SiFive::new(/*soc::UART0*/0x10010000, 115200) as &mut dyn Driver,
+        &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
     console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(console);
-    fmt::write(w, format_args!("{} {}\r\n", "Formatted output:", 7)).unwrap();
+    write!(w, "{} {}\r\n", "Formatted output:", 7).unwrap();
 
-    w.write_str("Starting CPU init\r\n").unwrap();
+    write!(w, "Starting CPU init\r\n").unwrap();
     cpu::init(); // TODO: does this do anything yet?
 
-    w.write_str("Completed CPU init\r\n").unwrap();
+    write!(w, "Completed CPU init\r\n").unwrap();
 
-    w.write_str("Starting RAM init\r\n").unwrap();
+    write!(w, "Starting RAM init\r\n").unwrap();
     asmram::ram(w);
-    w.write_str("Completed RAM init\r\n").unwrap();
+    write!(w, "Completed RAM init\r\n").unwrap();
 
-    w.write_str("Starting chain\r\n").unwrap();
+    write!(w, "Starting chain\r\n").unwrap();
     chain(); // TODO: What is chain supposed to do? It doesn't return.
-    w.write_str("Completed chain\r\n").unwrap();
+    write!(w, "Completed chain\r\n").unwrap();
 
-    w.write_str("Starting romstage\r\n").unwrap();
+    write!(w, "Starting romstage\r\n").unwrap();
     // TODO: romstage::romstage();
-    w.write_str("Romstage exited -- halting\r\n").unwrap();
+    write!(w, "Romstage exited -- halting\r\n").unwrap();
     halt()
 }
 use core::panic::PanicInfo;

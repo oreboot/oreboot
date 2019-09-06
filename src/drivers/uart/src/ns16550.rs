@@ -103,15 +103,15 @@ register_bitfields! {
     D [
         DATA OFFSET(0) NUMBITS(8) []
     ],
-    IE[
+    IE [
         RX OFFSET(0) NUMBITS(1) [],
         TX OFFSET(1) NUMBITS(1) [],
         Error OFFSET(2) NUMBITS(1) [],
         StatusChange OFFSET(3) NUMBITS(1) []
     ],
     FC [
-                DATA OFFSET(0) NUMBITS(8) []
-     ],
+        DATA OFFSET(0) NUMBITS(8) []
+    ],
     LC [
         WLEN OFFSET(0) NUMBITS(2) [
             WLEN_5 = 0,

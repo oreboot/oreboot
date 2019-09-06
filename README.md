@@ -45,9 +45,8 @@ cargo install cargo-make
 # Ocassionally run:
 rustup update
 
-# Install objcopy and other compiler tools.
-cargo install cargo-binutils
-rustup component add llvm-tools-preview
+# Install a few compiler tools.
+cargo make setup
 sudo apt-get install device-tree-compiler
 
 # Build for RISC-V
