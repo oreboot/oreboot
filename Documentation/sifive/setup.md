@@ -54,3 +54,53 @@ minicom -D /dev/ttyUSB1 -b 115200
 ```
 
 ![USB](usb.jpg)
+
+
+## Debugging with GDB
+
+Use GDB+OpenOCD to debug hardware:
+
+1. Build GDB for RISC-V
+
+```
+sudo apt-get install autoconf automake autotools-dev curl libmpc-dev \
+	libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf \
+        libtool patchutils bc zlib1g-dev libexpat-dev
+git clone https://github.com/riscv/riscv-gnu-toolchain --recursive
+cd riscv-gnu-toolchain
+./configure --help
+./configure --enable-linux
+make -j12 build-gdb
+```
+
+Note this build will fail without the permissions to modify /usr. Even if it
+fails, you can still find the output at build-gdb-linux/gdb/gdb which you
+should rename to the more memorable riscv64-unknown-linux-gnu-gdb.
+
+2. Build OpenOCD for RISC-V
+
+```
+git clone https://github.com/riscv/riscv-openocd
+cd riscv-openocd
+./bootstrap
+./configure --help
+./configure --enable-ftdi
+make -j12
+stat src/openocd
+```
+
+Download the HiFive Unleashed config from: https://github.com/sifive/freedom-u-sdk/blob/master/bsp/env/freedom-u500-unleashed/openocd.cfg
+
+3. Start OpenOCD, use telnet to reset and run GDB:
+
+```
+openocd -f openocd.cfg
+
+telnet locahost 4444
+> reset halt
+
+riscv64-unknown-linux-gnu-gdb
+(gdb) target remote localhost:3333
+(gdb) show threads
+(gdb) thread 2
+```
