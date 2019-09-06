@@ -47,7 +47,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    w.write_str("## ROM Device Tree\r\n").unwrap();
+    write!(w, "## ROM Device Tree\r\n").unwrap();
 
     // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
     write!(w, "ROM FDT address: 0x{:x}\n", fdt_address).unwrap();
@@ -61,30 +61,30 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         }
     }
 
-    w.write_str("## Oreboot Fixed Device Tree\r\n").unwrap();
+    write!(w, "## Oreboot Fixed Device Tree\r\n").unwrap();
     // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
     let fixed_fdt = &mut SectionReader::new(&Memory {}, 0x20000000 + 512 * 1024, 512 * 1024);
     if let Err(err) = print_fdt(fixed_fdt, w) {
         write!(w, "error: {}\n", err).unwrap();
     }
 
-    w.write_str("Initializing DDR...\r\n").unwrap();
+    write!(w, "Initializing DDR...\r\n").unwrap();
     let mut ddr = DDR::new();
 
     let m =
         ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
 
-    w.write_str("Done\r\n").unwrap();
+    write!(w, "Done\r\n").unwrap();
 
     write!(w, "Memory size is: {:x}\r\n", m).unwrap();
 
-    w.write_str("Testing DDR...\r\n").unwrap();
+    write!(w, "Testing DDR...\r\n").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
         Err((a, v)) => {
             write!(w, "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize,).unwrap()
         }
-        _ => w.write_str("Passed\r\n").unwrap(),
+        _ => write!(w, "Passed\r\n").unwrap(),
     }
 
     // TODO; This payload structure should be loaded from SPI rather than hardcoded.
@@ -116,24 +116,24 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
         segs: simple_segs,
     };
-    w.write_str("Loading payload\r\n").unwrap();
+    write!(w, "Loading payload\r\n").unwrap();
     payload.load();
-    w.write_str("Running payload\r\n").unwrap();
+    write!(w, "Running payload\r\n").unwrap();
     payload.run();
 
-    w.write_str("Unexpected return from payload\r\n").unwrap();
+    write!(w, "Unexpected return from payload\r\n").unwrap();
     architecture::halt()
 }
 
 // Returns Err((address, got)) or OK(()).
 fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (*const u32, u32)> {
-    w.write_str("Starting to fill with data\r\n").unwrap();
+    write!(w, "Starting to fill with data\r\n").unwrap();
     // Fill with data.
     for i in 0..(size / 4) {
         unsafe { ptr::write(addr.add(i), (i + 1) as u32) };
     }
 
-    w.write_str("Starting to read back data\r\n").unwrap();
+    write!(w, "Starting to read back data\r\n").unwrap();
     // Read back data.
     for i in 0..(size / 4) {
         let v = unsafe { ptr::read(addr.add(i)) };
