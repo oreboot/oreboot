@@ -26,14 +26,14 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut SiFive::new(/*soc::UART0*/0x10010000, 115200) as &mut dyn Driver,
+        &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
     console.init();
     console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(console);
-    fmt::write(w, format_args!("{} {}\r\n", "Formatted output:", 7)).unwrap();
+    write!(w, "{} {}\r\n", "Formatted output:", 7).unwrap();
 
     w.write_str("Starting CPU init\r\n").unwrap();
     cpu::init(); // TODO: does this do anything yet?
