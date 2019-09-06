@@ -1,0 +1,6 @@
+[tasks.update-tools]
+dependencies = [ "update-layoutflash" ]
+
+[tasks.update-layoutflash]
+command = "cargo"
+args = [ "install", "-f", "--path", "tools/layoutflash" ]
