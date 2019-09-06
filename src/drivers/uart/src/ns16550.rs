@@ -7,12 +7,12 @@ use register::{register_bitfields, Field};
 
 #[repr(C)]
 pub struct RegisterBlock {
-    D: ReadWrite<u32, D::Register>,
-    IE: ReadWrite<u32, IE::Register>,
-    FC: ReadWrite<u32, FC::Register>,
-    LC: ReadWrite<u32, LC::Register>,
-    MC: ReadWrite<u32, MC::Register>,
-    LS: ReadOnly<u32, LS::Register>,
+    D: ReadWrite<u8, D::Register>,
+    IE: ReadWrite<u8, IE::Register>,
+    FC: ReadWrite<u8, FC::Register>,
+    LC: ReadWrite<u8, LC::Register>,
+    MC: ReadWrite<u8, MC::Register>,
+    LS: ReadOnly<u8, LS::Register>,
 }
 
 pub struct NS16550 {
@@ -39,7 +39,7 @@ impl NS16550 {
     }
     /// Poll the status register until the specified field is set to the given value.
     /// Returns false iff it timed out.
-    fn poll_status(&self, bit: Field<u32, LS::Register>, val: bool) -> bool {
+    fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
         // Timeout after a few thousand cycles to prevent hanging forever.
         for _ in 0..100_000 {
             if self.LS.is_set(bit) == val {
@@ -53,7 +53,7 @@ impl NS16550 {
 impl Driver for NS16550 {
     fn init(&mut self) {
         /* Disable all interrupts */
-        self.IE.set(0u32);
+        self.IE.set(0u8);
         /* Enable DLAB */
         self.LC.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
@@ -78,7 +78,7 @@ impl Driver for NS16550 {
             if !self.poll_status(LS::OE, false) {
                 return Ok(i);
             }
-            self.D.set(c as u32);
+            self.D.set(c as u8);
         }
         Ok(data.len())
     }
@@ -88,7 +88,7 @@ impl Driver for NS16550 {
 
 // TODO: bitfields
 register_bitfields! {
-    u32,
+    u8,
     // Data register
     D [
         DATA OFFSET(0) NUMBITS(8) []
