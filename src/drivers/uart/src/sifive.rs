@@ -28,13 +28,13 @@ use register::{register_bitfields};
 
 #[repr(C)]
 pub struct RegisterBlock {
-    TD: ReadWrite<u32, TD::Register>,	/* Transmit data register */
-    RD: ReadOnly<u32, RD::Register>,	/* Receive data register */
-    TXC: ReadWrite<u32, TXC::Register>,	/* Transmit control register */
-    RXC: ReadWrite<u32, RXC::Register>,	/* Receive control register */
-    IE: ReadWrite<u32, IE::Register>,	/* UART interrupt enable */
-    IP: ReadWrite<u32, IP::Register>,	/* UART interrupt pending */
-    DIV: ReadWrite<u32, DIV::Register>,  /* Baud Rate Divisor */
+    td: ReadWrite<u32, TD::Register>,	/* Transmit data register */
+    rd: ReadOnly<u32, RD::Register>,	/* Receive data register */
+    txc: ReadWrite<u32, TXC::Register>,	/* Transmit control register */
+    rxc: ReadWrite<u32, RXC::Register>,	/* Receive control register */
+    ie: ReadWrite<u32, IE::Register>,	/* UART interrupt enable */
+    ip: ReadWrite<u32, IP::Register>,	/* UART interrupt pending */
+    div: ReadWrite<u32, DIV::Register>,  /* Baud Rate Divisor */
 }
 
 pub struct SiFive {
@@ -96,11 +96,11 @@ impl SiFive {
 impl Driver for SiFive {
     fn init(&mut self) {
         // Disable UART interrupts.
-        self.IE.set(0 as u32);
+        self.ie.set(0 as u32);
         // Set clock rate to the default 33.33MHz.
         self.set_clock_rate(33330000);
         // Enable transmit.
-        self.TXC.modify(TXC::Enable.val(1));
+        self.txc.modify(TXC::Enable.val(1));
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
@@ -116,14 +116,14 @@ impl Driver for SiFive {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         for (_, &c) in data.iter().enumerate() {
             // TODO: give up after 100k tries.
-            while self.TD.is_set(TD::Full) {
+            while self.td.is_set(TD::Full) {
                 // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
                 //       this loop. Remove if we deem it not necessary.
                 unsafe { asm!("" :::: "volatile") }
             }
                 //return Ok(i);
             //}
-            self.TD.set(c.into());
+            self.td.set(c.into());
         }
         Ok(data.len())
     }
@@ -140,7 +140,7 @@ impl ClockNode for SiFive {
         //       = 144
         // Half the denominator is added to the numerator to round to closest int.
         let div = (rate + self.baudrate) / (2 * self.baudrate) - 1;
-        self.DIV.modify(DIV::DIV.val(div));
+        self.div.modify(DIV::DIV.val(div));
     }
 }
 

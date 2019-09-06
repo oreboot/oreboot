@@ -11,7 +11,7 @@ use core::convert::TryInto;
 #[repr(C)]
 
 pub struct BlockerRegister {
-    Blocker: ReadWrite<u64, Blocker::Register>,
+    blocker: ReadWrite<u64, Blocker::Register>,
 }
 
 // so what I'd really like to do, given that we can have some control over deref,
@@ -20,17 +20,17 @@ pub struct BlockerRegister {
 // For now, we won't really use this. We have working coreboot code and we'll transition
 // one ugly bit at a time. DDR is very sensitive to simple errors.
 pub struct RegisterBlock {
-    CR0: ReadWrite<u64, CR0::Register>,
+    cr0: ReadWrite<u64, CR0::Register>,
     _2: [u32; 18],
-    CR19: ReadWrite<u64, CR19::Register>,
+    cr19: ReadWrite<u64, CR19::Register>,
     _3: [u32; 1],
-    CR21: ReadWrite<u64, CR21::Register>,
+    cr21: ReadWrite<u64, CR21::Register>,
     _4: [u32; 98],
-    CR120: ReadWrite<u64, CR120::Register>,
+    cr120: ReadWrite<u64, CR120::Register>,
     _5: [u32; 11],
-    CR132: ReadWrite<u64, CR132::Register>,
+    cr132: ReadWrite<u64, CR132::Register>,
     _6: [u32; 3],
-    CR136: ReadWrite<u64, CR136::Register>,
+    cr136: ReadWrite<u64, CR136::Register>,
     _7: [u32; 0x800 - 127],
 }
 
@@ -70,7 +70,7 @@ impl Driver for DDR {
         match data {
             b"on" => {
                 sdram_init();
-                Ok(MemSize().try_into().unwrap())
+                Ok(mem_size().try_into().unwrap())
             },
             _ => Ok(0),
         }
@@ -238,7 +238,7 @@ fn sdram_init() {
 
     ux00::ux00ddr_mask_mc_init_complete_interrupt();
     ux00::ux00ddr_mask_outofrange_interrupts();
-    let ddr_size: u64 = MemSize();
+    let ddr_size: u64 = mem_size();
     ux00::ux00ddr_setuprangeprotection(ddr_size);
     ux00::ux00ddr_mask_port_command_error_interrupt();
 
@@ -249,7 +249,7 @@ fn sdram_init() {
     ux00::ux00ddr_phy_fixup();
 }
 
-pub fn MemSize() -> u64 {
+pub fn mem_size() -> u64 {
     if is_qemu() {
         return 1*1024*1024*1024
     }

@@ -7,7 +7,7 @@
 use crate::ctl;
 use crate::phy;
 
-pub static DenaliPhyData: [u32; 1215] = [
+pub static DENALI_PHY_DATA: [u32; 1215] = [
     phy::DENALI_PHY_00_DATA,
     phy::DENALI_PHY_01_DATA,
     phy::DENALI_PHY_02_DATA,
@@ -1225,7 +1225,7 @@ pub static DenaliPhyData: [u32; 1215] = [
     phy::DENALI_PHY_1214_DATA,
 ];
 
-pub static DenaliCtlData: [u32; 265] = [
+pub static DENALI_CTL_DATA: [u32; 265] = [
     ctl::DENALI_CTL_00_DATA,
     ctl::DENALI_CTL_01_DATA,
     ctl::DENALI_CTL_02_DATA,
