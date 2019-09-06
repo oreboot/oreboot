@@ -4,3 +4,21 @@ dependencies = [ "update-layoutflash" ]
 [tasks.update-layoutflash]
 command = "cargo"
 args = [ "install", "-f", "--path", "tools/layoutflash" ]
+
+[tasks.setup]
+dependencies = [
+    "install-dependencies",
+    "update-tools"
+]
+
+[tasks.install-dependencies]
+dependencies = [
+    "install-binutils",
+    "install-llvm-tools",
+]
+
+[tasks.install-binutils]
+install_crate = { crate_name = "cargo-binutils", binary = "cargo", test_arg = [ "objcopy", "--help" ] }
+
+[tasks.install-llvm-tools]
+install_crate = { rustup_component_name = "llvm-tools-preview" }
