@@ -1,9 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
 
 pub static TIME_TABLE_DDR3_1333: [u32; 17] = [
     0x53503C37, //       @ 0x010

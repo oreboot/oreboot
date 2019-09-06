@@ -27,7 +27,6 @@ use crate::is_qemu;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
-#[allow(non_snake_case)]
 #[repr(C)]
 
 pub struct RegisterBlock {

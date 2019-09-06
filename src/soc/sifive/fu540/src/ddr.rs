@@ -8,7 +8,6 @@ use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 use core::convert::TryInto;
 
-#[allow(non_snake_case)]
 #[repr(C)]
 
 pub struct BlockerRegister {

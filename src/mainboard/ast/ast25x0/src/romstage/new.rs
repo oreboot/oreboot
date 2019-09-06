@@ -1,9 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
@@ -350,7 +345,6 @@ impl Timer {
     }
 }
 
-#[allow(non_snake_case)]
 #[repr(C)]
 struct ISR {
 }

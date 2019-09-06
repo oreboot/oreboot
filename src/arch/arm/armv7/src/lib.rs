@@ -1,5 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
 #![feature(global_asm)]
 
 pub fn init() {}
