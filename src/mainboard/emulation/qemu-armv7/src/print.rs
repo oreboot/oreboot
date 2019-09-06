@@ -1,4 +1,4 @@
-use core::fmt;
+use core::fmt::{self, Write};
 use model::Driver;
 
 pub struct WriteTo<'a> {
@@ -11,7 +11,7 @@ impl<'a> WriteTo<'a> {
     }
 }
 
-impl<'a> fmt::Write for WriteTo<'a> {
+impl<'a> Write for WriteTo<'a> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         match self.drv.pwrite(s.as_bytes(), 0) {
             Err(_) => Err(fmt::Error),
