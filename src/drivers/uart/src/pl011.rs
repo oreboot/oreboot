@@ -3,7 +3,6 @@ use model::*;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
-#[allow(non_snake_case)]
 #[repr(C)]
 struct RegisterBlock {
     UARTDR: ReadWrite<u32, UARTDR::Register>,

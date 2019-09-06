@@ -1,9 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
 
 // u-bmc modified
 // Setting lifted from ast-g5-phy.h from OpenBMC u-boot

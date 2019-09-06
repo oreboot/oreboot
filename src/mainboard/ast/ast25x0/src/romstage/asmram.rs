@@ -1,12 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
-#![allow(unused_macros)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unreachable_code)]
-#![allow(non_camel_case_types)]
 
 pub mod ramtable;
 #[macro_use]

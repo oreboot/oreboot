@@ -1,5 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
 
 use model::*;
 use core::slice::{from_raw_parts, from_raw_parts_mut};

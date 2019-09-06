@@ -26,7 +26,6 @@ use clock::ClockNode;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields};
 
-#[allow(non_snake_case)]
 #[repr(C)]
 pub struct RegisterBlock {
     TD: ReadWrite<u32, TD::Register>,	/* Transmit data register */

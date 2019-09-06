@@ -5,7 +5,6 @@ use core::ops;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
-#[allow(non_snake_case)]
 #[repr(C)]
 pub struct RegisterBlock {
     D: ReadWrite<u32, D::Register>,
