@@ -1,23 +1,22 @@
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
-use model::*;
 use core::ops;
+use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
 #[repr(C)]
 pub struct RegisterBlock {
-    D: ReadWrite<u8, D::Register>,
-    IE: ReadWrite<u8, IE::Register>,
-    FC: ReadWrite<u8, FC::Register>,
-    LC: ReadWrite<u8, LC::Register>,
-    MC: ReadWrite<u8, MC::Register>,
-    LS: ReadOnly<u8, LS::Register>,
+    d: ReadWrite<u8, D::Register>,
+    ie: ReadWrite<u8, IE::Register>,
+    fc: ReadWrite<u8, FC::Register>,
+    lc: ReadWrite<u8, LC::Register>,
+    mc: ReadWrite<u8, MC::Register>,
+    ls: ReadOnly<u8, LS::Register>,
 }
 
 pub struct NS16550 {
     base: usize,
-    baudrate: u32,
 }
 
 impl ops::Deref for NS16550 {
@@ -29,8 +28,8 @@ impl ops::Deref for NS16550 {
 }
 
 impl NS16550 {
-    pub fn new(base: usize, baudrate: u32) -> NS16550 {
-        NS16550 { base: base, baudrate: baudrate }
+    pub fn new(base: usize, _baudrate: u32) -> NS16550 {
+        NS16550 { base: base }
     }
 
     /// Returns a pointer to the register block
@@ -42,7 +41,7 @@ impl NS16550 {
     fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
         // Timeout after a few thousand cycles to prevent hanging forever.
         for _ in 0..100_000 {
-            if self.LS.is_set(bit) == val {
+            if self.ls.is_set(bit) == val {
                 return true;
             }
         }
@@ -52,23 +51,23 @@ impl NS16550 {
 
 impl Driver for NS16550 {
     fn init(&mut self) {
-        /* Disable all interrupts */
-        self.IE.set(0u8);
-        /* Enable DLAB */
-        self.LC.write(LC::DivisorLatchAccessBit::BaudRate);
+        /* disable all interrupts */
+        self.ie.set(0u8);
+        /* Enable dLAB */
+        self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
         // Until we know the clock rate the divisor values are kind of
         // impossible to know. Throw in a phony value.
-        self.LC.write(LC::WLEN::WLEN_8);
-        // TODO: what are these bits. how do we write them.
-        self.FC.set(0xc7);
-        self.MC.set(0x0b);
-        self.LC.write(LC::DivisorLatchAccessBit::Normal);
+        self.lc.write(LC::WLEN::WLEN_8);
+        // TOdO: what are these bits. how do we write them.
+        self.fc.set(0xc7);
+        self.mc.set(0x0b);
+        self.lc.write(LC::DivisorLatchAccessBit::Normal);
     }
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         for c in data.iter_mut() {
-            while self.LS.is_set(LS::IF) {}
-            *c = self.D.read(D::DATA) as u8;
+            while self.ls.is_set(LS::IF) {}
+            *c = self.d.read(D::DATA) as u8;
         }
         Ok(data.len())
     }
@@ -78,7 +77,7 @@ impl Driver for NS16550 {
             if !self.poll_status(LS::OE, false) {
                 return Ok(i);
             }
-            self.D.set(c as u8);
+            self.d.set(c as u8);
         }
         Ok(data.len())
     }
