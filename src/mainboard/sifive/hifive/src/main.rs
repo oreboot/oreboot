@@ -7,7 +7,7 @@
 mod print;
 
 use clock::ClockNode;
-use core::ptr;
+use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
 use payloads::payload;
