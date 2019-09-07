@@ -1,5 +1,3 @@
-#![feature(asm)]
-#![feature(global_asm)]
 /*
  * This file is part of the coreboot project.
  *
