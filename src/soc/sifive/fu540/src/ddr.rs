@@ -20,17 +20,17 @@ pub struct BlockerRegister {
 // For now, we won't really use this. We have working coreboot code and we'll transition
 // one ugly bit at a time. DDR is very sensitive to simple errors.
 pub struct RegisterBlock {
-    cr0: ReadWrite<u64, CR0::Register>,
+    _cr0: ReadWrite<u64, CR0::Register>,
     _2: [u32; 18],
-    cr19: ReadWrite<u64, CR19::Register>,
+    _cr19: ReadWrite<u64, CR19::Register>,
     _3: [u32; 1],
-    cr21: ReadWrite<u64, CR21::Register>,
+    _cr21: ReadWrite<u64, CR21::Register>,
     _4: [u32; 98],
-    cr120: ReadWrite<u64, CR120::Register>,
+    _cr120: ReadWrite<u64, CR120::Register>,
     _5: [u32; 11],
-    cr132: ReadWrite<u64, CR132::Register>,
+    _cr132: ReadWrite<u64, CR132::Register>,
     _6: [u32; 3],
-    cr136: ReadWrite<u64, CR136::Register>,
+    _cr136: ReadWrite<u64, CR136::Register>,
     _7: [u32; 0x800 - 127],
 }
 
@@ -62,7 +62,7 @@ impl Driver for DDR {
         /* nothing to do. */
     }
 
-    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         NOT_IMPLEMENTED
     }
 

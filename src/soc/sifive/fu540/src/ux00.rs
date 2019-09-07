@@ -194,10 +194,10 @@ pub fn ux00ddr_phy_fixup() -> u64 {
 
     let ddrphyreg: u32 = reg::DDR_CTRL + 0x2000;
 
-    let mut fails: u64 = 0;
+    //let mut fails: u64 = 0;
     let mut slicebase: u32 = 0;
     let mut dq: u32 = 0;
-    for slice in 0..8 {
+    for _ in 0..8 {
         // check errata condition
         let regbase: u32 = slicebase + 34;
         for reg in 0..4 {
@@ -219,11 +219,11 @@ pub fn ux00ddr_phy_fixup() -> u64 {
                 if failc0 || failc1 {
                     // good news: we can use fmt; skip this nonsense.
                     //if (fails==0) uart_puts((void*) UART0_CTRL_ADDR, "DDR error in fixing up \n");
-                    fails |= (1 << dq);
-                    let mut slicelsc: u8 = 48;
-                    let mut slicemsc: u8 = 48;
-                    slicelsc += (dq % 10) as u8;
-                    slicemsc += (dq / 10) as u8;
+                    //fails |= (1 << dq);
+                    //let mut slicelsc: u8 = 48;
+                    //let mut slicemsc: u8 = 48;
+                    //slicelsc += (dq % 10) as u8;
+                    //slicemsc += (dq / 10) as u8;
                     //uart_puts((void*) UART0_CTRL_ADDR, "S ");
                     //uart_puts((void*) UART0_CTRL_ADDR, &slicemsc);
                     //uart_puts((void*) UART0_CTRL_ADDR, &slicelsc);

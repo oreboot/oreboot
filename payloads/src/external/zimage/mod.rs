@@ -1,3 +1,4 @@
+/*
 use crate::payload;
 
 const KERNEL: &'static [u8] = include_bytes!("zImage");
@@ -7,7 +8,7 @@ pub const DTB: &'static [u8] = include_bytes!("qemu_fdt.dtb");
 const MEM: u32 = 0x40200000;
 
 // TODO: Parse from SPI.
-/*pub const PAYLOAD: payload::Payload = payload::Payload {
+pub const PAYLOAD: payload::Payload = payload::Payload {
     typ: payload::ftype::CBFS_TYPE_RAW,
     compression: payload::ctype::CBFS_COMPRESS_NONE,
     offset: 0,
@@ -29,4 +30,5 @@ const MEM: u32 = 0x40200000;
             data: DTB,
         },
     ],
-};*/
+};
+*/

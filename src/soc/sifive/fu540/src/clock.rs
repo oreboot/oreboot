@@ -16,7 +16,7 @@
  */
 
 // 33.33 Mhz after reset
-const FU540_BASE_FQY: usize = 33330;
+//const FU540_BASE_FQY: usize = 33330;
 
 use clock::ClockNode;
 use core::{ops, ptr};
@@ -170,7 +170,7 @@ impl<'a> Driver for Clock<'a> {
         /* nothing to do. */
     }
 
-    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         NOT_IMPLEMENTED
     }
 
@@ -189,29 +189,29 @@ impl<'a> Driver for Clock<'a> {
 
 //static struct prci_ctlr *prci = (void *)FU540_PRCI;
 
-const PRCI_CORECLK_MASK: u32 = 1;
-const PRCI_CORECLK_CORE_PLL: u32 = 0;
-const PRCI_CORECLK_HFCLK: u32 = 1;
+//const PRCI_CORECLK_MASK: u32 = 1;
+//const PRCI_CORECLK_CORE_PLL: u32 = 0;
+//const PRCI_CORECLK_HFCLK: u32 = 1;
 
-const PRCI_PLLCFG_LOCK: u32 = (1 << 31);
-const PRCI_PLLCFG_DIVR_SHIFT: u32 = 0;
-const PRCI_PLLCFG_DIVF_SHIFT: u32 = 6;
-const PRCI_PLLCFG_DIVQ_SHIFT: u32 = 15;
-const PRCI_PLLCFG_RANGE_SHIFT: u32 = 18;
-const PRCI_PLLCFG_BYPASS_SHIFT: u32 = 24;
-const PRCI_PLLCFG_FSE_SHIFT: u32 = 25;
-const PRCI_PLLCFG_DIVR_MASK: u32 = (0x03f << PRCI_PLLCFG_DIVR_SHIFT);
-const PRCI_PLLCFG_DIVF_MASK: u32 = (0x1ff << PRCI_PLLCFG_DIVF_SHIFT);
-const PRCI_PLLCFG_DIVQ_MASK: u32 = (0x007 << PRCI_PLLCFG_DIVQ_SHIFT);
-const PRCI_PLLCFG_RANGE_MASK: u32 = (0x07 << PRCI_PLLCFG_RANGE_SHIFT);
-const PRCI_PLLCFG_BYPASS_MASK: u32 = (0x1 << PRCI_PLLCFG_BYPASS_SHIFT);
-const PRCI_PLLCFG_FSE_MASK: u32 = (0x1 << PRCI_PLLCFG_FSE_SHIFT);
+//const PRCI_PLLCFG_LOCK: u32 = (1 << 31);
+//const PRCI_PLLCFG_DIVR_SHIFT: u32 = 0;
+//const PRCI_PLLCFG_DIVF_SHIFT: u32 = 6;
+//const PRCI_PLLCFG_DIVQ_SHIFT: u32 = 15;
+//const PRCI_PLLCFG_RANGE_SHIFT: u32 = 18;
+//const PRCI_PLLCFG_BYPASS_SHIFT: u32 = 24;
+//const PRCI_PLLCFG_FSE_SHIFT: u32 = 25;
+//const PRCI_PLLCFG_DIVR_MASK: u32 = (0x03f << PRCI_PLLCFG_DIVR_SHIFT);
+//const PRCI_PLLCFG_DIVF_MASK: u32 = (0x1ff << PRCI_PLLCFG_DIVF_SHIFT);
+//const PRCI_PLLCFG_DIVQ_MASK: u32 = (0x007 << PRCI_PLLCFG_DIVQ_SHIFT);
+//const PRCI_PLLCFG_RANGE_MASK: u32 = (0x07 << PRCI_PLLCFG_RANGE_SHIFT);
+//const PRCI_PLLCFG_BYPASS_MASK: u32 = (0x1 << PRCI_PLLCFG_BYPASS_SHIFT);
+//const PRCI_PLLCFG_FSE_MASK: u32 = (0x1 << PRCI_PLLCFG_FSE_SHIFT);
 
-const PRCI_DDRPLLCFG1_MASK: u32 = (1 << 31);
+//const PRCI_DDRPLLCFG1_MASK: u32 = (1 << 31);
 
-const PRCI_GEMGXLPPLCFG1_MASK: u32 = (1 << 31);
+//const PRCI_GEMGXLPPLCFG1_MASK: u32 = (1 << 31);
 
-const PRCI_CORECLKSEL_CORECLKSEL: u32 = 1;
+//const PRCI_CORECLKSEL_CORECLKSEL: u32 = 1;
 
 /* Clock initialization should only be done in romstage. */
 
@@ -298,7 +298,7 @@ impl<'a> Clock<'a> {
         // stuff before they come out of reset. So wait.
         // TODO: Add a register to read the current reset states, or DDR Control
         // device?
-        for i in 0..=255 {
+        for _ in 0..=255 {
             architecture::nop();
         }
         self.init_pll_ge();
