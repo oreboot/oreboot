@@ -1,4 +1,5 @@
 #![no_std]
+#![deny(warnings)]
 /// This is a driver for SiFive's SPI master, documented in the FU540 manual:
 
 use model::*;

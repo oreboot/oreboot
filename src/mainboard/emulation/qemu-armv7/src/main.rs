@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![deny(warnings)]
 
 mod print;
 mod romstage;

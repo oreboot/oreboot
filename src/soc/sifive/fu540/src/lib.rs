@@ -1,4 +1,5 @@
 #![no_std]
+#![deny(warnings)]
 
 pub mod clock;
 pub mod ctl;

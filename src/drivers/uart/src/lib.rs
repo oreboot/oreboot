@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(asm)]
+#![deny(warnings)]
 
 #[cfg(feature = "ns16550")]
 pub mod ns16550;
