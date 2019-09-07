@@ -27,6 +27,3 @@ pub fn nop() {
     unsafe { asm!("nop" :::: "volatile") }
 }
 
-
-global_asm!(include_str!("bootblock.S"));
-
