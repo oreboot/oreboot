@@ -1,11 +1,11 @@
 #![feature(slice_patterns)]
 use device_tree::{infer_type, Entry, FdtReader, Type, MAX_NAME_SIZE};
 use model::Driver;
-use wrappers::SliceReader;
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
-use std::{env, fs};
 use std::process::exit;
+use std::{env, fs};
+use wrappers::SliceReader;
 
 // TODO: Move this struct to lib so it can be used at runtime.
 #[derive(Default, Debug)]
@@ -33,7 +33,7 @@ fn read_fixed_fdt(path: &str) -> Vec<Area> {
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
-    for item in FdtReader::new(&driver).unwrap().walk() {
+    for item in FdtReader::new(&driver).unwrap().iter() {
         // TODO: We really need a better iterator for this.
         match item {
             Entry::Node { path } => {

@@ -10,9 +10,9 @@ use core::fmt;
 
 use device_tree::Entry::{Node, Property};
 use model::{Driver, Result};
+use payloads::external::zimage::DTB;
 use uart;
 use wrappers::{DoD, SliceReader};
-use payloads::external::zimage::DTB;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -47,16 +47,24 @@ pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
     let mut w = print::WriteTo::new(console);
     let spi = SliceReader::new(DTB);
 
-    for entry in device_tree::FdtReader::new(&spi)?.walk() {
+    for entry in device_tree::FdtReader::new(&spi)?.iter() {
         match entry {
             Node { path: p } => {
-                fmt::write(&mut w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
+                fmt::write(
+                    &mut w,
+                    format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2),
+                )
+                .unwrap();
             }
             Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = device_tree::infer_type(&buf[..len]);
-                fmt::write(&mut w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
+                fmt::write(
+                    &mut w,
+                    format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2),
+                )
+                .unwrap();
             }
         }
     }

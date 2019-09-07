@@ -144,7 +144,7 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (
 
 // TODO: move out of mainboard
 pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
-    for entry in FdtReader::new(fdt)?.walk() {
+    for entry in FdtReader::new(fdt)?.iter() {
         match entry {
             Entry::Node { path: p } => {
                 write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
