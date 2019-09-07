@@ -1,4 +1,5 @@
 #![no_std]
+#![deny(warnings)]
 
 #[macro_use]
 extern crate num_derive;

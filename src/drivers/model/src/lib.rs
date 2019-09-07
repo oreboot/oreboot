@@ -1,4 +1,5 @@
 #![no_std]
+#![deny(warnings)]
 
 pub type Result<T> = core::result::Result<T, &'static str>;
 

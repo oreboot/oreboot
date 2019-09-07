@@ -1,4 +1,5 @@
 #![feature(slice_patterns)]
+#![deny(warnings)]
 use device_tree::{infer_type, Entry, FdtReader, Type, MAX_NAME_SIZE};
 use model::Driver;
 use wrappers::SliceReader;

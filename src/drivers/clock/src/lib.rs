@@ -1,4 +1,5 @@
 #![no_std]
+#![deny(warnings)]
 /// Trait to set the input clock rate on a driver.
 
 pub trait ClockNode {
