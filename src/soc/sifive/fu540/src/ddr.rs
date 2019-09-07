@@ -4,8 +4,8 @@ use model::*;
 use crate::reg;
 use crate::ux00;
 use crate::is_qemu;
-use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields, Field};
+use register::mmio::ReadWrite;
+use register::register_bitfields;
 use core::convert::TryInto;
 
 #[repr(C)]
