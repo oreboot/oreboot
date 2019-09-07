@@ -17,13 +17,13 @@
 //const FU540_BASE_FQY: usize = 33330;
 
 use clock::ClockNode;
-use core::{ops, ptr};
+use core::ops;
 use model::*;
 
 use crate::reg;
 use crate::is_qemu;
-use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields, Field};
+use register::mmio::ReadWrite;
+use register::register_bitfields;
 
 #[repr(C)]
 
