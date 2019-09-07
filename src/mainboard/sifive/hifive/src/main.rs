@@ -91,11 +91,6 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
             data: rom_fdt,
         },
     ];
-    let simple_segs = &[payload::Segment {
-        typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-        base: mem,
-        data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0xa00000, 1024),
-    }];
     let payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
@@ -105,7 +100,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         rom_len: 0 as u32,
         mem_len: 0 as u32,
 
-        segs: simple_segs,
+        segs: kernel_segs,
     };
     write!(w, "Loading payload\r\n").unwrap();
     payload.load();
