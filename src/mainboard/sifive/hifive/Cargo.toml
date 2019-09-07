@@ -3,6 +3,7 @@ name = "hifive"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
+build = "build.rs"
 
 [dependencies]
 architecture = { path = "../../../arch/riscv/rv64"}
