@@ -202,13 +202,13 @@ pub fn ux00ddr_phy_fixup() -> u64 {
         let regbase: u32 = slicebase + 34;
         for reg in 0..4 {
             // what the hell?
-            let updownreg: u32 = peek(ddrphyreg, (regbase + reg));
+            let updownreg: u32 = peek(ddrphyreg, regbase + reg);
             for bit in 0..2 {
                 let phy_rx_cal_dqn_0_offset = if bit == 0 { PHY_RX_CAL_DQ0_0_OFFSET } else { PHY_RX_CAL_DQ1_0_OFFSET };
                 let down: u32 = (updownreg >> phy_rx_cal_dqn_0_offset) & 0x3F;
                 let up: u32 = (updownreg >> (phy_rx_cal_dqn_0_offset + 6)) & 0x3F;
-                let failc0: bool = ((down == 0) && (up == 0x3F));
-                let failc1: bool = ((up == 0) && (down == 0x3F));
+                let failc0: bool = (down == 0) && (up == 0x3F);
+                let failc1: bool = (up == 0) && (down == 0x3F);
 
                 // print error message on failure
                 if failc0 || failc1 {
