@@ -100,7 +100,7 @@ register_bitfields! {
 // Or possibly a varargs of enums. Whatever.
 fn reset_mask(ddr: bool, axi: bool, ahb: bool, phy: bool, ge: bool) -> u32 {
     // The default is to reset nothing.
-    let mut m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f);
+    let m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f);
     if ddr {
         m.modify(ResetCtl::DDRCtl.val(0));
     }
@@ -120,7 +120,7 @@ fn reset_mask(ddr: bool, axi: bool, ahb: bool, phy: bool, ge: bool) -> u32 {
 }
 
 fn default_core() -> u32 {
-    let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
+    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(59));
     r.modify(PLLCfg0::DivQ.val(2));
@@ -130,7 +130,7 @@ fn default_core() -> u32 {
     r.get()
 }
 fn default_ddr() -> u32 {
-    let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
+    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(55));
     r.modify(PLLCfg0::DivQ.val(2));
@@ -140,7 +140,7 @@ fn default_ddr() -> u32 {
     r.get()
 }
 fn default_ge() -> u32 {
-    let mut r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
+    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
     r.modify(PLLCfg0::DivR.val(0));
     r.modify(PLLCfg0::DivF.val(59));
     r.modify(PLLCfg0::DivQ.val(5));
