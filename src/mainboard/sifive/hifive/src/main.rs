@@ -23,7 +23,7 @@ global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/init.S"));
 
 // TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
 // tree here. TODO: The kernel ebreaks when given this device tree.
-const DTB: &'static [u8] = include_bytes!("hifive.dtb");
+//const DTB: &'static [u8] = include_bytes!("hifive.dtb");
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
