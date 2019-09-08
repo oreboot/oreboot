@@ -4,20 +4,12 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-use core::panic::PanicInfo;
-
 pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
         // See: https://github.com/rust-lang/rust/issues/28728
         unsafe { asm!("wfi" :::: "volatile") }
     }
-}
-
-/// This function is called on panic.
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    halt()
 }
 
 pub fn fence() {

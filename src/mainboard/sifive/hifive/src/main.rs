@@ -8,6 +8,7 @@
 mod print;
 
 use clock::ClockNode;
+use core::panic::PanicInfo;
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
@@ -160,4 +161,16 @@ pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'s
         }
     }
     Ok(())
+}
+
+/// This function is called on panic.
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    // Assume that uart0.init() has already been called before the panic.
+    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
+    let w = &mut print::WriteTo::new(uart0);
+    // Printing in the panic handler is best-effort because we really don't want to invoke the panic
+    // handler from inside itself.
+    let _ = write!(w, "PANIC: {}\r\n", info);
+    architecture::halt()
 }
