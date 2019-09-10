@@ -69,13 +69,10 @@ sudo apt-get install autoconf automake autotools-dev curl libmpc-dev \
 git clone https://github.com/riscv/riscv-gnu-toolchain --recursive
 cd riscv-gnu-toolchain
 ./configure --help
-./configure --enable-linux
+./configure --enable-linux --prefix=/opt/riscv
 make -j12 build-gdb
+stat /opt/riscv/bin/riscv64-unknown-linux-gnu-gdb
 ```
-
-Note this build will fail without the permissions to modify /usr. Even if it
-fails, you can still find the output at build-gdb-linux/gdb/gdb which you
-should rename to the more memorable riscv64-unknown-linux-gnu-gdb.
 
 2. Build OpenOCD for RISC-V
 
