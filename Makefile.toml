@@ -1,9 +1,16 @@
 [tasks.update-tools]
-dependencies = [ "update-layoutflash" ]
+dependencies = [
+    "update-layoutflash",
+    "update-buildtool",
+    ]
 
 [tasks.update-layoutflash]
 command = "cargo"
 args = [ "install", "-f", "--path", "tools/layoutflash" ]
+
+[tasks.update-buildtool]
+command = "cargo"
+args = [ "install", "-f", "--path", "tools/chisel" ]
 
 [tasks.setup]
 dependencies = [
