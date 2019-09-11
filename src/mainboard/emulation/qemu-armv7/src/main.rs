@@ -11,9 +11,9 @@ use core::fmt;
 
 use device_tree::Entry::{Node, Property};
 use model::{Driver, Result};
+use payloads::external::zimage::DTB;
 use uart;
 use wrappers::{DoD, SliceReader};
-use payloads::external::zimage::DTB;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -26,20 +26,20 @@ pub extern "C" fn _start() -> ! {
 
     if let Err(err) = print_fdt(console) {
         let mut w = print::WriteTo::new(console);
-        fmt::write(&mut w, format_args!("error: {}\n", err)).expect(err);
+        write!(w, "error: {}\n", err).expect(err);
     }
 
     cpu::init();
     let mut w = print::WriteTo::new(console);
-    fmt::write(&mut w, format_args!("hi")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("1")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("2")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("3")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("4")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("5")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("6")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("7")).expect("blame ryan");
-    fmt::write(&mut w, format_args!("{}{}\r\n", 3, "7")).expect("blame ryan");
+    write!(w, "hi").expect("blame ryan");
+    write!(w, "1").expect("blame ryan");
+    write!(w, "2").expect("blame ryan");
+    write!(w, "3").expect("blame ryan");
+    write!(w, "4").expect("blame ryan");
+    write!(w, "5").expect("blame ryan");
+    write!(w, "6").expect("blame ryan");
+    write!(w, "7").expect("blame ryan");
+    write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
     romstage::romstage()
 }
 use core::panic::PanicInfo;
@@ -51,13 +51,14 @@ pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
     for entry in device_tree::FdtReader::new(&spi)?.walk() {
         match entry {
             Node { path: p } => {
-                fmt::write(&mut w, format_args!("{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2)).unwrap();
+                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
             }
             Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = device_tree::infer_type(&buf[..len]);
-                fmt::write(&mut w, format_args!("{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)).unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)
+                    .unwrap();
             }
         }
     }
