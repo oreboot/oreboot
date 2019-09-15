@@ -35,9 +35,7 @@ Building oreboot
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
-# Run this in the oreboot project directory. This uses the nightly rust
-# compiler for the oreboot directory.
-rustup override set nightly
+# The correct Rust version is automatically installed and set on build
 
 # Install cargo-make
 cargo install cargo-make
