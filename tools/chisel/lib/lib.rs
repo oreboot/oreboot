@@ -1,6 +1,15 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub struct BuildConfig<T> {
+#[derive(Serialize, Deserialize)]
+pub struct BuildConfig {
     payload: PathBuf,
-    config: T,
+    config: MainboardConfig,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MainboardConfig {
+    Ast,
+    SiFive,
 }

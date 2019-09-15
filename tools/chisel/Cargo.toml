@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 cursive = "0.13.0"
+serde = { version = "1", features = ["derive"] }
 
 [lib]
 name = "chisel_core"
