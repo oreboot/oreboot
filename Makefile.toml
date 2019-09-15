@@ -5,12 +5,17 @@ dependencies = [
     ]
 
 [tasks.update-layoutflash]
-command = "cargo"
-args = [ "install", "-f", "--path", "tools/layoutflash" ]
+extend = "update-tool-generic"
+cwd = "tools/layoutflash"
 
 [tasks.update-buildtool]
+extend = "update-tool-generic"
+cwd = "tools/chisel"
+
+[tasks.update-tool-generic]
+private = true
 command = "cargo"
-args = [ "install", "-f", "--path", "tools/chisel" ]
+args = [ "install", "-f", "--path", "." ]
 
 [tasks.setup]
 dependencies = [
@@ -19,13 +24,16 @@ dependencies = [
 ]
 
 [tasks.install-dependencies]
+private = true
 dependencies = [
     "install-binutils",
     "install-llvm-tools",
 ]
 
 [tasks.install-binutils]
+private = true
 install_crate = { crate_name = "cargo-binutils", binary = "cargo", test_arg = [ "objcopy", "--help" ] }
 
 [tasks.install-llvm-tools]
+private = true
 install_crate = { rustup_component_name = "llvm-tools-preview" }

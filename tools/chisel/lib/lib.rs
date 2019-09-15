@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
-pub struct BuildConfig {
+pub struct BuildConfig<T> {
     payload: PathBuf,
+    config: T,
 }
