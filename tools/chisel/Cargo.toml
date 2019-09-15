@@ -6,3 +6,11 @@ edition = "2018"
 
 [dependencies]
 cursive = "0.13.0"
+
+[lib]
+name = "chisel_core"
+path = "lib/lib.rs"
+
+[[bin]]
+name = "chisel"
+path = "src/main.rs"
