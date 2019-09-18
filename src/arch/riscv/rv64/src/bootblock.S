@@ -19,7 +19,7 @@
 
 .globl _boot
 _boot:
-	# The ZSBL passes these variables:
+	# The previous boot stage passes these variables:
 	#   a0: hartid
 	#   a1: ROM FDT
 
@@ -30,23 +30,10 @@ _boot:
 spin:
 	bne a0, t0, spin
 
-	# initialize stack point for each hart
-	# and the stack must be page-aligned.
-	# 0xDEADBEEF used to check stack overflow
-	#csrr a0, mhartid
-	#la   t0, _stack
-	#slli t1, a0, 12 # PageShift
-	#add  t0, t0, t1
-	#li   t1, 0xDEADBEEF
-	#sd t1, 0(t0)
-	#li   t1, 4096 - 88 # RISCV_PGSIZE - HLS_SIZE
-	#add  sp, t0, t1
-
-	# TODO: SOC-specific
-	# Set stack pointer into CAR (L2-LIM).
-1:	auipc t0,     %pcrel_hi(_stack_ptr)
-	lw sp, %pcrel_lo(1b)(t0)
-	#lw sp, 0(t0)
+	# Set the stack pointer
+	# 0xDEADBEEF is used to check stack overflow
+1:     auipc t0,     %pcrel_hi(_stack_ptr)
+       lwu sp, %pcrel_lo(1b)(t0)
 
 	li t0, 0xDEADBEEF
 	sw t0, 0(sp)
