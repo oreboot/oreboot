@@ -1,38 +1,80 @@
+diff --git a/hw/riscv/Kconfig b/hw/riscv/Kconfig
+index fb19b2df3a..b12660b9f8 100644
+--- a/hw/riscv/Kconfig
++++ b/hw/riscv/Kconfig
+@@ -36,4 +36,5 @@ config RISCV_VIRT
+     select SERIAL
+     select VIRTIO_MMIO
+     select PCI_EXPRESS_GENERIC_BRIDGE
++    select PFLASH_CFI01
+     select SIFIVE
 diff --git a/hw/riscv/sifive_u.c b/hw/riscv/sifive_u.c
-index 71b8083c05..dd27f28917 100644
+index 9f8e84bf2e..c914ae93fc 100644
 --- a/hw/riscv/sifive_u.c
 +++ b/hw/riscv/sifive_u.c
-@@ -59,8 +59,10 @@ static const struct MemmapEntry {
+@@ -65,11 +65,13 @@ static const struct MemmapEntry {
+     [SIFIVE_U_DEBUG] =    {        0x0,      0x100 },
      [SIFIVE_U_MROM] =     {     0x1000,    0x11000 },
      [SIFIVE_U_CLINT] =    {  0x2000000,    0x10000 },
-     [SIFIVE_U_PLIC] =     {  0xc000000,  0x4000000 },
--    [SIFIVE_U_UART0] =    { 0x10013000,     0x1000 },
--    [SIFIVE_U_UART1] =    { 0x10023000,     0x1000 },
 +    [SIFIVE_U_L2LIM] =    {  0x8000000,  0x1e00000 },
-+    [SIFIVE_U_UART0] =    { 0x10010000,     0x1000 },
-+    [SIFIVE_U_UART1] =    { 0x10011000,     0x1000 },
+     [SIFIVE_U_PLIC] =     {  0xc000000,  0x4000000 },
+     [SIFIVE_U_PRCI] =     { 0x10000000,     0x1000 },
+     [SIFIVE_U_UART0] =    { 0x10010000,     0x1000 },
+     [SIFIVE_U_UART1] =    { 0x10011000,     0x1000 },
+     [SIFIVE_U_OTP] =      { 0x10070000,     0x1000 },
 +    [SIFIVE_U_FLASH0] =   { 0x20000000,  0x2000000 },
      [SIFIVE_U_DRAM] =     { 0x80000000,        0x0 },
-     [SIFIVE_U_GEM] =      { 0x100900FC,     0x2000 },
- };
-@@ -235,6 +237,8 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
-         0x0, memmap[SIFIVE_U_UART0].size);
-     qemu_fdt_setprop_cell(fdt, nodename, "clock-frequency",
-                           SIFIVE_U_CLOCK_FREQ / 2);
-+    // TODO: Linux wants a clock. Using ethclk. What could go wrong?
-+    qemu_fdt_setprop_cell(fdt, nodename, "clocks", ethclk_phandle);
-     qemu_fdt_setprop_cells(fdt, nodename, "interrupt-parent", plic_phandle);
-     qemu_fdt_setprop_cells(fdt, nodename, "interrupts", SIFIVE_U_UART0_IRQ);
+     [SIFIVE_U_GEM] =      { 0x10090000,     0x2000 },
+     [SIFIVE_U_GEM_MGMT] = { 0x100a0000,     0x1000 },
+@@ -88,6 +90,7 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
+     char *nodename;
+     char ethclk_names[] = "pclk\0hclk";
+     uint32_t plic_phandle, prci_phandle, phandle = 1;
++    uint32_t uartclk_phandle;
+     uint32_t hfclk_phandle, rtcclk_phandle, phy_phandle;
  
-@@ -253,6 +257,7 @@ static void riscv_sifive_u_init(MachineState *machine)
-     SiFiveUState *s = g_new0(SiFiveUState, 1);
+     fdt = s->fdt = create_device_tree(&s->fdt_size);
+@@ -281,6 +284,16 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
+     qemu_fdt_setprop_cell(fdt, nodename, "reg", 0x0);
+     g_free(nodename);
+ 
++    uartclk_phandle = phandle++;
++    nodename = g_strdup_printf("/soc/uartclk");
++    qemu_fdt_add_subnode(fdt, nodename);
++    qemu_fdt_setprop_string(fdt, nodename, "compatible", "fixed-clock");
++    qemu_fdt_setprop_cell(fdt, nodename, "#clock-cells", 0x0);
++    qemu_fdt_setprop_cell(fdt, nodename, "clock-frequency", 3686400);
++    qemu_fdt_setprop_cell(fdt, nodename, "phandle", uartclk_phandle);
++    uartclk_phandle = qemu_fdt_get_phandle(fdt, nodename);
++    g_free(nodename);
++
+     nodename = g_strdup_printf("/soc/serial@%lx",
+         (long)memmap[SIFIVE_U_UART0].base);
+     qemu_fdt_add_subnode(fdt, nodename);
+@@ -288,8 +301,7 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
+     qemu_fdt_setprop_cells(fdt, nodename, "reg",
+         0x0, memmap[SIFIVE_U_UART0].base,
+         0x0, memmap[SIFIVE_U_UART0].size);
+-    qemu_fdt_setprop_cells(fdt, nodename, "clocks",
+-        prci_phandle, PRCI_CLK_TLCLK);
++    qemu_fdt_setprop_cell(fdt, nodename, "clocks", uartclk_phandle);
+     qemu_fdt_setprop_cell(fdt, nodename, "interrupt-parent", plic_phandle);
+     qemu_fdt_setprop_cell(fdt, nodename, "interrupts", SIFIVE_U_UART0_IRQ);
+ 
+@@ -308,10 +320,10 @@ static void create_fdt(SiFiveUState *s, const struct MemmapEntry *memmap,
+ static void riscv_sifive_u_init(MachineState *machine)
+ {
+     const struct MemmapEntry *memmap = sifive_u_memmap;
+-
+-    SiFiveUState *s = g_new0(SiFiveUState, 1);
++    SiFiveUState *s = RISCV_U_MACHINE(machine);
      MemoryRegion *system_memory = get_system_memory();
      MemoryRegion *main_mem = g_new(MemoryRegion, 1);
 +    MemoryRegion *flash0 = g_new(MemoryRegion, 1);
      int i;
  
      /* Initialize SoC */
-@@ -268,11 +273,17 @@ static void riscv_sifive_u_init(MachineState *machine)
+@@ -327,6 +339,12 @@ static void riscv_sifive_u_init(MachineState *machine)
      memory_region_add_subregion(system_memory, memmap[SIFIVE_U_DRAM].base,
                                  main_mem);
  
@@ -45,22 +87,18 @@ index 71b8083c05..dd27f28917 100644
      /* create device tree */
      create_fdt(s, memmap, machine->ram_size, machine->kernel_cmdline);
  
-     riscv_find_and_load_firmware(machine, BIOS_FILENAME,
--                                 memmap[SIFIVE_U_DRAM].base);
-+                                 memmap[SIFIVE_U_FLASH0].base);
- 
-     if (machine->kernel_filename) {
-         riscv_load_kernel(machine->kernel_filename);
-@@ -290,7 +301,7 @@ static void riscv_sifive_u_init(MachineState *machine)
- #endif
-         0x00028067,                    /*     jr     t0 */
-         0x00000000,
--        memmap[SIFIVE_U_DRAM].base, /* start: .dword DRAM_BASE */
-+        memmap[SIFIVE_U_FLASH0].base, /* start: .dword FLASH0_BASE */
-         0x00000000,
+@@ -365,6 +383,10 @@ static void riscv_sifive_u_init(MachineState *machine)
                                         /* dtb: */
      };
-@@ -337,6 +348,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+ 
++    if (s->start_in_flash) {
++        reset_vec[6] = memmap[SIFIVE_U_FLASH0].base; /* start: .dword FLASH0_BASE */
++    }
++
+     /* copy in the reset vector in little_endian byte order */
+     for (i = 0; i < sizeof(reset_vec) >> 2; i++) {
+         reset_vec[i] = cpu_to_le32(reset_vec[i]);
+@@ -431,6 +453,7 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      const struct MemmapEntry *memmap = sifive_u_memmap;
      MemoryRegion *system_memory = get_system_memory();
      MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
@@ -68,31 +106,310 @@ index 71b8083c05..dd27f28917 100644
      qemu_irq plic_gpios[SIFIVE_U_PLIC_NUM_SOURCES];
      char *plic_hart_config;
      size_t plic_hart_config_len;
-@@ -353,6 +365,12 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+@@ -459,6 +482,19 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
      memory_region_add_subregion(system_memory, memmap[SIFIVE_U_MROM].base,
                                  mask_rom);
  
-+    /* Add fake L2-LIM */
++    /* Add L2-LIM at reset size.
++     * This should be reduced in size as the L2 Cache Controller WayEnable
++     * register is incremented. Unfortunately I don't see a nice (or any) way
++     * to handle reducing or blocking out the L2 LIM while still allowing it
++     * be re returned to all enabled after a reset. For the time being, just
++     * leave it enabled all the time. This won't break anything, but will be
++     * too generous to misbehaving guests.
++     */
 +    memory_region_init_ram(l2lim_mem, NULL, "riscv.sifive.u.l2lim",
-+		           memmap[SIFIVE_U_L2LIM].size, &error_fatal);
++                           memmap[SIFIVE_U_L2LIM].size, &error_fatal);
 +    memory_region_add_subregion(system_memory, memmap[SIFIVE_U_L2LIM].base,
 +                                l2lim_mem);
 +
      /* create PLIC hart topology configuration string */
      plic_hart_config_len = (strlen(SIFIVE_U_PLIC_HART_CONFIG) + 1) *
                             ms->smp.cpus;
+@@ -522,8 +558,38 @@ static void riscv_sifive_u_soc_realize(DeviceState *dev, Error **errp)
+         memmap[SIFIVE_U_GEM_MGMT].base, memmap[SIFIVE_U_GEM_MGMT].size);
+ }
+ 
+-static void riscv_sifive_u_machine_init(MachineClass *mc)
++static bool virt_get_start_in_flash(Object *obj, Error **errp)
++{
++    SiFiveUState *s = RISCV_U_MACHINE(obj);
++
++    return s->start_in_flash;
++}
++
++static void virt_set_start_in_flash(Object *obj, bool value, Error **errp)
+ {
++    SiFiveUState *s = RISCV_U_MACHINE(obj);
++
++    s->start_in_flash = value;
++}
++
++static void riscv_sifive_u_machine_instance_init(Object *obj)
++{
++    SiFiveUState *s = RISCV_U_MACHINE(obj);
++
++    s->start_in_flash = false;
++    object_property_add_bool(obj, "start-in-flash", virt_get_start_in_flash,
++                             virt_set_start_in_flash, NULL);
++    object_property_set_description(obj, "start-in-flash",
++                                    "Set on to tell QEMU's ROM to jump to " \
++                                    "flash. Otherwise QEMU will jump to DRAM",
++                                    NULL);
++
++}
++
++static void riscv_sifive_u_machine_class_init(ObjectClass *oc, void *data)
++{
++    MachineClass *mc = MACHINE_CLASS(oc);
++
+     mc->desc = "RISC-V Board compatible with SiFive U SDK";
+     mc->init = riscv_sifive_u_init;
+     mc->max_cpus = SIFIVE_U_MANAGEMENT_CPU_COUNT + SIFIVE_U_COMPUTE_CPU_COUNT;
+@@ -531,7 +597,20 @@ static void riscv_sifive_u_machine_init(MachineClass *mc)
+     mc->default_cpus = mc->min_cpus;
+ }
+ 
+-DEFINE_MACHINE("sifive_u", riscv_sifive_u_machine_init)
++static const TypeInfo riscv_sifive_u_machine_init_typeinfo = {
++    .name       = MACHINE_TYPE_NAME("sifive_u"),
++    .parent     = TYPE_MACHINE,
++    .class_init = riscv_sifive_u_machine_class_init,
++    .instance_init = riscv_sifive_u_machine_instance_init,
++    .instance_size = sizeof(SiFiveUState),
++};
++
++static void riscv_sifive_u_machine_init_register_types(void)
++{
++    type_register_static(&riscv_sifive_u_machine_init_typeinfo);
++}
++
++type_init(riscv_sifive_u_machine_init_register_types)
+ 
+ static void riscv_sifive_u_soc_class_init(ObjectClass *oc, void *data)
+ {
+diff --git a/hw/riscv/virt.c b/hw/riscv/virt.c
+index d36f5625ec..ed25cc6761 100644
+--- a/hw/riscv/virt.c
++++ b/hw/riscv/virt.c
+@@ -26,6 +26,7 @@
+ #include "hw/boards.h"
+ #include "hw/loader.h"
+ #include "hw/sysbus.h"
++#include "hw/qdev-properties.h"
+ #include "hw/char/serial.h"
+ #include "target/riscv/cpu.h"
+ #include "hw/riscv/riscv_hart.h"
+@@ -61,12 +62,72 @@ static const struct MemmapEntry {
+     [VIRT_PLIC] =        {  0xc000000,     0x4000000 },
+     [VIRT_UART0] =       { 0x10000000,         0x100 },
+     [VIRT_VIRTIO] =      { 0x10001000,        0x1000 },
++    [VIRT_FLASH] =       { 0x20000000,     0x2000000 },
+     [VIRT_DRAM] =        { 0x80000000,           0x0 },
+     [VIRT_PCIE_MMIO] =   { 0x40000000,    0x40000000 },
+     [VIRT_PCIE_PIO] =    { 0x03000000,    0x00010000 },
+     [VIRT_PCIE_ECAM] =   { 0x30000000,    0x10000000 },
+ };
+ 
++#define VIRT_FLASH_SECTOR_SIZE (256 * KiB)
++
++static PFlashCFI01 *virt_flash_create1(RISCVVirtState *s,
++                                       const char *name,
++                                       const char *alias_prop_name)
++{
++    /*
++     * Create a single flash device.  We use the same parameters as
++     * the flash devices on the ARM virt board.
++     */
++    DeviceState *dev = qdev_create(NULL, TYPE_PFLASH_CFI01);
++
++    qdev_prop_set_uint64(dev, "sector-length", VIRT_FLASH_SECTOR_SIZE);
++    qdev_prop_set_uint8(dev, "width", 4);
++    qdev_prop_set_uint8(dev, "device-width", 2);
++    qdev_prop_set_bit(dev, "big-endian", false);
++    qdev_prop_set_uint16(dev, "id0", 0x89);
++    qdev_prop_set_uint16(dev, "id1", 0x18);
++    qdev_prop_set_uint16(dev, "id2", 0x00);
++    qdev_prop_set_uint16(dev, "id3", 0x00);
++    qdev_prop_set_string(dev, "name", name);
++
++    return PFLASH_CFI01(dev);
++}
++
++static void virt_flash_create(RISCVVirtState *s)
++{
++    s->flash[0] = virt_flash_create1(s, "virt.flash0", "pflash0");
++    s->flash[1] = virt_flash_create1(s, "virt.flash1", "pflash1");
++}
++
++static void virt_flash_map1(PFlashCFI01 *flash,
++                            hwaddr base, hwaddr size,
++                            MemoryRegion *sysmem)
++{
++    DeviceState *dev = DEVICE(flash);
++
++    assert(size % VIRT_FLASH_SECTOR_SIZE == 0);
++    assert(size / VIRT_FLASH_SECTOR_SIZE <= UINT32_MAX);
++    qdev_prop_set_uint32(dev, "num-blocks", size / VIRT_FLASH_SECTOR_SIZE);
++    qdev_init_nofail(dev);
++
++    memory_region_add_subregion(sysmem, base,
++                                sysbus_mmio_get_region(SYS_BUS_DEVICE(dev),
++                                                       0));
++}
++
++static void virt_flash_map(RISCVVirtState *s,
++                           MemoryRegion *sysmem)
++{
++    hwaddr flashsize = virt_memmap[VIRT_FLASH].size / 2;
++    hwaddr flashbase = virt_memmap[VIRT_FLASH].base;
++
++    virt_flash_map1(s->flash[0], flashbase, flashsize,
++                    sysmem);
++    virt_flash_map1(s->flash[1], flashbase + flashsize, flashsize,
++                    sysmem);
++}
++
+ static void create_pcie_irq_map(void *fdt, char *nodename,
+                                 uint32_t plic_phandle)
+ {
+@@ -121,6 +182,8 @@ static void create_fdt(RISCVVirtState *s, const struct MemmapEntry *memmap,
+     char *nodename;
+     uint32_t plic_phandle, phandle = 1;
+     int i;
++    hwaddr flashsize = virt_memmap[VIRT_FLASH].size / 2;
++    hwaddr flashbase = virt_memmap[VIRT_FLASH].base;
+ 
+     fdt = s->fdt = create_device_tree(&s->fdt_size);
+     if (!fdt) {
+@@ -316,6 +379,15 @@ static void create_fdt(RISCVVirtState *s, const struct MemmapEntry *memmap,
+         qemu_fdt_setprop_string(fdt, "/chosen", "bootargs", cmdline);
+     }
+     g_free(nodename);
++
++    nodename = g_strdup_printf("/flash@%" PRIx64, flashbase);
++    qemu_fdt_add_subnode(s->fdt, nodename);
++    qemu_fdt_setprop_string(s->fdt, nodename, "compatible", "cfi-flash");
++    qemu_fdt_setprop_sized_cells(s->fdt, nodename, "reg",
++                                 2, flashbase, 2, flashsize,
++                                 2, flashbase + flashsize, 2, flashsize);
++    qemu_fdt_setprop_cell(s->fdt, nodename, "bank-width", 4);
++    g_free(nodename);
+ }
+ 
+ 
+@@ -369,6 +441,7 @@ static void riscv_virt_board_init(MachineState *machine)
+     MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
+     char *plic_hart_config;
+     size_t plic_hart_config_len;
++    target_ulong start_addr = memmap[VIRT_DRAM].base;
+     int i;
+     unsigned int smp_cpus = machine->smp.cpus;
+ 
+@@ -415,6 +488,13 @@ static void riscv_virt_board_init(MachineState *machine)
+         }
+     }
+ 
++    if (drive_get(IF_PFLASH, 0, 0)) {
++        /* Pflash was supplied, let's overwrite the address we jump to after
++         * reset to the base of the flash.
++         */
++        start_addr = virt_memmap[VIRT_FLASH].base;
++    }
++
+     /* reset vector */
+     uint32_t reset_vec[8] = {
+         0x00000297,                  /* 1:  auipc  t0, %pcrel_hi(dtb) */
+@@ -427,7 +507,7 @@ static void riscv_virt_board_init(MachineState *machine)
+ #endif
+         0x00028067,                  /*     jr     t0 */
+         0x00000000,
+-        memmap[VIRT_DRAM].base,      /* start: .dword memmap[VIRT_DRAM].base */
++        start_addr,                  /* start: .dword */
+         0x00000000,
+                                      /* dtb: */
+     };
+@@ -496,6 +576,15 @@ static void riscv_virt_board_init(MachineState *machine)
+         0, qdev_get_gpio_in(DEVICE(s->plic), UART0_IRQ), 399193,
+         serial_hd(0), DEVICE_LITTLE_ENDIAN);
+ 
++    virt_flash_create(s);
++
++    /* Map legacy -drive if=pflash to machine properties */
++    for (i = 0; i < ARRAY_SIZE(s->flash); i++) {
++        pflash_cfi01_legacy_drive(s->flash[i],
++                                  drive_get(IF_PFLASH, 0, i));
++    }
++    virt_flash_map(s, system_memory);
++
+     g_free(plic_hart_config);
+ }
+ 
 diff --git a/include/hw/riscv/sifive_u.h b/include/hw/riscv/sifive_u.h
-index 892f0eee21..52bd54518e 100644
+index e4df298c23..2656b43c58 100644
 --- a/include/hw/riscv/sifive_u.h
 +++ b/include/hw/riscv/sifive_u.h
-@@ -50,8 +50,10 @@ enum {
+@@ -44,25 +44,34 @@ typedef struct SiFiveUSoCState {
+     CadenceGEMState gem;
+ } SiFiveUSoCState;
+ 
++#define TYPE_RISCV_U_MACHINE MACHINE_TYPE_NAME("sifive_u")
++#define RISCV_U_MACHINE(obj) \
++    OBJECT_CHECK(SiFiveUState, (obj), TYPE_RISCV_U_MACHINE)
++
+ typedef struct SiFiveUState {
+     /*< private >*/
+-    SysBusDevice parent_obj;
++    MachineState parent_obj;
+ 
+     /*< public >*/
+     SiFiveUSoCState soc;
++
+     void *fdt;
+     int fdt_size;
++
++    bool start_in_flash;
+ } SiFiveUState;
+ 
+ enum {
+     SIFIVE_U_DEBUG,
      SIFIVE_U_MROM,
      SIFIVE_U_CLINT,
-     SIFIVE_U_PLIC,
 +    SIFIVE_U_L2LIM,
+     SIFIVE_U_PLIC,
+     SIFIVE_U_PRCI,
      SIFIVE_U_UART0,
      SIFIVE_U_UART1,
+     SIFIVE_U_OTP,
 +    SIFIVE_U_FLASH0,
      SIFIVE_U_DRAM,
-     SIFIVE_U_GEM
- };
+     SIFIVE_U_GEM,
+     SIFIVE_U_GEM_MGMT
+diff --git a/include/hw/riscv/virt.h b/include/hw/riscv/virt.h
+index 6e5fbe5d3b..2ca8bd3512 100644
+--- a/include/hw/riscv/virt.h
++++ b/include/hw/riscv/virt.h
+@@ -21,6 +21,7 @@
+ 
+ #include "hw/riscv/riscv_hart.h"
+ #include "hw/sysbus.h"
++#include "hw/block/flash.h"
+ 
+ typedef struct {
+     /*< private >*/
+@@ -29,6 +30,7 @@ typedef struct {
+     /*< public >*/
+     RISCVHartArrayState soc;
+     DeviceState *plic;
++    PFlashCFI01 *flash[2];
+     void *fdt;
+     int fdt_size;
+ } RISCVVirtState;
+@@ -41,6 +43,7 @@ enum {
+     VIRT_PLIC,
+     VIRT_UART0,
+     VIRT_VIRTIO,
++    VIRT_FLASH,
+     VIRT_DRAM,
+     VIRT_PCIE_MMIO,
+     VIRT_PCIE_PIO,

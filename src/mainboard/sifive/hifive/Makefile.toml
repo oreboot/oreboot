@@ -34,7 +34,7 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none"]
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none"]
 
 [tasks.trace]
 dependencies = ["default"]
@@ -44,7 +44,7 @@ args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,add
 [tasks.gdb]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S"]
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S"]
 
 [tasks.objdump]
 dependencies = ["build"]
