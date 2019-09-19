@@ -203,7 +203,10 @@ pub fn infer_type(data: &[u8]) -> Type {
     }
     if let Some(i) = data.iter().position(|&c| !is_print(c)) {
         if i == data.len() - 1 && data[i] == 0 {
-            return Type::String(unsafe { core::str::from_utf8_unchecked(&data[..data.len() - 1]) });
+            match core::str::from_utf8(&data[..data.len() - 1]) {
+                Ok(ret) => return Type::String(ret),
+                Err(_e) => {  },
+            }
         }
     }
     if data.len() == 4 {
@@ -216,5 +219,5 @@ pub fn infer_type(data: &[u8]) -> Type {
 }
 
 fn is_print(c: u8) -> bool {
-    0x20 <= c && c < 0xff
+    0x20 <= c && c < 0x7f
 }
