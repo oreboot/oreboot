@@ -30,7 +30,7 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 
 // TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &str) -> Vec<Area> {
-    let data = fs::read(path).expect("could not read file");
+    let data = fs::read(path).expect(&format!("could not read {}", path)[..]);
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
@@ -61,7 +61,7 @@ fn read_fixed_fdt(path: &str) -> Vec<Area> {
 }
 
 fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
-    let mut f = fs::File::create(path)?;
+    let mut f = fs::File::create(path).expect(&format!("Can not create {}", path)[..]);
     for a in areas {
         // First fill with 0xff.
         let mut v = Vec::new();
@@ -72,7 +72,7 @@ fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
         // If a file is specified, write the file.
         if let Some(path) = &a.file {
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = fs::read(path)?;
+            let mut data = fs::read(path).expect(&format!("Can not read {}", path)[..]);
             if data.len() > a.size as usize {
                 eprintln!("warning: truncating {}", a.description);
                 data.truncate(a.size as usize);
