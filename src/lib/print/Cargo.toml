@@ -1,0 +1,11 @@
+[package]
+name = "print"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+model = { path = "../../drivers/model"}
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.

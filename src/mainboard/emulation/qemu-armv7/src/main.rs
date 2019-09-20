@@ -5,13 +5,13 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-mod print;
 mod romstage;
 use core::fmt;
 
 use device_tree::Entry::{Node, Property};
 use model::{Driver, Result};
 use payloads::external::zimage::DTB;
+use print;
 use uart;
 use wrappers::{DoD, SliceReader};
 

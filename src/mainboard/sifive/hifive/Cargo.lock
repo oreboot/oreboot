@@ -87,6 +87,7 @@ dependencies = [
  "heapless 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "model 0.1.0",
  "payloads 0.1.0",
+ "print 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "soc 0.1.0",
  "spi 0.1.0",
@@ -119,6 +120,13 @@ dependencies = [
 
 [[package]]
 name = "payloads"
+version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
+
+[[package]]
+name = "print"
 version = "0.1.0"
 dependencies = [
  "model 0.1.0",
