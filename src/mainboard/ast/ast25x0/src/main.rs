@@ -5,7 +5,6 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-mod print;
 mod romstage;
 use crate::romstage::asmram;
 use crate::romstage::chain::chain;
@@ -13,6 +12,7 @@ use crate::romstage::chain::chain;
 use core::fmt;
 use core::fmt::Write;
 use model::Driver;
+use print;
 use uart::ns16550::NS16550;
 use wrappers::DoD;
 

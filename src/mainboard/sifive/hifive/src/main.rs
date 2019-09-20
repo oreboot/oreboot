@@ -5,12 +5,11 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-mod print;
-
 use clock::ClockNode;
 use core::panic::PanicInfo;
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
+use print;
 use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
