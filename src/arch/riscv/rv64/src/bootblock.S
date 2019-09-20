@@ -24,10 +24,11 @@ _boot:
 	#   a1: ROM FDT
 
 	# TODO: Support SMP.
-	# Spin all harts other than 0.
+	# Spin all harts other than 1.
 	csrr a0, mhartid
+	li t0, 1
 spin:
-	bgt a0, x0, spin
+	bne a0, t0, spin
 
 	# initialize stack point for each hart
 	# and the stack must be page-aligned.
