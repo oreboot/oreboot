@@ -19,7 +19,7 @@ use spi::SiFiveSpi;
 use uart::sifive::SiFive;
 use wrappers::{Memory, SectionReader, SliceReader};
 
-global_asm!(include_str!("../../../../../src/arch/riscv/rv64/src/bootblock.S"));
+global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/bootblock.S"));
 global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/init.S"));
 
 // TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
