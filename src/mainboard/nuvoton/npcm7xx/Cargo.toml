@@ -10,7 +10,7 @@ model = { path = "../../../drivers/model" }
 
 [dependencies.uart]
 path = "../../../drivers/uart"
-features = ["ns16550"]
+features = ["npcm"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

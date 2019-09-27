@@ -10,7 +10,7 @@
 use model::Driver;
 //use print;
 //use wrappers::DoD;
-use uart::ns16550::NS16550;
+use uart::npcm::NPCM;
 //use core::ptr;
 
 
@@ -128,7 +128,7 @@ pub extern "C" fn _start() -> ! {
     //      SET_REG_FIELD(MFSEL4, MFSEL4_BSPASEL, 0);
     //      SET_REG_FIELD(MFSEL1, MFSEL1_BSPSEL, 1);
     //  }
-    let uart0 = &mut NS16550::new(0xF0001000, 115200);
+    let uart0 = &mut NPCM::new(0xF0001000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
