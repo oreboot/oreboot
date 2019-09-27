@@ -6,6 +6,11 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
+model = { path = "../../../drivers/model" }
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["ns16550"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
