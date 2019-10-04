@@ -91,13 +91,15 @@ pub struct Payload<'a> {
     /// Compression type
     pub compression: ctype,
     /// Offset in ROM
-    pub offset: u32,
+    pub offset: usize,
     /// Physical load address
-    pub load_addr: u64,
+    pub entry: usize,
+    /// the dtb
+    pub dtb: usize,
     /// Length in ROM
-    pub rom_len: u32,
+    pub rom_len: usize,
     /// Length in memory (i.e. once uncompressed)
-    pub mem_len: u32,
+    pub mem_len: usize,
     /// Segments
     pub segs: &'a [Segment<'a>],
 }
@@ -114,12 +116,18 @@ pub struct Segment<'a> {
 
 impl<'a> Payload<'a> {
     /// Load the payload in memory. Returns the entrypoint.
-    pub fn load(&self) {
+    pub fn load(&mut self) {
         // Copy the segments into RAM.
         for s in self.segs {
             // Copy from driver into segment.
             let mut buf = [0u8; 512];
             let mut off = 0;
+            if s.typ == stype::PAYLOAD_SEGMENT_ENTRY {
+                self.entry = s.base;
+            }
+            if self.dtb == 0 {
+                self.dtb = s.base
+            }
             loop {
                 let size = match s.data.pread(&mut buf, off) {
                     Ok(x) => x,
@@ -135,18 +143,12 @@ impl<'a> Payload<'a> {
 
     /// Run the payload. This might not return.
     pub fn run(&self) {
-        // TODO: come up with a better model that is not zimage specific.
-        // Find the segment containing the entrypoint.
-        let entry = self.segs.iter().find(|&x| x.typ == stype::PAYLOAD_SEGMENT_ENTRY).expect("no entrypoint").base;
-        // Find the segment containing the device tree.
-        let dtb = self.segs.iter().find(|&x| x.typ == stype::PAYLOAD_SEGMENT_DATA).map_or(0, |x| x.base);
-
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
 
         unsafe {
-            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, dtb: usize)>(entry as usize);
-            f(0, dtb);
+            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, dtb: usize)>(self.entry);
+            f(0, self.dtb);
         }
         // TODO: error when payload returns.
     }

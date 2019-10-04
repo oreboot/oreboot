@@ -104,20 +104,20 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
             data: &mut SliceReader::new(&[0u8; 0]),
         },
     ];
-    let payload: payload::Payload = payload::Payload {
+    let mut payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        load_addr: mem as u64,
+        entry: 0,
+        dtb: 0,
         // TODO: These two length fields are not used.
-        rom_len: 0 as u32,
-        mem_len: 0 as u32,
-
+        rom_len: 0,
+        mem_len: 0,
         segs: kernel_segs,
     };
     write!(w, "Loading payload\r\n").unwrap();
     payload.load();
-    write!(w, "Running payload\r\n").unwrap();
+    write!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r\n", payload.entry, payload.dtb).unwrap();
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
