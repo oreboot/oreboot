@@ -40,6 +40,12 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
+    . = 0x08000000;
+    .bss :
+    {
+        KEEP(*(.bss .bss.* .sbss .sbss.*));
+    }
+
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
 	    	/* Unused exception related info that only wastes space */
 		}

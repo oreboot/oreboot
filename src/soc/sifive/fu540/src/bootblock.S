@@ -22,19 +22,45 @@ _boot:
 	# The previous boot stage passes these variables:
 	#   a0: hartid
 	#   a1: ROM FDT
-
-	# TODO: Support SMP.
-	# Spin all harts other than 1.
+	# a0 is redundant with the mhartid register. a1 might not be valid on
+	# some hardware configurations, but is always set in QEMU.
 	csrr a0, mhartid
+
+	# Layout of L2-LIM (address 0x08000000):
+	#   0x00000-0x0ffff: .bss segment (64K bytes)
+	#   0x10000-0x1ffff: stack of boot hart (64K bytes)
+	#   0x20000-0x20fff: stack of hart 0 (4K bytes)
+	#   0x21000-0x21fff: stack of hart 1 (4K bytes)
+	#   ...
+	#   0x2n000-0x2nfff: stack of hart n (4K bytes)
+
+	# Clear the .bss segment. Every hart does this, which should be safe.
+	li t0, 0x08000000
+	li t1, 0x08010000
+clear_bss:
+	sd zero, (t0)
+	addi t0, t0, 8
+	bne t0, t1, clear_bss
+
+	# Decide if this is the boot hart.
 	li t0, 1
-spin:
-	bne a0, t0, spin
+	beq a0, t0, setup_boot_hart_stack
 
-	# Set the stack pointer
-	# 0xDEADBEEF is used to check stack overflow
-1:     auipc t0,     %pcrel_hi(_stack_ptr)
-       lwu sp, %pcrel_lo(1b)(t0)
+setup_nonboot_hart_stack:
+	# sp <- 0x08021000 + (0x1000 * mhartid) - 8
+	li sp, (0x08021000 - 8)
+	slli t0, a0, 12
+	add sp, sp, t0
+	
+	# 0xDEADBEEF is used to check stack underflow.
+	li t0, 0xDEADBEEF
+	sw t0, 0(sp)
 
+	call _start_nonboot_hart
+
+setup_boot_hart_stack:
+	li sp, (0x08020000 - 8)
+	# 0xDEADBEEF is used to check stack underflow.
 	li t0, 0xDEADBEEF
 	sw t0, 0(sp)
 
@@ -57,9 +83,7 @@ spin:
 	# TODO: set up the mstatus register
 	#call mstatus_init
 
-	# Pass device tree as a0 to Rust code.
-	add a0, a1, x0
-	call _start
+	call _start_boot_hart
 
 	// These codes need to be implemented on a specific SoC.
 //	.weak cache_as_ram
