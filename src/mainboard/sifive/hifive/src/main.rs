@@ -6,12 +6,14 @@
 #![deny(warnings)]
 
 use clock::ClockNode;
+use core::intrinsics::transmute;
 use core::panic::PanicInfo;
+use core::sync::atomic::{AtomicUsize, Ordering, spin_loop_hint};
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
-use print;
 use model::Driver;
 use payloads::payload;
+use print;
 use soc::clock::Clock;
 use soc::ddr::DDR;
 use soc::is_qemu;
@@ -26,8 +28,31 @@ global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/init.S"));
 // tree here. TODO: The kernel ebreaks when given this device tree.
 //const DTB: &'static [u8] = include_bytes!("hifive.dtb");
 
+// All the non-boot harts spin on this lock.
+static SPIN_LOCK: AtomicUsize = AtomicUsize::new(0);
+
 #[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
+pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
+    spin_loop_hint();
+    loop {
+        // NOPs prevent thrashing the bus.
+        for _ in 0..128 {
+            architecture::nop();
+        }
+        match SPIN_LOCK.load(Ordering::Relaxed) {
+            0 => {},
+            entrypoint => unsafe {
+                let entrypoint = transmute::<usize, payload::EntryPoint>(entrypoint);
+                // TODO: fdt_address might different from boot hart
+                entrypoint(hart_id, fdt_address);
+                // TODO: panic if returned from entrypoint
+            },
+        };
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
@@ -118,6 +143,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     write!(w, "Loading payload\r\n").unwrap();
     payload.load();
     write!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r\n", payload.entry, payload.dtb).unwrap();
+    SPIN_LOCK.store(payload.entry, Ordering::Relaxed);
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();

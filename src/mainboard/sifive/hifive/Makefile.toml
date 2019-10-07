@@ -20,7 +20,7 @@ script = [
 [tasks.bootblob]
 dependencies = [ "build" ]
 command = "cargo"
-args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/hifive", "${TARGET_DIR}/bootblob.bin"]
+args = ["objcopy", "--", "-O", "binary", "-R", ".bss", "${TARGET_DIR}/hifive", "${TARGET_DIR}/bootblob.bin"]
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
@@ -34,17 +34,17 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none"]
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-smp", "4"]
 
 [tasks.trace]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors,in_asm"]
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors,in_asm,int", "-smp", "4"]
 
 [tasks.gdb]
 dependencies = ["default"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S"]
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S", "-smp", "4"]
 
 [tasks.objdump]
 dependencies = ["build"]

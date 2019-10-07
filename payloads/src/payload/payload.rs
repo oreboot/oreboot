@@ -1,6 +1,8 @@
 use core::intrinsics::{copy, transmute};
 use model::{Driver, EOF};
 
+pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
+
 /// compression types
 #[derive(PartialEq, Debug)]
 #[allow(non_camel_case_types)]
@@ -145,10 +147,9 @@ impl<'a> Payload<'a> {
     pub fn run(&self) {
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
-
         unsafe {
-            let f = transmute::<usize, unsafe extern "C" fn(r0: usize, dtb: usize)>(self.entry);
-            f(0, self.dtb);
+            let f = transmute::<usize, EntryPoint>(self.entry);
+            f(1, self.dtb);
         }
         // TODO: error when payload returns.
     }
