@@ -127,7 +127,7 @@ impl<'a> Payload<'a> {
             if s.typ == stype::PAYLOAD_SEGMENT_ENTRY {
                 self.entry = s.base;
             }
-            if self.dtb == 0 {
+            if self.dtb == 0 && s.typ == stype::PAYLOAD_SEGMENT_DATA {
                 self.dtb = s.base
             }
             loop {
