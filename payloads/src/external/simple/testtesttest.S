@@ -36,8 +36,7 @@ _start:
 
 	call check_full
 	li t1, '0'
-	csrr t2, mhartid
-	add t1, t1, t2
+	add t1, t1, a0
 	sw t1, 0(t0)
 
 	call check_full
