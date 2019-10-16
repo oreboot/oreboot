@@ -26,6 +26,20 @@ _boot:
 	# some hardware configurations, but is always set in QEMU.
 	csrr a0, mhartid
 
+	# Reset the mtimecmp to some absurdly large number.
+	# The mtimecmp register is memory mapped at 0x2004000 + 0x8 * mhartid
+	# TODO: Move to Rust
+	li t0, 0x2004000
+	slli t1, a0, 3
+	add t1, t1, t0
+	li t0, 0xffffffffffffffff
+	sd t0, (t1)
+
+	# Clear all interrupt enable and pending bits.
+	# TODO: Move to Rust
+	csrwi mie, 0x0
+	csrwi mip, 0x0
+
 	# Layout of L2-LIM (address 0x08000000):
 	#   0x00000-0x0ffff: .bss segment (64K bytes)
 	#   0x10000-0x1ffff: stack of boot hart (64K bytes)
