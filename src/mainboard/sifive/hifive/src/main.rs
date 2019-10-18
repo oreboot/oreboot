@@ -121,7 +121,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
             base: mem,
-            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
+            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000),
         },
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_DATA,
