@@ -72,7 +72,6 @@ To build QEMU from source for riscv:
 
 ```
 git clone https://github.com/qemu/qemu && cd qemu
-git apply ${PATH_TO_OREBOOT}/tools/soc/sifive/fu540/qemu.diff
 mkdir build-riscv64 && cd build-riscv64
 ../configure --help
 ../configure --target-list=riscv64-softmmu

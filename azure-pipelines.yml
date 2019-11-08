@@ -26,8 +26,7 @@ steps:
   displayName: 'Build for RISC-V'
 - script: |
     set -e
-    git clone https://github.com/qemu/qemu && cd qemu && git checkout 084f67c9d98d520c51df24f3b355774166a03691
-    git apply ../tools/soc/sifive/fu540/qemu.diff
+    git clone https://github.com/qemu/qemu && cd qemu && git checkout v4.2.0-rc0
     mkdir build-riscv64 && cd build-riscv64
     ../configure --target-list=riscv64-softmmu
     make -j16
