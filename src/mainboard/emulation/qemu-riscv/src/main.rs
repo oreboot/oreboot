@@ -7,8 +7,8 @@
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
-use print;
 use payloads::payload;
+use print;
 use uart::ns16550::NS16550;
 use wrappers::{Memory, SectionReader, SliceReader};
 
@@ -39,10 +39,11 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        load_addr: 0x80000000 as u64,
-        rom_len: 0 as u32,
-        mem_len: 0 as u32,
+        entry: 0x80000000 as usize,
+        rom_len: 0 as usize,
+        mem_len: 0 as usize,
         segs: kernel_segs,
+        dtb: 0,
     };
 
     write!(w, "Running payload\r\n").unwrap();
