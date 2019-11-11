@@ -14,7 +14,7 @@ TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
 install_crate = { rustup_component_name = "rust-src" }
 
 [tasks.default]
-dependencies = ["resizeblob"]
+dependencies = [ "bootblob" ]
 
 [tasks.build]
 dependencies = [ "install-rust-src" ]
@@ -33,9 +33,9 @@ command = "qemu-img"
 args = ["resize", "${TARGET_DIR}/bootblob.bin", "16777216"]
 
 [tasks.run]
-dependencies = ["default"]
+dependencies = ["resizeblob"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "virt", "-nographic", "-bios", "${TARGET_DIR}/oreboot"]
+args = ["-m", "1g", "-machine", "virt", "-nographic", "-bios", "none", "-pflash", "${TARGET_DIR}/bootblob.bin"]
 
 [tasks.objdump]
 dependencies = ["build"]
