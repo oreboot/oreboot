@@ -23,7 +23,11 @@ steps:
 - script: |
     cd src/mainboard/sifive/hifive
     cargo make -p release
-  displayName: 'Build for RISC-V'
+  displayName: 'Build SiFive board for RISC-V'
+- script: |
+    cd src/mainboard/emulation/qemu-riscv
+    cargo make -p release
+  displayName: 'Build QEMU virt board for RISC-V'
 - script: |
     set -e
     git clone https://github.com/qemu/qemu && cd qemu && git checkout v4.2.0-rc0
@@ -31,9 +35,15 @@ steps:
     ../configure --target-list=riscv64-softmmu
     make -j16
     sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
+    sudo ln -s $PWD/qemu-img /usr/bin/
   displayName: 'Install RISC-V QEMU Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
     timeout 120s cargo make run -p release | tee serial
     grep TESTTESTTEST serial
-  displayName: 'RISC-V QEMU Test'
+  displayName: 'RISC-V SiFive board QEMU Test'
+- script: |
+    cd src/mainboard/emulation/qemu-riscv
+    timeout 30s cargo make run -p release | tee serial
+    grep "Running payload" serial
+  displayName: 'RISC-V QEMU Virt board QEMU Test'
