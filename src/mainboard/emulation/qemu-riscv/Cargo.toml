@@ -5,7 +5,7 @@ authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-architecture = { path = "../../../arch/riscv/rv64"}
+arch = { path = "../../../arch/riscv/rv64"}
 console = { path = "../../../console" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }

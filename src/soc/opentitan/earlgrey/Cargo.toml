@@ -8,8 +8,7 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
-soc = { path = "../../../soc/lowrisc/ibex"}
+cpu = { path = "../../../cpu/lowrisc/ibex"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }
 register = "0.3.2"
-
