@@ -4,6 +4,9 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
+pub fn init() {
+}
+
 pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
@@ -19,4 +22,3 @@ pub fn fence() {
 pub fn nop() {
     unsafe { asm!("nop" :::: "volatile") }
 }
-

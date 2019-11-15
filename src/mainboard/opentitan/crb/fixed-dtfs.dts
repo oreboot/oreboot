@@ -1,0 +1,50 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "OpenTitan CRB";
+        category = "OpenTitan";
+        board-url = "https://github.com/lowRISC/opentitan";
+        areas {
+            area@0 {
+                description = "Boot Blob and Ramstage";
+                offset = <0x0>;
+                size = <0x80000>; // 512KiB
+                file = "target/riscv32imc-unknown-none-elf/release/bootblob.bin";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                offset = <0x80000>;
+                size = <0x80000>; // 512KiB
+                file = "target/riscv32imc-unknown-none-elf/release/fixed-dtfs.dtb";
+            };
+            area@2 {
+                description = "Payload A";
+                offset = <0x100000>;
+                size = <0x600000>; // 6MiB
+                file = "payloadA";
+            };
+            area@3 {
+                description = "Payload B";
+                offset = <0x700000>;
+                size = <0x600000>; // 6MiB
+                file = "payloadB";
+            };
+            area@4 {
+                description = "Payload C";
+                offset = <0xd00000>;
+                size = <0x300000>; // 3MiB
+                file = "payloadC";
+            };
+            area@5 {
+                description = "Empty Space";
+                offset = <0x1000000>;
+                size = <0x1000000>; // 16MiB
+            };
+        };
+    };
+};

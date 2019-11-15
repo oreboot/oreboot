@@ -11,7 +11,10 @@ opt-level = 'z'  # Optimize for size.
 model = { path = "../model"}
 clock = { path = "../clock"}
 register = "0.3.2"
-heapless = "0.4.x"
+
+# Heapless does not build for rv32imc.
+[dependencies.heapless]
+optional = true
 
 [features]
 pl011 = []

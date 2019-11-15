@@ -37,7 +37,7 @@ pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
     loop {
         // NOPs prevent thrashing the bus.
         for _ in 0..128 {
-            architecture::nop();
+            arch::nop();
         }
         match SPIN_LOCK.load(Ordering::Relaxed) {
             0 => {},
@@ -147,7 +147,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
-    architecture::halt()
+    arch::halt()
 }
 
 // Returns Err((address, got)) or OK(()).
@@ -197,5 +197,5 @@ fn panic(info: &PanicInfo) -> ! {
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
     let _ = write!(w, "PANIC: {}\r\n", info);
-    architecture::halt()
+    arch::halt()
 }

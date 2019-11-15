@@ -1,0 +1,58 @@
+[config]
+# no default tasks
+skip_core_tasks = true
+
+[env.development]
+CARGO_ARGS = "--verbose"
+TARGET_DIR = "target/riscv32imc-unknown-none-elf/debug"
+
+[env.release]
+CARGO_ARGS = "--release --verbose"
+TARGET_DIR = "target/riscv32imc-unknown-none-elf/release"
+
+[tasks.default]
+dependencies = ["bootblob"]
+script = [
+	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
+	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+]
+
+[tasks.bootblob]
+dependencies = [ "build" ]
+command = "cargo"
+args = ["objcopy", "--", "-O", "binary", "-R", ".bss", "${TARGET_DIR}/crb", "${TARGET_DIR}/bootblob.bin"]
+
+[tasks.install-rust-src]
+install_crate = { rustup_component_name = "rust-src" }
+
+[tasks.build]
+dependencies = [ "install-rust-src" ]
+toolchain = "nightly"
+command = "cargo"
+args = ["xbuild", "@@split(CARGO_ARGS, )"]
+
+[tasks.run]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-smp", "4"]
+
+[tasks.trace]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors,in_asm,int", "-smp", "4"]
+
+[tasks.gdb]
+dependencies = ["default"]
+command = "qemu-system-riscv64"
+args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S", "-smp", "4"]
+
+[tasks.objdump]
+dependencies = ["build"]
+command = "cargo"
+args = ["objdump", "--", "-d", "${TARGET_DIR}/crb"]
+
+[tasks.flash]
+dependencies = ["default"]
+script = [
+       "sudo $(which flashrom) -V -w ${TARGET_DIR}/oreboot.bin -p dediprog",
+]

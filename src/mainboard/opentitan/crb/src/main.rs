@@ -3,60 +3,68 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![deny(warnings)]
 
-use core::fmt::Write;
 use core::panic::PanicInfo;
+use core::fmt::Write;
 use model::Driver;
 use payloads::payload;
 use print;
-use uart::ns16550::NS16550;
+use uart::sifive::SiFive;
 use wrappers::{Memory, SectionReader, SliceReader};
 
-global_asm!(include_str!("bootblock.S"));
-global_asm!(include_str!("init.S"));
-
 #[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
-    let uart0 = &mut NS16550::new(0x10000000, 115200);
+pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
+    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(uart0);
 
+    // TODO; This payload structure should be loaded from SPI rather than hardcoded.
+    let mem = 0x80000000;
     let kernel_segs = &[
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: 0x80000000,
-            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
+            base: mem,
+            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000),
         },
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-            base: fdt_address,
+            base: fdt_address, /*mem + 10*1024*1024*/
             data: &mut SliceReader::new(&[0u8; 0]),
         },
     ];
-    let payload = payload::Payload {
+    let mut payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        entry: 0x80000000 as usize,
-        rom_len: 0 as usize,
-        mem_len: 0 as usize,
-        segs: kernel_segs,
+        entry: 0,
         dtb: 0,
+        // TODO: These two length fields are not used.
+        rom_len: 0,
+        mem_len: 0,
+        segs: kernel_segs,
     };
-
-    write!(w, "Running payload\r\n").unwrap();
+    write!(w, "Loading payload\r\n").unwrap();
+    payload.load();
+    write!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r\n", payload.entry, payload.dtb).unwrap();
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
     arch::halt()
 }
 
+#[no_mangle]
+pub extern fn abort() {
+    panic!("abort!");
+}
+
+/// This function is called on panic.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let uart0 = &mut NS16550::new(0x10000000, 115200);
+    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.

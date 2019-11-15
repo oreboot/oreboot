@@ -285,23 +285,23 @@ impl<'a> Clock<'a> {
         self.dev_reset.set(reset_mask(false, true, true, true, true));
 
         // Required to get the '1 full controller clock cycle'.
-        architecture::fence();
+        arch::fence();
 
         self.dev_reset.set(reset_mask(false, false, false, false, true));
 
         // Required to get the '1 full controller clock cycle'.
-        architecture::fence();
+        arch::fence();
 
         // These take like 16 cycles to actually propagate. We can't go sending
         // stuff before they come out of reset. So wait.
         // TODO: Add a register to read the current reset states, or DDR Control
         // device?
         for _ in 0..=255 {
-            architecture::nop();
+            arch::nop();
         }
         self.init_pll_ge();
         self.dev_reset.set(reset_mask(false, false, false, false, false));
 
-        architecture::fence();
+        arch::fence();
     }
 }
