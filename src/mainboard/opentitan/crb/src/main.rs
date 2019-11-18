@@ -52,7 +52,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
-    arch::halt()
+    soc::halt()
 }
 
 #[no_mangle]
@@ -69,5 +69,5 @@ fn panic(info: &PanicInfo) -> ! {
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
     let _ = write!(w, "PANIC: {}\r\n", info);
-    arch::halt()
+    soc::halt()
 }

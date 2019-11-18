@@ -47,3 +47,7 @@ steps:
     timeout 30s cargo make run -p release | tee serial
     grep "Running payload" serial
   displayName: 'RISC-V QEMU Virt board QEMU Test'
+- script: |
+    cd src/mainboard/opentitan/crb
+    timeout 30s cargo make -p release
+  displayName: 'RISC-V opentitan build test'

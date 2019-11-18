@@ -6,7 +6,6 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-arch = { path = "../../../arch/riscv/rv32"}
 console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 model = { path = "../../../drivers/model" }
