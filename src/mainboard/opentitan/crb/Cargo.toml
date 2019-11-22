@@ -6,7 +6,6 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-arch = { path = "../../../arch/riscv/rv32"}
 console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 model = { path = "../../../drivers/model" }
@@ -19,7 +18,7 @@ static-ref = "0.1.1"
 
 [dependencies.uart]
 path = "../../../drivers/uart"
-features = ["sifive"]
+features = ["opentitan"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

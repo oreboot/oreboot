@@ -10,12 +10,12 @@ use core::fmt::Write;
 use model::Driver;
 use payloads::payload;
 use print;
-use uart::sifive::SiFive;
+use uart::opentitan::OpenTitanUART;
 use wrappers::{Memory, SectionReader, SliceReader};
 
 #[no_mangle]
 pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
-    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
+    let uart0 = &mut OpenTitanUART::new(0x40000000, 115200);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
@@ -52,7 +52,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     payload.run();
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
-    arch::halt()
+    soc::halt()
 }
 
 #[no_mangle]
@@ -64,10 +64,10 @@ pub extern fn abort() {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
+    let uart0 = &mut OpenTitanUART::new(0x40000000, 115200);
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
     let _ = write!(w, "PANIC: {}\r\n", info);
-    arch::halt()
+    soc::halt()
 }

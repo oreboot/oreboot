@@ -10,3 +10,5 @@ pub mod pl011;
 pub mod sifive;
 #[cfg(feature = "log")]
 pub mod log;
+#[cfg(feature = "opentitan")]
+pub mod opentitan;

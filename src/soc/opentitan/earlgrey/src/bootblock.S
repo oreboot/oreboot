@@ -28,9 +28,6 @@ trap_entry:
 	ret
 hls_init:
 	ret
-.global abort
-abort: j abort
-
 .section ".bootblock.stack", "aw", %progbits
 _stack:
 .space 65536
