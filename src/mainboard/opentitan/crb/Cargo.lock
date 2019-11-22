@@ -23,7 +23,6 @@ dependencies = [
 name = "crb"
 version = "0.1.0"
 dependencies = [
- "arch 0.1.0",
  "console 0.1.0",
  "model 0.1.0",
  "payloads 0.1.0",
