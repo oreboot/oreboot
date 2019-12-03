@@ -30,7 +30,7 @@ steps:
   displayName: 'Build QEMU virt board for RISC-V'
 - script: |
     set -e
-    git clone https://github.com/qemu/qemu && cd qemu && git checkout v4.2.0-rc0
+    git clone https://github.com/qemu/qemu && cd qemu && git checkout v4.2.0-rc3
     mkdir build-riscv64 && cd build-riscv64
     ../configure --target-list=riscv64-softmmu
     make -j16

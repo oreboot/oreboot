@@ -30,7 +30,7 @@ args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/oreboot", "${TARGET_DIR}
 [tasks.resizeblob]
 dependencies = [ "bootblob" ]
 command = "qemu-img"
-args = ["resize", "${TARGET_DIR}/bootblob.bin", "16777216"]
+args = ["resize", "${TARGET_DIR}/bootblob.bin", "33554432"]
 
 [tasks.run]
 dependencies = ["resizeblob"]
