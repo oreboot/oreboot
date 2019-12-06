@@ -19,86 +19,169 @@
  */
 
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
-use model::*;
-use core::ops;
 use clock::ClockNode;
+use core::ops;
+use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields};
+use register::register_bitfields;
 
 #[repr(C)]
 pub struct RegisterBlock {
-	ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
-	status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
-	rdata: ReadOnly<u32, RDATA::Register>, /* UART read data */
-	wdata: ReadWrite<u32, WDATA::Register>, /* UART write data */
-	fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>, /* UART FIFO control register */
-	fifo_status: ReadOnly<u32, FIFO_STATUS::Register>, /* UART FIFO status register */
-	ovrd: ReadWrite<u32, OVRD::Register>, /* TX pin override control. Gives direct SW control over TX pin state */
-	val: ReadOnly<u32, VAL::Register>, /* UART oversampled values */
-	timeout_ctrl: ReadWrite<u32, TIMEOUT_CTRL::Register> /* UART RX timeout control */
+    ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
+    status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
+    rdata: ReadOnly<u32, RDATA::Register>, /* UART read data */
+    wdata: ReadWrite<u32, WDATA::Register>, /* UART write data */
+    fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>, /* UART FIFO control register */
+    fifo_status: ReadOnly<u32, FIFO_STATUS::Register>, /* UART FIFO status register */
+    ovrd: ReadWrite<u32, OVRD::Register>, /* TX pin override control. Gives direct SW control over TX pin state */
+    val: ReadOnly<u32, VAL::Register>,    /* UART oversampled values */
+    timeout_ctrl: ReadWrite<u32, TIMEOUT_CTRL::Register>, /* UART RX timeout control */
 }
 register_bitfields! {
-	u32,
-
-	CTRL [
-		TX OFFSET(0) NUMBITS(1) [],/* TX enable */
-		RX OFFSET(1) NUMBITS(1) [],/* RX enable */
-		NF OFFSET(2) NUMBITS(1) [],/* RX noise filter enable.
+    u32,
+    CTRL [
+        TX OFFSET(0) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* TX enable */
+        RX OFFSET(1) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX enable */
+        NF OFFSET(2) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX noise filter enable.
 If the noise filter is enabled, RX line goes through the 3-tap
 repetition code. It ignores single IP clock period noise. */
-		SLPBK OFFSET(4) NUMBITS(1) [],/* System loopback enable.
+        SLPBK OFFSET(4) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* System loopback enable.
 
 If this bit is turned on, any outgoing bits to TX are received through RX.
 See Block Diagram. Note that the TX line goes 1 if System loopback is enabled. */
-		LLPBK OFFSET(5) NUMBITS(1) [],/* Line loopback enable.
+        LLPBK OFFSET(5) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* Line loopback enable.
 
 If this bit is turned on, incoming bits are forwarded to TX for testing purpose.
 See Block Diagram. Note that the internal design sees RX value as 1 always if line
 loopback is enabled. */
-		PARITY_EN OFFSET(6) NUMBITS(1) [],/* If true, parity is enabled in both RX and TX directions. */
-		PARITY_ODD OFFSET(7) NUMBITS(1) [],/* If PARITY_EN is true, this determines the type, 1 for odd parity, 0 for even. */
-		RXBLVL OFFSET(9) NUMBITS(1) [],/* Trigger level for RX break detection. Sets the number of character
+        PARITY_EN OFFSET(6) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* If true, parity is enabled in both RX and TX directions. */
+        PARITY_ODD OFFSET(7) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* If PARITY_EN is true, this determines the type, 1 for odd parity, 0 for even. */
+        RXBLVL OFFSET(9) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* Trigger level for RX break detection. Sets the number of character
 times the line must be low to detect a break. */
-		NCO OFFSET(31) NUMBITS(1) []/* BAUD clock rate control. */
-	],
-	STATUS [
-		TXFULL OFFSET(0) NUMBITS(1) [],/* TX buffer is full */
-		RXFULL OFFSET(1) NUMBITS(1) [],/* RX buffer is full */
-		TXEMPTY OFFSET(2) NUMBITS(1) [],/* TX FIFO is empty */
-		TXIDLE OFFSET(3) NUMBITS(1) [],/* TX is idle */
-		RXIDLE OFFSET(4) NUMBITS(1) [],/* RX is idle */
-		RXEMPTY OFFSET(5) NUMBITS(1) []/* RX FIFO is empty */
-	],
-	RDATA [
-		DATA OFFSET(7) NUMBITS(1) []/*  */
-	],
-	WDATA [
-		DATA OFFSET(7) NUMBITS(1) []/*  */
-	],
-	FIFO_CTRL [
-		RXRST OFFSET(0) NUMBITS(1) [],/* RX fifo reset. Write 1 to the register resets RX_FIFO. Read returns 0 */
-		TXRST OFFSET(1) NUMBITS(1) [],/* TX fifo reset. Write 1 to the register resets TX_FIFO. Read returns 0 */
-		RXILVL OFFSET(4) NUMBITS(1) [],/* Trigger level for RX interrupts. If the FIFO depth is greater than or equal to
+        NCO OFFSET(31) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* BAUD clock rate control. */
+    ],
+    STATUS [
+        TXFULL OFFSET(0) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* TX buffer is full */
+        RXFULL OFFSET(1) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX buffer is full */
+        TXEMPTY OFFSET(2) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* TX FIFO is empty */
+        TXIDLE OFFSET(3) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* TX is idle */
+        RXIDLE OFFSET(4) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX is idle */
+        RXEMPTY OFFSET(5) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* RX FIFO is empty */
+    ],
+    RDATA [
+        DATA OFFSET(7) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/*  */
+    ],
+    WDATA [
+        DATA OFFSET(7) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/*  */
+    ],
+    FIFO_CTRL [
+        RXRST OFFSET(0) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX fifo reset. Write 1 to the register resets RX_FIFO. Read returns 0 */
+        TXRST OFFSET(1) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* TX fifo reset. Write 1 to the register resets TX_FIFO. Read returns 0 */
+        RXILVL OFFSET(4) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* Trigger level for RX interrupts. If the FIFO depth is greater than or equal to
 the setting, it raises rx_watermark interrupt. */
-		TXILVL OFFSET(6) NUMBITS(1) []/* Trigger level for TX interrupts. If the FIFO depth is greater than or equal to
+        TXILVL OFFSET(6) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* Trigger level for TX interrupts. If the FIFO depth is greater than or equal to
 the setting, it raises tx_watermark interrupt. */
-	],
-	FIFO_STATUS [
-		TXLVL OFFSET(5) NUMBITS(1) [],/* Current fill level of TX fifo */
-		RXLVL OFFSET(21) NUMBITS(1) []/* Current fill level of RX fifo */
-	],
-	OVRD [
-		TXEN OFFSET(0) NUMBITS(1) [],/* Enable TX pin override control */
-		TXVAL OFFSET(1) NUMBITS(1) []/* Write to set the value of the TX pin */
-	],
-	VAL [
-		RX OFFSET(15) NUMBITS(1) []/* Last 16 oversampled values of RX. Most recent bit is bit 0, oldest 15. */
-	],
-	TIMEOUT_CTRL [
-		VAL OFFSET(23) NUMBITS(1) [],/* RX timeout value in UART bit times */
-		EN OFFSET(31) NUMBITS(1) []/* Enable RX timeout feature */
-	]
+    ],
+    FIFO_STATUS [
+        TXLVL OFFSET(5) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* Current fill level of TX fifo */
+        RXLVL OFFSET(21) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* Current fill level of RX fifo */
+    ],
+    OVRD [
+        TXEN OFFSET(0) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* Enable TX pin override control */
+        TXVAL OFFSET(1) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* Write to set the value of the TX pin */
+    ],
+    VAL [
+        RX OFFSET(15) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* Last 16 oversampled values of RX. Most recent bit is bit 0, oldest 15. */
+    ],
+    TIMEOUT_CTRL [
+        VAL OFFSET(23) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ],/* RX timeout value in UART bit times */
+        EN OFFSET(31) NUMBITS(1) [
+            OFF = 0,
+            ON = 1
+        ]/* Enable RX timeout feature */
+    ]
 }
 
 pub struct OpenTitanUART {
@@ -116,7 +199,7 @@ impl ops::Deref for OpenTitanUART {
 
 impl OpenTitanUART {
     pub fn new(base: usize, baudrate: u32) -> OpenTitanUART {
-        OpenTitanUART{base: base, _baudrate: baudrate}
+        OpenTitanUART { base: base, _baudrate: baudrate }
     }
 
     /// Returns a pointer to the register block
@@ -132,7 +215,6 @@ impl Driver for OpenTitanUART {
         self.ctrl.modify(CTRL::RX.val(1));
         //self.ctrl.TX.set(1);
         //self.ctrl.RX.set(1);
-        
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
@@ -153,7 +235,7 @@ impl Driver for OpenTitanUART {
                 //       this loop. Remove if we deem it not necessary.
                 unsafe { asm!("" :::: "volatile") }
             }
-                //return Ok(i);
+            //return Ok(i);
             //}
             self.wdata.set(c.into());
         }
@@ -173,4 +255,3 @@ impl ClockNode for OpenTitanUART {
         // Half the denominator is added to the numerator to round to closest int.
     }
 }
-
