@@ -58,6 +58,9 @@ cargo make -p release   # Optimized
 cargo make objdump -p release
 ```
 
+If you run into build issues, it is often helpful to just delete Cargo and
+start over by going through the above instructions.
+
 QEMU
 ----
 
