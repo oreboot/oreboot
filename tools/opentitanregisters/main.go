@@ -90,7 +90,7 @@ func block(o *otdev) {
 }
 
 func fields(o *otdev) {
-	fmt.Println("register_bitfields! {\n\tu32,\n")
+	fmt.Println("register_bitfields! {\n\tu32,")
 	for i, r := range o.Registers {
 		fmt.Printf("\t%s [\n", r.Name)
 		for i, f := range r.Fields {
@@ -117,7 +117,12 @@ func fields(o *otdev) {
 			if f.Name == "" {
 				f.Name = "DATA"
 			}
-			fmt.Printf("\t\t%s OFFSET(%d) NUMBITS(%d) []%s/* %s */\n", f.Name, b1, bl, comma, f.Desc)
+			fmt.Printf("\t\t%s OFFSET(%d) NUMBITS(%d) [", f.Name, b1, bl)
+			// Most fields are one bit. For now, if that is the case, emit ON and OFF values.
+			if bl == 1 {
+				fmt.Printf("\n\t\t\tOFF = 0,\n\t\t\tON = 1\n\t\t")
+			}
+			fmt.Printf("]%s/* %s */\n", comma, f.Desc)
 		}
 		comma := ""
 		if i < len(o.Registers)-1 {
