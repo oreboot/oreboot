@@ -184,10 +184,13 @@ the setting, it raises tx_watermark interrupt. */
     ]
 }
 
+// UART specific constants
+
+const CLK_FIXED_FREQ_HZ : u32 = 500 * 1000;
+
 pub struct OpenTitanUART {
     base: usize,
-    // TODO: implement baudrate
-    _baudrate: u32,
+    baudrate: u32,
 }
 
 impl ops::Deref for OpenTitanUART {
@@ -199,7 +202,7 @@ impl ops::Deref for OpenTitanUART {
 
 impl OpenTitanUART {
     pub fn new(base: usize, baudrate: u32) -> OpenTitanUART {
-        OpenTitanUART { base: base, _baudrate: baudrate }
+        OpenTitanUART { base: base, baudrate: baudrate }
     }
 
     /// Returns a pointer to the register block
@@ -210,11 +213,20 @@ impl OpenTitanUART {
 
 impl Driver for OpenTitanUART {
     fn init(&mut self) {
-        self.ctrl.modify(CTRL::NCO.val(1));
-        self.ctrl.modify(CTRL::TX.val(1));
-        self.ctrl.modify(CTRL::RX.val(1));
-        //self.ctrl.TX.set(1);
-        //self.ctrl.RX.set(1);
+        // nco = 2^20 * baud / fclk
+        let uart_ctrl_nco = (self.baudrate << 20) / CLK_FIXED_FREQ_HZ;
+        let ctrl_val = uart_ctrl_nco << 31;
+
+        self.ctrl.modify(CTRL::NCO.val(ctrl_val));
+        self.ctrl.modify(CTRL::RX::ON);
+        self.ctrl.modify(CTRL::TX::ON);
+
+        // reset RX/TX FIFOs
+        self.fifo_ctrl.modify(FIFO_CTRL::RXRST::ON);
+        self.fifo_ctrl.modify(FIFO_CTRL::TXRST::ON);
+
+        // disable interrupts
+        // TODO: set UART_INTR_ENABLE to 0
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
