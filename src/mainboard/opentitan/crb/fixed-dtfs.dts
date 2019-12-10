@@ -14,7 +14,7 @@
                 description = "Boot Blob and Ramstage";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "target/riscv32imc-unknown-none-elf/release/bootblob.bin";
+                file = "target/riscv32imc-unknown-none-elf/release/flash.bin";
             };
             area@1 {
                 description = "Fixed DTFS";

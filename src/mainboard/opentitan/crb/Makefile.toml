@@ -10,17 +10,24 @@ TARGET_DIR = "target/riscv32imc-unknown-none-elf/debug"
 CARGO_ARGS = "--release --verbose"
 TARGET_DIR = "target/riscv32imc-unknown-none-elf/release"
 
+# TODO: determine the actual correct size of flash.bin and oreboot.bin
 [tasks.default]
 dependencies = ["bootblob"]
 script = [
+	"dd if=${TARGET_DIR}/bootblob.bin of=${TARGET_DIR}/rom.bin ibs=2048 count=1",
+	"dd if=${TARGET_DIR}/bootblob.bin of=${TARGET_DIR}/flash.bin ibs=32768 skip=16383",
+	"dd if=${TARGET_DIR}/bootblob.bin of=${TARGET_DIR}/flash.bin ibs=32768 count=1 skip=16383",
 	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
 	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+	"srec <${TARGET_DIR}/rom.bin >${TARGET_DIR}/rom.vmem",
+	"srec <${TARGET_DIR}/oreboot.bin >${TARGET_DIR}/oreboot.vmem",
 ]
 
 [tasks.bootblob]
 dependencies = [ "build" ]
-command = "cargo"
-args = ["objcopy", "--", "-O", "binary", "-R", ".bss", "${TARGET_DIR}/crb", "${TARGET_DIR}/bootblob.bin"]
+script = [
+	"cargo objcopy -- -O binary -R .bss ${TARGET_DIR}/crb ${TARGET_DIR}/bootblob.bin"
+]
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
@@ -33,18 +40,9 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 
 [tasks.run]
 dependencies = ["default"]
-command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-smp", "4"]
-
-[tasks.trace]
-dependencies = ["default"]
-command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors,in_asm,int", "-smp", "4"]
-
-[tasks.gdb]
-dependencies = ["default"]
-command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S", "-smp", "4"]
+command = "Vtop_earlgrey_verilator"
+args = ["--rominit=${TARGET_DIR}/rom.vmem",
+	"--flashinit=${TARGET_DIR}/oreboot.vmem" ]
 
 [tasks.objdump]
 dependencies = ["build"]

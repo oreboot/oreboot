@@ -26,11 +26,13 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x20000000;
+
+    . = 0x00008000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));
     }
+    . = 0x20000000;
     .text :
     {
         KEEP(*(.text .text.*));
@@ -43,7 +45,7 @@ SECTIONS
     . = 0x08000000;
     .bss :
     {
-        KEEP(*(.bss .bss.* .sbss .sbss.*));
+        KEEP(*(.bss .bss.* .sbss .sbss.*)); /* we could just leave this empty ... */
     }
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
