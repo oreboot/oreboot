@@ -42,7 +42,7 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
-    . = 0x08000000;
+    . = 0x10000000;
     .bss :
     {
         KEEP(*(.bss .bss.* .sbss .sbss.*)); /* we could just leave this empty ... */

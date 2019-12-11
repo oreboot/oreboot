@@ -19,8 +19,9 @@ script = [
 	"dd if=${TARGET_DIR}/bootblob.bin of=${TARGET_DIR}/flash.bin ibs=32768 count=1 skip=16383",
 	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
 	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
-	"srec <${TARGET_DIR}/rom.bin >${TARGET_DIR}/rom.vmem",
-	"srec <${TARGET_DIR}/oreboot.bin >${TARGET_DIR}/oreboot.vmem",
+	"srec -o 0 <${TARGET_DIR}/rom.bin >${TARGET_DIR}/rom.vmem",
+	"srec -o 0 <${TARGET_DIR}/oreboot.bin >${TARGET_DIR}/oreboot.vmem",
+	"srec -o 0 <${TARGET_DIR}/flash.bin >${TARGET_DIR}/oreboot.vmem",
 ]
 
 [tasks.bootblob]
@@ -41,11 +42,11 @@ args = ["xbuild", "@@split(CARGO_ARGS, )"]
 [tasks.run]
 dependencies = ["default"]
 command = "Vtop_earlgrey_verilator"
-args = ["--rominit=${TARGET_DIR}/rom.vmem",
+args = ["-t", "--rominit=${TARGET_DIR}/rom.vmem",
 	"--flashinit=${TARGET_DIR}/oreboot.vmem" ]
 
 [tasks.objdump]
-dependencies = ["build"]
+dependencies = [ "build" ]
 command = "cargo"
 args = ["objdump", "--", "-d", "${TARGET_DIR}/crb"]
 
