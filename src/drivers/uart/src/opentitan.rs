@@ -28,11 +28,11 @@ use register::register_bitfields;
 
 #[repr(C)]
 pub struct RegisterBlock {
-    ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
     // TODO: start using the new register crate which lets us set offsets.
     // We'll do that when the HJSON is right and we can just generate it.
     // tracer shows we need padding?
-    bogus: [u32; 3],
+    interrupts: [u32; 3],
+    ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
     // 0x10
     status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
     rdata: ReadOnly<u32, RDATA::Register>, /* UART read data */
@@ -84,15 +84,9 @@ loopback is enabled. */
             OFF = 0,
             ON = 1
         ],/* If PARITY_EN is true, this determines the type, 1 for odd parity, 0 for even. */
-        RXBLVL OFFSET(9) NUMBITS(1) [
-            OFF = 0,
-            ON = 1
-        ],/* Trigger level for RX break detection. Sets the number of character
+        RXBLVL OFFSET(9) NUMBITS(2) [ ],/* Trigger level for RX break detection. Sets the number of character
 times the line must be low to detect a break. */
-        NCO OFFSET(31) NUMBITS(1) [
-            OFF = 0,
-            ON = 1
-        ]/* BAUD clock rate control. */
+        NCO OFFSET(16) NUMBITS(16) []/* BAUD clock rate control. */
     ],
     STATUS [
         TXFULL OFFSET(0) NUMBITS(1) [
@@ -220,8 +214,8 @@ impl OpenTitanUART {
 impl Driver for OpenTitanUART {
     fn init(&mut self) {
         // nco = 2^20 * baud / fclk
-        let uart_ctrl_nco = (self.baudrate << 20) / CLK_FIXED_FREQ_HZ;
-        let ctrl_val = uart_ctrl_nco << 31;
+        let uart_ctrl_nco = 0x4ea4; //(self.baudrate << 20) / CLK_FIXED_FREQ_HZ;
+        let ctrl_val = uart_ctrl_nco;
 
         self.ctrl.modify(CTRL::NCO.val(ctrl_val));
         self.ctrl.modify(CTRL::RX::ON);
