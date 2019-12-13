@@ -29,8 +29,14 @@ use register::register_bitfields;
 #[repr(C)]
 pub struct RegisterBlock {
     ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
+    // TODO: start using the new register crate which lets us set offsets.
+    // We'll do that when the HJSON is right and we can just generate it.
+    // tracer shows we need padding?
+    bogus: [u32; 3],
+    // 0x10
     status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
     rdata: ReadOnly<u32, RDATA::Register>, /* UART read data */
+    // needs to be at 0x18
     wdata: ReadWrite<u32, WDATA::Register>, /* UART write data */
     fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>, /* UART FIFO control register */
     fifo_status: ReadOnly<u32, FIFO_STATUS::Register>, /* UART FIFO status register */
