@@ -11,39 +11,39 @@
         board-url = "https://github.com/lowRISC/opentitan";
         areas {
             area@0 {
-                description = "Boot Blob and Ramstage";
+                description = "payloader";
                 offset = <0x0>;
-                size = <0x80000>; // 512KiB
+                size = <0xf000>; // 64KiB - 4 KiB
                 file = "target/riscv32imc-unknown-none-elf/release/flash.bin";
             };
             area@1 {
                 description = "Fixed DTFS";
-                offset = <0x80000>;
-                size = <0x80000>; // 512KiB
+                offset = <0xf000>;
+                size = <0x1000>; // 4KiB
                 file = "target/riscv32imc-unknown-none-elf/release/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "Payload A";
-                offset = <0x100000>;
-                size = <0x600000>; // 6MiB
+                offset = <0x10000>;
+                size = <0x00000>; // 0x20000 later128 KiB
                 file = "payloadA";
             };
             area@3 {
                 description = "Payload B";
-                offset = <0x700000>;
-                size = <0x600000>; // 6MiB
+                offset = <0x30000>;
+                size = <0x00000>; 
                 file = "payloadB";
             };
             area@4 {
                 description = "Payload C";
-                offset = <0xd00000>;
-                size = <0x300000>; // 3MiB
+                offset = <0x50000>;
+                size = <0x00000>; 
                 file = "payloadC";
             };
             area@5 {
                 description = "Empty Space";
-                offset = <0x1000000>;
-                size = <0x1000000>; // 16MiB
+                offset = <0x70000>;
+                size = <0x00000>;  // 0x10000 later
             };
         };
     };
