@@ -3,6 +3,8 @@ use getopts::Options;
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::{env, io, process};
 
+/// Convert binary to Verilog VMEM format
+
 const DEFAULT_OFFSET: u32 = 0;
 // The original tool only output one word per line
 const DEFAULT_WIDTH: u32 = 1;
@@ -59,7 +61,7 @@ fn parse_args() -> Args {
     Args { offset: parsed_offset, width: parsed_width }
 }
 
-fn do_srec<R: Read, W: Write>(
+fn do_bin2vmem<R: Read, W: Write>(
     offset: u32,
     width: u32,
     input: &mut R,
@@ -97,7 +99,7 @@ fn main() {
     let mut input = BufReader::new(io::stdin());
     let mut output = BufWriter::new(io::stdout());
 
-    do_srec(args.offset, args.width, &mut input, &mut output).unwrap();
+    do_bin2vmem(args.offset, args.width, &mut input, &mut output).unwrap();
 }
 
 #[cfg(test)]
@@ -113,8 +115,8 @@ mod tests {
         let mut input = BufReader::new(EXAMPLE_RAW);
         let mut out_buf: Vec<u8> = Vec::with_capacity(EXAMPLE_VMEM.as_bytes().len());
 
-        let final_off = do_srec(DEFAULT_OFFSET, EXAMPLE_WIDTH, &mut input, &mut out_buf).unwrap();
-        assert_eq!(final_off as usize, EXAMPLE_RAW.len() / 4);
+        let off = do_bin2vmem(DEFAULT_OFFSET, EXAMPLE_WIDTH, &mut input, &mut out_buf).unwrap();
+        assert_eq!(off as usize, EXAMPLE_RAW.len() / 4);
 
         let out_string = String::from_utf8(out_buf).unwrap();
         let mut out_lines = out_string.lines();

@@ -1,5 +1,5 @@
 [package]
-name = "srec"
+name = "bin2vmem"
 version = "0.1.0"
 authors = ["Patrick Mooney <pmooney@pfmooney.com>"]
 edition = "2018"
