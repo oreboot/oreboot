@@ -1,0 +1,3 @@
+# source this file
+export OREBOOT=$(pwd)
+export RUST_TARGET_PATH=$OREBOOT/targets

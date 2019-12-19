@@ -32,6 +32,9 @@ Building oreboot
 -----------------
 
 ```
+# set up the environment
+source ENV
+
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
