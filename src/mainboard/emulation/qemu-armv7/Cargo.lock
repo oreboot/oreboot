@@ -18,6 +18,10 @@ version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "clock"
+version = "0.1.0"
+
+[[package]]
 name = "console"
 version = "0.1.0"
 
@@ -64,6 +68,16 @@ dependencies = [
 [[package]]
 name = "payloads"
 version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
+
+[[package]]
+name = "print"
+version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -82,6 +96,7 @@ dependencies = [
  "device_tree 0.1.0",
  "model 0.1.0",
  "payloads 0.1.0",
+ "print 0.1.0",
  "uart 0.1.0",
  "wrappers 0.1.0",
 ]
@@ -121,6 +136,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "uart"
 version = "0.1.0"
 dependencies = [
+ "clock 0.1.0",
  "model 0.1.0",
  "register 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
