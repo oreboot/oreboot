@@ -19,22 +19,22 @@
  */
 
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
-use model::*;
-use core::ops;
 use clock::ClockNode;
+use core::ops;
+use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields};
+use register::register_bitfields;
 
 #[repr(C)]
 pub struct RegisterBlock {
-    td: ReadWrite<u32, TD::Register>,	/* Transmit data register */
-    rd: ReadOnly<u32, RD::Register>,	/* Receive data register */
-    txc: ReadWrite<u32, TXC::Register>,	/* Transmit control register */
-    rxc: ReadWrite<u32, RXC::Register>,	/* Receive control register */
-    ie: ReadWrite<u32, IE::Register>,	/* UART interrupt enable */
-    ip: ReadWrite<u32, IP::Register>,	/* UART interrupt pending */
-    div: ReadWrite<u32, DIV::Register>,  /* Baud Rate Divisor */
+    td: ReadWrite<u32, TD::Register>,   /* Transmit data register */
+    rd: ReadOnly<u32, RD::Register>,    /* Receive data register */
+    txc: ReadWrite<u32, TXC::Register>, /* Transmit control register */
+    rxc: ReadWrite<u32, RXC::Register>, /* Receive control register */
+    ie: ReadWrite<u32, IE::Register>,   /* UART interrupt enable */
+    ip: ReadWrite<u32, IP::Register>,   /* UART interrupt pending */
+    div: ReadWrite<u32, DIV::Register>, /* Baud Rate Divisor */
 }
 
 pub struct SiFive {
@@ -84,7 +84,7 @@ register_bitfields! {
 
 impl SiFive {
     pub fn new(base: usize, baudrate: u32) -> SiFive {
-        SiFive{base: base, baudrate: baudrate}
+        SiFive { base: base, baudrate: baudrate }
     }
 
     /// Returns a pointer to the register block
@@ -94,13 +94,14 @@ impl SiFive {
 }
 
 impl Driver for SiFive {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         // Disable UART interrupts.
         self.ie.set(0 as u32);
         // Set clock rate to the default 33.33MHz.
         self.set_clock_rate(33330000);
         // Enable transmit.
         self.txc.modify(TXC::Enable.val(1));
+        Ok(())
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
@@ -121,7 +122,7 @@ impl Driver for SiFive {
                 //       this loop. Remove if we deem it not necessary.
                 unsafe { asm!("" :::: "volatile") }
             }
-                //return Ok(i);
+            //return Ok(i);
             //}
             self.td.set(c.into());
         }

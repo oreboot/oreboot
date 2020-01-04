@@ -54,7 +54,7 @@ pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
 #[no_mangle]
 pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     let uart0 = &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200);
-    uart0.init();
+    uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     // Set SPIs to 50MHZ clock rate.
