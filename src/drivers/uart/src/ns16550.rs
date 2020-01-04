@@ -50,7 +50,7 @@ impl NS16550 {
 }
 
 impl Driver for NS16550 {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         /* disable all interrupts */
         self.ie.set(0u8);
         /* Enable dLAB */
@@ -62,6 +62,7 @@ impl Driver for NS16550 {
         self.fc.set(0xc7);
         self.mc.set(0x0b);
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
+        Ok(())
     }
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {

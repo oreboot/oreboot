@@ -164,8 +164,9 @@ impl<'a> ops::Deref for Clock<'a> {
 }
 
 impl<'a> Driver for Clock<'a> {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         /* nothing to do. */
+        Ok(())
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {

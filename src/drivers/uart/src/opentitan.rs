@@ -35,7 +35,7 @@ pub struct RegisterBlock {
     ctrl: ReadWrite<u32, CTRL::Register>, /* UART control register */
     // 0x10
     status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
-    rdata: ReadOnly<u32, RDATA::Register>, /* UART read data */
+    rdata: ReadOnly<u32, RDATA::Register>,   /* UART read data */
     // needs to be at 0x18
     wdata: ReadWrite<u32, WDATA::Register>, /* UART write data */
     fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>, /* UART FIFO control register */
@@ -186,7 +186,7 @@ the setting, it raises tx_watermark interrupt. */
 
 // UART specific constants
 
-const CLK_FIXED_FREQ_HZ : u32 = 500 * 1000;
+const CLK_FIXED_FREQ_HZ: u32 = 500 * 1000;
 
 pub struct OpenTitanUART {
     base: usize,
@@ -212,7 +212,7 @@ impl OpenTitanUART {
 }
 
 impl Driver for OpenTitanUART {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         // nco = 2^20 * baud / fclk
         let uart_ctrl_nco = 0x4ea4; //(self.baudrate << 20) / CLK_FIXED_FREQ_HZ;
         let ctrl_val = uart_ctrl_nco;
@@ -227,6 +227,7 @@ impl Driver for OpenTitanUART {
 
         // disable interrupts
         // TODO: set UART_INTR_ENABLE to 0
+        Ok(())
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {

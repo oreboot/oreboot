@@ -15,8 +15,14 @@ impl<'a> DoD<'a> {
 }
 
 impl<'a> Driver for DoD<'a> {
-    fn init(&mut self) {
-        self.drivers.iter_mut().for_each(|d| d.init())
+    fn init(&mut self) -> Result<()> {
+        self.drivers.iter_mut().fold(Ok(()), |ret, d| {
+            match (ret, d.init()) {
+                (Ok(()), Ok(())) => Ok(()),
+                (_, Err(err)) => Err(err),
+                (err, _) => err,
+            }
+        })
     }
 
     fn pread(&self, _data: &mut [u8], _pos: usize) -> Result<usize> {
