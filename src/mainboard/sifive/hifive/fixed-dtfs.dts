@@ -14,13 +14,13 @@
                 description = "Boot Blob and Ramstage";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "target/riscv64imac-unknown-none-elf/release/bootblob.bin";
+                file = "target/riscv64imac-unknown-none-elf/debug/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";
                 offset = <0x80000>;
                 size = <0x80000>; // 512KiB
-                file = "target/riscv64imac-unknown-none-elf/release/fixed-dtfs.dtb";
+                file = "target/riscv64imac-unknown-none-elf/debug/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "Payload A";

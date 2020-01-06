@@ -90,9 +90,10 @@ impl SiFiveSpi {
 }
 
 impl Driver for SiFiveSpi {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         // TODO: Implement init
         self.set_clock_rate(33_330_000);
+        Ok(())
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {

@@ -26,12 +26,14 @@ pub struct Log<'a> {
 
 impl<'a> Log<'a> {
     pub fn new(v: &'a mut Vec<u8, U1024>) -> Log {
-        Log{dat: v}
+        Log { dat: v }
     }
 }
 
 impl<'a> Driver for Log<'a> {
-    fn init(&mut self) {   }
+    fn init(&mut self) -> Result<()> {
+        Ok(())
+    }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         return Ok(0);

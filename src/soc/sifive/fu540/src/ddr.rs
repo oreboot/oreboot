@@ -58,8 +58,9 @@ impl DDR {
 }
 
 impl Driver for DDR {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         /* nothing to do. */
+        Ok(())
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {

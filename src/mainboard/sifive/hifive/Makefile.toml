@@ -5,14 +5,17 @@ skip_core_tasks = true
 [env.development]
 CARGO_ARGS = "--verbose"
 TARGET_DIR = "target/riscv64imac-unknown-none-elf/debug"
+DTS_SED_INPLACE = "s#/release/#/debug/#"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
 TARGET_DIR = "target/riscv64imac-unknown-none-elf/release"
+DTS_SED_INPLACE = "s#/debug/#/release/#"
 
 [tasks.default]
 dependencies = ["bootblob"]
 script = [
+	"sed -i \"${DTS_SED_INPLACE}\" fixed-dtfs.dts",
 	"dtc fixed-dtfs.dts -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
 	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
 ]

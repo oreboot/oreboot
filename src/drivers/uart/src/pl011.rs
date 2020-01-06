@@ -47,7 +47,7 @@ impl PL011 {
 }
 
 impl Driver for PL011 {
-    fn init(&mut self) {
+    fn init(&mut self) -> Result<()> {
         // Based on PL011 baud rate divisor table, set baud rate registers
         let (high, low) = match self.baudrate {
             230400 => (0x1, 0x5),
@@ -70,6 +70,7 @@ impl Driver for PL011 {
             (*self.regs).UARTCR.modify(UARTCR::TXE.val(1));
             (*self.regs).UARTCR.modify(UARTCR::UARTEN.val(1));
         }
+        Ok(())
     }
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
