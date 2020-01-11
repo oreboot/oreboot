@@ -185,8 +185,9 @@ the setting, it raises tx_watermark interrupt. */
 }
 
 // UART specific constants
+const CLK_FIXED_FREQ_HZ: u32 = 50 * 1000 * 1000;
 
-const CLK_FIXED_FREQ_HZ: u32 = 500 * 1000;
+const BAUD_PRE_DIVIDER: u32 = 100;
 
 pub struct OpenTitanUART {
     base: usize,
@@ -214,8 +215,12 @@ impl OpenTitanUART {
 impl Driver for OpenTitanUART {
     fn init(&mut self) -> Result<()> {
         // nco = 2^20 * baud / fclk
-        let uart_ctrl_nco = 0x4ea4; //(self.baudrate << 20) / CLK_FIXED_FREQ_HZ;
-        let ctrl_val = uart_ctrl_nco;
+        let uart_ctrl_nco = (self.baudrate/BAUD_PRE_DIVIDER) as u32;
+        let uart_ctrl_nco = (uart_ctrl_nco << 20) as u32;
+        let uart_ctrl_nco = (uart_ctrl_nco/(CLK_FIXED_FREQ_HZ/BAUD_PRE_DIVIDER)) as u32;
+
+        // Set this value to 0x4ea4 for verilator
+        let ctrl_val = uart_ctrl_nco as u32;
 
         self.ctrl.modify(CTRL::NCO.val(ctrl_val));
         self.ctrl.modify(CTRL::RX::ON);
