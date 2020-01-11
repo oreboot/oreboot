@@ -13,6 +13,8 @@ use print;
 use uart::opentitan::OpenTitanUART;
 use wrappers::{Memory, SectionReader, SliceReader};
 
+const BAUDRATE: u32 = 230400;
+
 #[no_mangle]
 pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     // Set up the pinmux. This is highly board dependent.
@@ -33,7 +35,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     m.pwrite(&[0xd6u8, 0x85u8, 0x65u8, 0x1au8, ], 0x40070030).unwrap();
     m.pwrite(&[0x1bu8, 0xd7u8, 0x79u8, 0x1fu8, ], 0x40070034).unwrap();
     m.pwrite(&[0x60u8, 0x08u8, 0x00u8, 0x00u8, ], 0x40070038).unwrap();
-    let uart0 = &mut OpenTitanUART::new(0x40000000, 115200);
+    let uart0 = &mut OpenTitanUART::new(0x40000000, BAUDRATE);
     uart0.init();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
@@ -85,7 +87,7 @@ pub extern "C" fn abort() {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let uart0 = &mut OpenTitanUART::new(0x40000000, 115200);
+    let uart0 = &mut OpenTitanUART::new(0x40000000, BAUDRATE);
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.

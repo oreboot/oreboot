@@ -22,7 +22,15 @@ If you do this:
 PATH=$PATH:/path/to/some/place/opentitan-snapshot-20191101-2/hw/top_earlgrey
 ```
 
-Running:
+## Running:
+
+### Emulator
+To run on the verilator modify `drivers/uart/src/opentitan.rs` 
+as specified by the note.
+
+Copy /path/to/some/place/opentitan-snapshot-20191101-2/sw/device/sim/boot_rom/rom.vmem to your
+local directory.
+
 ```
 cargo make -p release run
 ```
@@ -32,3 +40,18 @@ You will see trace output in a file named
 ```
 trace_core_00000000.log
 ```
+
+## Hardware 
+
+```
+cargo make -p release
+```
+
+Using the opentitan snapshot and running the earlgrey bitstream run:
+```
+/path/to/some/place/opentitan-snapshot-20191101-2/sw/host/spiflash/spiflash --input=target/riscv32imc-unknown-none-elf/release/bootblob.bin
+```
+
+Make sure to be connected the the device at baud rate 230400
+
+
