@@ -13,13 +13,10 @@ _vector_table:
 	b       _cpu_irq             // IRQ Interrupt
 	b       _cpu_fiq             // FIQ Interrupt
 
-
 _asm_start:
 	mrs    r0, cpsr
 	bic    r0, r0, #0x3f
 	orr    r0, r0, #0xd3
 	msr    cpsr, r0
 
-	// Set the inital stack pointer to the end of SRAM.
-	ldr sp, =(0x1E720000 + 0x9000)
-	b _cpu_start
+	b _asm_soc_start

@@ -1,3 +1,4 @@
+#![feature(global_asm)]
 #![no_std]
 #![deny(warnings)]
 
@@ -8,3 +9,5 @@ pub fn init() {
     cpu::init();
 }
 
+
+global_asm!(include_str!("start.S"));
