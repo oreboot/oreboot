@@ -6,6 +6,12 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
+model = { path = "../../../drivers/model" }
+soc = { path = "../../../soc/aspeed/ast2500" }
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["ns16550"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

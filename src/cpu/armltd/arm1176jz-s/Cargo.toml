@@ -1,12 +1,11 @@
 [package]
-name = "soc"
+name = "cpu"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
 
+[dependencies]
+arch = { path = "../../../arch/arm/armv6"}
+
 [profile.release]
 opt-level = 'z'  # Optimize for size.
-
-[dependencies]
-register = "0.3.2"
-cpu = { path = "../../../cpu/armltd/arm1176jz-s"}

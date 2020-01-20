@@ -27,9 +27,9 @@ ENTRY(_vector_table);
 SECTIONS
 {
     . = 0x0;
-    .bootblock :
+    .cpu :
     {
-        KEEP(*(.bootblock.vectortable));
+        KEEP(*(.cpu.vectortable));
     }
 
     . = 0x8000;
