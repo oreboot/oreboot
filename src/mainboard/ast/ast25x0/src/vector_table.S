@@ -1,19 +1,3 @@
-/*
- *  armboot - Startup Code for ARM1176 CPU-core
- *
- * Copyright (c) 2007	Samsung Electronics
- *
- * Copyright (C) 2008
- * Guennadi Liakhovetki, DENX Software Engineering, <lg@denx.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
- *
- * 2007-09-21 - Restructured codes by jsgood (jsgood.yang@samsung.com)
- * 2007-09-21 - Added MoviNAND and OneNAND boot codes by
- * jsgood (jsgood.yang@samsung.com)
- * Base codes by scsuh (sc.suh)
- */
-
 .section ".bootblock.vectortable", "a"
 
 .global _vector_table
@@ -29,14 +13,8 @@ _vector_table:
 	b       _asm_start // IRQ Interrupt
 	b       _asm_start // FIQ Interrupt
 
-// Start function for the assembly code. This does:
-// * initialize basic CPU registers
-// * very early debug print
-// * initialize stack to SRAM
-// * run PLL setup
-// * jump to rust code
+
 _asm_start:
-	// Put the CPU in supervisor (SVC) mode.
 	mrs    r0, cpsr
 	bic    r0, r0, #0x3f
 	orr    r0, r0, #0xd3
@@ -56,5 +34,14 @@ _asm_start:
 
 	// Set the inital stack pointer to the end of SRAM.
 	ldr sp, =(0x1E720000 + 0x9000)
-
 	b _start
+
+
+// TODO: core::fmt depends on real implementations of these functions
+.global __sync_val_compare_and_swap_1
+.global __sync_val_compare_and_swap_2
+.global __sync_val_compare_and_swap_4
+__sync_val_compare_and_swap_1:
+__sync_val_compare_and_swap_2:
+__sync_val_compare_and_swap_4:
+	b       _asm_start
