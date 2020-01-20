@@ -1,0 +1,32 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "ASPEED AST25x0";
+        category = "ASPEED";
+        areas {
+            area@0 {
+                description = "payloader";
+                offset = <0x0>;
+                size = <0x80000>; // 512 KiB
+                file = "$TARGET_DIR/bootblob.bin";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                offset = <0x80000>;
+                size = <0x80000>; // 512 KiB
+                file = "$TARGET_DIR/fixed-dtfs.dtb";
+            };
+            // TODO: Figure out usable payloads
+            area@5 {
+                description = "Empty Space";
+                offset = <0x100000>;
+                size = <0x1F00000>; // 31 MiB
+            };
+        };
+    };
+};

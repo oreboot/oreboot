@@ -10,4 +10,4 @@ http://students.engr.scu.edu/~sschaeck/misc/aspeed-edac.html
 i2c
 https://github.com/torvalds/linux/blob/master/drivers/i2c/busses/i2c-aspeed.c
 
-see include/hw/misc/aspeed_scu.h in qemu for more definitions
+see include/hw/misc/aspeed\_scu.h in qemu for more definitions

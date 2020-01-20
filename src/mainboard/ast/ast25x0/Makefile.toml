@@ -4,18 +4,24 @@ skip_core_tasks = true
 
 [env.development]
 CARGO_ARGS = "--verbose"
-TARGET_DIR = "target/arm-none-eabihf/debug/"
+TARGET_DIR = "target/armv7r-none-eabi/debug"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
-TARGET_DIR = "target/arm-none-eabihf/release/"
+TARGET_DIR = "target/armv7r-none-eabi/release"
 
 [tasks.default]
-dependencies = [ "build" ]
+dependencies = ["bootblob"]
 script = [
-	"arm-none-eabi-objcopy -O binary ${TARGET_DIR}/ast25x0 ${TARGET_DIR}/oreboot.bin",
-	"truncate -s 33554432 ${TARGET_DIR}/oreboot.bin"
+	"sed s^\\$TARGET_DIR^${TARGET_DIR}^g fixed-dtfs.dts | dtc -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
+	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+	"echo \">>> Done, output is at ${TARGET_DIR}/oreboot.bin <<<\"",
 ]
+
+[tasks.bootblob]
+dependencies = [ "build" ]
+command = "cargo"
+args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/ast25x0", "${TARGET_DIR}/bootblob.bin"]
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
@@ -26,17 +32,15 @@ toolchain = "nightly"
 command = "cargo"
 args = ["xbuild", "@@split(CARGO_ARGS, )"]
 
+[tasks.objdump]
+dependencies = ["build"]
+command = "cargo"
+args = ["objdump", "--", "-d", "${TARGET_DIR}/ast25x0"]
+
 [tasks.run]
 dependencies = ["default"]
 command = "qemu-system-arm"
-args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=${TARGET_DIR}oreboot.bin,format=raw,if=mtd", "-d", "guest_errors"]
-
-[tasks.gdb]
-dependencies = ["default"]
-command = "qemu-system-arm"
-args = ["-m", "512m", "-machine", "ast2500-evb", "-nographic", "-drive", "file=${TARGET_DIR}oreboot.bin,format=raw,if=mtd", "-d", "guest_errors", "-s", "-S"]
-
-[tasks.flash]
-dependencies = ["default"]
-command = "sudo"
-args = ["flashrom", "-p", "dediprog", "-w", "target/arm-none-eabihf/release/oreboot.bin"]
+args = [
+	"-m", "512", "-M", "ast2500-evb", "-display", "none",
+	"-drive", "file=${TARGET_DIR}/oreboot.bin,format=raw,if=mtd",
+	"-serial", "mon:stdio", "-d", "in_asm,guest_errors" ]

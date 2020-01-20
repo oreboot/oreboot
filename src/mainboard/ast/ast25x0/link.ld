@@ -27,10 +27,10 @@ ENTRY(_vector_table);
 SECTIONS
 {
     . = 0x0;
-	.bootblock :
-	{
-	    KEEP(*(.bootblock.vectortable));
-	}
+    .bootblock :
+    {
+        KEEP(*(.bootblock.vectortable));
+    }
 
     . = 0x8000;
 
@@ -43,9 +43,14 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
-    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
-	    	/* Unused exception related info that only wastes space */
-		*(.ARM.exidx.*);
-		*(.ARM.extab.*);
-		}
+    /DISCARD/ :
+    {
+        *(.comment);
+        *(.gnu*);
+        *(.note*);
+        *(.eh_frame*);
+        /* Unused exception related info that only wastes space */
+        *(.ARM.exidx*);
+        *(.ARM.extab*);
+    }
 }

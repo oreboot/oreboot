@@ -3,23 +3,9 @@ name = "ast25x0"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
+build = "build.rs"
 
 [dependencies]
-console = { path = "../../../console" }
-cpu = { path = "../../../cpu/armltd/cortex-a9"}
-arch = { path = "../../../arch/arm/armv7"}
-payloads = { path = "../../../../payloads"}
-device_tree = { path = "../../../lib/device_tree" }
-print = { path = "../../../lib/print" }
-soc = { path = "../../../soc/aspeed/ast2500" }
-register = "0.3.2"
-static-ref = "0.1.1"
-wrappers = { path = "../../../drivers/wrappers"}
-model = { path = "../../../drivers/model" }
-
-[dependencies.uart]
-path = "../../../drivers/uart"
-features = ["ns16550"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
