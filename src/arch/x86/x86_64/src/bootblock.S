@@ -101,16 +101,54 @@ _start16bit:
 	 * See IA32 manual Vol 3A 19.26 Interrupts.
 	 */
 
-/*
+	// place address of the next block on the stack.
+	nop // sleazy force alignment of idt
+	call 3f
+	// null idt
+	// TBD -- align it. but it's not required. .align	4
+	.word	0	/* limit */
+	.long	0
+	.word	0
+.globl gdtptr
+gdtptr:
+	.word	gdt_end - gdt -1 /* compute the table limit */
+	.long	gdt		 /* we know the offset */
+
+	.align	4
+gdt:
+	/* selgdt 0, unused */
+	.word	0x0000, 0x0000		/* dummy */
+	.byte	0x00, 0x00, 0x00, 0x00
+
+	/* selgdt 0x08, flat code segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
+					  for limit */
+	/* selgdt 0x10,flat data segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x93, 0xcf, 0x00
+
+	/* selgdt 0x18, flat code segment (64-bit) */
+	.word   0xffff, 0x0000
+	.byte   0x00, 0x9b, 0xaf, 0x00
+
+gdt_end:
+.globl gdtptr16
+gdtptr16:
+	.word	gdt_end - gdt -1 /* compute the table limit */
+	.long	gdt		 /* we know the offset */
+3:
+	popw	%cx
+	movw	%cx, %bx
 	movw	%cs, %ax
 	shlw	$4, %ax
-	movw	$nullidt_offset, %bx
 	subw	%ax, %bx
 	lidt	%cs:(%bx)
-	movw	$gdtptr16_offset, %bx
+	// The gdb is at the idt plus 8
+	movw	%cx, %bx
+	addw    $8, %bx
 	subw	%ax, %bx
 	lgdtl	%cs:(%bx)
-*/
 
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
@@ -136,43 +174,6 @@ gdt_init:
 
 .previous
 	.align	4
-.globl gdtptr
-gdtptr:
-	.word	gdt_end - gdt -1 /* compute the table limit */
-	.long	gdt		 /* we know the offset */
-
-	.align	4
-gdt:
-	/* selgdt 0, unused */
-	.word	0x0000, 0x0000		/* dummy */
-	.byte	0x00, 0x00, 0x00, 0x00
-
-	/* selgdt 0x08, flat code segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
-					  for limit */
-
-	/* selgdt 0x10,flat data segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x93, 0xcf, 0x00
-
-	/* selgdt 0x18, flat code segment (64-bit) */
-	.word   0xffff, 0x0000
-	.byte   0x00, 0x9b, 0xaf, 0x00
-
-gdt_end:
-.globl gdtptr16
-gdtptr16:
-	.word	gdt_end - gdt -1 /* compute the table limit */
-	.long	gdt		 /* we know the offset */
-
-.align	4
-.globl nullidt
-nullidt:
-	.word	0	/* limit */
-	.long	0
-	.word	0
-
 .globl _estart16bit
 _estart16bit:
 	.code32
@@ -224,6 +225,7 @@ __protected_start:
 #include <cpu/x86/64bit/entry64.inc>
 	mov	%ebx, %eax
 
+1: jmp 1b
 	// This is code which lives at 0xfffffff0.
 	.section ".reset", "ax", %progbits
 //	.code16
