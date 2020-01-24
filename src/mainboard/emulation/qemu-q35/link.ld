@@ -32,6 +32,8 @@ SECTIONS
         KEEP(*(.bootblock.boot));
         KEEP(*(.text .text.*));
         KEEP(*(.rodata .rodata.*));
+	/* There should be no 'data' as such but we'll fix it later */
+        KEEP(*(.data.*))
     }
 
     . = 0xfffffff0;
