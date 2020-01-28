@@ -1,9 +1,9 @@
+# The AST2500 is a ARM1176JZ-S according to the datasheet, which
+# does not have hardware floating point
 [build]
-# TODO: The AST2500 is a ARM1176JZ-S using ARMv6, and not a v7-R. But it seems
-# this is the closest target I can figure out how to make rust build for
-target = "armv7r-none-eabi"
+target = "arm-unknown-none-eabi"
 
-[target.armv7r-none-eabi]
+[target.arm-unknown-none-eabi]
 rustflags = [
   "-C", "link-arg=-Tlink.ld",
 ]

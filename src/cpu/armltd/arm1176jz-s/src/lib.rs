@@ -55,4 +55,4 @@ pub extern "C" fn _cpu_fiq() -> ! {
     loop {}
 }
 
-global_asm!(include_str!("vector_table.S"));
+global_asm!(include_str!("asm.S"));

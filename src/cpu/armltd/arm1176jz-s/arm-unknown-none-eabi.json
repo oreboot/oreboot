@@ -1,0 +1,29 @@
+{
+  "abi-blacklist": [
+    "stdcall",
+    "fastcall",
+    "vectorcall",
+    "thiscall",
+    "win64",
+    "sysv64"
+  ],
+  "arch": "arm",
+  "data-layout": "e-m:e-p:32:32-Fi8-i64:64-v128:64:128-a:0:32-n32-S64",
+  "dynamic-linking": true,
+  "env": "",
+  "executables": true,
+  "features": "+strict-align,+v6",
+  "has-elf-tls": true,
+  "has-rpath": true,
+  "linker": "rust-lld",
+  "linker-flavor": "ld.lld",
+  "llvm-target": "arm-unknown-none-eabi",
+  "max-atomic-width": 64,
+  "os": "none",
+  "panic-strategy": "abort",
+  "target-c-int-width": "32",
+  "target-endian": "little",
+  "target-pointer-width": "32",
+  "vendor": "unknown",
+  "relocation-model": "static"
+}

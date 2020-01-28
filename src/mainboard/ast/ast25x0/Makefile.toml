@@ -4,11 +4,13 @@ skip_core_tasks = true
 
 [env.development]
 CARGO_ARGS = "--verbose"
-TARGET_DIR = "target/armv7r-none-eabi/debug"
+TARGET_DIR = "target/arm-unknown-none-eabi/debug"
+RUST_TARGET_PATH = "${PWD}/../../../cpu/armltd/arm1176jz-s"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
-TARGET_DIR = "target/armv7r-none-eabi/release"
+TARGET_DIR = "target/arm-unknown-none-eabi/release"
+RUST_TARGET_PATH = "${PWD}/../../../cpu/armltd/arm1176jz-s"
 
 [tasks.default]
 dependencies = ["bootblob"]
@@ -43,4 +45,4 @@ command = "qemu-system-arm"
 args = [
 	"-m", "512", "-M", "ast2500-evb", "-display", "none",
 	"-drive", "file=${TARGET_DIR}/oreboot.bin,format=raw,if=mtd",
-	"-serial", "mon:stdio", "-d", "in_asm,guest_errors" ]
+	"-serial", "mon:stdio", "-d", "guest_errors" ]
