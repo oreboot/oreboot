@@ -1,4 +1,5 @@
-// http://www.ti.com/lit/ds/symlink/pc16550d.pdf
+// Aspeed uses Aspeed-like standard offer serial ports.
+// A notable difference is that the registers are at 32-bit alignment
 use core::ops;
 use model::*;
 
@@ -7,19 +8,20 @@ use register::{register_bitfields, Field};
 
 #[repr(C)]
 pub struct RegisterBlock {
-    d: ReadWrite<u8, D::Register>,
-    ie: ReadWrite<u8, IE::Register>,
-    fc: ReadWrite<u8, FC::Register>,
-    lc: ReadWrite<u8, LC::Register>,
-    mc: ReadWrite<u8, MC::Register>,
-    ls: ReadOnly<u8, LS::Register>,
+    // TODO: DLAB
+    d: ReadWrite<u32, D::Register>,
+    ie: ReadWrite<u32, IE::Register>,
+    fc: ReadWrite<u32, FC::Register>,
+    lc: ReadWrite<u32, LC::Register>,
+    mc: ReadWrite<u32, MC::Register>,
+    ls: ReadOnly<u32, LS::Register>,
 }
 
-pub struct NS16550 {
+pub struct Aspeed {
     base: usize,
 }
 
-impl ops::Deref for NS16550 {
+impl ops::Deref for Aspeed {
     type Target = RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -27,9 +29,9 @@ impl ops::Deref for NS16550 {
     }
 }
 
-impl NS16550 {
-    pub fn new(base: usize, _baudrate: u32) -> NS16550 {
-        NS16550 { base: base }
+impl Aspeed {
+    pub fn new(base: usize, _baudrate: u32) -> Aspeed {
+        Aspeed { base: base }
     }
 
     /// Returns a pointer to the register block
@@ -38,7 +40,7 @@ impl NS16550 {
     }
     /// Poll the status register until the specified field is set to the given value.
     /// Returns false iff it timed out.
-    fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
+    fn poll_status(&self, bit: Field<u32, LS::Register>, val: bool) -> bool {
         // Timeout after a few thousand cycles to prevent hanging forever.
         for _ in 0..100_000 {
             if self.ls.is_set(bit) == val {
@@ -49,16 +51,11 @@ impl NS16550 {
     }
 }
 
-impl Driver for NS16550 {
+impl Driver for Aspeed {
     fn init(&mut self) -> Result<()> {
-        self.d.set('H' as u8);
-        self.d.set('e' as u8);
-        self.d.set('l' as u8);
-        self.d.set('l' as u8);
-        self.d.set('o' as u8);
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
         /* disable all interrupts */
-        self.ie.set(0u8);
+        self.ie.set(0u32);
         /* Enable dLAB */
         self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
         // TODO: Implement DLAB handling. DLAB is overlaid on the D/IE fields
@@ -81,7 +78,7 @@ impl Driver for NS16550 {
             if !self.poll_status(LS::OE, false) {
                 return Ok(i);
             }
-            self.d.set(c as u8);
+            self.d.set(c as u32);
         }
         Ok(data.len())
     }
@@ -89,9 +86,8 @@ impl Driver for NS16550 {
     fn shutdown(&mut self) {}
 }
 
-// TODO: bitfields
 register_bitfields! {
-    u8,
+    u32,
     // Data register
     D [
         DATA OFFSET(0) NUMBITS(8) []

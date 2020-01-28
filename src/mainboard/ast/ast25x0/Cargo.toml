@@ -11,7 +11,7 @@ soc = { path = "../../../soc/aspeed/ast2500" }
 
 [dependencies.uart]
 path = "../../../drivers/uart"
-features = ["ns16550"]
+features = ["aspeed"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
