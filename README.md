@@ -16,7 +16,7 @@ Oreboot+QEMU for RISC-V HiFive Unleased:
 
 [![asciicast](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2.svg)](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2)
 
-Oreboot+QEMU for AST2500:
+Oreboot+QEMU for ARM:
 
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
@@ -31,24 +31,34 @@ Build Requirements
 Building oreboot
 -----------------
 
+To setup your Rust environment for oreboot, see below:
+
 ```
+# Install some tools we will need later
+sudo apt install device-tree-compiler pkg-config libssl-dev
+
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
-# Run this in the oreboot project directory. This uses the nightly rust
-# compiler for the oreboot directory.
-rustup override set nightly
+# Apply the Rust environment to your current shell
+source $HOME/.cargo/env
 
 # Install cargo-make
 cargo install cargo-make
 
-# Ocassionally run:
-rustup update
+# NOTE: The following needs to be run in the root of the oreboot directory
+cd oreboot/
+rustup override set nightly   # Set the nightly rust compiler to be used for oreboot
+cargo make setup              # Install a few compiler tools
+```
 
-# Install a few compiler tools.
-cargo make setup
-sudo apt-get install device-tree-compiler
+Occasionally you want to run `rustup update` to keep your Rust up-to-date.
+A good idea is to make sure you have the latest version before reporting any
+issues.
 
+To build oreboot for a specific platform, do like this:
+
+```
 # Build for RISC-V
 export OREBOOT="${PWD}"
 cd src/mainboard/sifive/hifive
@@ -66,21 +76,22 @@ QEMU
 ----
 
 ```
-sudo apt-get install qemu-system-arm
-cargo make run -p release
+# Install QEMU for your target platform, e.g. x86
+sudo apt install qemu-system-x86
 
+# Build release build and start with QEMU
+cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/emulation/qemu-q35 run -p release
 # Quit qemu with CTRL-A X
 ```
 
-To build QEMU from source for riscv:
+To build QEMU from source for RISC-V:
 
 ```
 git clone https://github.com/qemu/qemu && cd qemu
 mkdir build-riscv64 && cd build-riscv64
-../configure --help
 ../configure --target-list=riscv64-softmmu
-make -j16
-stat riscv64-softmmu/qemu-system-riscv64
+make -j$(nproc)
+# QEMU binary is at riscv64-softmmu/qemu-system-riscv64
 ```
 
 Oreboot on Hardware
