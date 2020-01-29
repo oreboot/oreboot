@@ -1,5 +1,4 @@
-// Aspeed uses Aspeed-like standard offer serial ports.
-// A notable difference is that the registers are at 32-bit alignment
+// This is the same as NS16550 but using 32-bit registers
 use core::ops;
 use model::*;
 
@@ -17,11 +16,13 @@ pub struct RegisterBlock {
     ls: ReadOnly<u32, LS::Register>,
 }
 
-pub struct Aspeed {
+pub struct NS16550x32 {
     base: usize,
+    baudrate: u32,
+    clk: u32,
 }
 
-impl ops::Deref for Aspeed {
+impl ops::Deref for NS16550x32 {
     type Target = RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -29,9 +30,9 @@ impl ops::Deref for Aspeed {
     }
 }
 
-impl Aspeed {
-    pub fn new(base: usize, _baudrate: u32) -> Aspeed {
-        Aspeed { base: base }
+impl NS16550x32 {
+    pub fn new(base: usize, baudrate: u32, clk: u32) -> NS16550x32 {
+        NS16550x32 { base, baudrate, clk }
     }
 
     /// Returns a pointer to the register block
@@ -51,13 +52,14 @@ impl Aspeed {
     }
 }
 
-impl Driver for Aspeed {
+impl Driver for NS16550x32 {
     fn init(&mut self) -> Result<()> {
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
         /* disable all interrupts */
         self.ie.set(0u32);
         /* Enable dLAB */
         self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
+
         // TODO: Implement DLAB handling. DLAB is overlaid on the D/IE fields
         // and we need some sort of union {}.
         // However, in simulator the baud-rate is kind of ignored.

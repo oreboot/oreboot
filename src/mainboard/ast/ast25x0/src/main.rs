@@ -4,13 +4,15 @@
 #![deny(warnings)]
 
 use model::Driver;
+use uart::ns16550x32::NS16550x32;
 
 const BAUDRATE: u32 = 115200;
+const UART_CLK: u32 = 24_000_000;
 
 #[no_mangle]
 pub fn _start() {
     soc::init();
-    let syscon = &mut uart::aspeed::Aspeed::new(soc::reg::UART5, BAUDRATE);
+    let syscon = &mut NS16550x32::new(soc::reg::UART5, BAUDRATE, UART_CLK);
     syscon.init().expect("Failed to initialize system console");
     syscon.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
