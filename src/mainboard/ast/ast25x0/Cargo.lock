@@ -40,16 +40,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "register"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "tock-registers 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "soc"
 version = "0.1.0"
 dependencies = [
  "cpu 0.1.0",
- "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "register 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "tock-registers"
 version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "tock-registers"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -63,4 +76,6 @@ dependencies = [
 
 [metadata]
 "checksum register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "469bb5ddde81d67fb8bba4e14d77689b8166cfd077abe7530591cefe29d05823"
+"checksum register 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6e10c2ba523bc81270ecb9b6ca6704f42cd1efec89fddbfe0e520ad0e218f401"
 "checksum tock-registers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c758f5195a2e0df9d9fecf6f506506b2766ff74cf64db1e995c87e2761a5c3e2"
+"checksum tock-registers 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "70323afdb8082186c0986da0e10f6e4ed103d681c921c00597e98d9806dac20f"
