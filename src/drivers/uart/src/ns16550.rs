@@ -51,19 +51,16 @@ impl NS16550 {
 
 impl Driver for NS16550 {
     fn init(&mut self) -> Result<()> {
-        self.d.set('H' as u8);
-        self.d.set('e' as u8);
-        self.d.set('l' as u8);
-        self.d.set('l' as u8);
-        self.d.set('o' as u8);
-        self.lc.write(LC::DivisorLatchAccessBit::Normal);
         /* disable all interrupts */
         self.ie.set(0u8);
         /* Enable dLAB */
         self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
-        // TODO: Implement DLAB handling. DLAB is overlaid on the D/IE fields
-        // and we need some sort of union {}.
-        // However, in simulator the baud-rate is kind of ignored.
+        // Until we know the clock rate the divisor values are kind of
+        // impossible to know. Throw in a phony value.
+        self.lc.write(LC::WLEN::WLEN_8);
+        // TOdO: what are these bits. how do we write them.
+        self.fc.set(0xc7);
+        self.mc.set(0x0b);
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
         Ok(())
     }

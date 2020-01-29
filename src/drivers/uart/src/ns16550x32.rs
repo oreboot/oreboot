@@ -55,15 +55,32 @@ impl NS16550x32 {
 impl Driver for NS16550x32 {
     fn init(&mut self) -> Result<()> {
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
-        /* disable all interrupts */
+        // Disable interrupts
         self.ie.set(0u32);
-        /* Enable dLAB */
+        // Enable DLAB to set baud rate
         self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
 
-        // TODO: Implement DLAB handling. DLAB is overlaid on the D/IE fields
-        // and we need some sort of union {}.
-        // However, in simulator the baud-rate is kind of ignored.
+        // The baud rate is set using the 16550 standard formula:
+        //
+        //                 uart_clk
+        //   baudrate =  ------------
+        //                 16 * div
+        //
+        // Divisors are set in 2x 8-bit registers;
+        // Divisor Latch Low (DLL), and Divisor Latch High (DLH).
+        let div = self.clk / (16 * self.baudrate);
+
+        // Since we're in DLAB these registers are DLL and DLH
+        self.d.set(div & 0xff);
+        self.ie.set((div >> 8) & 0xff);
+
+        // Go back to normal mode
         self.lc.write(LC::DivisorLatchAccessBit::Normal);
+
+        // Reset and enable FIFOs
+        self.fc.write(FC::Enable::SET);
+        // Set 8n1
+        self.lc.write(LC::WLEN::WLEN_8 + LC::ParityEnable::SET);
         Ok(())
     }
 
@@ -101,7 +118,21 @@ register_bitfields! {
         StatusChange OFFSET(3) NUMBITS(1) []
     ],
     FC [
-        DATA OFFSET(0) NUMBITS(8) []
+        Enable OFFSET(0) NUMBITS(1) [],
+        RXReset OFFSET(1) NUMBITS(1) [],
+        TXReset OFFSET(2) NUMBITS(1) [],
+        TXTriggerLevel OFFSET(4) NUMBITS(2) [
+            TX_FIFO_Empty = 0,
+            TX_FIFO_2B = 1,
+            TX_FIFO_Quarter_Full = 2,
+            TX_FIFO_Half_Full = 3
+        ],
+        RXTriggerLevel OFFSET(6) NUMBITS(2) [
+            RX_FIFO_1B = 0,
+            RX_FIFO_4B = 1,
+            RX_FIFO_8B = 2,
+            RX_FIFO_14B = 3
+        ]
     ],
     LC [
         WLEN OFFSET(0) NUMBITS(2) [
@@ -110,11 +141,10 @@ register_bitfields! {
             WLEN_7 = 2,
             WLEN_8 = 3
         ],
-        StopBits OFFSET(3) NUMBITS(1) [],
-        ParityEnable OFFSET(4) NUMBITS(1) [],
-        EvenParity OFFSET(5) NUMBITS (1) [],
-        StickParity OFFSET(6) NUMBITS (1) [],
-        DivisorLatchAccessBit OFFSET(7) NUMBITS (1) [
+        StopBits OFFSET(2) NUMBITS(1) [],
+        ParityEnable OFFSET(3) NUMBITS(1) [],
+        EvenParity OFFSET(4) NUMBITS(1) [],
+        DivisorLatchAccessBit OFFSET(7) NUMBITS(1) [
             Normal = 0,
             BaudRate = 1
         ]
