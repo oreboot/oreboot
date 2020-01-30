@@ -5,9 +5,11 @@
 pub mod lpc;
 pub mod scu;
 pub mod reg;
+pub mod wdt;
 
 use scu::SCU;
 use lpc::LPC;
+use wdt::WDT;
 
 // Bare minimal initialization to make the system usable (no DRAM e.g.)
 pub fn init() {
@@ -16,6 +18,11 @@ pub fn init() {
     // done as early as possible
     SCU::new().init();
     LPC::new().init();
+
+    let w = WDT::new();
+    w.init();
+
+    w.successful_bootup();
 }
 
 // TODO: Add UART routing helpers

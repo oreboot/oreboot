@@ -22,7 +22,7 @@ register_structs! {
     pub LPCBlock {
         (0x080 => hicr5: ReadWrite<u32, HICR5::Register>),
         (0x100 => hicrb: ReadWrite<u32, HICRB::Register>),
-        (0x030 => @END),
+        (0x104 => @END),
     }
 }
 

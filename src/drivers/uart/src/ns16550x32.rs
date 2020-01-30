@@ -42,8 +42,8 @@ impl NS16550x32 {
     /// Poll the status register until the specified field is set to the given value.
     /// Returns false iff it timed out.
     fn poll_status(&self, bit: Field<u32, LS::Register>, val: bool) -> bool {
-        // Timeout after a few thousand cycles to prevent hanging forever.
-        for _ in 0..100_000 {
+        // Timeout after a few million cycles to prevent hanging forever.
+        for _ in 0..10_000_000 {
             if self.ls.is_set(bit) == val {
                 return true;
             }
@@ -86,7 +86,7 @@ impl Driver for NS16550x32 {
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         for c in data.iter_mut() {
-            while self.ls.is_set(LS::IF) {}
+            while self.ls.is_set(LS::DR) {}
             *c = self.d.read(D::DATA) as u8;
         }
         Ok(data.len())
@@ -94,7 +94,7 @@ impl Driver for NS16550x32 {
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         for (i, &c) in data.iter().enumerate() {
-            if !self.poll_status(LS::OE, false) {
+            if !self.poll_status(LS::THRE, true) {
                 return Ok(i);
             }
             self.d.set(c as u32);
@@ -153,7 +153,9 @@ register_bitfields! {
         DATA OFFSET(0) NUMBITS(8) []
     ],
     LS [
-        IF OFFSET(0) NUMBITS(1) [],
-        OE OFFSET(1) NUMBITS(1) []
+        DR   OFFSET(0) NUMBITS(1) [],
+        OE   OFFSET(1) NUMBITS(1) [],
+        THRE OFFSET(5) NUMBITS(1) [],
+        TEMT OFFSET(6) NUMBITS(1) []
     ]
 }

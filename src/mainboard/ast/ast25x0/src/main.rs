@@ -19,6 +19,7 @@ pub fn _start() {
 
     let mut _i = 0;
     loop {
+        syscon.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
         _i += 1;
     }
 }

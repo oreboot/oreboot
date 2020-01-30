@@ -25,7 +25,7 @@
             area@5 {
                 description = "Empty Space";
                 offset = <0x100000>;
-                size = <0x1F00000>; // 31 MiB
+                size = <0x0F00000>; // 15 MiB
             };
         };
     };

@@ -19,7 +19,7 @@ dependencies = ["bootblob"]
 script = [
 	"sed s^\\$TARGET_DIR^${TARGET_DIR}^g fixed-dtfs.dts | dtc -O dtb -o ${TARGET_DIR}/fixed-dtfs.dtb",
 	"layoutflash ${TARGET_DIR}/fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
-	"echo \">>> Done, output is at ${TARGET_DIR}/oreboot.bin <<<\"",
+	"echo \">>> Done, output is at ${CARGO_MAKE_WORKING_DIRECTORY}/${TARGET_DIR}/oreboot.bin <<<\"",
 ]
 
 [tasks.bootblob]

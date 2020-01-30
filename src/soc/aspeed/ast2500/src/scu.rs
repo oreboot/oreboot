@@ -37,7 +37,7 @@ register_structs! {
         (0x000 => scu0: ReadWrite<u32, SCU0::Register>),
         (0x02C => scu2c: ReadWrite<u32, SCU2C::Register>),
         (0x180 => scu180: ReadWrite<u32, SCU180::Register>),
-        (0x030 => @END),
+        (0x184 => @END),
     }
 }
 
@@ -81,8 +81,6 @@ impl SCU {
 
         // Disable div13 for UART to make baud calculation predictable
         self.scu2c.write(SCU2C::UARTEnableDiv13::CLEAR);
-
-        // TODO: Watchdog?
 
         self.lock();
     }
