@@ -32,9 +32,6 @@ Building oreboot
 -----------------
 
 ```
-# set up the environment
-source ENV
-
 # Install rustup
 curl https://sh.rustup.rs -sSf | sh
 
@@ -53,12 +50,16 @@ cargo make setup
 sudo apt-get install device-tree-compiler
 
 # Build for RISC-V
+export OREBOOT="${PWD}"
 cd src/mainboard/sifive/hifive
 cargo make              # Debug
 cargo make -p release   # Optimized
 
 # View disassembly
 cargo make objdump -p release
+
+# Alternatively, without setting OREBOOT, you can do like this
+cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/sifive/hifive
 ```
 
 QEMU

@@ -5,10 +5,12 @@ skip_core_tasks = true
 [env.development]
 CARGO_ARGS = "--verbose"
 TARGET_DIR = "target/x86_64-unknown-none/debug"
+RUST_TARGET_PATH = "${OREBOOT}/src/cpu/intel/q35"
 
 [env.release]
 CARGO_ARGS = "--release --verbose"
 TARGET_DIR = "target/x86_64-unknown-none/release"
+RUST_TARGET_PATH = "${OREBOOT}/src/cpu/intel/q35"
 
 [tasks.install-rust-src]
 install_crate = { rustup_component_name = "rust-src" }
