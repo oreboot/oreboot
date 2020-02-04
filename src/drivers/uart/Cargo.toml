@@ -11,6 +11,7 @@ opt-level = 'z'  # Optimize for size.
 model = { path = "../model"}
 clock = { path = "../clock"}
 register = "0.3.2"
+x86_64 = "0.8.3"
 
 # Heapless does not build for rv32imc.
 [dependencies.heapless]
@@ -22,3 +23,4 @@ ns16550 = []
 sifive = []
 log = []
 opentitan = []
+i8250 = []

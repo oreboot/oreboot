@@ -9,7 +9,7 @@ use core::panic::PanicInfo;
 use model::Driver;
 use payloads::payload;
 use print;
-use uart::ns16550::NS16550;
+use uart::i8250::I8250;
 use wrappers::{Memory, SectionReader, SliceReader};
 
 global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));

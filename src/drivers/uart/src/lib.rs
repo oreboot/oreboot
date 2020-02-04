@@ -11,3 +11,5 @@ pub mod opentitan;
 pub mod pl011;
 #[cfg(feature = "sifive")]
 pub mod sifive;
+#[cfg(feature = "i8250")]
+pub mod i8250;
