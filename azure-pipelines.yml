@@ -19,6 +19,7 @@ steps:
     cargo install cargo-make
     cargo make setup
     sudo apt-get install device-tree-compiler
+    dtc --version
     (cd tools/layoutflash && cargo make -p install)
   displayName: 'Install Rust Dependencies'
 - script: |

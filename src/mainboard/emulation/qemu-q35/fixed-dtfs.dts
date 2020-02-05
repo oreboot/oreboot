@@ -44,7 +44,7 @@
                 half = <0>;
                 offset = <0xf0000>;
                 size = <0x4000>;
-            };
+		};
             area@5 {
                 description = "RomPayload DTFS B";
                 compatible = "ore-rompayload";
@@ -57,14 +57,15 @@
                 compatible = "ore-rampayload";
                 half = <0>;
                 offset = <0x0>;
-                size = <0x600000>;
+                size = <0xc00000>;
+		file = "payloadA";
             };
             area@7 {
                 description = "RamPayload DTFS B";
                 compatible = "ore-rampayload";
                 half = <1>;
-                offset = <0x600000>;
-                size = <0x600000>;
+                offset = <0xc00000>;
+                size = <0x100000>;
             };
         };
     };

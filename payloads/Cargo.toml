@@ -6,6 +6,9 @@ edition = "2018"
 
 [dependencies]
 model = { path = "../src/drivers/model"}
+postcard = "0.4.3"
+serde = { version = "1.0", default-features = false }
+wrappers = { path = "../src/drivers/wrappers"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

@@ -19,7 +19,8 @@ install_crate = { rustup_component_name = "rust-src" }
 dependencies = [ "bootblob" ]
 script = [
 	"dtc fixed-dtfs.dts -O dtb -o fixed-dtfs.dtb",
-	"layoutflash fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin"
+	"layoutflash fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin",
+	"dd if=payloadA of=${TARGET_DIR}/oreboot.bin conv=notrunc"
 ]
 
 [tasks.build]

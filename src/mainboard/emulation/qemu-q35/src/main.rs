@@ -10,10 +10,17 @@ use model::Driver;
 use payloads::payload;
 use print;
 use uart::null::Null;
-use wrappers::{Memory, SectionReader, SliceReader};
+//use core::ptr;
 
 global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
+
 //global_asm!(include_str!("init.S"));
+//fn poke(v: u32, a: u32) -> () {
+//    let y = a as *mut u32;
+//    unsafe {
+//        ptr::write_volatile(y, v);
+//    }
+//}
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
@@ -23,29 +30,19 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    let kernel_segs = &[
-        payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: 0x80000000,
-            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
-        },
-        payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-            base: fdt_address,
-            data: &mut SliceReader::new(&[0u8; 0]),
-        },
-    ];
-    let payload = payload::Payload {
-        typ: payload::ftype::CBFS_TYPE_RAW,
+    let payload = &mut payload::StreamPayload {
+        typ: payload::ftype::CBFS_TYPE_SELF,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        entry: 0x80000000 as usize,
+        entry: 0x1000020 as usize,
         rom_len: 0 as usize,
         mem_len: 0 as usize,
-        segs: kernel_segs,
         dtb: 0,
+        rom: 0,
     };
 
+    write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
+    payload.load();
     write!(w, "Running payload\r\n").unwrap();
     payload.run();
 
