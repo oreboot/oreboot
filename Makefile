@@ -13,13 +13,20 @@ help:
 	@echo '  # Build debug mode'
 	@echo '  MODE=debug make mainboards'
 
-MAINBOARDS := $(shell cd src/mainboard && find -name Makefile -printf "%h ")
+BROKEN := src/mainboard/ast/ast25x0/Makefile src/mainboard/emulation/qemu-armv7/Makefile
+# somebody else can figure this out. MAINBOARDS := $(filter-out $(wildcard src/mainboard/*/*/Makefile), $(BROKEN))
+MAINBOARDS := \
+	src/mainboard/emulation/qemu-q35/Makefile \
+	src/mainboard/emulation/qemu-riscv/Makefile \
+	src/mainboard/nuvoton/npcm7xx/Makefile \
+	src/mainboard/opentitan/crb/Makefile \
+	src/mainboard/sifive/hifive/Makefile \
 
 .PHONY: mainboards $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
 
 $(MAINBOARDS):
-	cd src/mainboard/$@ && make
+	cd $(dir $@) && make
 
 firsttime:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-22

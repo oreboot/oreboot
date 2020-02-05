@@ -349,9 +349,6 @@ lme:
 .code64
 
 _identity:
-	// This is a software breakpoint, for use until we're more
-	// sure about the code. It is to be removed. This is the
-	1:	 jmp 1b
 	call _start
 1:	 jmp 1b
 

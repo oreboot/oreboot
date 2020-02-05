@@ -3,6 +3,8 @@
 
 #[cfg(feature = "log")]
 pub mod log;
+#[cfg(feature = "i8250")]
+pub mod i8250;
 #[cfg(feature = "ns16550")]
 pub mod ns16550;
 #[cfg(feature = "null")]

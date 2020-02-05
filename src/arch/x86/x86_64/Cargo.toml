@@ -9,3 +9,6 @@ model = { path = "../../../drivers/model" }
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
+
+[features]
+ioport = []

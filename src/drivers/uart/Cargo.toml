@@ -17,9 +17,9 @@ register = "0.3.2"
 optional = true
 
 [features]
+i8250 = []
 pl011 = []
 ns16550 = []
 sifive = []
 log = []
 opentitan = []
-null = []
