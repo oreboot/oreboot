@@ -17,7 +17,7 @@ global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
-    let uart0 = &mut Null::new();
+    let uart0 = &mut Null;
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
@@ -56,7 +56,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let uart0 = &mut Null::new();
+    let uart0 = &mut Null;
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
