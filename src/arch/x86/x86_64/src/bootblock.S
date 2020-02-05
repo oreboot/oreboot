@@ -19,11 +19,12 @@
  *
  */
 
-/*
- * Include the old code for reset vector and protected mode entry. That code has
- * withstood the test of time.
- */
-	// N.B. this comment block should cover differences between coreboot and oreboot.
+	//
+	// Include the old code for reset vector and protected mode entry. That code has
+	// withstood the test of time. Some of the comments may help Those Who Come Later
+	// avoid mistakes.
+
+	// N.B. c99-style comment blocks should cover differences between coreboot and oreboot.
 	// Unlike coreboot, we are going to arrange the sections in bootblock
 	// in roughly the order they appear in memory. This first part is
 	// x86 entry point. Then we have assembly prolog. The protected mode enable,
@@ -33,19 +34,22 @@
 	//
 	// This code has to be 4k aligned because secondary CPUs run it
 	// too and the Startup IPI requires it.
+
+	// RAM is used as follows:
+	// 16-bit code: the stack is set to 0x2000, and a word at 0xfffe is used to
+	// contain an address.
+	// 32-bit/64-bit code:
+	// 0x7f000 Page Table Page Level 3 (PML3)
+	// 0x7e000 Page Table Page Level 4 (PML4)
+	// 0x7e000 Initial top of stack; x86 is pre-decrement so this location is not written.
 	
 .align 4096
 .code16
 .globl _start16bit
 .type _start16bit, @function
 
-	// NOTE: we assume the stack is set to a workable place.
-	// if that assumption is wrong, revisit it here.
-	// It's probably wrong. It is safe, however, to assume
-	// we have memory in the low 1M, except in CAR scenario;
-	// in CAR, the stack will be set up when we get here.
-	// translation: we're no longer the first thing to run.
-	// FSP-T "does things".
+	// It is safe to assume we have memory in the low 1M. For more
+	// complex cases, e.g. FSP, this file will not be used.
 	// N.B. This set of instructions results in the IDT, below, being aligned.
 	// It's not strictly necessary but it's nice. Be careful should you change it.
 _start16bit:
@@ -64,15 +68,18 @@ _start16bit:
 	xorl	%eax, %eax
 	movl	%eax, %cr3    /* Invalidate TLB*/
 
+	// In coreboot, in the early days, there was code here to invalidate
+	// the cache. That later turned out to be a problem, which the following
+	// comment explains.
 	/* Invalidating the cache here seems to be a bad idea on
 	 * modern processors.  Don't.
 	 * If we are hyperthreaded or we have multiple cores it is bad,
 	 * for SMP startup.  On Opterons it causes a 5 second delay.
 	 * Invalidating the cache was pure paranoia in any event.
-	 * If your CPU needs it you can write a CPU dependent version of
-	 * entry16.inc.
 	 */
 
+	// gas and 16-bit have been a problem from the beginning, as explained
+	// in the next comment.
 	/* Note: gas handles memory addresses in 16 bit code very poorly.
 	 * In particular it doesn't appear to have a directive allowing you
 	 * associate a section or even an absolute offset with a segment register.
@@ -114,14 +121,17 @@ _start16bit:
 	 * See IA32 manual Vol 3A 19.26 Interrupts.
 	 */
 
-	// place address of the next block on the stack.
+	// we place the address of the next block on the stack.
 	// which means we need a stack. Just grab this address, we
 	// don't need it for long. It's page 1; we don't touch
 	// page 0 for all kinds of reasons.
+	// TODO: is there a PIC way to do this? Don't do so if it
+	// requires linker tricks. That way lies madness.
 	movw $0x2000, %sp	
 	call 3f
 	// null idt
-	// This is aligned because of the nop above, which forces alignment.
+	// This is aligned because of the code above; if you change the code
+	// make sure it stays aligned. It may require nops.
 	.word	0	/* limit */
 	.long	0
 	.word	0
@@ -157,6 +167,7 @@ gdtptr16:
 	.word	gdt_end - gdt -1 /* compute the table limit */
 	.long	gdt		 /* we know the offset */
 3:
+	// The stack has the absolute address of the idt. Pop into %cx.
 	popw	%cx
 	movw	%cx, %bx
 	movw	%cs, %ax
@@ -206,6 +217,8 @@ gdtptr16:
 	.align	4
 __protected_start:
 	// Enter here in 32-bit protected mode. Welcome to 1982.
+	// First thing you have to do is get the segments to
+	// sane values. Only %cs is correct when we get here.
 	/* Save the BIST value */
 	movl	%eax, %ebp
 
@@ -217,21 +230,21 @@ __protected_start:
 	movw	%ax, %ss
 	movw	%ax, %fs
 	movw	%ax, %gs
-	// The top two stack pages are %cr3
+	// Set a pointer to the page table pages in %cr3.
+	// We can use cr3 as a scratch register here;
+	// its value won't matter until we set PG in CR0 below.
 	movl $0x7e000, %esp
 	movl %esp, %cr3
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
 	
-	/* BIST result in eax */
-	mov	%eax, %ebx
-	/* entry64.inc preserves ebx. */
-	//WTF#include <cpu/x86/64bit/entry64.inc>
-	mov	%ebx, %eax
-//1:	 jmp 1b
 	// Now for the big fun: Long Mode.
 	// Once again we put the data structures inline in this
 	// memory. This code is, we hope, PIC.
+	// The call 2f is an old trick; it puts the address of the data following
+	// this instruction on the stack. The current burning question: do we need
+	// bother with another lgdt or should we let linux do it?
+	// We'll leave the table here but suspect we can let Linux do it.
 	call 2f
 gdt64:
 _gdt64p:
@@ -282,18 +295,17 @@ _gdtptr64p:
 	addl $(0x40000000), %edx
 	movl %edx, 0x1018(%ecx)
 	// This should be relative load
-	// In theory, 
+	// In theory,
 	// This is code which lives at 0xfffffff0.
 //1:	 jmp 1b
-	/*
- * Enable and activate Long Mode. From the manual:
- * 	make sure Page Size Extentions are off, and Page Global
- *	Extensions and Physical Address Extensions are on in CR4;
- *	set Long Mode Enable in the Extended Feature Enable MSR;
- *	set Paging Enable in CR0;
- *	make an inter-segment jump to the Long Mode code.
- * It`s all in 32-bit mode until the jump is made.
-*/
+	/* Enable and activate Long Mode. From the manual:
+	* 	make sure Page Size Extentions are off, and Page Global
+	*	Extensions and Physical Address Extensions are on in CR4;
+	*	set Long Mode Enable in the Extended Feature Enable MSR;
+	*	set Paging Enable in CR0;
+	*	make an inter-segment jump to the Long Mode code.
+	* It`s all in 32-bit mode until the jump is made.
+	*/
 	#define Pse 0x10
 	#define Pge 0x40
 	#define Pae 0x20
@@ -319,8 +331,8 @@ lme:
 	#define EM 4       //Emulation     If set, no x87 floating-point unit present, if clear, x87 FPU present
 	#define TS 8       //Task switched         Allows saving x87 task context upon a task switch only after x87 instruction used
 	#define ET 0x10       //Extension type        On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
-	#define NE 0x20       //Numeric error         Enable internal x87 floating point error reporting when set, else enables PC style x87 error detection     
-	#define WP 0x10000      //Write protect         When set, the CPU can't write to read-only pages when privilege level is 0 
+	#define NE 0x20       //Numeric error         Enable internal x87 floating point error reporting when set, else enables PC style x87 error detection
+	#define WP 0x10000      //Write protect         When set, the CPU can't write to read-only pages when privilege level is 0
 	#define AM 0x40000      //Alignment mask        Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
 	#define NW 0x20000000     //Not-write through     Globally enables/disable write-through caching
 	#define CD 0x40000000      //Cache disable         Globally enables/disable the memory cache
@@ -331,14 +343,14 @@ lme:
 	movl	%edx, %cr0
 	ljmp $0x18, $_identity
 
-/*
- * Long mode. Welcome to 2003.
- * Jump out of the identity map space;
- * load a proper long mode GDT.
-	*/
+
+	/* Long mode. Welcome to 2003.
+	 * (TODO maybe): load a proper long mode GDT. */
 .code64
 
 _identity:
+	// This is a software breakpoint, for use until we're more
+	// sure about the code. It is to be removed. This is the
 	1:	 jmp 1b
 	call _start
 1:	 jmp 1b
@@ -357,6 +369,9 @@ _resetvector:
 	 * is little endian and allows us to use supported 32bit relocations
 	 * instead of the weird 16 bit relocations that binutils does not
 	 * handle consistently between versions because they are used so rarely.
-	 */
+	*/
+	// This id padding to get us properly sized. That way we don't care that
+	// our tools tend to load us, ARM-style, at the front of a region, rather
+	// than the back, x86-style (ARM roms are a 0; x86 at the top of 4 GiB).
 	.byte 0,0,0,0,0,0,0,0,0,0,0
 	.previous
