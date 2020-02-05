@@ -4,6 +4,8 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
+pub mod ioport;
+
 pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
