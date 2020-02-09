@@ -15,7 +15,7 @@
                 compatible = "ore-bootblob";
                 offset = <0xff0000>;
                 size = <0x10000>;
-                file = "target/x86_64-unknown-none/release/bootblob.bin";
+                file = "$(TARGET_DIR)/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";

@@ -8,7 +8,7 @@
 use clock::ClockNode;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
-use core::sync::atomic::{AtomicUsize, Ordering, spin_loop_hint};
+use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
@@ -40,7 +40,7 @@ pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
             arch::nop();
         }
         match SPIN_LOCK.load(Ordering::Relaxed) {
-            0 => {},
+            0 => {}
             entrypoint => unsafe {
                 let entrypoint = transmute::<usize, payload::EntryPoint>(entrypoint);
                 // TODO: fdt_address might different from boot hart

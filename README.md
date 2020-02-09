@@ -21,58 +21,52 @@ Oreboot+QEMU for ARM:
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
 
-Build Requirements
-------------------
-
- * Rust
- * Device tree compiler
-
-
 Building oreboot
 -----------------
 
 To setup your Rust environment for oreboot, see below:
 
 ```
-# Install some tools we will need later
-sudo apt install device-tree-compiler pkg-config libssl-dev
-
-# Install rustup
+# Install rustup.
 curl https://sh.rustup.rs -sSf | sh
 
-# Apply the Rust environment to your current shell
-source $HOME/.cargo/env
+# Use the nightly version of rust in the oreboot directory.
+cd oreboot/ && rustup override set nightly
 
-# Install cargo-make
-cargo install cargo-make
-
-# NOTE: The following needs to be run in the root of the oreboot directory
-cd oreboot/
-rustup override set nightly   # Set the nightly rust compiler to be used for oreboot
-cargo make setup              # Install a few compiler tools
+# Install dependencies.
+rustup component add rust-src llvm-tools-preview
+cargo install cargo-xbuild cargo-binutils
+sudo apt-get install device-tree-compiler pkg-config libssl-dev
 ```
 
 Occasionally you want to run `rustup update` to keep your Rust up-to-date.
 A good idea is to make sure you have the latest version before reporting any
 issues.
 
-To build oreboot for a specific platform, do like this:
+To build oreboot for a specific platform, do this:
 
 ```
-# Build for RISC-V
-export OREBOOT="${PWD}"
+# Go to the mainboard's directory.
 cd src/mainboard/sifive/hifive
-cargo make              # Debug
-cargo make -p release   # Optimized
-
+# Build in release mode.
+make
+# Build in debug mode.
+MODE=debug make
 # View disassembly
-cargo make objdump -p release
+make objdump
+# Run in QEMU simulation.
+make run
+# Flash with flashrom.
+make flash
+```
 
-# Run in QEMU simulation
-cargo make run -p release
+The root Makefile allows you to quickly build all platforms:
 
-# Alternatively, without setting OREBOOT, you can do like this
-cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/sifive/hifive
+```
+# build all mainboards
+make mainboards
+# build everything in parallel
+make -j mainboards
 ```
 
 QEMU
@@ -83,7 +77,7 @@ QEMU
 sudo apt install qemu-system-x86
 
 # Build release build and start with QEMU
-cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/emulation/qemu-q35 run -p release
+cd src/mainboard/emulation-q35 && make run
 # Quit qemu with CTRL-A X
 ```
 
@@ -111,7 +105,7 @@ Not yet.
 Ground Rules
 ------------------------
 
-* The build tool is cargo-make; there will be no GNU Makefiles.
+* Makefile must be simple. They cannot contain control flow.
 * Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel.
 * All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
 * There will be no C.
