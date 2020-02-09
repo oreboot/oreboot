@@ -1,25 +1,15 @@
 // null is a simple Null driver.
 // TODO: move it out of uart.
-use core::ops;
 use model::*;
 
-pub struct Null {
- 
-}
-
-impl Null {
-    pub fn new() -> Null {
-        Null { }
-    }
-
-}
+pub struct Null;
 
 impl Driver for Null {
     fn init(&mut self) -> Result<()> {
         Ok(())
     }
 
-    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         Ok(0)
     }
 
