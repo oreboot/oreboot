@@ -15,7 +15,7 @@
                 compatible = "ore-bootblob";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "target/arm-none-eabihf/release/bootblob.bin";
+                file = "$(TARGET_DIR)/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";

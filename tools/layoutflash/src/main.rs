@@ -70,8 +70,14 @@ fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
 
         // If a file is specified, write the file.
         if let Some(path) = &a.file {
+            // Allow environment variables in the path.
+            let path = match env::var("TARGET_DIR") {
+                Ok(target_dir) => str::replace(path, "$(TARGET_DIR)", &target_dir),
+                Err(_) => path.to_string(),
+            };
+
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = fs::read(path).expect(&format!("Can not read {}", path)[..]);
+            let mut data = fs::read(&path).expect(&format!("Can not read {}", path)[..]);
             if data.len() > a.size as usize {
                 eprintln!("warning: truncating {}", a.description);
                 data.truncate(a.size as usize);
