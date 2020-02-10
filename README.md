@@ -68,6 +68,9 @@ cargo make -p release   # Optimized
 # View disassembly
 cargo make objdump -p release
 
+# Run in QEMU simulation
+cargo make run -p release
+
 # Alternatively, without setting OREBOOT, you can do like this
 cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/sifive/hifive
 ```
