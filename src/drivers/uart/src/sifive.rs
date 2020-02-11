@@ -2,6 +2,7 @@
  * This file is part of the coreboot project.
  *
  * Copyright (C) 2018 Jonathan Neuschäfer
+ * Copyright (C) 2020 SiFive Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +26,8 @@ use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
 use register::register_bitfields;
+
+const RETRY_COUNT: u32 = 100_000;
 
 #[repr(C)]
 pub struct RegisterBlock {
@@ -101,30 +104,36 @@ impl Driver for SiFive {
         self.set_clock_rate(33330000);
         // Enable transmit.
         self.txc.modify(TXC::Enable.val(1));
+        // Enable receive.
+        self.rxc.modify(RXC::Enable.val(1));
         Ok(())
     }
 
-    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
-        return Ok(0);
-        // TODO
-        //for c in data.iter_mut() {
-        //    while ! self.RD.is_set(RD::Empty) {}
-        //    *c = self.RD.read(RD::Data) as u8;
-        //}
-        //Ok(data.len())
+    fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
+        'outer: for (read_count, c) in data.iter_mut().enumerate() {
+            for _ in 0..RETRY_COUNT {
+                // Create a copy of the rxdata register so that we don't
+                // lose the Data field when we read the Empty field.
+                let rd_copy = self.rd.extract();
+                if ! rd_copy.is_set(RD::Empty) {
+                    *c = rd_copy.read(RD::Data) as u8;
+                    continue 'outer;
+                }
+            }
+            return Ok(read_count);
+        }
+        Ok(data.len())
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_, &c) in data.iter().enumerate() {
-            // TODO: give up after 100k tries.
-            while self.td.is_set(TD::Full) {
-                // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
-                //       this loop. Remove if we deem it not necessary.
-                unsafe { asm!("" :::: "volatile") }
+        'outer: for (sent_count, &c) in data.iter().enumerate() {
+            for _ in 0..RETRY_COUNT {
+                if ! self.td.is_set(TD::Full) {
+                    self.td.set(c.into());
+                    continue 'outer;
+                }
             }
-            //return Ok(i);
-            //}
-            self.td.set(c.into());
+            return Ok(sent_count);
         }
         Ok(data.len())
     }

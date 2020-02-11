@@ -18,7 +18,7 @@ global_asm!(include_str!("init.S"));
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let uart0 = &mut NS16550::new(0x10000000, 115200);
-    uart0.init();
+    uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(uart0);

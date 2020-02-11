@@ -16,9 +16,11 @@ RUST_TARGET_PATH = "${OREBOOT}/src/cpu/intel/q35"
 install_crate = { rustup_component_name = "rust-src" }
 
 [tasks.default]
-dependencies = [ "resizeblob" ]
-command = "qemu-img"
-args = ["resize", "${TARGET_DIR}/bootblob.bin", "65536"]
+dependencies = [ "bootblob" ]
+script = [
+	"dtc fixed-dtfs.dts -O dtb -o fixed-dtfs.dtb",
+	"layoutflash fixed-dtfs.dtb ${TARGET_DIR}/oreboot.bin"
+]
 
 [tasks.build]
 dependencies = [ "install-rust-src" ]
@@ -31,13 +33,10 @@ dependencies = [ "build" ]
 command = "cargo"
 args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/oreboot", "${TARGET_DIR}/bootblob.bin"]
 
-[tasks.resizeblob]
-dependencies = [ "bootblob" ]
-
 [tasks.run]
-dependencies = ["resizeblob"]
+dependencies = ["default"]
 command = "qemu-system-x86_64"
-args = ["-m", "1g", "-machine", "q35", "-nographic", "-bios", "${TARGET_DIR}/bootblob.bin"]
+args = ["-m", "1g", "-machine", "q35", "-nographic", "-bios", "${TARGET_DIR}/oreboot.bin", "-s","-cpu", "Icelake-Server", "-monitor", "/dev/tty",]
 
 [tasks.objdump]
 dependencies = ["build"]
