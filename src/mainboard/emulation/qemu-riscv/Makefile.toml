@@ -30,12 +30,12 @@ args = ["objcopy", "--", "-O", "binary", "${TARGET_DIR}/oreboot", "${TARGET_DIR}
 [tasks.resizeblob]
 dependencies = [ "bootblob" ]
 command = "qemu-img"
-args = ["resize", "${TARGET_DIR}/bootblob.bin", "33554432"]
+args = ["resize", "-f", "raw", "${TARGET_DIR}/bootblob.bin", "33554432"]
 
 [tasks.run]
 dependencies = ["resizeblob"]
 command = "qemu-system-riscv64"
-args = ["-m", "1g", "-machine", "virt", "-nographic", "-bios", "none", "-pflash", "${TARGET_DIR}/bootblob.bin"]
+args = ["-m", "1g", "-machine", "virt", "-nographic", "-bios", "none", "-drive", "format=raw,if=pflash,file=${TARGET_DIR}/bootblob.bin"]
 
 [tasks.objdump]
 dependencies = ["build"]
