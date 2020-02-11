@@ -11,5 +11,6 @@ opt-level = 'z'  # Optimize for size.
 arch = { path = "../../../arch/riscv/rv64"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }
+spi = { path = "../../../drivers/sifive/spi" }
 register = "0.3.2"
 

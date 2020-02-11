@@ -74,6 +74,14 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
 
+    if !is_qemu() {
+        uart0.pwrite(b"Initializing SPI controller...", 0).unwrap();
+        spi0.init().unwrap();
+        spi0.setup(0, soc::spi::FU540SPICONFIG).unwrap();
+        spi0.mmap(soc::spi::FU540SPIMMAPCONFIG).unwrap();
+        uart0.pwrite(b"Done\r\n", 0).unwrap();
+    }
+
     let w = &mut print::WriteTo::new(uart0);
 
     write!(w, "## ROM Device Tree\r\n").unwrap();
