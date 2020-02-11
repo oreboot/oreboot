@@ -49,6 +49,10 @@ dependencies = ["default"]
 command = "qemu-system-riscv64"
 args = ["-m", "1g", "-machine", "sifive_u,start-in-flash=true", "-nographic", "-device", "loader,addr=0x20000000,file=${TARGET_DIR}/oreboot.bin", "-bios", "none", "-d", "guest_errors", "-s", "-S", "-smp", "4"]
 
+[tasks.flash-openocd]
+dependencies = ["default"]
+script = ["$(which openocd) -f openocd.cfg -c \"flash write_image erase unlock ${TARGET_DIR}/oreboot.bin 0x20000000; shutdown\"",]
+
 [tasks.objdump]
 dependencies = ["build"]
 command = "cargo"

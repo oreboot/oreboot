@@ -23,6 +23,8 @@ cargo make -p release
 # The output is target/riscv64imac-unknown-none-elf/release/oreboot.bin
 ```
 
+## Flashing with flashrom
+
 4. While flashing, make sure all external power is removed from the board.
    Using a 16-pin Pomona clip, connect a SF100 to the board as seen in the
    image below.
@@ -55,6 +57,13 @@ minicom -D /dev/ttyUSB1 -b 115200
 
 ![USB](usb.jpg)
 
+## Alternate: Flashing with OpenOCD
+
+4. With RISC-V OpenOCD installed on your system, the HiFive unleashed can be programmed over USB:
+
+```
+cargo make -p release flash-openocd
+```
 
 ## Debugging with GDB
 
