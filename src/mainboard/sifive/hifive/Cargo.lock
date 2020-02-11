@@ -164,6 +164,7 @@ dependencies = [
  "clock 0.1.0",
  "model 0.1.0",
  "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spi 0.1.0",
 ]
 
 [[package]]
