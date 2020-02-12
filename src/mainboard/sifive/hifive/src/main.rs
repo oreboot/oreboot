@@ -74,11 +74,24 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
 
+    // QEMU doesn't emulate the SPI controller interface
     if !is_qemu() {
-        uart0.pwrite(b"Initializing SPI controller...", 0).unwrap();
-        spi0.init().unwrap();
-        spi0.setup(0, soc::spi::FU540SPICONFIG).unwrap();
-        spi0.mmap(soc::spi::FU540SPIMMAPCONFIG).unwrap();
+        // Right now we execute out of the memory mapped by spi0, so we can't
+        // reconfigure it. Show that the SPI init code works by initializing
+        // spi1.
+        uart0.pwrite(b"Initializing SPI1 controller...", 0).unwrap();
+        spi1.init().unwrap();
+        spi1.mmap(soc::spi::FU540_SPI_MMAP_CONFIG).unwrap();
+        uart0.pwrite(b"Done\r\n", 0).unwrap();
+
+        uart0.pwrite(b"Testing read from SPI1 mapped memory...", 0).unwrap();
+        unsafe {
+            // Perform a read at the base address of the SPI1 memory mapped space
+            let mut _val: u32 = *(0x30000000 as *const u32);
+            // Volatile `and` operation of the value with itself to try and make
+            // sure that we don't optimize the read out.
+            asm!("and $0, $1, $1" : "=r"(_val) : "r"(_val) :: "volatile");
+        }
         uart0.pwrite(b"Done\r\n", 0).unwrap();
     }
 
