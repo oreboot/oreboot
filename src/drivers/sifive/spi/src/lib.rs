@@ -1,6 +1,24 @@
+/*
+ * This file is part of the oreboot project.
+ *
+ * Copyright (C) 2020 SiFive Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/*
+ * This is a driver for the SiFive SPI Controller, documented in the FU540 manual:
+ * https://www.sifive.com/documentation/chips/freedom-u540-c000-manual/
+ */
 #![no_std]
 #![deny(warnings)]
-/// This is a driver for SiFive's SPI master, documented in the FU540 manual:
 
 use model::*;
 use core::ops;
