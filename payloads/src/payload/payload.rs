@@ -1,8 +1,10 @@
 use core::intrinsics::{copy, transmute};
+use core::fmt::Write;
 use model::{Driver, EOF};
 use postcard::from_bytes;
 use serde::Deserialize;
 use wrappers::{Memory, SectionReader};
+use print;
 //use serde::{Serialize, Deserialize};
 
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
@@ -158,6 +160,7 @@ pub struct Segment<'a> {
 }
 
 #[derive(Deserialize)]
+#[derive(Debug)]
 pub struct CBFSSeg {
     pub typ: u32,
     pub off: u32,
@@ -172,23 +175,36 @@ pub struct CBFSSeg {
 // TOOD: remove all uses of non-streaming payloads.
 impl StreamPayload {
     /// Load the payload in memory. Returns the entrypoint.
-    pub fn load(&mut self) {
+    pub fn load(&mut self, w: &mut print::WriteTo) {
+        write!(w, "Greetings from the payload loader:\n").unwrap();
         // TODO: how many segments are there?
         // The coreboot convention: ENTRY marks the last segment.
         // we need to ensure we create them that way too.
         let mut hdr:usize = 0;
         loop {
             let v = &mut [0u8; 40];
+            write!(w, "rom at {:#x}\n", self.rom).unwrap();
             let rom = SectionReader::new(&Memory {}, self.rom + hdr, 40);
             hdr += 40;
-            rom.pread(v, 0).unwrap();
-            let seg: CBFSSeg = from_bytes(v).unwrap();
+            match rom.pread(v, 0) {
+                Ok(n) => write!(w, "{} bytes", n).unwrap(),
+                Err(err) => panic!("hell  {}", err),
+            }
+use std::io::Cursor;
+use byteorder::{BigEndian, ReadBytesExt};
+
+let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
+// Note that we use type parameters to indicate which kind of byte order
+// we want!
+assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
+assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());            let seg: CBFSSeg = from_bytes(v).unwrap();
             let typ: stype = core::convert::From::from(seg.typ);
             let mut load = seg.load as usize;
-            
+            write!(w, "seg is {:#x} {:#x} {:#x} {:#x} {:#x} \n", seg.typ, seg.off, seg.load, seg.len, seg.memlen).unwrap();
             // Copy from driver into segment.
             let mut buf = [0u8; 512];
             let mut off = seg.off as usize;
+            
             match (self.dtb == 0, typ) {
                 (_, stype::PAYLOAD_SEGMENT_ENTRY)  => {
                     self.entry = load;
@@ -215,11 +231,12 @@ impl StreamPayload {
     }
 
     /// Run the payload. This might not return.
-    pub fn run(&self) {
+    pub fn run(&self, w: &mut print::WriteTo) {
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
         unsafe {
             let f = transmute::<usize, EntryPoint>(self.entry);
+            write!(w, "jump to {}\n", self.entry).unwrap();
             f(1, self.dtb);
         }
         // TODO: error when payload returns.

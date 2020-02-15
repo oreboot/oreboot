@@ -38,13 +38,13 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         rom_len: 0 as usize,
         mem_len: 0 as usize,
         dtb: 0,
-        rom: 0,
+        rom: 0xff000000,
     };
 
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
-    payload.load();
+    payload.load(w);
     write!(w, "Running payload\r\n").unwrap();
-    payload.run();
+    payload.run(w);
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
     arch::halt()

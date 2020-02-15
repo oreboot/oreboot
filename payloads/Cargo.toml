@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 model = { path = "../src/drivers/model"}
 postcard = "0.4.3"
+print = { path = "../src/lib/print" }
 serde = { version = "1.0", default-features = false }
 wrappers = { path = "../src/drivers/wrappers"}
 
