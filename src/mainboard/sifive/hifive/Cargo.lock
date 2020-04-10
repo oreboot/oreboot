@@ -3,6 +3,9 @@
 [[package]]
 name = "arch"
 version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
 
 [[package]]
 name = "as-slice"

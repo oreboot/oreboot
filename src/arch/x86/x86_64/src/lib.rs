@@ -19,3 +19,19 @@ pub fn fence() {
 pub fn nop() {
     unsafe { asm!("nop" :::: "volatile") }
 }
+
+/// The driver uses IO instructions.
+pub struct IOPort;
+
+impl Driver for IOPort {
+    fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
+        Ok(data.len())
+    }
+
+    fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize> {
+        Ok(data.len())
+    }
+
+    fn shutdown(&mut self) {}
+}
+
