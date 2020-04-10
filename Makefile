@@ -1,5 +1,7 @@
 help:
 	@echo 'Make options:'
+	@echo 'firsttime -- for the first time you run make'
+	@echo 'update -- to update the install'
 	@echo '  # Build a single board'
 	@echo '  make VENDOR/BOARD'
 	@echo '  # This is equivalent to'
@@ -18,6 +20,16 @@ mainboards: $(MAINBOARDS)
 
 $(MAINBOARDS):
 	cd src/mainboard/$@ && make
+
+firsttime:
+	curl https://sh.rustup.rs -sSf | sh
+	rustup override set nightly
+	rustup component add rust-src llvm-tools-preview
+	cargo install cargo-xbuild cargo-binutils
+	sudo apt-get install device-tree-compiler pkg-config libssl-dev
+
+update:
+	rustup update
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)
