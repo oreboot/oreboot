@@ -21,27 +21,37 @@ Oreboot+QEMU for ARM:
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
 
-Building oreboot
------------------
+Getting oreboot
+---------------
 
+Clone this repo, e.g. git clone git://github.com/oreboot/oreboot
+
+Setting up build tools
+----------------------
+
+You need an up to date Rust environment.
 To setup your Rust environment for oreboot, see below:
 
 ```
-# Install rustup.
-curl https://sh.rustup.rs -sSf | sh
-
-# Use the nightly version of rust in the oreboot directory.
-cd oreboot/ && rustup override set nightly
-
-# Install dependencies.
-rustup component add rust-src llvm-tools-preview
-cargo install cargo-xbuild cargo-binutils
-sudo apt-get install device-tree-compiler pkg-config libssl-dev
+cd oreboot
+# This command only needs to be done once but it is safe to do it repeatedly
+make firsttime
 ```
 
-Occasionally you want to run `rustup update` to keep your Rust up-to-date.
-A good idea is to make sure you have the latest version before reporting any
-issues.
+Keeping build tools up to date
+------------------------------
+
+Each time you start to work with oreboot, or even daily:
+
+```
+cd oreboot
+make update
+```
+
+You should definitely do this before reporting any issues.
+
+Building oreboot
+----------------
 
 To build oreboot for a specific platform, do this:
 
