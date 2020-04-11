@@ -32,8 +32,8 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 }
 
 // TODO: Move this function to lib so it can be used at runtime.
-fn read_fixed_fdt(path: &Path) -> Vec<Area> {
-    let data = fs::read(path).expect(&format!("could not read {:?}", path)[..]);
+fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
+    let data = fs::read(path)?;
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
@@ -60,11 +60,12 @@ fn read_fixed_fdt(path: &Path) -> Vec<Area> {
             }
         }
     }
-    areas
+
+    Ok(areas)
 }
 
-fn layout_flash(path: &Path, areas: &Vec<Area>) -> io::Result<()> {
-    let mut f = fs::File::create(path).expect(&format!("Can not create {:?}", path)[..]);
+fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
+    let mut f = fs::File::create(path)?;
     for a in areas {
         // First fill with 0xff.
         let mut v = Vec::new();
@@ -81,7 +82,7 @@ fn layout_flash(path: &Path, areas: &Vec<Area>) -> io::Result<()> {
             };
 
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = fs::read(&path).expect(&format!("Can not read {}", path)[..]);
+            let mut data = fs::read(&path)?;
             if data.len() > a.size as usize {
                 eprintln!("warning: truncating {}", a.description);
                 data.truncate(a.size as usize);
@@ -105,10 +106,10 @@ struct Opts {
 fn main() {
     let args = Opts::parse();
 
-    let areas = read_fixed_fdt(&args.in_fdt);
-
-    if let Err(err) = layout_flash(&args.out_firmware, &areas) {
-        eprintln!("failed: {}", err);
-        exit(1);
-    }
+    read_fixed_fdt(&args.in_fdt)
+        .and_then(|areas| layout_flash(&args.out_firmware, &areas))
+        .unwrap_or_else(|err| {
+            eprintln!("failed: {}", err);
+            exit(1);
+        });
 }
