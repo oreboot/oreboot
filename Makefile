@@ -23,6 +23,7 @@ $(MAINBOARDS):
 
 firsttime:
 	curl https://sh.rustup.rs -sSf | sh
+	rustup override set nightly
 	rustup component add rust-src llvm-tools-preview
 	cargo install cargo-xbuild cargo-binutils
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
