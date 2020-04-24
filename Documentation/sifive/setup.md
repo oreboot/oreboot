@@ -10,16 +10,13 @@ This tutorial gets you setup to run Oreboot on the HiFive Unleashed board.
 
 ```
 cd src/mainboard/sifive/hifive
-cargo make -p release run
+make run
 ```
-
-| ⚠️ **WARNING:** If you modify the linker script lind.ld, you must "rm -rf" the target directory. |
-| --- |
 
 3. Create a flash image.
 
 ```
-cargo make -p release
+cargo make
 # The output is target/riscv64imac-unknown-none-elf/release/oreboot.bin
 ```
 
