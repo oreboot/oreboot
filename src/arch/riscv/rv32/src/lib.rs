@@ -4,8 +4,7 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-pub fn init() {
-}
+pub fn init() {}
 
 pub fn halt() -> ! {
     loop {

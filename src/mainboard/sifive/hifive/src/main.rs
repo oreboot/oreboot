@@ -64,12 +64,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
 
     uart0.pwrite(b"Initializing clocks...\r\n", 0).unwrap();
     // Peripheral clocks get their dividers updated when the PLL initializes.
-    let mut clks = [
-        spi0 as &mut dyn ClockNode,
-        spi1 as &mut dyn ClockNode,
-        spi2 as &mut dyn ClockNode,
-        uart0 as &mut dyn ClockNode,
-    ];
+    let mut clks = [spi0 as &mut dyn ClockNode, spi1 as &mut dyn ClockNode, spi2 as &mut dyn ClockNode, uart0 as &mut dyn ClockNode];
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
@@ -121,8 +116,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     write!(w, "Initializing DDR...\r\n").unwrap();
     let mut ddr = DDR::new();
 
-    let m =
-        ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
+    let m = ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
 
     write!(w, "Done\r\n").unwrap();
 
@@ -131,25 +125,16 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     write!(w, "Testing DDR...\r\n").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
-        Err((a, v)) => {
-            write!(w, "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize,).unwrap()
-        }
+        Err((a, v)) => write!(w, "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize,).unwrap(),
         _ => write!(w, "Passed\r\n").unwrap(),
     }
 
     // TODO; This payload structure should be loaded from SPI rather than hardcoded.
-    let kernel_segs = &[
-        payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: mem,
-            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000),
-        },
-        payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-            base: fdt_address, /*mem + 10*1024*1024*/
-            data: &mut SliceReader::new(&[0u8; 0]),
-        },
-    ];
+    let kernel_segs = &[payload::Segment { typ: payload::stype::PAYLOAD_SEGMENT_ENTRY, base: mem, data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000) }, payload::Segment {
+        typ: payload::stype::PAYLOAD_SEGMENT_DATA,
+        base: fdt_address, /*mem + 10*1024*1024*/
+        data: &mut SliceReader::new(&[0u8; 0]),
+    }];
     let mut payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
@@ -201,8 +186,7 @@ pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'s
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,)
-                    .unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,).unwrap();
             }
         }
     }

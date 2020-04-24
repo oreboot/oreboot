@@ -115,7 +115,7 @@ impl Driver for SiFive {
                 // Create a copy of the rxdata register so that we don't
                 // lose the Data field when we read the Empty field.
                 let rd_copy = self.rd.extract();
-                if ! rd_copy.is_set(RD::Empty) {
+                if !rd_copy.is_set(RD::Empty) {
                     *c = rd_copy.read(RD::Data) as u8;
                     continue 'outer;
                 }
@@ -128,7 +128,7 @@ impl Driver for SiFive {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         'outer: for (sent_count, &c) in data.iter().enumerate() {
             for _ in 0..RETRY_COUNT {
-                if ! self.td.is_set(TD::Full) {
+                if !self.td.is_set(TD::Full) {
                     self.td.set(c.into());
                     continue 'outer;
                 }
