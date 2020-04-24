@@ -1,12 +1,12 @@
 use core::ops;
 use model::*;
 
+use crate::is_qemu;
 use crate::reg;
 use crate::ux00;
-use crate::is_qemu;
+use core::convert::TryInto;
 use register::mmio::ReadWrite;
 use register::register_bitfields;
-use core::convert::TryInto;
 
 #[repr(C)]
 
@@ -72,7 +72,7 @@ impl Driver for DDR {
             b"on" => {
                 sdram_init();
                 Ok(mem_size().try_into().unwrap())
-            },
+            }
             _ => Ok(0),
         }
     }
@@ -252,7 +252,7 @@ fn sdram_init() {
 
 pub fn mem_size() -> u64 {
     if is_qemu() {
-        return 1*1024*1024*1024
+        return 1 * 1024 * 1024 * 1024;
     }
     reg::DDR_SIZE
 }

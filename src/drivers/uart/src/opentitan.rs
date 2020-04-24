@@ -37,11 +37,11 @@ pub struct RegisterBlock {
     status: ReadOnly<u32, STATUS::Register>, /* UART live status register */
     rdata: ReadOnly<u32, RDATA::Register>,   /* UART read data */
     // needs to be at 0x18
-    wdata: ReadWrite<u32, WDATA::Register>, /* UART write data */
-    fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>, /* UART FIFO control register */
-    fifo_status: ReadOnly<u32, FIFO_STATUS::Register>, /* UART FIFO status register */
-    ovrd: ReadWrite<u32, OVRD::Register>, /* TX pin override control. Gives direct SW control over TX pin state */
-    val: ReadOnly<u32, VAL::Register>,    /* UART oversampled values */
+    wdata: ReadWrite<u32, WDATA::Register>,               /* UART write data */
+    fifo_ctrl: ReadWrite<u32, FIFO_CTRL::Register>,       /* UART FIFO control register */
+    fifo_status: ReadOnly<u32, FIFO_STATUS::Register>,    /* UART FIFO status register */
+    ovrd: ReadWrite<u32, OVRD::Register>,                 /* TX pin override control. Gives direct SW control over TX pin state */
+    val: ReadOnly<u32, VAL::Register>,                    /* UART oversampled values */
     timeout_ctrl: ReadWrite<u32, TIMEOUT_CTRL::Register>, /* UART RX timeout control */
 }
 register_bitfields! {
@@ -215,9 +215,9 @@ impl OpenTitanUART {
 impl Driver for OpenTitanUART {
     fn init(&mut self) -> Result<()> {
         // nco = 2^20 * baud / fclk
-        let uart_ctrl_nco = (self.baudrate/BAUD_PRE_DIVIDER) as u32;
+        let uart_ctrl_nco = (self.baudrate / BAUD_PRE_DIVIDER) as u32;
         let uart_ctrl_nco = (uart_ctrl_nco << 20) as u32;
-        let uart_ctrl_nco = (uart_ctrl_nco/(CLK_FIXED_FREQ_HZ/BAUD_PRE_DIVIDER)) as u32;
+        let uart_ctrl_nco = (uart_ctrl_nco / (CLK_FIXED_FREQ_HZ / BAUD_PRE_DIVIDER)) as u32;
 
         // Set this value to 0x4ea4 for verilator
         let ctrl_val = uart_ctrl_nco as u32;

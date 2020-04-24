@@ -205,7 +205,7 @@ pub fn infer_type(data: &[u8]) -> Type {
         if i == data.len() - 1 && data[i] == 0 {
             match core::str::from_utf8(&data[..data.len() - 1]) {
                 Ok(ret) => return Type::String(ret),
-                Err(_e) => {  },
+                Err(_e) => {}
             }
         }
     }

@@ -106,10 +106,8 @@ struct Opts {
 fn main() {
     let args = Opts::parse();
 
-    read_fixed_fdt(&args.in_fdt)
-        .and_then(|areas| layout_flash(&args.out_firmware, &areas))
-        .unwrap_or_else(|err| {
-            eprintln!("failed: {}", err);
-            exit(1);
-        });
+    read_fixed_fdt(&args.in_fdt).and_then(|areas| layout_flash(&args.out_firmware, &areas)).unwrap_or_else(|err| {
+        eprintln!("failed: {}", err);
+        exit(1);
+    });
 }
