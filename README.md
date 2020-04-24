@@ -1,5 +1,5 @@
 oreboot README
-===============
+==============
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 
@@ -26,17 +26,18 @@ Getting oreboot
 
 Clone this repo, e.g. git clone git://github.com/oreboot/oreboot
 
+
 Setting up build tools
 ----------------------
 
-You need an up to date Rust environment.
-To setup your Rust environment for oreboot, see below:
+Setup your Rust environment for oreboot:
 
 ```
 cd oreboot
 # This command only needs to be done once but it is safe to do it repeatedly
 make firsttime
 ```
+
 
 Keeping build tools up to date
 ------------------------------
@@ -49,6 +50,7 @@ make update
 ```
 
 You should definitely do this before reporting any issues.
+
 
 Building oreboot
 ----------------
@@ -79,6 +81,7 @@ make mainboards
 make -j mainboards
 ```
 
+
 QEMU
 ----
 
@@ -101,26 +104,35 @@ make -j$(nproc)
 # QEMU binary is at riscv64-softmmu/qemu-system-riscv64
 ```
 
-Oreboot on Hardware
--------------------
 
-* [HiFive Unleashed](Documentation/sifive/setup.md)
+Oreboot Mainboards
+------------------
 
+* Emulation
+  * qemu-armv7
+  * qemu-q35
+  * qemu-riscv
+* Hardware
+  * Aspeed ast25x0
+  * Nuvoton npcm7xx
+  * OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
+  * SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
 
-Website and Mailing List
-------------------------
-
-Not yet.
 
 Ground Rules
-------------------------
+------------
 
 * Makefile must be simple. They cannot contain control flow.
-* Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel.
-* All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
+* Cargo.toml files are located in the src/mainboard/x/y directories. which will
+  allow us to build all boards in parallel.
+* All code is auto-formatted with rustfmt with no exceptions. There are no
+  vestiges of the 19th century such as line length limits.
 * There will be no C.
-* We will not run our own Gerrit. We are using Github for now, and the github Pull Request review mechanism.
-* We will not run our own Jenkins. We will use the most appropriate CI; for now, that is Azure but we will be flexible.
+* We will not run our own Gerrit. We are using Github for now, and the github
+  Pull Request review mechanism.
+* We will not run our own Jenkins. We will use the most appropriate CI; for
+  now, that is Azure but we will be flexible.
+
 
 Ground Rules for x86
 --------------------
