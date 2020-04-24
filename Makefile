@@ -24,12 +24,15 @@ $(MAINBOARDS):
 firsttime:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
 	rustup override set nightly
-	rustup component add rust-src llvm-tools-preview
+	rustup component add rust-src llvm-tools-preview rustfmt
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
 	cargo install cargo-xbuild cargo-binutils
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
+
+fmt:
+	find -name Cargo.toml | xargs -I{} cargo fmt --manifest-path {}
 
 update:
 	rustup update

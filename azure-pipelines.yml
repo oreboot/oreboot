@@ -17,6 +17,10 @@ steps:
     make firsttime
   displayName: 'Install Rust Dependencies'
 - script: |
+    make fmt
+    git diff --exit-code || (echo 'Please format your diff, run "make fmt"' && exit 1)
+  displayName: 'Check formatting'
+- script: |
     cd src/mainboard/sifive/hifive
     make
   displayName: 'Build SiFive board for RISC-V'
