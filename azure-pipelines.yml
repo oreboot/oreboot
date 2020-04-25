@@ -14,11 +14,7 @@ pool:
 
 steps:
 - script: |
-    curl https://sh.rustup.rs -sSf | sh
-    rustup override set nightly
-    rustup component add rust-src llvm-tools-preview
-    cargo install cargo-xbuild cargo-binutils
-    sudo apt-get install device-tree-compiler
+    make firsttime
   displayName: 'Install Rust Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
