@@ -22,7 +22,7 @@ $(MAINBOARDS):
 	cd src/mainboard/$@ && make
 
 firsttime:
-	curl https://sh.rustup.rs -sSf | sh
+	curl https://sh.rustup.rs -sSf | sh -s -- -y
 	rustup override set nightly
 	rustup component add rust-src llvm-tools-preview
 	rustup target add riscv64imac-unknown-none-elf
