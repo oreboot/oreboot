@@ -251,7 +251,7 @@ impl Driver for OpenTitanUART {
             while self.status.is_set(STATUS::TXFULL) {
                 // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
                 //       this loop. Remove if we deem it not necessary.
-                unsafe { asm!("" :::: "volatile") }
+                unsafe { llvm_asm!("" :::: "volatile") }
             }
             //return Ok(i);
             //}

@@ -1,4 +1,4 @@
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -90,7 +90,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
             let mut _val: u32 = *(0x30000000 as *const u32);
             // Volatile `and` operation of the value with itself to try and make
             // sure that we don't optimize the read out.
-            asm!("and $0, $1, $1" : "=r"(_val) : "r"(_val) :: "volatile");
+            llvm_asm!("and $0, $1, $1" : "=r"(_val) : "r"(_val) :: "volatile");
         }
         uart0.pwrite(b"Done\r\n", 0).unwrap();
     }
