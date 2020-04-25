@@ -25,6 +25,9 @@ firsttime:
 	curl https://sh.rustup.rs -sSf | sh
 	rustup override set nightly
 	rustup component add rust-src llvm-tools-preview
+	rustup target add riscv64imac-unknown-none-elf
+	rustup target add riscv32imc-unknown-none-elf
+	rustup target add armv7r-none-eabi
 	cargo install cargo-xbuild cargo-binutils
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
 
