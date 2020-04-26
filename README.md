@@ -1,6 +1,8 @@
 oreboot README
 ==============
 
+[![Build Status](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_apis/build/status/oreboot.oreboot?branchName=master)](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&branchName=master)
+
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 
 oreboot will only target truly open systems requiring no binary blobs. For now, that means no x86.
