@@ -1,4 +1,4 @@
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -8,7 +8,7 @@
 use clock::ClockNode;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
-use core::sync::atomic::{AtomicUsize, Ordering, spin_loop_hint};
+use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
 use model::Driver;
@@ -40,7 +40,7 @@ pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
             arch::nop();
         }
         match SPIN_LOCK.load(Ordering::Relaxed) {
-            0 => {},
+            0 => {}
             entrypoint => unsafe {
                 let entrypoint = transmute::<usize, payload::EntryPoint>(entrypoint);
                 // TODO: fdt_address might different from boot hart
@@ -73,6 +73,27 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
+
+    // QEMU doesn't emulate the SPI controller interface
+    if !is_qemu() {
+        // Right now we execute out of the memory mapped by spi0, so we can't
+        // reconfigure it. Show that the SPI init code works by initializing
+        // spi1.
+        uart0.pwrite(b"Initializing SPI1 controller...", 0).unwrap();
+        spi1.init().unwrap();
+        spi1.mmap(soc::spi::FU540_SPI_MMAP_CONFIG).unwrap();
+        uart0.pwrite(b"Done\r\n", 0).unwrap();
+
+        uart0.pwrite(b"Testing read from SPI1 mapped memory...", 0).unwrap();
+        unsafe {
+            // Perform a read at the base address of the SPI1 memory mapped space
+            let mut _val: u32 = *(0x30000000 as *const u32);
+            // Volatile `and` operation of the value with itself to try and make
+            // sure that we don't optimize the read out.
+            llvm_asm!("and $0, $1, $1" : "=r"(_val) : "r"(_val) :: "volatile");
+        }
+        uart0.pwrite(b"Done\r\n", 0).unwrap();
+    }
 
     let w = &mut print::WriteTo::new(uart0);
 

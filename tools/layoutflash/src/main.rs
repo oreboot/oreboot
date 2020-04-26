@@ -1,10 +1,14 @@
 #![deny(warnings)]
+use clap::Clap;
 use device_tree::{infer_type, Entry, FdtReader, Type, MAX_NAME_SIZE};
 use model::Driver;
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
 use std::process::exit;
-use std::{env, fs};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 use wrappers::SliceReader;
 
 // TODO: Move this struct to lib so it can be used at runtime.
@@ -28,8 +32,8 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 }
 
 // TODO: Move this function to lib so it can be used at runtime.
-fn read_fixed_fdt(path: &str) -> Vec<Area> {
-    let data = fs::read(path).expect(&format!("could not read {}", path)[..]);
+fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
+    let data = fs::read(path)?;
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
@@ -56,11 +60,12 @@ fn read_fixed_fdt(path: &str) -> Vec<Area> {
             }
         }
     }
-    areas
+
+    Ok(areas)
 }
 
-fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
-    let mut f = fs::File::create(path).expect(&format!("Can not create {}", path)[..]);
+fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
+    let mut f = fs::File::create(path)?;
     for a in areas {
         // First fill with 0xff.
         let mut v = Vec::new();
@@ -70,8 +75,14 @@ fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
 
         // If a file is specified, write the file.
         if let Some(path) = &a.file {
+            // Allow environment variables in the path.
+            let path = match env::var("TARGET_DIR") {
+                Ok(target_dir) => str::replace(path, "$(TARGET_DIR)", &target_dir),
+                Err(_) => path.to_string(),
+            };
+
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = fs::read(path).expect(&format!("Can not read {}", path)[..]);
+            let mut data = fs::read(&path)?;
             if data.len() > a.size as usize {
                 eprintln!("warning: truncating {}", a.description);
                 data.truncate(a.size as usize);
@@ -82,19 +93,23 @@ fn layout_flash(path: &str, areas: &Vec<Area>) -> io::Result<()> {
     Ok(())
 }
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let (in_path, out_path) = match args.as_slice() {
-        [_, in_path, out_path] => (in_path, out_path),
-        _ => {
-            eprintln!("Usage: layoutflash <in-fdt> <out-firmware>");
-            std::process::exit(1);
-        }
-    };
+#[derive(Clap)]
+#[clap(version)]
+struct Opts {
+    /// The path to the firmware device tree file
+    in_fdt: PathBuf,
+    #[clap(parse(from_os_str))]
+    /// The output path for the firmware
+    out_firmware: PathBuf,
+}
 
-    let areas = read_fixed_fdt(in_path);
-    if let Err(err) = layout_flash(out_path, &areas) {
-        eprintln!("failed: {}", err);
-        exit(1);
-    }
+fn main() {
+    let args = Opts::parse();
+
+    read_fixed_fdt(&args.in_fdt)
+        .and_then(|areas| layout_flash(&args.out_firmware, &areas))
+        .unwrap_or_else(|err| {
+            eprintln!("failed: {}", err);
+            exit(1);
+        });
 }

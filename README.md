@@ -1,5 +1,7 @@
 oreboot README
-===============
+==============
+
+[![Build Status](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_apis/build/status/oreboot.oreboot?branchName=master)](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&branchName=master)
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 
@@ -21,59 +23,66 @@ Oreboot+QEMU for ARM:
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
 
-Build Requirements
-------------------
+Getting oreboot
+---------------
 
- * Rust
- * Device tree compiler
+Clone this repo, e.g. git clone git://github.com/oreboot/oreboot
+
+
+Setting up build tools
+----------------------
+
+Setup your Rust environment for oreboot:
+
+```
+cd oreboot
+# This command only needs to be done once but it is safe to do it repeatedly
+make firsttime
+```
+
+
+Keeping build tools up to date
+------------------------------
+
+Each time you start to work with oreboot, or even daily:
+
+```
+cd oreboot
+make update
+```
+
+You should definitely do this before reporting any issues.
 
 
 Building oreboot
------------------
+----------------
 
-To setup your Rust environment for oreboot, see below:
-
-```
-# Install some tools we will need later
-sudo apt install device-tree-compiler pkg-config libssl-dev
-
-# Install rustup
-curl https://sh.rustup.rs -sSf | sh
-
-# Apply the Rust environment to your current shell
-source $HOME/.cargo/env
-
-# Install cargo-make
-cargo install cargo-make
-
-# NOTE: The following needs to be run in the root of the oreboot directory
-cd oreboot/
-rustup override set nightly   # Set the nightly rust compiler to be used for oreboot
-cargo make setup              # Install a few compiler tools
-```
-
-Occasionally you want to run `rustup update` to keep your Rust up-to-date.
-A good idea is to make sure you have the latest version before reporting any
-issues.
-
-To build oreboot for a specific platform, do like this:
+To build oreboot for a specific platform, do this:
 
 ```
-# Build for RISC-V
-export OREBOOT="${PWD}"
+# Go to the mainboard's directory.
 cd src/mainboard/sifive/hifive
-cargo make              # Debug
-cargo make -p release   # Optimized
-
+# Build in release mode.
+make
+# Build in debug mode.
+MODE=debug make
 # View disassembly
-cargo make objdump -p release
-
-# Run in QEMU simulation
-cargo make run -p release
-
-# Alternatively, without setting OREBOOT, you can do like this
-cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/sifive/hifive
+make objdump
+# Run in QEMU simulation.
+make run
+# Flash with flashrom.
+make flash
 ```
+
+The root Makefile allows you to quickly build all platforms:
+
+```
+# build all mainboards
+make mainboards
+# build everything in parallel
+make -j mainboards
+```
+
 
 QEMU
 ----
@@ -83,7 +92,7 @@ QEMU
 sudo apt install qemu-system-x86
 
 # Build release build and start with QEMU
-cargo make --env OREBOOT="${PWD}" --cwd src/mainboard/emulation/qemu-q35 run -p release
+cd src/mainboard/emulation-q35 && make run
 # Quit qemu with CTRL-A X
 ```
 
@@ -97,26 +106,35 @@ make -j$(nproc)
 # QEMU binary is at riscv64-softmmu/qemu-system-riscv64
 ```
 
-Oreboot on Hardware
--------------------
 
-* [HiFive Unleashed](Documentation/sifive/setup.md)
+Oreboot Mainboards
+------------------
 
+* Emulation
+  * qemu-armv7
+  * qemu-q35
+  * qemu-riscv
+* Hardware
+  * Aspeed ast25x0
+  * Nuvoton npcm7xx
+  * OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
+  * SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
 
-Website and Mailing List
-------------------------
-
-Not yet.
 
 Ground Rules
-------------------------
+------------
 
-* The build tool is cargo-make; there will be no GNU Makefiles.
-* Cargo.toml files are located in the src/mainboard/x/y directories. which will allow us to build all boards in parallel.
-* All code is auto-formatted with rustfmt with no exceptions. There are no vestiges of the 19th century such as line length limits.
+* Makefile must be simple. They cannot contain control flow.
+* Cargo.toml files are located in the src/mainboard/x/y directories. which will
+  allow us to build all boards in parallel.
+* All code is auto-formatted with rustfmt with no exceptions. There are no
+  vestiges of the 19th century such as line length limits.
 * There will be no C.
-* We will not run our own Gerrit. We are using Github for now, and the github Pull Request review mechanism.
-* We will not run our own Jenkins. We will use the most appropriate CI; for now, that is Azure but we will be flexible.
+* We will not run our own Gerrit. We are using Github for now, and the github
+  Pull Request review mechanism.
+* We will not run our own Jenkins. We will use the most appropriate CI; for
+  now, that is Azure but we will be flexible.
+
 
 Ground Rules for x86
 --------------------

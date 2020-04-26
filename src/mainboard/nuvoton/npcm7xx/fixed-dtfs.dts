@@ -15,14 +15,14 @@
                 compatible = "ore-bootblob";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "target/riscv64imac-unknown-none-elf/release/bootblob.bin";
+                file = "$(TARGET_DIR)/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 offset = <0x80000>;
                 size = <0x80000>; // 512KiB
-                file = "target/riscv64imac-unknown-none-elf/release/fixed-dtfs.dtb";
+                file = "fixed-dtfs.dtb";
             };
             area@2 {
                 description = "NVRAM A";

@@ -1,14 +1,3 @@
-[config]
-# no default tasks
-skip_core_tasks = true
-
-[env.development]
-CARGO_ARGS = "--verbose"
-TARGET_DIR = "target/riscv32imc-unknown-none-elf/debug"
-
-[env.release]
-CARGO_ARGS = "--release --verbose"
-TARGET_DIR = "target/riscv32imc-unknown-none-elf/release"
 
 # TODO: determine the actual correct size of flash.bin and oreboot.bin
 [tasks.default]

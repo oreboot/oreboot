@@ -1,4 +1,4 @@
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -69,7 +69,7 @@ pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
         // See: https://github.com/rust-lang/rust/issues/28728
-        unsafe { asm!("" :::: "volatile") }
+        unsafe { llvm_asm!("" :::: "volatile") }
     }
 }
 

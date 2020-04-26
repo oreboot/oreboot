@@ -10,18 +10,17 @@ This tutorial gets you setup to run Oreboot on the HiFive Unleashed board.
 
 ```
 cd src/mainboard/sifive/hifive
-cargo make -p release run
+make run
 ```
-
-| ⚠️ **WARNING:** If you modify the linker script lind.ld, you must "rm -rf" the target directory. |
-| --- |
 
 3. Create a flash image.
 
 ```
-cargo make -p release
+cargo make
 # The output is target/riscv64imac-unknown-none-elf/release/oreboot.bin
 ```
+
+## Flashing with flashrom
 
 4. While flashing, make sure all external power is removed from the board.
    Using a 16-pin Pomona clip, connect a SF100 to the board as seen in the
@@ -55,6 +54,13 @@ minicom -D /dev/ttyUSB1 -b 115200
 
 ![USB](usb.jpg)
 
+## Alternate: Flashing with OpenOCD
+
+4. With RISC-V OpenOCD installed on your system, the HiFive unleashed can be programmed over USB:
+
+```
+cargo make -p release flash-openocd
+```
 
 ## Debugging with GDB
 

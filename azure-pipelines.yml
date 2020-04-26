@@ -14,20 +14,15 @@ pool:
 
 steps:
 - script: |
-    curl https://sh.rustup.rs -sSf | sh
-    rustup override set nightly
-    cargo install cargo-make
-    cargo make setup
-    sudo apt-get install device-tree-compiler
-    (cd tools/layoutflash && cargo make -p install)
+    make firsttime
   displayName: 'Install Rust Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
-    cargo make -p release
+    make
   displayName: 'Build SiFive board for RISC-V'
 - script: |
     cd src/mainboard/emulation/qemu-riscv
-    cargo make -p release
+    make
   displayName: 'Build QEMU virt board for RISC-V'
 - script: |
     set -e
@@ -40,16 +35,11 @@ steps:
   displayName: 'Install RISC-V QEMU Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
-    timeout 120s cargo make run -p release | tee serial
+    timeout 120s make run | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V SiFive board QEMU Test'
 - script: |
     cd src/mainboard/emulation/qemu-riscv
-    timeout 30s cargo make run -p release | tee serial
+    timeout 30s make run | tee serial
     grep "Running payload" serial
   displayName: 'RISC-V QEMU Virt board QEMU Test'
-- script: |
-    cd src/mainboard/opentitan/crb
-    echo This works for me now,what is wrong with our azure
-    echo timeout 30s cargo make -p release
-  displayName: 'RISC-V opentitan build test'

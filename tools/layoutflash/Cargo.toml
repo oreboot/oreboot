@@ -8,3 +8,4 @@ edition = "2018"
 device_tree = { path = "../../src/lib/device_tree" }
 model = { path = "../../src/drivers/model" }
 wrappers = { path = "../../src/drivers/wrappers" }
+clap = { git = "https://github.com/clap-rs/clap" }

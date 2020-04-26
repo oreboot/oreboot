@@ -1,4 +1,4 @@
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
