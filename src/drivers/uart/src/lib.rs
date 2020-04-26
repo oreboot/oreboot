@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(asm)]
+#![feature(llvm_asm)]
 
 #[cfg(feature = "log")]
 pub mod log;
