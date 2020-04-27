@@ -25,6 +25,10 @@ steps:
     make
   displayName: 'Build QEMU virt board for RISC-V'
 - script: |
+    cd src/mainboard/emulation/qemu-q35
+    make
+  displayName: 'Build QEMU q35 board for x86'
+- script: |
     set -e
     git clone https://github.com/qemu/qemu && cd qemu && git checkout v4.2.0-rc3
     mkdir build-riscv64 && cd build-riscv64
