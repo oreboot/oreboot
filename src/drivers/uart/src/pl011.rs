@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
