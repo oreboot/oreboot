@@ -6,7 +6,7 @@
 #![deny(warnings)]
 
 mod romstage;
-use core::fmt;
+use core::fmt::Write;
 
 use device_tree::Entry::{Node, Property};
 use model::{Driver, Result};
