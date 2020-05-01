@@ -26,19 +26,19 @@
                 description = "Payload A";
                 offset = <0x100000>;
                 size = <0x600000>; // 6MiB
-                file = "payloadA";
+                file = "$(PAYLOAD_A)";
             };
             area@3 {
                 description = "Payload B";
                 offset = <0x700000>;
                 size = <0x600000>; // 6MiB
-                file = "payloadB";
+                file = "$(PAYLOAD_B)";
             };
             area@4 {
                 description = "Payload C";
                 offset = <0xd00000>;
                 size = <0x300000>; // 3MiB
-                file = "payloadC";
+                file = "$(PAYLOAD_C)";
             };
             area@5 {
                 description = "Empty Space";
