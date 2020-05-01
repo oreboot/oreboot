@@ -22,7 +22,7 @@
                 compatible = "ore-dtfs";
                 offset = <0xfe8000>;
                 size = <0x8000>;
-                file = "fixed-dtfs.dtb";
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "NVRAM A";
