@@ -18,7 +18,7 @@ steps:
   displayName: 'Install Rust Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
-    make
+    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
   displayName: 'Build SiFive board for RISC-V'
 - script: |
     cd src/mainboard/emulation/qemu-riscv
@@ -39,7 +39,7 @@ steps:
   displayName: 'Install RISC-V QEMU Dependencies'
 - script: |
     cd src/mainboard/sifive/hifive
-    timeout 120s make run | tee serial
+    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V SiFive board QEMU Test'
 - script: |

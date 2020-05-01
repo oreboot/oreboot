@@ -78,11 +78,16 @@ fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
 
         // If a file is specified, write the file.
         if let Some(path) = &a.file {
+            let mut path = path.to_string();
             // Allow environment variables in the path.
-            let path = match env::var("TARGET_DIR") {
-                Ok(target_dir) => str::replace(path, "$(TARGET_DIR)", &target_dir),
-                Err(_) => path.to_string(),
-            };
+            for (key, value) in env::vars() {
+                path = str::replace(&path, &format!("$({})", key), &value);
+            }
+
+            // If the path is an unused environment variable, skip it.
+            if path.starts_with("$(") && path.ends_with(")") {
+                continue;
+            }
 
             f.seek(SeekFrom::Start(a.offset as u64))?;
             let mut data = match fs::read(&path) {
