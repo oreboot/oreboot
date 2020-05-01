@@ -13,6 +13,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- checkout: self
+  fetchDepth: 1  # Download only latest commit, not all history
 - script: |
     git submodule update --init
   displayName: 'Checkout submodules'
