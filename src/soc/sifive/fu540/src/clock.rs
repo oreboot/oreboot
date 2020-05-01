@@ -20,23 +20,23 @@ use clock::ClockNode;
 use core::ops;
 use model::*;
 
-use crate::reg;
 use crate::is_qemu;
+use crate::reg;
 use register::mmio::ReadWrite;
 use register::register_bitfields;
 
 #[repr(C)]
 
 pub struct RegisterBlock {
-    crystal: ReadWrite<u32, Crystal::Register>,   /* offset 0x00 */
-    core: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x04 */
-    _reserved08: u32,                             /* offset 0x08 */
-    ddr0: ReadWrite<u32, PLLCfg0::Register>,      /* offset 0x0c */
-    ddr1: ReadWrite<u32, PLLCfg1::Register>,      /* offset 0x10 */
-    _reserved14: u32,                             /* offset 0x14 */
-    _reserved18: u32,                             /* offset 0x18 */
-    ge0: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x1c */
-    ge1: ReadWrite<u32, PLLCfg1::Register>,       /* offset 0x20 */
+    crystal: ReadWrite<u32, Crystal::Register>,    /* offset 0x00 */
+    core: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x04 */
+    _reserved08: u32,                              /* offset 0x08 */
+    ddr0: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x0c */
+    ddr1: ReadWrite<u32, PLLCfg1::Register>,       /* offset 0x10 */
+    _reserved14: u32,                              /* offset 0x14 */
+    _reserved18: u32,                              /* offset 0x18 */
+    ge0: ReadWrite<u32, PLLCfg0::Register>,        /* offset 0x1c */
+    ge1: ReadWrite<u32, PLLCfg1::Register>,        /* offset 0x20 */
     clk_sel: ReadWrite<u32, ClkSel::Register>,     /* offset 0x24 */
     dev_reset: ReadWrite<u32, ResetCtl::Register>, /* offset 0x28 */
 }

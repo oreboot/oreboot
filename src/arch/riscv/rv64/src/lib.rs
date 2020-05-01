@@ -19,4 +19,3 @@ pub fn fence() {
 pub fn nop() {
     unsafe { llvm_asm!("nop" :::: "volatile") }
 }
-
