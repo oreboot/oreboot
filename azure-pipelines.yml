@@ -12,58 +12,97 @@ schedules:
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
-- checkout: self
-  fetchDepth: 1  # Download only latest commit, not all history
-- script: |
-    git submodule update --init
-  displayName: 'Checkout submodules'
-- script: |
-    make ciprepare
-  displayName: 'Install Rust Dependencies'
-- script: |
-    make --keep-going format check=true
-  displayName: 'Check formatting'
-- script: |
-    make --keep-going test
-  displayName: 'Run rust tests'
-- script: |
-    make --keep-going clippy
-  displayName: 'Run clippy linter'
-- script: |
-    make --keep-going mainboards
-  displayName: 'Build all mainboards'
-- script: |
-    ./scripts/generate-size-report.sh
-  displayName: 'Generate report of binary sizes'
-- script: |
-    cd src/mainboard/sifive/hifive
-    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
-  displayName: 'Build SiFive board for RISC-V'
-- script: |
-    cd src/mainboard/emulation/qemu-riscv
-    make
-  displayName: 'Build QEMU virt board for RISC-V'
-- script: |
-    cd src/mainboard/emulation/qemu-q35
-    make
+jobs:
+- job: CheckQuality
+  steps:
+  - checkout: self
+    fetchDepth: 1  # Download only latest commit, not all history
+  - script: |
+      git submodule update --init
+    displayName: 'Checkout submodules'
+  - script: |
+      make ciprepare
+    displayName: 'Install Rust Dependencies'
+  - script: |
+      make --keep-going format check=true
+    displayName: 'Check formatting'
+  - script: |
+      make --keep-going test
+    displayName: 'Run rust tests'
+  - script: |
+      make --keep-going clippy
+    displayName: 'Run clippy linter'
+  - script: |
+      make --keep-going mainboards
+    displayName: 'Build all mainboards'
+  - script: |
+      ./scripts/generate-size-report.sh
+    displayName: 'Generate report of binary sizes'
+- job: BuildX86QEMU
   displayName: 'Build QEMU q35 board for x86'
-- script: |
-    set -e
-    git clone https://github.com/qemu/qemu && cd qemu && git checkout v5.1.0
-    mkdir build-riscv64 && cd build-riscv64
-    ../configure --target-list=riscv64-softmmu
-    make -j16
-    sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
-    sudo ln -s $PWD/qemu-img /usr/bin/
-  displayName: 'Install RISC-V QEMU Dependencies'
-- script: |
-    cd src/mainboard/sifive/hifive
-    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
-    grep TESTTESTTEST serial
-  displayName: 'RISC-V SiFive board QEMU Test'
-- script: |
-    cd src/mainboard/emulation/qemu-riscv
-    timeout 30s make run | tee serial
-    grep "Running payload" serial
-  displayName: 'RISC-V QEMU Virt board QEMU Test'
+  steps:
+  - checkout: self
+    fetchDepth: 1  # Download only latest commit, not all history
+  - script: |
+      git submodule update --init
+    displayName: 'Checkout submodules'
+  - script: |
+      make ciprepare
+      cd src/mainboard/emulation/qemu-q35
+      make
+- job: TestSiFiveQEMU
+  displayName: 'Test RISC-V SiFive board in QEMU'
+  steps:
+  - checkout: self
+    fetchDepth: 1  # Download only latest commit, not all history
+  - script: |
+      make ciprepare
+    displayName: 'Install Rust Dependencies'
+  - script: |
+      pushd src/mainboard/sifive/hifive
+      PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
+      popd
+    displayName: 'Build firmware'
+  - script: |
+      git clone --single-branch --branch v5.1.0 https://github.com/qemu/qemu && pushd qemu
+      mkdir build-riscv64 && cd build-riscv64
+      ../configure --target-list=riscv64-softmmu
+      make -j16
+      sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
+      sudo ln -s $PWD/qemu-img /usr/bin/
+      popd
+    displayName: 'Build QEMU'
+  - script: |
+      pushd src/mainboard/sifive/hifive
+      PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
+      grep TESTTESTTEST serial
+      popd
+    displayName: 'Run test'
+- job: TestRISCVVirtBoardQEMU
+  displayName: 'Test RISC-V QEMU Virt board in QEMU'
+  steps:
+  - checkout: self
+    fetchDepth: 1  # Download only latest commit, not all history
+  - script: |
+      make ciprepare
+    displayName: 'Install Rust Dependencies'
+  - script: |
+      pushd src/mainboard/emulation/qemu-riscv
+      make
+      popd
+    displayName: 'Build oreboot image'
+  - script: |
+      git clone --single-branch --branch v5.1.0 https://github.com/qemu/qemu && pushd qemu
+      mkdir build-riscv64 && pushd build-riscv64
+      ../configure --target-list=riscv64-softmmu
+      make -j16
+      sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
+      sudo ln -s $PWD/qemu-img /usr/bin/
+      popd
+    displayName: 'Build QEMU'
+  - script: |
+      pushd src/mainboard/emulation/qemu-riscv
+      timeout 30s make run | tee serial
+      grep "Running payload" serial
+      popd
+    displayName: 'Run test'
