@@ -20,7 +20,7 @@
                 description = "Fixed DTFS";
                 offset = <0xf000>;
                 size = <0x1000>; // 4KiB
-                file = "target/riscv32imc-unknown-none-elf/release/fixed-dtfs.dtb";
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "Payload A";

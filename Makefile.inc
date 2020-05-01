@@ -34,11 +34,11 @@ $(info rustc --version  = $(shell rustc --version))
 $(info rustup --version = $(shell rustup --version))
 $(info **********)
 
-%.dtb: %.dts
+$(TARGET_DIR)/%.dtb: %.dts
 	dtc $< -O dtb -o $@
 
-$(IMAGE): $(BOOTBLOB) $(FIXED_DTFS)
-	TARGET_DIR=$(TARGET_DIR) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(FIXED_DTFS) $@
+$(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
+	TARGET_DIR=$(TARGET_DIR) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(TARGET_DIR)/$(FIXED_DTFS) $@
 	@printf "**\n** Output: $@\n**\n"
 
 $(TARGET_DIR)/bootblob.bin: $(ELF)
