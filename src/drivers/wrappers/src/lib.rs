@@ -1,8 +1,8 @@
 #![no_std]
 #![deny(warnings)]
 
-use model::*;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
+use model::*;
 
 pub struct DoD<'a> {
     drivers: &'a mut [&'a mut dyn Driver],

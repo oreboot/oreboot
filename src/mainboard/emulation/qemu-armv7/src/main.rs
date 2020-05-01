@@ -6,7 +6,7 @@
 #![deny(warnings)]
 
 mod romstage;
-use core::fmt;
+use core::fmt::Write;
 
 use device_tree::Entry::{Node, Property};
 use model::{Driver, Result};
@@ -57,8 +57,7 @@ pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
                 let buf = &mut [0; 1024];
                 let len = v.pread(buf, 0)?;
                 let val = device_tree::infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2)
-                    .unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2).unwrap();
             }
         }
     }

@@ -42,7 +42,7 @@ $(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
 	@printf "**\n** Output: $@\n**\n"
 
 $(TARGET_DIR)/bootblob.bin: $(ELF)
-	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo objcopy --bin $(notdir $<) -- -O binary -R .bss $@
+	rust-objcopy -O binary -R .bss $< $@
 
 # Re-run cargo every time.
 .PHONY: $(ELF)

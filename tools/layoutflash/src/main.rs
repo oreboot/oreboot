@@ -33,7 +33,10 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 
 // TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
-    let data = fs::read(path)?;
+    let data = match fs::read(path) {
+        Err(e) => return Err(io::Error::new(e.kind(), format!("{}{}", "Could not open: ", path.display()))),
+        Ok(data) => data,
+    };
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
@@ -82,7 +85,10 @@ fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
             };
 
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = fs::read(&path)?;
+            let mut data = match fs::read(&path) {
+                Err(e) => return Err(io::Error::new(e.kind(), format!("{}{}", "Could not open: ", path))),
+                Ok(data) => data,
+            };
             if data.len() > a.size as usize {
                 eprintln!("warning: truncating {}", a.description);
                 data.truncate(a.size as usize);
@@ -106,10 +112,8 @@ struct Opts {
 fn main() {
     let args = Opts::parse();
 
-    read_fixed_fdt(&args.in_fdt)
-        .and_then(|areas| layout_flash(&args.out_firmware, &areas))
-        .unwrap_or_else(|err| {
-            eprintln!("failed: {}", err);
-            exit(1);
-        });
+    read_fixed_fdt(&args.in_fdt).and_then(|areas| layout_flash(&args.out_firmware, &areas)).unwrap_or_else(|err| {
+        eprintln!("failed: {}", err);
+        exit(1);
+    });
 }

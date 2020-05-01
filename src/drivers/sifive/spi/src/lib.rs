@@ -20,34 +20,34 @@
 #![no_std]
 #![deny(warnings)]
 
-use model::*;
-use core::ops;
 use clock::ClockNode;
+use core::ops;
+use model::*;
 
 use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields};
+use register::register_bitfields;
 
 const RETRY_COUNT: u32 = 100_000;
 
 pub enum SiFiveSpiPhase {
     SampleLeading,
-    SampleTrailing
+    SampleTrailing,
 }
 
 pub enum SiFiveSpiPolarity {
     InactiveLow,
-    InactiveHigh
+    InactiveHigh,
 }
 
 pub enum SiFiveSpiProtocol {
     Single,
     Dual,
-    Quad
+    Quad,
 }
 
 pub enum SiFiveSpiEndianness {
     BigEndian,
-    LittleEndian
+    LittleEndian,
 }
 
 pub struct SiFiveSpiConfig {
@@ -56,7 +56,7 @@ pub struct SiFiveSpiConfig {
     pub polarity: SiFiveSpiPolarity,
     pub protocol: SiFiveSpiProtocol,
     pub endianness: SiFiveSpiEndianness,
-    pub bits_per_frame: u8
+    pub bits_per_frame: u8,
 }
 
 pub struct SiFiveSpiMmapConfig {
@@ -67,7 +67,7 @@ pub struct SiFiveSpiMmapConfig {
     pub address_protocol: SiFiveSpiProtocol,
     pub data_protocol: SiFiveSpiProtocol,
     pub command_code: u8,
-    pub pad_code: u8
+    pub pad_code: u8,
 }
 
 #[repr(C)]
@@ -266,7 +266,7 @@ register_bitfields! {
 
 impl SiFiveSpi {
     pub fn new(base: usize, serial_rate: u32) -> SiFiveSpi {
-        SiFiveSpi{base: base, serial_rate: serial_rate}
+        SiFiveSpi { base: base, serial_rate: serial_rate }
     }
 
     /// Returns a pointer to the register block
@@ -278,17 +278,17 @@ impl SiFiveSpi {
         self.set_clock_rate(config.freq);
         self.csid.write(ActiveChipSelect::ID.val(cs));
         match config.phase {
-            SiFiveSpiPhase::SampleLeading  => self.sckmode.modify(ClockMode::PHA::SampleLeading),
+            SiFiveSpiPhase::SampleLeading => self.sckmode.modify(ClockMode::PHA::SampleLeading),
             SiFiveSpiPhase::SampleTrailing => self.sckmode.modify(ClockMode::PHA::SampleTrailing),
         }
         match config.polarity {
-            SiFiveSpiPolarity::InactiveLow  => self.sckmode.modify(ClockMode::POL::InactiveLow),
+            SiFiveSpiPolarity::InactiveLow => self.sckmode.modify(ClockMode::POL::InactiveLow),
             SiFiveSpiPolarity::InactiveHigh => self.sckmode.modify(ClockMode::POL::InactiveHigh),
         }
         match config.protocol {
             SiFiveSpiProtocol::Single => self.fmt.modify(Format::Protocol::Single),
-            SiFiveSpiProtocol::Dual   => self.fmt.modify(Format::Protocol::Dual),
-            SiFiveSpiProtocol::Quad   => self.fmt.modify(Format::Protocol::Quad),
+            SiFiveSpiProtocol::Dual => self.fmt.modify(Format::Protocol::Dual),
+            SiFiveSpiProtocol::Quad => self.fmt.modify(Format::Protocol::Quad),
         }
         match config.endianness {
             SiFiveSpiEndianness::LittleEndian => self.fmt.modify(Format::Endianness::LSB),
@@ -312,18 +312,18 @@ impl SiFiveSpi {
         self.ffmt.modify(FlashFormat::PAD_CNT.val(config.pad_count.into()));
         match config.command_protocol {
             SiFiveSpiProtocol::Single => self.ffmt.modify(FlashFormat::CMD_PROTO::Single),
-            SiFiveSpiProtocol::Dual   => self.ffmt.modify(FlashFormat::CMD_PROTO::Dual),
-            SiFiveSpiProtocol::Quad   => self.ffmt.modify(FlashFormat::CMD_PROTO::Quad),
+            SiFiveSpiProtocol::Dual => self.ffmt.modify(FlashFormat::CMD_PROTO::Dual),
+            SiFiveSpiProtocol::Quad => self.ffmt.modify(FlashFormat::CMD_PROTO::Quad),
         }
         match config.address_protocol {
             SiFiveSpiProtocol::Single => self.ffmt.modify(FlashFormat::ADDR_PROTO::Single),
-            SiFiveSpiProtocol::Dual   => self.ffmt.modify(FlashFormat::ADDR_PROTO::Dual),
-            SiFiveSpiProtocol::Quad   => self.ffmt.modify(FlashFormat::ADDR_PROTO::Quad),
+            SiFiveSpiProtocol::Dual => self.ffmt.modify(FlashFormat::ADDR_PROTO::Dual),
+            SiFiveSpiProtocol::Quad => self.ffmt.modify(FlashFormat::ADDR_PROTO::Quad),
         }
         match config.data_protocol {
             SiFiveSpiProtocol::Single => self.ffmt.modify(FlashFormat::DATA_PROTO::Single),
-            SiFiveSpiProtocol::Dual   => self.ffmt.modify(FlashFormat::DATA_PROTO::Dual),
-            SiFiveSpiProtocol::Quad   => self.ffmt.modify(FlashFormat::DATA_PROTO::Quad),
+            SiFiveSpiProtocol::Dual => self.ffmt.modify(FlashFormat::DATA_PROTO::Dual),
+            SiFiveSpiProtocol::Quad => self.ffmt.modify(FlashFormat::DATA_PROTO::Quad),
         }
         self.ffmt.modify(FlashFormat::CMD_CODE.val(config.command_code.into()));
         self.ffmt.modify(FlashFormat::PAD_CODE.val(config.pad_code.into()));
@@ -349,7 +349,7 @@ impl Driver for SiFiveSpi {
         'outer: for (read_count, c) in data.iter_mut().enumerate() {
             for _ in 0..RETRY_COUNT {
                 let rxdata_copy = self.rxdata.extract();
-                if ! rxdata_copy.is_set(ReceiveData::Empty) {
+                if !rxdata_copy.is_set(ReceiveData::Empty) {
                     *c = rxdata_copy.read(ReceiveData::Data) as u8;
                     continue 'outer;
                 }
@@ -362,7 +362,7 @@ impl Driver for SiFiveSpi {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         'outer: for (sent_count, &c) in data.iter().enumerate() {
             for _ in 0..RETRY_COUNT {
-                if ! self.txdata.is_set(TransmitData::Full) {
+                if !self.txdata.is_set(TransmitData::Full) {
                     self.txdata.set(c.into());
                     continue 'outer;
                 }

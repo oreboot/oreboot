@@ -16,12 +16,12 @@
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
-    loop{}
+    loop {}
 }
 
 // This function is called on panic.
 use core::panic::PanicInfo;
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop{}
+    loop {}
 }
