@@ -1,8 +1,17 @@
 #![feature(llvm_asm)]
+#![feature(abi_efiapi)]
 #![feature(lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
 #![deny(warnings)]
+
+#[macro_use]
+extern crate bitflags;
+
+#[macro_use]
+extern crate bitfield;
+
+pub mod fsp20;
 
 pub fn halt() -> ! {
     loop {

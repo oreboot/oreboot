@@ -6,6 +6,9 @@ edition = "2018"
 
 [dependencies]
 model = { path = "../../../drivers/model" }
+efi = "0.2.1"
+bitflags = "1.2.1"
+bitfield = "0.13.2"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
