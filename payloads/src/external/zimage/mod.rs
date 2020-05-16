@@ -1,12 +1,10 @@
-/*
-use crate::payload;
-
-const KERNEL: &'static [u8] = include_bytes!("zImage");
+pub const KERNEL: &'static [u8] = include_bytes!("zImage");
 pub const DTB: &'static [u8] = include_bytes!("qemu_fdt.dtb");
 
+/*
+use crate::payload;
 // TODO: Create a struct which tells you where the available memory is.
 const MEM: u32 = 0x40200000;
-
 // TODO: Parse from SPI.
 pub const PAYLOAD: payload::Payload = payload::Payload {
     typ: payload::ftype::CBFS_TYPE_RAW,
