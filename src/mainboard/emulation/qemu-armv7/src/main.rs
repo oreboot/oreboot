@@ -19,7 +19,8 @@ use wrappers::{DoD, SliceReader};
 pub extern "C" fn _start() -> ! {
     let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
     let uart_driver: &mut dyn Driver = &mut pl011;
-    uart_driver.init();
+    // TODO: Handle error here and quit, rather than unwrapping.
+    uart_driver.init().unwrap();
     uart_driver.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     let s = &mut [uart_driver];
     let console = &mut DoD::new(s);
