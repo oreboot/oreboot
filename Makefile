@@ -35,7 +35,8 @@ firsttime:
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
-	cargo install cargo-xbuild cargo-binutils
+	cargo install --version 0.5.29 cargo-xbuild
+	cargo install --version 0.2.0 cargo-binutils
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
 
 update:
