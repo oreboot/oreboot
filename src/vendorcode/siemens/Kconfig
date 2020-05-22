@@ -1,8 +1,0 @@
-##
-##
-##
-## SPDX-License-Identifier: GPL-2.0-only
-
-config USE_SIEMENS_HWILIB
-	bool
-	default n
