@@ -1,10 +1,8 @@
 [submodule "edk2"]
 	path = 3rdparty/edk2
 	url = https://github.com/tianocore/edk2
-	update = none
 	ignore = dirty
 [submodule "FSP"]
 	path = 3rdparty/fsp
 	url = https://github.com/intel/FSP
-	update = none
 	ignore = dirty
