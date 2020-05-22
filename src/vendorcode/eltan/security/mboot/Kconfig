@@ -1,0 +1,19 @@
+##
+##
+## SPDX-License-Identifier: GPL-2.0-only
+
+menu "Measured Boot (mboot)"
+
+config VENDORCODE_ELTAN_MBOOT
+	bool "Measure firmware with mboot."
+	default n
+	select VBOOT_LIB
+	help
+	  Enabling MBOOT will use mboot to measure the components of the firmware
+	  (stages, payload, etc).
+
+config VENDORCODE_ELTAN_CRTM_VERSION_STRING
+	string "default CRTM version"
+	default "default CRTM version"
+
+endmenu # Measured Boot (mboot)
