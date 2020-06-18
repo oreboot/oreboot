@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 
-pub const MSEL: u32 = 0x00001000;
+pub const QEMU_FLAG: u32 = 0x00001008;
 pub const DTIM: u32 = 0x01000000;
 pub const CLINT: u32 = 0x02000000;
 pub const L2_LIM: u32 = 0x08000000;
