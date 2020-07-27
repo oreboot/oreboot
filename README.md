@@ -92,7 +92,7 @@ QEMU
 sudo apt install qemu-system-x86
 
 # Build release build and start with QEMU
-cd src/mainboard/emulation-q35 && make run
+cd src/mainboard/emulation/qemu-q35 && make run
 # Quit qemu with CTRL-A X
 ```
 
