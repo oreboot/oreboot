@@ -11,7 +11,7 @@ use core::panic::PanicInfo;
 use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
 use device_tree::{infer_type, Entry, FdtReader};
-use model::Driver;
+use model::{Driver, EOF};
 use payloads::payload;
 use print;
 use soc::clock::Clock;
@@ -98,9 +98,8 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     write!(w, "ROM FDT address: 0x{:x}\n", fdt_address).unwrap();
 
     if is_qemu() {
-        // TODO: With QEMU's device tree, our parses reaches an unexpected EOF.
         // We have no idea how long the FDT really is. This caps it to 1MiB.
-        let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 8 * 1024 * 1024);
+        let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 1024 * 1024);
         if let Err(err) = print_fdt(rom_fdt, w) {
             write!(w, "error: {}\n", err).unwrap();
         }
@@ -184,7 +183,11 @@ pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'s
             }
             Entry::Property { path: p, value: v } => {
                 let buf = &mut [0; 1024];
-                let len = v.pread(buf, 0)?;
+                let len = match v.pread(buf, 0) {
+                    Ok(x) => x,
+                    EOF => 0,
+                    Err(y) => return Err(y),
+                };
                 let val = infer_type(&buf[..len]);
                 write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,).unwrap();
             }
