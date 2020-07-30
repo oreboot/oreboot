@@ -1,3 +1,20 @@
+//! `device_tree` is a library for operating on the Device Tree data structure.
+//!
+//! Device tree is a data structure for describing the hardware. Useful abbreviations:
+//!
+//!   * FDT - Flattened Device Tree format (also called Device Tree Blob (DTB) format) is a compact
+//!           binary encoding of the device tree structure.
+//!   * DTB - Device Tree Blob format (also called Flattened Device Tree (FDT) format) is a compact
+//!           binary encoding of the device tree structure.
+//!   * DTS - Device Tree Syntax is a human friendly text representation of the device tree.
+//!   * DTC - Device Tree Compiler is a tool that can convert device tree between different
+//!           formats.
+//!
+//! The code in this library is heapless (no heap allocated data structure is used) so that it can
+//! be used in bootloader.
+//!
+//! For more information about Device Tree Standard, see https://www.devicetree.org/.
+
 #![no_std]
 #![deny(warnings)]
 
@@ -9,11 +26,30 @@ use core::fmt;
 use model::{Driver, Result};
 use wrappers::SectionReader;
 
+/// Special value that every device tree in FDT format starts with.
 pub const MAGIC: u32 = 0xd00dfeed;
+
+/// The largest nesting level of the device tree supported by this library. It is a fixed value
+/// because this library does not use heap so we need to know how much memory to allocate in
+/// advance. Value 16 is trying to strike a good balance between supporting
+/// reasonable amount of nesting and not allocating too much memory.
 pub const MAX_DEPTH: usize = 16;
-// Maximum length of a node or property name. This is 31 for the name, 32 for the unit name and 1
-// for the null terminator. An error is returned for longer names.
-pub const MAX_NAME_SIZE: usize = 31 + 32 + 1;
+
+/// Maximum length of a node or property name.
+///
+/// According to standard, the name has format `node-name@unit-address`:
+///
+/// * the `node-name` part is required to be between 1-31 characters (bytes)
+/// * `unit-address` is optional, but if present, should contain address in hex format.
+///   We are reserving 32 characters to encode 128 bit address.
+/// * We are reserving 1 byte for null terminator.
+///
+/// An error is returned for longer names.
+///
+/// TODO: Reserve 1 byte for "@" character.
+/// TODO: Do we need to encode 128 bit addresses, or would it be enough to just support
+/// 32 and 64 bit addresses?
+pub const MAX_NAME_SIZE: usize = 31 + 1 + 32;
 
 struct FdtHeader {
     magic: u32,
@@ -38,6 +74,9 @@ enum Token {
     End = 0x9,
 }
 
+/// Represents a path to device tree node.
+/// It is also being used by properties, in which case the last component of the path stores the
+/// name of the property.
 pub struct Path {
     depth: usize,
     len: [usize; MAX_DEPTH],
@@ -45,20 +84,31 @@ pub struct Path {
 }
 
 impl Path {
+    /// Returns the number of components in the path.
+    ///
+    /// Returns 1 for root path `/`.
+    /// Returns node.depth() + 1 when used for properties.
     pub fn depth(&self) -> usize {
         self.depth
     }
 
+    /// Returns value of the i-th component of the path.
+    /// It has to be lower than `depth()`.
     pub fn at(&self, i: usize) -> &[u8] {
         &self.buf[i][..self.len[i]]
     }
 
+    /// Returns the last component of the path.
+    /// When used for properties, returns the property name.
     pub fn name(&self) -> &str {
         let name = self.at(self.depth - 1);
         unsafe { core::str::from_utf8_unchecked(name) }
     }
 }
 
+/// In-memory reader for Flattened Device Tree format.
+///
+/// Does not perform any sanity checks.
 pub struct FdtReader<'a> {
     _mem_reservation_block: SectionReader<'a>,
     struct_block: SectionReader<'a>,
@@ -92,8 +142,6 @@ fn align4(x: usize) -> usize {
     (x + 3) & !3
 }
 
-/// In-memory device tree traversal.
-/// Does not perform any sanity checks.
 impl<'a> FdtReader<'a> {
     pub fn new(drv: &'a dyn Driver) -> Result<FdtReader<'a>> {
         let header = FdtHeader {
@@ -125,6 +173,7 @@ impl<'a> FdtReader<'a> {
     }
 }
 
+/// Iterator used to walk through device tree representation.
 pub struct FdtIterator<'a> {
     dt: &'a FdtReader<'a>,
     cursor: usize,
@@ -148,6 +197,7 @@ impl<'a> Iterator for FdtIterator<'a> {
                     self.len_buf[self.depth] = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.path_buf[self.depth]).unwrap() as usize;
                     self.cursor = align4(self.cursor);
                     self.depth += 1;
+                    // Note: This performs a copy of the whole path_buf array!
                     return Some(Entry::Node { path: Path { depth: self.depth, len: self.len_buf, buf: self.path_buf } });
                 }
                 Some(Token::EndNode) => {
@@ -162,6 +212,7 @@ impl<'a> Iterator for FdtIterator<'a> {
                     self.len_buf[self.depth] = cursor_string(&self.dt.strings_block, &mut nameoff, &mut self.path_buf[self.depth][..]).unwrap() as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
+                    // Note: This performs a copy of the whole path_buf array!
                     return Some(Entry::Property::<'a> { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value: value });
                 }
                 Some(Token::Nop) => continue,
@@ -177,6 +228,7 @@ pub enum Entry<'a> {
     Property { path: Path, value: SectionReader<'a> },
 }
 
+/// Typed value of device tree properties.
 pub enum Type<'a> {
     Empty,
     String(&'a str),
@@ -197,6 +249,12 @@ impl<'a> core::fmt::Display for Type<'a> {
     }
 }
 
+/// Guesses the type of the property value and returns parsed type.
+///
+/// Sometimes it is impossible to unambiguously infer the type. For example, ['f', 'o', 'o', 0]
+/// bytes could represent a "foo" string, but could also represent u32 number or just a sequence of
+/// bytes. Because of this unambiguity, this method should only be used to print the content of the
+/// data to user.
 pub fn infer_type(data: &[u8]) -> Type {
     if data.len() == 0 {
         return Type::Empty;
