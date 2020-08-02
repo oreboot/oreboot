@@ -67,9 +67,17 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     Ok(areas)
 }
 
-fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
+// This method assumes that areas are sorted by offset.
+fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
+    areas.sort_unstable_by_key(|a| a.offset);
     let mut f = fs::File::create(path)?;
+    let mut last_area_end = 0;
     for a in areas {
+        if a.offset < last_area_end {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Areas are overlapping, last area finished at offset {}, next area '{}' starts at {}", last_area_end, a.description, a.offset)));
+        }
+        last_area_end = a.offset + a.size;
+
         // First fill with 0xff.
         let mut v = Vec::new();
         v.resize(a.size as usize, 0xff);
@@ -90,13 +98,12 @@ fn layout_flash(path: &Path, areas: &[Area]) -> io::Result<()> {
             }
 
             f.seek(SeekFrom::Start(a.offset as u64))?;
-            let mut data = match fs::read(&path) {
-                Err(e) => return Err(io::Error::new(e.kind(), format!("{}{}", "Could not open: ", path))),
+            let data = match fs::read(&path) {
+                Err(e) => return Err(io::Error::new(e.kind(), format!("Could not open: {}", path))),
                 Ok(data) => data,
             };
             if data.len() > a.size as usize {
-                eprintln!("warning: truncating {}", a.description);
-                data.truncate(a.size as usize);
+                return Err(io::Error::new(io::ErrorKind::InvalidData, format!("File {} is too big to fit into the flash area, file size: {}, area size: {}", path, data.len(), a.size)));
             }
             f.write(&data)?;
         }
@@ -117,7 +124,7 @@ struct Opts {
 fn main() {
     let args = Opts::parse();
 
-    read_fixed_fdt(&args.in_fdt).and_then(|areas| layout_flash(&args.out_firmware, &areas)).unwrap_or_else(|err| {
+    read_fixed_fdt(&args.in_fdt).and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas)).unwrap_or_else(|err| {
         eprintln!("failed: {}", err);
         exit(1);
     });
