@@ -217,7 +217,7 @@ impl StreamPayload {
                     write!(w, "afterward seg {:?}\n", seg).unwrap();
                 }
                 stype::PAYLOAD_SEGMENT_BAD => {
-                    panic!("seg now {:?} {:?} typ {:?}", self.rom, seg, typ);
+                    panic!("Panic'ing on PAYLOAD_SEGMENT_BAD: seg now {:?} {:?} typ {:?}", self.rom, seg, typ);
                 }
                 _ => {
                     write!(w, "Seg is unchanged: {:?}\n", seg).unwrap();
