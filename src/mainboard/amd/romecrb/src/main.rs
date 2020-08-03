@@ -13,7 +13,9 @@ use payloads::payload;
 use print;
 use uart::i8250::I8250;
 
-global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
+// Until we are done hacking on this, use our private copy.
+// Plan to copy it back later.
+global_asm!(include_str!("bootblock.S"));
 
 //global_asm!(include_str!("init.S"));
 fn poke(v: u32, a: u32) -> () {

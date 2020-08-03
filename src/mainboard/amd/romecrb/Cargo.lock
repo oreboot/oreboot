@@ -142,23 +142,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qemu-q35"
-version = "0.1.0"
-dependencies = [
- "arch",
- "console",
- "heapless 0.4.4",
- "model",
- "payloads",
- "postcard",
- "print",
- "register",
- "static-ref",
- "uart",
- "wrappers",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -174,6 +157,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "469bb5ddde81d67fb8bba4e14d77689b8166cfd077abe7530591cefe29d05823"
 dependencies = [
  "tock-registers",
+]
+
+[[package]]
+name = "romecrb"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "console",
+ "heapless 0.4.4",
+ "model",
+ "payloads",
+ "postcard",
+ "print",
+ "register",
+ "static-ref",
+ "uart",
+ "wrappers",
 ]
 
 [[package]]
