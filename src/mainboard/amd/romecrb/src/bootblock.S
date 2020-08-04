@@ -18,124 +18,26 @@
  * to be the modern approach.
  *
  */
-
+.section .bootblock.boot
+.code32
+.globl entryfromreset
+entryfromreset: 
+	// The situation on amd zen vs. x86 is so different that it makes no sense to share
+	// a bootblock.
+	// For now, this is a partial bootblock. We will enter in 32-bit mode, with a 32-bit
+	// gdt, and segment registers are set up. Our goal is to write a proper working LME.
+	// We've had a hope that we can use GB PTEs but that's been failing miserably
+	// and I'm not sure why.
+	// We DO have a working stack. We ARE in RAM. It makes sense to take advantage
+	// of that, and, further, let the 16-bit code pass us our base address in %rdi and
+	// so we don't have to play all these damned linker tricks. It turns out the zen
+	// will let us use a "fake" (ffxxxxxx) address of the very first lgdt (!) and we can then
+	// have this code do a second lgdt with a more reasonable gdt. Or so we think.
 	//
-	// Include the old code for reset vector and protected mode entry. That code has
-	// withstood the test of time. Some of the comments may help Those Who Come Later
-	// avoid mistakes.
-
-	// N.B. c99-style comment blocks should cover differences between coreboot and oreboot.
-	// Unlike coreboot, we are going to arrange the sections in bootblock
-	// in roughly the order they appear in memory. This first part is
-	// x86 entry point. Then we have assembly prolog. The protected mode enable,
-	// then long mode enable. The code should be written to be position-independent.
-	// It should not count on linker magic -- relative branches please.
-	
-	//
-	// This code has to be 4k aligned because secondary CPUs run it
-	// too and the Startup IPI requires it.
-
-	// RAM is used as follows:
-	// 16-bit code: the stack is set to 0x2000, and a word at 0xfffe is used to
-	// contain an address.
-	// 32-bit/64-bit code:
-	// 0x7f000 Page Table Page Level 3 (PML3)
-	// 0x7e000 Page Table Page Level 4 (PML4)
-	// 0x7e000 Initial top of stack; x86 is pre-decrement so this location is not written.
-	
-.align 4096
-.code16
-.globl _start16bit
-.type _start16bit, @function
-
-	// It is safe to assume we have memory in the low 1M. For more
-	// complex cases, e.g. FSP, this file will not be used.
-	// N.B. This set of instructions results in the IDT, below, being aligned.
-	// It's not strictly necessary but it's nice. Be careful should you change it.
-_start16bit:
-	cli
-	/* Save the BIST result */
-	movl	%eax, %ebp
-
-	//post_code(POST_RESET_VECTOR_CORRECT)
-
-	/* IMMEDIATELY invalidate the translation lookaside buffer (TLB) before
-	 * executing any further code. Even though paging is disabled we
-	 * could still get false address translations due to the TLB if we
-	 * didn't invalidate it. Thanks to kmliu@sis.com.tw for this TLB fix.
-	 */
-
-	xorl	%eax, %eax
-	movl	%eax, %cr3    /* Invalidate TLB*/
-
-	// In coreboot, in the early days, there was code here to invalidate
-	// the cache. That later turned out to be a problem, which the following
-	// comment explains.
-	/* Invalidating the cache here seems to be a bad idea on
-	 * modern processors.  Don't.
-	 * If we are hyperthreaded or we have multiple cores it is bad,
-	 * for SMP startup.  On Opterons it causes a 5 second delay.
-	 * Invalidating the cache was pure paranoia in any event.
-	 */
-
-	// gas and 16-bit have been a problem from the beginning, as explained
-	// in the next comment.
-	/* Note: gas handles memory addresses in 16 bit code very poorly.
-	 * In particular it doesn't appear to have a directive allowing you
-	 * associate a section or even an absolute offset with a segment register.
-	 *
-	 * This means that anything except cs:ip relative offsets are
-	 * a real pain in 16 bit mode.  And explains why it is almost
-	 * impossible to get gas to do lgdt correctly.
-	 *
-	 * One way to work around this is to have the linker do the
-	 * math instead of the assembler.  This solves the very
-	 * pratical problem of being able to write code that can
-	 * be relocated.
-	 *
-	 * An lgdt call before we have memory enabled cannot be
-	 * position independent, as we cannot execute a call
-	 * instruction to get our current instruction pointer.
-	 * So while this code is relocateable it isn't arbitrarily
-	 * relocatable.
-	 *
-	 * The criteria for relocation have been relaxed to their
-	 * utmost, so that we can use the same code for both
-	 * our initial entry point and startup of the second CPU.
-	 * The code assumes when executing at _start16bit that:
-	 * (((cs & 0xfff) == 0) and (ip == _start16bit & 0xffff))
-	 * or
-	 * ((cs == anything) and (ip == 0)).
-	 *
-	 * The restrictions in reset16.inc mean that _start16bit initially
-	 * must be loaded at or above 0xffff0000 or below 0x100000.
-	 *
-	 * The linker scripts computes gdtptr16_offset by simply returning
-	 * the low 16 bits.  This means that the initial segment used
-	 * when start is called must be 64K aligned.  This should not
-	 * restrict the address as the ip address can be anything.
-	 *
-	 * Also load an IDT with NULL limit to prevent the 16bit IDT being used
-	 * in protected mode before c_start.S sets up a 32bit IDT when entering
-	 * RAM stage. In practise: CPU will shutdown on any exception.
-	 * See IA32 manual Vol 3A 19.26 Interrupts.
-	 */
-
-	// we place the address of the next block on the stack.
-	// which means we need a stack. Just grab this address, we
-	// don't need it for long. It's page 1; we don't touch
-	// page 0 for all kinds of reasons.
-	// TODO: is there a PIC way to do this? Don't do so if it
-	// requires linker tricks. That way lies madness.
-	movw $0x2000, %sp	
+	// So, assumption going in:
+	// we have a valid sp.
+	// The starting address of this code block is in %rdi
 	call 3f
-	// null idt
-	// This is aligned because of the code above; if you change the code
-	// make sure it stays aligned. It may require nops.
-	.word	0	/* limit */
-	.long	0
-	.word	0
-	// This is aligned because idt is aligned and sized to a 32-bit boundary
 .globl gdtptr
 gdtptr:
 	.word	gdt_end - gdt -1 /* compute the table limit */
@@ -167,33 +69,101 @@ gdtptr16:
 	.word	gdt_end - gdt -1 /* compute the table limit */
 	.long	gdt		 /* we know the offset */
 3:
-	// The stack has the absolute address of the idt. Pop into %cx.
-	popw	%cx
-	movw	%cx, %bx
-	movw	%cs, %ax
-	shlw	$4, %ax
-	subw	%ax, %bx
-	lidt	%cs:(%bx)
-	// The gdt is at the idt plus 8
-	movw	%cx, %bx
-	addw    $8, %bx
-	subw	%ax, %bx
-	lgdtl	%cs:(%bx)
-
+	// TOS contains a pointer to the gdt descriptor
+	popl %eax
+	lgdt (%eax)
+	// Now fix up the page table
+	movl $pml3, %eax
+	orl $3, %eax
+	movl %eax, pml4
+	movl $pml3, %eax
+	movl $pml2, %ebx
+	orl $3, %ebx
+	movl  %ebx, 8(%eax)
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
 	orl	$0x60000001, %eax /* CD, NW, PE = 1 */
 	movl	%eax, %cr0
 
-	/* Restore BIST to %eax */
-	movl	%ebp, %eax
-
+	movb $0xbe, %al
+	outb %al, $0x80
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
 	ljmpl	$8, $__protected_start
 
 	// TODO: should set accessed and dirty bits in gdt entries
 	// so CPU does not try to write them to ROM?
-.align	4
+	.align 0x1000
+pml4:
+	.quad 0x0
+	.align 0x1000
+pml3:
+	.quad 0x00000083,0x400000083,0x800000083,0xc00000083
+	.align 0x1000
+pml2:
+	.quad 0x40000003,0x40200003,0x40400003,0x40600003,0x40800003,0x40a00003,0x40c00003,0x40e00003
+	.quad 0x41000003,0x41200003,0x41400003,0x41600003,0x41800003,0x41a00003,0x41c00003,0x41e00003
+	.quad 0x42000003,0x42200003,0x42400003,0x42600003,0x42800003,0x42a00003,0x42c00003,0x42e00003
+	.quad 0x43000003,0x43200003,0x43400003,0x43600003,0x43800003,0x43a00003,0x43c00003,0x43e00003
+	.quad 0x44000003,0x44200003,0x44400003,0x44600003,0x44800003,0x44a00003,0x44c00003,0x44e00003
+	.quad 0x45000003,0x45200003,0x45400003,0x45600003,0x45800003,0x45a00003,0x45c00003,0x45e00003
+	.quad 0x46000003,0x46200003,0x46400003,0x46600003,0x46800003,0x46a00003,0x46c00003,0x46e00003
+	.quad 0x47000003,0x47200003,0x47400003,0x47600003,0x47800003,0x47a00003,0x47c00003,0x47e00003
+	.quad 0x48000003,0x48200003,0x48400003,0x48600003,0x48800003,0x48a00003,0x48c00003,0x48e00003
+	.quad 0x49000003,0x49200003,0x49400003,0x49600003,0x49800003,0x49a00003,0x49c00003,0x49e00003
+	.quad 0x4a000003,0x4a200003,0x4a400003,0x4a600003,0x4a800003,0x4aa00003,0x4ac00003,0x4ae00003
+	.quad 0x4b000003,0x4b200003,0x4b400003,0x4b600003,0x4b800003,0x4ba00003,0x4bc00003,0x4be00003
+	.quad 0x4c000003,0x4c200003,0x4c400003,0x4c600003,0x4c800003,0x4ca00003,0x4cc00003,0x4ce00003
+	.quad 0x4d000003,0x4d200003,0x4d400003,0x4d600003,0x4d800003,0x4da00003,0x4dc00003,0x4de00003
+	.quad 0x4e000003,0x4e200003,0x4e400003,0x4e600003,0x4e800003,0x4ea00003,0x4ec00003,0x4ee00003
+	.quad 0x4f000003,0x4f200003,0x4f400003,0x4f600003,0x4f800003,0x4fa00003,0x4fc00003,0x4fe00003
+	.quad 0x50000003,0x50200003,0x50400003,0x50600003,0x50800003,0x50a00003,0x50c00003,0x50e00003
+	.quad 0x51000003,0x51200003,0x51400003,0x51600003,0x51800003,0x51a00003,0x51c00003,0x51e00003
+	.quad 0x52000003,0x52200003,0x52400003,0x52600003,0x52800003,0x52a00003,0x52c00003,0x52e00003
+	.quad 0x53000003,0x53200003,0x53400003,0x53600003,0x53800003,0x53a00003,0x53c00003,0x53e00003
+	.quad 0x54000003,0x54200003,0x54400003,0x54600003,0x54800003,0x54a00003,0x54c00003,0x54e00003
+	.quad 0x55000003,0x55200003,0x55400003,0x55600003,0x55800003,0x55a00003,0x55c00003,0x55e00003
+	.quad 0x56000003,0x56200003,0x56400003,0x56600003,0x56800003,0x56a00003,0x56c00003,0x56e00003
+	.quad 0x57000003,0x57200003,0x57400003,0x57600003,0x57800003,0x57a00003,0x57c00003,0x57e00003
+	.quad 0x58000003,0x58200003,0x58400003,0x58600003,0x58800003,0x58a00003,0x58c00003,0x58e00003
+	.quad 0x59000003,0x59200003,0x59400003,0x59600003,0x59800003,0x59a00003,0x59c00003,0x59e00003
+	.quad 0x5a000003,0x5a200003,0x5a400003,0x5a600003,0x5a800003,0x5aa00003,0x5ac00003,0x5ae00003
+	.quad 0x5b000003,0x5b200003,0x5b400003,0x5b600003,0x5b800003,0x5ba00003,0x5bc00003,0x5be00003
+	.quad 0x5c000003,0x5c200003,0x5c400003,0x5c600003,0x5c800003,0x5ca00003,0x5cc00003,0x5ce00003
+	.quad 0x5d000003,0x5d200003,0x5d400003,0x5d600003,0x5d800003,0x5da00003,0x5dc00003,0x5de00003
+	.quad 0x5e000003,0x5e200003,0x5e400003,0x5e600003,0x5e800003,0x5ea00003,0x5ec00003,0x5ee00003
+	.quad 0x5f000003,0x5f200003,0x5f400003,0x5f600003,0x5f800003,0x5fa00003,0x5fc00003,0x5fe00003
+	.quad 0x60000003,0x60200003,0x60400003,0x60600003,0x60800003,0x60a00003,0x60c00003,0x60e00003
+	.quad 0x61000003,0x61200003,0x61400003,0x61600003,0x61800003,0x61a00003,0x61c00003,0x61e00003
+	.quad 0x62000003,0x62200003,0x62400003,0x62600003,0x62800003,0x62a00003,0x62c00003,0x62e00003
+	.quad 0x63000003,0x63200003,0x63400003,0x63600003,0x63800003,0x63a00003,0x63c00003,0x63e00003
+	.quad 0x64000003,0x64200003,0x64400003,0x64600003,0x64800003,0x64a00003,0x64c00003,0x64e00003
+	.quad 0x65000003,0x65200003,0x65400003,0x65600003,0x65800003,0x65a00003,0x65c00003,0x65e00003
+	.quad 0x66000003,0x66200003,0x66400003,0x66600003,0x66800003,0x66a00003,0x66c00003,0x66e00003
+	.quad 0x67000003,0x67200003,0x67400003,0x67600003,0x67800003,0x67a00003,0x67c00003,0x67e00003
+	.quad 0x68000003,0x68200003,0x68400003,0x68600003,0x68800003,0x68a00003,0x68c00003,0x68e00003
+	.quad 0x69000003,0x69200003,0x69400003,0x69600003,0x69800003,0x69a00003,0x69c00003,0x69e00003
+	.quad 0x6a000003,0x6a200003,0x6a400003,0x6a600003,0x6a800003,0x6aa00003,0x6ac00003,0x6ae00003
+	.quad 0x6b000003,0x6b200003,0x6b400003,0x6b600003,0x6b800003,0x6ba00003,0x6bc00003,0x6be00003
+	.quad 0x6c000003,0x6c200003,0x6c400003,0x6c600003,0x6c800003,0x6ca00003,0x6cc00003,0x6ce00003
+	.quad 0x6d000003,0x6d200003,0x6d400003,0x6d600003,0x6d800003,0x6da00003,0x6dc00003,0x6de00003
+	.quad 0x6e000003,0x6e200003,0x6e400003,0x6e600003,0x6e800003,0x6ea00003,0x6ec00003,0x6ee00003
+	.quad 0x6f000003,0x6f200003,0x6f400003,0x6f600003,0x6f800003,0x6fa00003,0x6fc00003,0x6fe00003
+	.quad 0x70000003,0x70200003,0x70400003,0x70600003,0x70800003,0x70a00003,0x70c00003,0x70e00003
+	.quad 0x71000003,0x71200003,0x71400003,0x71600003,0x71800003,0x71a00003,0x71c00003,0x71e00003
+	.quad 0x72000003,0x72200003,0x72400003,0x72600003,0x72800003,0x72a00003,0x72c00003,0x72e00003
+	.quad 0x73000003,0x73200003,0x73400003,0x73600003,0x73800003,0x73a00003,0x73c00003,0x73e00003
+	.quad 0x74000003,0x74200003,0x74400003,0x74600003,0x74800003,0x74a00003,0x74c00003,0x74e00003
+	.quad 0x75000003,0x75200003,0x75400003,0x75600003,0x75800003,0x75a00003,0x75c00003,0x75e00003
+	.quad 0x76000003,0x76200003,0x76400003,0x76600003,0x76800003,0x76a00003,0x76c00003,0x76e00003
+	.quad 0x77000003,0x77200003,0x77400003,0x77600003,0x77800003,0x77a00003,0x77c00003,0x77e00003
+	.quad 0x78000003,0x78200003,0x78400003,0x78600003,0x78800003,0x78a00003,0x78c00003,0x78e00003
+	.quad 0x79000003,0x79200003,0x79400003,0x79600003,0x79800003,0x79a00003,0x79c00003,0x79e00003
+	.quad 0x7a000003,0x7a200003,0x7a400003,0x7a600003,0x7a800003,0x7aa00003,0x7ac00003,0x7ae00003
+	.quad 0x7b000003,0x7b200003,0x7b400003,0x7b600003,0x7b800003,0x7ba00003,0x7bc00003,0x7be00003
+	.quad 0x7c000003,0x7c200003,0x7c400003,0x7c600003,0x7c800003,0x7ca00003,0x7cc00003,0x7ce00003
+	.quad 0x7d000003,0x7d200003,0x7d400003,0x7d600003,0x7d800003,0x7da00003,0x7dc00003,0x7de00003
+	.quad 0x7e000003,0x7e200003,0x7e400003,0x7e600003,0x7e800003,0x7ea00003,0x7ec00003,0x7ee00003
+	.quad 0x7f000003,0x7f200003,0x7f400003,0x7f600003,0x7f800003,0x7fa00003,0x7fc00003,0x7fe00003
 .code32
 	.code32
 
@@ -216,11 +186,11 @@ gdtptr16:
  */
 	.align	4
 __protected_start:
+	movb $0xdc, %al
+	outb %al, $0x80
 	// Enter here in 32-bit protected mode. Welcome to 1982.
 	// First thing you have to do is get the segments to
 	// sane values. Only %cs is correct when we get here.
-	/* Save the BIST value */
-	movl	%eax, %ebp
 
 	//post_code(POST_ENTER_PROTECTED_MODE)
 
@@ -231,91 +201,26 @@ __protected_start:
 	movw	%ax, %fs
 	movw	%ax, %gs
 __protected_start_no_load_segs:
+	movb $0x30, %al
+	outb %al, $0x80
 	// Set a pointer to the page table pages in %cr3.
 	// We can use cr3 as a scratch register here;
 	// its value won't matter until we set PG in CR0 below.
-	movl $0x7e000, %esp
+	movl $pml4, %esp
 	movl %esp, %cr3
-	/* Restore the BIST value to %eax */
-	movl	%ebp, %eax
-	
+
 	// Now for the big fun: Long Mode.
 	// Once again we put the data structures inline in this
 	// memory. This code is, we hope, PIC.
-	// The call 2f is an old trick; it puts the address of the data following
-	// this instruction on the stack. The current burning question: do we need
-	// bother with another lgdt or should we let linux do it?
-	// We'll leave the table here but suspect we can let Linux do it.
-	call 2f
-gdt64:
-_gdt64p:
-	.quad	0x0000000000000000		/* NULL descriptor */
-	.quad	0x0020980000000000		/* CS */
-
-_gdtptr64p:
-	.word	2*8-1
-	.quad	_gdt64p
-
-	.align 4
-2:
-	// assumption: we are running somewhere in the low 1G.
-	// we can fix this later, but it will at most be the
-	// low 4G.
-	// bits
-	/* PML4E/PDPE/PDE/PTE */
-#define PteP		0x0000000000000001	/* Present */
-#define PteRW		0x0000000000000002	/* Read/Write */
-#define PteU		0x0000000000000004	/* User/Supervisor */
-#define PtePWT		0x0000000000000008	/* Page-Level Write Through */
-#define PtePCD		0x0000000000000010	/* Page Level Cache Disable */
-#define PteA		0x0000000000000020	/* Accessed */
-#define PteD		0x0000000000000040	/* Dirty */
-#define PtePS		0x0000000000000080	/* Page Size */
-#define Pte4KPAT	PtePS			/* PTE PAT */
-#define PteG		0x0000000000000100	/* Global */
-#define Pte2MPAT	0x0000000000001000	/* PDE PAT */
-#define Pte1GPAT	Pte2MPAT		/* PDPE PAT */
-#define PteNX		0x8000000000000000	/* No Execute */
-	// Save %ecx for later mov to cr3
-	// PML4 is at %ecx.
-	// PML3 is at 4096(%ecx)
-	// Set PML4(0) to point to %ecx
-	movl %cr3, %ecx
-	movl %ecx, %edx
-	//$(PteRW|PteP)
-	orl $(2|1), %edx	
-	addl $(0x1000), %edx
-	movl %edx, 0(%ecx) // identity map entry to point to pml3
-	//$(PTePS|PteRW|PteP)	
-	movl $(0x80|2|1), %edx
-	movl %edx, 0x1000(%ecx)
-	addl $(0x40000000), %edx
-	movl %edx, 0x1008(%ecx)
-	addl $(0x40000000), %edx
-	movl %edx, 0x1010(%ecx)
-	addl $(0x40000000), %edx
-	movl %edx, 0x1018(%ecx)
-	// This should be relative load
-	// In theory,
-	// This is code which lives at 0xfffffff0.
-	/* Enable and activate Long Mode. From the manual:
-	* 	make sure Page Size Extentions are off, and Page Global
-	*	Extensions and Physical Address Extensions are on in CR4;
-	*	set Long Mode Enable in the Extended Feature Enable MSR;
-	*	set Paging Enable in CR0;
-	*	make an inter-segment jump to the Long Mode code.
-	* It`s all in 32-bit mode until the jump is made.
-	*/
-	#define Pse 0x10
-	#define Pge 0x40
-	#define Pae 0x20
-	// This assembler has no comprehensible way of or'ing stuff. I give up.
-	#define PgePae 0x60
 lme:
+	movb $0x31, %al
+	outb %al, $0x80
 	movl	%cr4, %eax
 	andl	/*~$Pse*/$0xffffffef, %eax			/* Page Size */
 	orl	$0x60, %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
+	movb $0x32, %al
+	outb %al, $0x80
 	#define Efer  0xC0000080
 	#define Lme (1<<8)
 	movl	$0xc0000080, %ecx			/* Extended Feature Enable */
@@ -323,6 +228,8 @@ lme:
 	ORL	$(1<<8), %eax			/* Long Mode Enable */
 	WRMSR
 
+	movb $0x33, %al
+	outb %al, $0x80
 	movl	%cr0, %edx
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
@@ -338,12 +245,10 @@ lme:
 	#define CD 0x40000000      //Cache disable         Globally enables/disable the memory cache
 	#define PG 0x80000000      //Paging        If 1, enable paging and use the § CR3 register, else disable paging.
 	#define CDNWTSMP 0x6000000a
-	ANDL	/*$~(CD|NW|TS|MP)*/$~0x6000000a, %edx
-	ORL	/*$(PG|WP)*/$0x80010000, %edx			/* Paging Enable */
+	//ANDL	/*$~(CD|NW|TS|MP)*/$~0x6000000a, %edx
+	//ORL	/*$(PG|WP)*/$0x80010000, %edx			/* Paging Enable */
+	ORL	$0x80000000, %edx			/* Paging Enable */
 	movl	%edx, %cr0
-1:	movb $0xaa, %al
-	outb %al, $0x80
-	jmp 1b
 	ljmp $0x18, $_identity
 
 
@@ -352,10 +257,14 @@ lme:
 .code64
 
 _identity:
+	movb $0x34, %al
+	outb %al, $0x80
+1:	jmp 1b
 	call _start
 1:	 jmp 1b
 
 	
+#if 0
 	.section ".reset", "ax", %progbits
 //	.code16
 .globl _boot
@@ -363,7 +272,7 @@ _boot:
 .globl	_resetvector
 _resetvector:
 	.byte  0xe9
-	.int   _start16bit - ( . + 2 )
+//	.int   _start16bit - ( . + 2 )
 	/* Note: The above jump is hand coded to work around bugs in binutils.
 	 * 5 byte are used for a 3 byte instruction.  This works because x86
 	 * is little endian and allows us to use supported 32bit relocations
@@ -375,3 +284,4 @@ _resetvector:
 	// than the back, x86-style (ARM roms are a 0; x86 at the top of 4 GiB).
 	.byte 0,0,0,0,0,0,0,0,0,0,0
 	.previous
+#endif

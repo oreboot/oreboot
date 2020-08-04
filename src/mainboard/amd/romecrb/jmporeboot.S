@@ -5,7 +5,8 @@
 // 76ff00b7 <bootblock_protected_mode_entry>:
 //movl $0x10000, %esp
 //push $0x76ff0088
-push $0x76ff0098
+//push $0x76ff0098
+push $0x76ff0000
 
 ret
 // 724  as -o jmporeboot jmporeboot.S 
