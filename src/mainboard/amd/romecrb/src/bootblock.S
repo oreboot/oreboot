@@ -277,8 +277,10 @@ lme:
 _identity:
 	movb $0x34, %al
 	outb %al, $0x80
-1:	jmp 1b
+//1:	jmp 1b
 	call _start
+	movb $0xff, %al
+	outb %al, $0x80
 1:	 jmp 1b
 
 	
