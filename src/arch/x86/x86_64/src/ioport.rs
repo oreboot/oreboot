@@ -9,12 +9,14 @@ unsafe fn outb(port: u16, val: u8) {
     llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
 }
 
-// /// Read 8 bits from port
-// unsafe fn inb(port: u16) -> u8 {
-//     let ret: u8;
-//     llvm_asm!("inb %dx, %al" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
-//     return ret;
-// }
+// Read 8 bits from port
+fn inb(port: u16) -> u8 {
+    let ret: u8;
+    unsafe {
+        llvm_asm!("inb %dx, %al" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
+    }
+    return ret;
+}
 
 // /// Write 16 bits to port
 // unsafe fn outw(port: u16, val: u16) {
@@ -46,13 +48,17 @@ impl Driver for IOPort {
         Ok(())
     }
 
-    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
-        Ok(0)
+    fn pread(&self, data: &mut [u8], offset: usize) -> Result<usize> {
+        let b = inb(offset as u16);
+        data[0] = b;
+        Ok(1)
     }
 
     fn pwrite(&mut self, data: &[u8], offset: usize) -> Result<usize> {
         for (_i, &c) in data.iter().enumerate() {
-            unsafe {outb(offset as u16, c);}
+            unsafe {
+                outb(offset as u16, c);
+            }
         }
         Ok(data.len())
     }

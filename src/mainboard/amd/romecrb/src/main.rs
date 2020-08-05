@@ -28,9 +28,22 @@ fn poke(v: u32, a: u32) -> () {
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let io = &mut IOPort;
+    let post = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
     uart0.init().unwrap();
-    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+
+    let mut count: u8 = 0;
+    for _i in 0..1000000 {
+        let mut p: [u8; 1] = [0; 1];
+        for _j in 0..100000 {
+            post.pread(&mut p, 0x3f8).unwrap();
+        }
+        count = count + 1;
+        p[0] = count;
+        post.pwrite(&p, 0x80).unwrap();
+
+        uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    }
 
     let w = &mut print::WriteTo::new(uart0);
 
