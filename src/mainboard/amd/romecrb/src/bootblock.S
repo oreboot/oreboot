@@ -44,24 +44,32 @@ gdtptr:
 	.long	gdt		 /* we know the offset */
 
 	.align	4
+/* these are deliberately changed to a higher selgdt number so we can verify
+ * that we're using our own new gdt.
+ */
 gdt:
 	/* selgdt 0, unused */
 	.word	0x0000, 0x0000		/* dummy */
 	.byte	0x00, 0x00, 0x00, 0x00
 
-	/* selgdt 0x08, flat code segment */
+	/* selgdt 0, unused */
+	.word	0x0000, 0x0000		/* dummy */
+	.byte	0x00, 0x00, 0x00, 0x00
+
+	/* selgdt 0, unused */
+	.word	0x0000, 0x0000		/* dummy */
+	.byte	0x00, 0x00, 0x00, 0x00
+
+	/* selgdt 0x18, flat code segment */
 	.word	0xffff, 0x0000
 	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
 					  for limit */
-	/* selgdt 0x10,flat data segment */
+	/* selgdt 0x20,flat data segment */
 	.word	0xffff, 0x0000
 	.byte	0x00, 0x93, 0xcf, 0x00
 
-	/* long mode code segment. */
+	/* selgdt 0x28, long mode code segment. */
 	.quad	0x0020980000000000		/* Long mode CS */
-	/* selgdt 0x18, flat code segment (64-bit) */
-	.word   0xffff, 0x0000
-	.byte   0x00, 0x9b, 0xaf, 0x00
 
 gdt_end:
 .globl gdtptr16
@@ -89,7 +97,7 @@ gdtptr16:
 	movb $0xbe, %al
 	outb %al, $0x80
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
-	ljmpl	$8, $__protected_start
+	ljmpl	$0x18, $__protected_start
 
 	// TODO: should set accessed and dirty bits in gdt entries
 	// so CPU does not try to write them to ROM?
@@ -195,7 +203,7 @@ __protected_start:
 
 	//post_code(POST_ENTER_PROTECTED_MODE)
 
-	movw	$16, %ax
+	movw	$0x20, %ax
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %ss
@@ -229,9 +237,15 @@ lme:
 	ORL	$(1<<8), %eax			/* Long Mode Enable */
 	WRMSR
 
-	movl	pml4, %eax
-	outb    %al, $0x80
-1: jmp 1b
+//	NOTE: I did the test below for pml4 and pml3.
+//	PML4[0] is 76ff2003
+//	pml3[8] is 76ff3003
+	
+//	movl $pml3, %eax
+//	movl	8(%eax), %eax
+//	shrl $24, %eax
+//	outb    %al, $0x80
+//1: jmp 1b
 	movb $0x33, %al
 	outb %al, $0x80
 	movl	%cr0, %eax
@@ -253,7 +267,7 @@ lme:
 	//ORL	/*$(PG|WP)*/$0x80010000, %eax			/* Paging Enable */
 	ORL	$0x80000000, %eax			/* Paging Enable */
 	movl	%eax, %cr0
-	ljmp $0x18, $_identity
+	ljmp $0x28, $_identity
 
 
 	/* Long mode. Welcome to 2003.
