@@ -74,7 +74,7 @@ impl<'a> Driver for I8250<'a> {
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         for c in data.iter_mut() {
             let mut s = [0u8; 1];
-            while self.poll_status(1, 1) {}
+            while !self.poll_status(1, 1) {}
             self.d.pread(&mut s, self.base).unwrap();
             *c = s[0];
         }
@@ -84,7 +84,7 @@ impl<'a> Driver for I8250<'a> {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         for (_i, &c) in data.iter().enumerate() {
             // Poll the status for long enough to let a char out; then push it out anyway.
-            self.poll_status(2, 2);
+            while !self.poll_status(0x20, 0x20) && !self.poll_status(0x40, 0x40) {}
             let mut s = [0u8; 1];
             s[0] = c;
             self.d.pwrite(&s, self.base).unwrap();
