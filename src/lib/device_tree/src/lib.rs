@@ -115,12 +115,6 @@ pub struct FdtReader<'a> {
     strings_block: SectionReader<'a>,
 }
 
-fn read_u32(drv: &dyn Driver, offset: usize) -> Result<u32> {
-    let mut data = [0; 4];
-    drv.pread(&mut data, offset)?;
-    Ok(BigEndian::read_u32(&data))
-}
-
 fn cursor_u32(drv: &dyn Driver, cursor: &mut usize) -> Result<u32> {
     let mut data = [0; 4];
     *cursor += drv.pread(&mut data, *cursor)?;
@@ -142,24 +136,44 @@ fn align4(x: usize) -> usize {
     (x + 3) & !3
 }
 
+// Reads the header of the device tree.
+fn read_fdt_header(drv: &dyn Driver) -> Result<FdtHeader> {
+    // 10 fields, each field 4 bytes.
+    const HEADER_SIZE: usize = 10 * 4;
+
+    let mut data = [0; HEADER_SIZE];
+    let size = drv.pread(&mut data, 0)?;
+    if size != HEADER_SIZE {
+        return Err("not enough data to read device tree header");
+    }
+    let mut cursor = 0;
+    let mut read_u32 = || {
+        cursor += 4;
+        BigEndian::read_u32(&data[(cursor - 4)..cursor])
+    };
+
+    let header = FdtHeader {
+        magic: read_u32(),
+        total_size: read_u32(),
+        off_dt_struct: read_u32(),
+        off_dt_strings: read_u32(),
+        off_mem_rsvmap: read_u32(),
+        _version: read_u32(),
+        _last_comp_version: read_u32(),
+        _boot_cpuid_phys: read_u32(),
+        size_dt_strings: read_u32(),
+        size_dt_struct: read_u32(),
+    };
+
+    if header.magic != MAGIC {
+        return Err("invalid magic in device tree header");
+    }
+    return Ok(header);
+}
+
 impl<'a> FdtReader<'a> {
     pub fn new(drv: &'a dyn Driver) -> Result<FdtReader<'a>> {
-        let header = FdtHeader {
-            magic: read_u32(drv, 0x0)?,
-            total_size: read_u32(drv, 0x4)?,
-            off_dt_struct: read_u32(drv, 0x8)?,
-            off_dt_strings: read_u32(drv, 0xc)?,
-            off_mem_rsvmap: read_u32(drv, 0x10)?,
-            _version: read_u32(drv, 0x14)?,
-            _last_comp_version: read_u32(drv, 0x18)?,
-            _boot_cpuid_phys: read_u32(drv, 0x1c)?,
-            size_dt_strings: read_u32(drv, 0x20)?,
-            size_dt_struct: read_u32(drv, 0x24)?,
-        };
-
-        if header.magic != MAGIC {
-            return Err("invalid magic");
-        }
+        let header = read_fdt_header(drv)?;
 
         Ok(FdtReader::<'a> {
             _mem_reservation_block: SectionReader::new(drv, header.off_mem_rsvmap as usize, (header.total_size - header.off_dt_struct) as usize),
