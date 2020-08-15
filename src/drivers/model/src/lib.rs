@@ -12,6 +12,9 @@ pub trait Driver {
         Ok(())
     }
     /// Positional read. Returns number of bytes read.
+    ///
+    /// If there is no more bytes to read, returns `EOF` error (note: 
+    /// `std::io::Read` trait would return 0 in that situation).
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize>;
     /// Positional write. Returns number of bytes written.
     fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize>;
