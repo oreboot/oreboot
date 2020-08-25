@@ -1,10 +1,10 @@
 #![no_std]
 #![feature(llvm_asm)]
 
-#[cfg(feature = "log")]
-pub mod log;
 #[cfg(feature = "i8250")]
 pub mod i8250;
+#[cfg(feature = "log")]
+pub mod log;
 #[cfg(feature = "ns16550")]
 pub mod ns16550;
 #[cfg(feature = "null")]
