@@ -37,7 +37,7 @@ fn test_slice_reader_returns_eof() {
     let data = [1, 2, 3, 4, 5];
     let driver = SliceReader::new(&data);
     let mut buf = [0; 5];
-    
+
     driver.pread(&mut buf, 5).unwrap();
 }
 

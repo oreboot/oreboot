@@ -204,11 +204,7 @@ impl StreamPayload {
             // Better minds than mine can figure this shit out. Or when I learn more.
             let typ: stype = core::convert::From::from(seg.typ);
             match typ {
-                stype::CBFS_SEGMENT_ENTRY
-                | stype::CBFS_SEGMENT_CODE
-                | stype::CBFS_SEGMENT_DATA
-                | stype::CBFS_SEGMENT_BSS
-                | stype::CBFS_SEGMENT_PARAMS => {
+                stype::CBFS_SEGMENT_ENTRY | stype::CBFS_SEGMENT_CODE | stype::CBFS_SEGMENT_DATA | stype::CBFS_SEGMENT_BSS | stype::CBFS_SEGMENT_PARAMS => {
                     write!(w, "seg {:?}\n", seg).unwrap();
                     seg.off = seg.off.to_be();
                     seg.load = seg.load.to_be();
@@ -239,11 +235,7 @@ impl StreamPayload {
                 stype::PAYLOAD_SEGMENT_DTB => self.dtb = load,
                 stype::CBFS_SEGMENT_DATA | stype::CBFS_SEGMENT_CODE => {
                     write!(w, "set up from at {:x}\n", self.rom + seg.off as usize).unwrap();
-                    let data = SectionReader::new(
-                        &Memory {},
-                        self.rom + seg.off as usize,
-                        seg.len as usize,
-                    );
+                    let data = SectionReader::new(&Memory {}, self.rom + seg.off as usize, seg.len as usize);
                     let mut i: usize = 0;
                     loop {
                         let size = match data.pread(&mut buf, i) {

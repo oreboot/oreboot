@@ -17,7 +17,7 @@ pub struct RegisterBlock {
 pub struct I8250<'a> {
     base: usize,
     //baud: u32,
-    d:  &'a mut dyn Driver,
+    d: &'a mut dyn Driver,
 }
 
 // it is possible that trying to make this work is a fool's errand but
@@ -30,7 +30,7 @@ pub struct I8250<'a> {
 //     }
 // }
 
-impl<'a> I8250 <'a>{
+impl<'a> I8250<'a> {
     pub fn new(base: u16, _baudrate: u32, d: &'a mut dyn Driver) -> I8250<'a> {
         I8250 { base: base as usize, d: d }
     }
@@ -41,11 +41,11 @@ impl<'a> I8250 <'a>{
     // }
     /// Poll the status register until the specified field is set to the given value.
     /// Returns false iff it timed out.
-//    fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
+    //    fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
     fn poll_status(&self, mask: u8, val: u8) -> bool {
         // Timeout after a few thousand cycles to prevent hanging forever.
         for _ in 0..100_000 {
-            let mut s =  [0;1];
+            let mut s = [0; 1];
             self.d.pread(&mut s, self.base + 5).unwrap();
             if s[0] & mask == val {
                 return true;
@@ -55,7 +55,7 @@ impl<'a> I8250 <'a>{
     }
 }
 
-impl<'a> Driver for I8250 <'a>{
+impl<'a> Driver for I8250<'a> {
     fn init(&mut self) -> Result<()> {
         // /* disable all interrupts */
         // self.ie.set(0u8);
@@ -73,9 +73,9 @@ impl<'a> Driver for I8250 <'a>{
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
         for c in data.iter_mut() {
-            let mut s =  [0u8;1];
-            while self.poll_status(1,1) {}
-            self.d.pread(&mut s,self.base).unwrap();
+            let mut s = [0u8; 1];
+            while self.poll_status(1, 1) {}
+            self.d.pread(&mut s, self.base).unwrap();
             *c = s[0];
         }
         Ok(data.len())
@@ -85,9 +85,9 @@ impl<'a> Driver for I8250 <'a>{
         for (_i, &c) in data.iter().enumerate() {
             // Poll the status for long enough to let a char out; then push it out anyway.
             self.poll_status(2, 2);
-            let mut s =  [0u8;1];
+            let mut s = [0u8; 1];
             s[0] = c;
-            self.d.pwrite(&s,self.base).unwrap();
+            self.d.pwrite(&s, self.base).unwrap();
         }
         Ok(data.len())
     }
