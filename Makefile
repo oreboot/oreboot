@@ -33,7 +33,7 @@ $(MAINBOARDS):
 firsttime:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-22
 	rustup override set nightly-2020-04-23
-	rustup component add rust-src llvm-tools-preview
+	rustup component add rust-src llvm-tools-preview rustfmt
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
