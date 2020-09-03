@@ -2,6 +2,7 @@ help:
 	@echo 'Make options:'
 	@echo 'firsttime -- for the first time you run make'
 	@echo 'update -- to update the install'
+	@echo 'format -- to format all files'
 	@echo '  # Build a single board'
 	@echo '  make VENDOR/BOARD'
 	@echo '  # This is equivalent to'
@@ -42,6 +43,24 @@ firsttime:
 
 update:
 	rustup update
+
+# Option used for formatting. If set, the command will only verify if
+# formatting is correct (without actually changing the formatting).
+# Returns 0 only if all files are properly formatted.
+# Usage:
+# 	$ make --keep-going format check=true
+check ?=
+
+# Makefile does not support recursive wildcard, so we have to handle all depths manually.
+CRATES_TO_FORMAT := \
+	$(wildcard */Cargo.toml) \
+	$(wildcard */*/Cargo.toml) \
+	$(wildcard */*/*/Cargo.toml) \
+	$(wildcard */*/*/*/Cargo.toml)
+$(CRATES_TO_FORMAT):
+	cargo fmt --manifest-path $@ -- $(if $(check),--check,)
+.PHONY: format $(CRATES_TO_FORMAT)
+format: $(CRATES_TO_FORMAT)
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)
