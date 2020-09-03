@@ -16,7 +16,7 @@ pub struct RegisterBlock {
 */
 pub struct I8250<'a> {
     base: usize,
-    baud: u32,
+    _baud: u32,
     d: &'a mut dyn Driver,
 }
 
@@ -32,8 +32,8 @@ pub struct I8250<'a> {
 
 impl<'a> I8250<'a> {
     // why is base a usize? for mmio 8250.
-    pub fn new(base: usize, baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
-        I8250 { base: base, baud: baud, d: d }
+    pub fn new(base: usize, _baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
+        I8250 { base: base, _baud: _baud, d: d }
     }
 
     /// Returns a pointer to the register block
@@ -56,34 +56,35 @@ impl<'a> I8250<'a> {
     }
 }
 
+#[allow(dead_code)]
 impl<'a> Driver for I8250<'a> {
     // TODO: properly use the register crate.
     fn init(&mut self) -> Result<()> {
-        const ier: usize = 0x01;
-        const iir: usize = 0x02;
-        const fcr: usize = 0x02;
-        const lcr: usize = 0x03;
-        const mcr: usize = 0x04;
-        const mcr_dma_en: usize = 0x04;
-        const mcr_tx_dfr: usize = 0x08;
-        const dll: usize = 0x00;
-        const dlm: usize = 0x01;
-        const lsr: usize = 0x05;
-        const msr: usize = 0x06;
-        const scr: usize = 0x07;
+        const IER: usize = 0x01;
+        const IIR: usize = 0x02;
+        const FCR: usize = 0x02;
+        const LCR: usize = 0x03;
+        const MCR: usize = 0x04;
+        const MCR_DMA_EN: usize = 0x04;
+        const MCR_TX_DFR: usize = 0x08;
+        const DLL: usize = 0x00;
+        const DLM: usize = 0x01;
+        const LSR: usize = 0x05;
+        const MSR: usize = 0x06;
+        const SCR: usize = 0x07;
 
-        const fifoenable: u8 = 1;
-        const dlab: u8 = 0x80;
-        const eightn1: u8 = 3;
+        const FIFOENABLE: u8 = 1;
+        const DLAB: u8 = 0x80;
+        const EIGHTN1: u8 = 3;
 
         let mut s: [u8; 1] = [0u8; 1];
-        self.d.pwrite(&s, self.base + ier).unwrap();
+        self.d.pwrite(&s, self.base + IER).unwrap();
         //outb(0x0, base_port + UART8250_IER);
 
         /* Enable FIFOs */
         //outb(&s, base_port + fcr);
-        s[0] = fifoenable;
-        self.d.pwrite(&s, self.base + fcr).unwrap();
+        s[0] = FIFOENABLE;
+        self.d.pwrite(&s, self.base + FCR).unwrap();
 
         /* assert DTR and RTS so the other end is happy */
         // 3 wires don't care.
@@ -91,21 +92,21 @@ impl<'a> Driver for I8250<'a> {
 
         /* DLAB on */
         // so we can set baud rate.
-        s[0] = dlab | eightn1;
-        self.d.pwrite(&s, self.base + lcr).unwrap();
+        s[0] = DLAB | EIGHTN1;
+        self.d.pwrite(&s, self.base + LCR).unwrap();
 
         /* Set Baud Rate Divisor. 12 ==> 9600 Baud */
         // 1 for 115200
         s[0] = 1;
-        self.d.pwrite(&s, self.base + dll).unwrap();
+        self.d.pwrite(&s, self.base + DLL).unwrap();
         s[0] = 0;
-        self.d.pwrite(&s, self.base + dlm).unwrap();
+        self.d.pwrite(&s, self.base + DLM).unwrap();
         //outb(divisor & 0xFF,   base_port + UART8250_DLL);
         //outb((divisor >> 8) & 0xFF,    base_port + UART8250_DLM);
 
         /* Set to 3 for 8N1 */
-        s[0] = eightn1;
-        self.d.pwrite(&s, self.base + lcr).unwrap();
+        s[0] = EIGHTN1;
+        self.d.pwrite(&s, self.base + LCR).unwrap();
         //        outb(CONFIG_TTYS0_LCS, base_port + UART8250_LCR);
         // /* disable all interrupts */
         // self.ie.set(0u8);
