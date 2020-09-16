@@ -23,6 +23,9 @@ steps:
     make --keep-going test
   displayName: 'Run rust tests'
 - script: |
+    make --keep-going mainboards
+  displayName: 'Build all mainboards'
+- script: |
     cd src/mainboard/sifive/hifive
     PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
   displayName: 'Build SiFive board for RISC-V'
