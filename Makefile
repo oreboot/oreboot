@@ -14,15 +14,12 @@ help:
 	@echo '  # Build debug mode'
 	@echo '  MODE=debug make mainboards'
 
-BROKEN := src/mainboard/ast/ast25x0/Makefile
-# somebody else can figure this out. MAINBOARDS := $(filter-out $(wildcard src/mainboard/*/*/Makefile), $(BROKEN))
-MAINBOARDS := \
-	src/mainboard/emulation/qemu-armv7/Makefile \
-	src/mainboard/emulation/qemu-q35/Makefile \
-	src/mainboard/emulation/qemu-riscv/Makefile \
+BROKEN := \
+	src/mainboard/ast/ast25x0/Makefile \
 	src/mainboard/nuvoton/npcm7xx/Makefile \
-	src/mainboard/opentitan/crb/Makefile \
-	src/mainboard/sifive/hifive/Makefile \
+	src/mainboard/emulation/qemu-armv7/Makefile \
+
+MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
 TOOLCHAIN_VER := nightly-2020-04-22
 XBUILD_VER := 0.5.29
