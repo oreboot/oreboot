@@ -1,5 +1,4 @@
 #![deny(warnings)]
-use clap::Clap;
 use device_tree::{infer_type, Entry, FdtReader, Type, MAX_NAME_SIZE};
 use model::Driver;
 use std::io;
@@ -9,6 +8,7 @@ use std::{
     env, fs,
     path::{Path, PathBuf},
 };
+use structopt::StructOpt;
 use wrappers::SliceReader;
 
 // TODO: Move this struct to lib so it can be used at runtime.
@@ -111,18 +111,17 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
     Ok(())
 }
 
-#[derive(Clap)]
-#[clap(version)]
+#[derive(StructOpt)]
 struct Opts {
     /// The path to the firmware device tree file
     in_fdt: PathBuf,
-    #[clap(parse(from_os_str))]
+    #[structopt(parse(from_os_str))]
     /// The output path for the firmware
     out_firmware: PathBuf,
 }
 
 fn main() {
-    let args = Opts::parse();
+    let args = Opts::from_args();
 
     read_fixed_fdt(&args.in_fdt).and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas)).unwrap_or_else(|err| {
         eprintln!("failed: {}", err);
