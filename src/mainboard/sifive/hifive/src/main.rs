@@ -175,7 +175,7 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (
 }
 
 // TODO: move out of mainboard
-pub fn print_fdt(fdt: &mut dyn Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
+pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
     for entry in FdtReader::new(fdt)?.walk() {
         match entry {
             Entry::Node { path: p } => {

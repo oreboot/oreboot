@@ -93,19 +93,19 @@ impl<'a> Driver for SliceReader<'a> {
 }
 
 /// The driver reads from a section (offset+size) of another driver.
-pub struct SectionReader<'a> {
-    driver: &'a dyn Driver,
+pub struct SectionReader<'a, D: Driver> {
+    driver: &'a D,
     offset: usize,
     size: usize,
 }
 
-impl<'a> SectionReader<'a> {
-    pub fn new(driver: &'a dyn Driver, offset: usize, size: usize) -> SectionReader {
+impl<'a, D: Driver> SectionReader<'a, D> {
+    pub fn new(driver: &'a D, offset: usize, size: usize) -> SectionReader<D> {
         SectionReader { driver, offset, size }
     }
 }
 
-impl<'a> Driver for SectionReader<'a> {
+impl<'a, D: Driver> Driver for SectionReader<'a, D> {
     fn pread(&self, data: &mut [u8], pos: usize) -> Result<usize> {
         if pos >= self.size {
             return EOF;

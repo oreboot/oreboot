@@ -6,7 +6,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use wrappers::SliceReader;
 
-fn assert_node(entry: Entry, name: &str, depth: usize) {
+fn assert_node<D: Driver>(entry: Entry<D>, name: &str, depth: usize) {
     if let Entry::Node { path } = entry {
         assert_eq!(path.name(), name);
         assert_eq!(path.depth(), depth);
@@ -15,7 +15,7 @@ fn assert_node(entry: Entry, name: &str, depth: usize) {
     }
 }
 
-fn assert_property(entry: Entry, expected_name: &str, expected_depth: usize, expected_value: &[u8]) {
+fn assert_property<D: Driver>(entry: Entry<D>, expected_name: &str, expected_depth: usize, expected_value: &[u8]) {
     if let Entry::Property { path, value } = entry {
         assert_eq!(path.name(), expected_name);
         assert_eq!(path.depth(), expected_depth);
@@ -35,7 +35,7 @@ fn dts_to_dtb(dts: &str) -> std::vec::Vec<u8> {
     panic!("dtc command failed: {:?}", String::from_utf8_lossy(&output.stderr))
 }
 
-fn read_all(d: &dyn Driver) -> std::vec::Vec<u8> {
+fn read_all(d: &impl Driver) -> std::vec::Vec<u8> {
     let mut data = [0; 500];
     let size = d.pread(&mut data, 0).unwrap();
     let mut result = std::vec::Vec::new();
