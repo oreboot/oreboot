@@ -52,15 +52,41 @@ update:
 check ?=
 
 # Makefile does not support recursive wildcard, so we have to handle all depths manually.
-CRATES_TO_FORMAT := \
+CRATES := \
 	$(wildcard */Cargo.toml) \
 	$(wildcard */*/Cargo.toml) \
 	$(wildcard */*/*/Cargo.toml) \
 	$(wildcard */*/*/*/Cargo.toml)
+
+CRATES_TO_FORMAT := $(patsubst %/Cargo.toml,%/Cargo.toml.format,$(CRATES))
 $(CRATES_TO_FORMAT):
-	cargo fmt --manifest-path $@ -- $(if $(check),--check,)
+	cd $(dir $@) && cargo fmt -- $(if $(check),--check,)
 .PHONY: format $(CRATES_TO_FORMAT)
 format: $(CRATES_TO_FORMAT)
+
+BROKEN_CRATES_TO_TEST := \
+	src/arch/arm/armv7/Cargo.toml \
+	src/arch/riscv/rv64/Cargo.toml \
+	src/arch/riscv/rv32/Cargo.toml \
+	src/mainboard/emulation/qemu-q35/Cargo.toml \
+	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-riscv/Cargo.toml \
+	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
+	src/mainboard/opentitan/crb/Cargo.toml \
+	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/ast/ast25x0/Cargo.toml \
+	src/mainboard/sifive/hifive/Cargo.toml \
+	src/soc/aspeed/ast2500/Cargo.toml \
+	src/soc/opentitan/earlgrey/Cargo.toml \
+	src/soc/sifive/fu540/Cargo.toml \
+	src/cpu/armltd/cortex-a9/Cargo.toml \
+	src/cpu/lowrisc/ibex/Cargo.toml \
+
+CRATES_TO_TEST := $(patsubst %/Cargo.toml,%/Cargo.toml.test,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
+$(CRATES_TO_TEST):
+	cd $(dir $@) && cargo test
+.PHONY: test $(CRATES_TO_TEST)
+test: $(CRATES_TO_TEST)
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)
