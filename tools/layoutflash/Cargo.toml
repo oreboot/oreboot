@@ -8,4 +8,4 @@ edition = "2018"
 device_tree = { path = "../../src/lib/device_tree" }
 model = { path = "../../src/drivers/model" }
 wrappers = { path = "../../src/drivers/wrappers" }
-structopt = { git = "https://github.com/TeXitoi/structopt" }
+structopt = "0.3"
