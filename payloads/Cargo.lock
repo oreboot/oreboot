@@ -60,6 +60,7 @@ version = "0.1.0"
 dependencies = [
  "model 0.1.0",
  "postcard 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "print 0.1.0",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
  "wrappers 0.1.0",
 ]
@@ -79,6 +80,13 @@ dependencies = [
 name = "postcard-cobs"
 version = "0.1.5-pre"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "print"
+version = "0.1.0"
+dependencies = [
+ "model 0.1.0",
+]
 
 [[package]]
 name = "proc-macro2"
