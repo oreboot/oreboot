@@ -11,17 +11,39 @@ oreboot is mostly written in Rust, with assembly where needed.
 oreboot currently only plans to support LinuxBoot payloads.
 
 
-Demo
-----
+Demos
+-----
 
-Oreboot+QEMU for RISC-V HiFive Unleased:
+- [oreboot for ARM in QEMU](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
+- [oreboot for RISC-V HiFive Unleashed in QEMU](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2)
 
-[![asciicast](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2.svg)](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2)
-
-Oreboot+QEMU for ARM:
-
-[![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
-
+### Output sample from the RISC-V demo
+```
+Testing DDR...                                                                                              
+Starting to fill with data                                                                                  
+Starting to read back data                                                                                  
+Passed                                                                                                      
+Loading payload                                                                                             
+Running payload                                                                                             
+ACEGHIJLMN                                                                                                  
+Linux version 5.3.0-rc5+ (orebootorebootorebootorebooto) (gcc version 8.2.0 (Debian 8.2.0-14+build1)) #9 Tue
+ Sep 3 06:42:07 PDT 2019                                                                                    
+Zone ranges:                                                                                                
+  DMA32    [mem 0x0000000080000000-0x00000000bfffffff]                                                      
+  Normal   empty                                                                                            
+Movable zone start for each node                                                                            
+Early memory node ranges                                                                                    
+  node   0: [mem 0x0000000080000000-0x00000000bfffffff]                                                     
+Initmem setup node 0 [mem 0x0000000080000000-0x00000000bfffffff]                                            
+elf_hwcap is 0x112d                                                                                         
+Built 1 zonelists, mobility grouping on.  Total pages: 258560                                               
+Kernel command line: console=ttySIF0                                                                        
+Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)                                   
+Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)                                      
+mem auto-init: stack:off, heap alloc:off, heap free:off                                                     
+Memory: 1031428K/1048576K available (814K kernel code, 80K rwdata, 98K rodata, 64K init, 171K bss, 17148K re
+served, 0K cma-reserved) 
+```
 
 Getting oreboot
 ---------------
