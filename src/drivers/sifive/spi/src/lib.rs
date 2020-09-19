@@ -266,7 +266,7 @@ register_bitfields! {
 
 impl SiFiveSpi {
     pub fn new(base: usize, serial_rate: u32) -> SiFiveSpi {
-        SiFiveSpi { base: base, serial_rate: serial_rate }
+        SiFiveSpi { base, serial_rate }
     }
 
     /// Returns a pointer to the register block

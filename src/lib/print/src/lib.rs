@@ -9,7 +9,7 @@ pub struct WriteTo<'a> {
 
 impl<'a> WriteTo<'a> {
     pub fn new(drv: &'a mut dyn Driver) -> Self {
-        WriteTo { drv: drv }
+        WriteTo { drv }
     }
 }
 
