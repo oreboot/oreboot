@@ -168,7 +168,7 @@ fn read_fdt_header(drv: &impl Driver) -> Result<FdtHeader> {
     if header.magic != MAGIC {
         return Err("invalid magic in device tree header");
     }
-    return Ok(header);
+    Ok(header)
 }
 
 impl<'a, D: Driver> FdtReader<'a, D> {
@@ -227,7 +227,7 @@ impl<'a, D: Driver> Iterator for FdtIterator<'a, D> {
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     // Note: This performs a copy of the whole path_buf array!
-                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value: value });
+                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value });
                 }
                 Some(Token::Nop) => continue,
                 Some(Token::End) => return None,
@@ -270,7 +270,7 @@ impl<'a> core::fmt::Display for Type<'a> {
 /// bytes. Because of this unambiguity, this method should only be used to print the content of the
 /// data to user.
 pub fn infer_type(data: &[u8]) -> Type {
-    if data.len() == 0 {
+    if data.is_empty() {
         return Type::Empty;
     }
     if let Some(i) = data.iter().position(|&c| !is_print(c)) {

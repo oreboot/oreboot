@@ -82,7 +82,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
         let mut v = Vec::new();
         v.resize(a.size as usize, 0xff);
         f.seek(SeekFrom::Start(a.offset as u64))?;
-        f.write(&v)?;
+        f.write_all(&v)?;
 
         // If a file is specified, write the file.
         if let Some(path) = &a.file {
@@ -93,7 +93,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
             }
 
             // If the path is an unused environment variable, skip it.
-            if path.starts_with("$(") && path.ends_with(")") {
+            if path.starts_with("$(") && path.ends_with(')') {
                 continue;
             }
 
@@ -105,7 +105,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
             if data.len() > a.size as usize {
                 return Err(io::Error::new(io::ErrorKind::InvalidData, format!("File {} is too big to fit into the flash area, file size: {}, area size: {}", path, data.len(), a.size)));
             }
-            f.write(&data)?;
+            f.write_all(&data)?;
         }
     }
     Ok(())
