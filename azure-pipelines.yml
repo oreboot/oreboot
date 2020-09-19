@@ -23,6 +23,9 @@ steps:
     make --keep-going test
   displayName: 'Run rust tests'
 - script: |
+    make --keep-going clippy
+  displayName: 'Run clippy linter'
+- script: |
     make --keep-going mainboards
   displayName: 'Build all mainboards'
 - script: |
