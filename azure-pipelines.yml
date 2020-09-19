@@ -14,7 +14,7 @@ pool:
 
 steps:
 - script: |
-    make firsttime
+    make ciprepare
   displayName: 'Install Rust Dependencies'
 - script: |
     make --keep-going format check=true

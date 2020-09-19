@@ -26,17 +26,39 @@ Oreboot+QEMU for ARM:
 Getting oreboot
 ---------------
 
-Clone this repo, e.g. git clone git://github.com/oreboot/oreboot
+Clone this repo and enter its directory, i.e.:
 
-
-Setting up build tools
-----------------------
-
-Setup your Rust environment for oreboot:
-
-```
+```sh
+git clone git://github.com/oreboot/oreboot
 cd oreboot
-# This command only needs to be done once but it is safe to do it repeatedly
+```
+
+Prerequisites
+-------------
+
+In general, you will need the following packages installed:
+
+- `device-tree-compiler`
+- `pkg-config`
+- `libssl`
+- `rustup`
+
+For Debian based systems, there is a make target to install those, which pulls
+`rustup` through curl from https://sh.rustup.rs:
+
+```sh
+make debiansysprepare
+```
+
+Otherwise, install the package through your system package manager.
+
+Setting up the toolchain
+------------------------
+
+Regardless of your OS, you will need to install the toolchain for oreboot.
+This command only needs to be done once but it is safe to do it repeatedly.
+
+```sh
 make firsttime
 ```
 

@@ -21,6 +21,10 @@ BROKEN := \
 
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
+TOOLCHAIN_VER := nightly-2020-04-22
+XBUILD_VER := 0.5.29
+BINUTILS_VER := 0.2.0
+
 .PHONY: mainboards $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
 
@@ -28,15 +32,20 @@ $(MAINBOARDS):
 	cd $(dir $@) && make
 
 firsttime:
-	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-22
-	rustup override set nightly-2020-04-23
+	rustup override set $(TOOLCHAIN_VER)
 	rustup component add rust-src llvm-tools-preview rustfmt
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
-	cargo install --version 0.5.29 cargo-xbuild
-	cargo install --version 0.2.0 cargo-binutils
+	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
+	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+
+debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
+	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
+
+.PHONY: ciprepare debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime
 
 update:
 	rustup update
