@@ -29,6 +29,9 @@ steps:
     make --keep-going mainboards
   displayName: 'Build all mainboards'
 - script: |
+    ./scripts/generate-size-report.sh
+  displayName: 'Generate report of binary sizes'
+- script: |
     cd src/mainboard/sifive/hifive
     PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
   displayName: 'Build SiFive board for RISC-V'
