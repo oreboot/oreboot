@@ -14,15 +14,16 @@ help:
 	@echo '  # Build debug mode'
 	@echo '  MODE=debug make mainboards'
 
-BROKEN := src/mainboard/ast/ast25x0/Makefile
-# somebody else can figure this out. MAINBOARDS := $(filter-out $(wildcard src/mainboard/*/*/Makefile), $(BROKEN))
-MAINBOARDS := \
-	src/mainboard/emulation/qemu-armv7/Makefile \
-	src/mainboard/emulation/qemu-q35/Makefile \
-	src/mainboard/emulation/qemu-riscv/Makefile \
+BROKEN := \
+	src/mainboard/ast/ast25x0/Makefile \
 	src/mainboard/nuvoton/npcm7xx/Makefile \
-	src/mainboard/opentitan/crb/Makefile \
-	src/mainboard/sifive/hifive/Makefile \
+	src/mainboard/emulation/qemu-armv7/Makefile \
+
+MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
+
+TOOLCHAIN_VER := nightly-2020-04-22
+XBUILD_VER := 0.5.29
+BINUTILS_VER := 0.2.0
 
 .PHONY: mainboards $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
@@ -31,15 +32,20 @@ $(MAINBOARDS):
 	cd $(dir $@) && make
 
 firsttime:
-	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-22
-	rustup override set nightly-2020-04-23
-	rustup component add rust-src llvm-tools-preview rustfmt
+	rustup override set $(TOOLCHAIN_VER)
+	rustup component add rust-src llvm-tools-preview rustfmt clippy
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
-	cargo install --version 0.5.29 cargo-xbuild
-	cargo install --version 0.2.0 cargo-binutils
+	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
+	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+
+debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev
+	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
+
+.PHONY: ciprepare debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime
 
 update:
 	rustup update
@@ -87,6 +93,13 @@ $(CRATES_TO_TEST):
 	cd $(dir $@) && cargo test
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
+
+# TODO: Fix payloads crate and remove "-A clippy::module-inception" exception.
+CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
+$(CRATES_TO_CLIPPY):
+	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::module-inception
+.PHONY: clippy $(CRATES_TO_CLIPPY)
+clippy: $(CRATES_TO_CLIPPY)
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)

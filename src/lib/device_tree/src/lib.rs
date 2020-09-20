@@ -109,20 +109,20 @@ impl Path {
 /// In-memory reader for Flattened Device Tree format.
 ///
 /// Does not perform any sanity checks.
-pub struct FdtReader<'a> {
-    _mem_reservation_block: SectionReader<'a>,
-    struct_block: SectionReader<'a>,
-    strings_block: SectionReader<'a>,
+pub struct FdtReader<'a, D: Driver> {
+    _mem_reservation_block: SectionReader<'a, D>,
+    struct_block: SectionReader<'a, D>,
+    strings_block: SectionReader<'a, D>,
 }
 
-fn cursor_u32(drv: &dyn Driver, cursor: &mut usize) -> Result<u32> {
+fn cursor_u32(drv: &impl Driver, cursor: &mut usize) -> Result<u32> {
     let mut data = [0; 4];
     *cursor += drv.pread(&mut data, *cursor)?;
     Ok(BigEndian::read_u32(&data))
 }
 
 // Reads a string (including null-terminator). Returns bytes read.
-fn cursor_string(drv: &dyn Driver, cursor: &mut usize, buf: &mut [u8]) -> Result<usize> {
+fn cursor_string(drv: &impl Driver, cursor: &mut usize, buf: &mut [u8]) -> Result<usize> {
     for i in 0..buf.len() {
         *cursor += drv.pread(&mut buf[i..i + 1], *cursor)?;
         if buf[i] == 0 {
@@ -137,7 +137,7 @@ fn align4(x: usize) -> usize {
 }
 
 // Reads the header of the device tree.
-fn read_fdt_header(drv: &dyn Driver) -> Result<FdtHeader> {
+fn read_fdt_header(drv: &impl Driver) -> Result<FdtHeader> {
     // 10 fields, each field 4 bytes.
     const HEADER_SIZE: usize = 10 * 4;
 
@@ -168,28 +168,28 @@ fn read_fdt_header(drv: &dyn Driver) -> Result<FdtHeader> {
     if header.magic != MAGIC {
         return Err("invalid magic in device tree header");
     }
-    return Ok(header);
+    Ok(header)
 }
 
-impl<'a> FdtReader<'a> {
-    pub fn new(drv: &'a dyn Driver) -> Result<FdtReader<'a>> {
+impl<'a, D: Driver> FdtReader<'a, D> {
+    pub fn new(drv: &'a D) -> Result<FdtReader<'a, D>> {
         let header = read_fdt_header(drv)?;
 
-        Ok(FdtReader::<'a> {
+        Ok(FdtReader {
             _mem_reservation_block: SectionReader::new(drv, header.off_mem_rsvmap as usize, (header.total_size - header.off_dt_struct) as usize),
             struct_block: SectionReader::new(drv, header.off_dt_struct as usize, header.size_dt_struct as usize),
             strings_block: SectionReader::new(drv, header.off_dt_strings as usize, header.size_dt_strings as usize),
         })
     }
 
-    pub fn walk(&'a self) -> FdtIterator<'a> {
+    pub fn walk(&'a self) -> FdtIterator<'a, D> {
         FdtIterator { dt: self, cursor: 0, depth: 0, len_buf: [0; MAX_DEPTH], path_buf: [[0; MAX_NAME_SIZE]; MAX_DEPTH] }
     }
 }
 
 /// Iterator used to walk through device tree representation.
-pub struct FdtIterator<'a> {
-    dt: &'a FdtReader<'a>,
+pub struct FdtIterator<'a, D: Driver> {
+    dt: &'a FdtReader<'a, D>,
     cursor: usize,
     depth: usize,
     len_buf: [usize; MAX_DEPTH],
@@ -197,10 +197,10 @@ pub struct FdtIterator<'a> {
 }
 
 // TODO: how to return errors from an iterator?
-impl<'a> Iterator for FdtIterator<'a> {
-    type Item = Entry<'a>;
+impl<'a, D: Driver> Iterator for FdtIterator<'a, D> {
+    type Item = Entry<'a, SectionReader<'a, D>>;
 
-    fn next(&mut self) -> Option<Entry<'a>> {
+    fn next(&mut self) -> Option<Self::Item> {
         loop {
             let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap());
             match op {
@@ -227,7 +227,7 @@ impl<'a> Iterator for FdtIterator<'a> {
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     // Note: This performs a copy of the whole path_buf array!
-                    return Some(Entry::Property::<'a> { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value: value });
+                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value });
                 }
                 Some(Token::Nop) => continue,
                 Some(Token::End) => return None,
@@ -237,9 +237,9 @@ impl<'a> Iterator for FdtIterator<'a> {
     }
 }
 
-pub enum Entry<'a> {
+pub enum Entry<'a, D: Driver> {
     Node { path: Path },
-    Property { path: Path, value: SectionReader<'a> },
+    Property { path: Path, value: SectionReader<'a, D> },
 }
 
 /// Typed value of device tree properties.
@@ -270,7 +270,7 @@ impl<'a> core::fmt::Display for Type<'a> {
 /// bytes. Because of this unambiguity, this method should only be used to print the content of the
 /// data to user.
 pub fn infer_type(data: &[u8]) -> Type {
-    if data.len() == 0 {
+    if data.is_empty() {
         return Type::Empty;
     }
     if let Some(i) = data.iter().position(|&c| !is_print(c)) {

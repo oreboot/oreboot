@@ -14,7 +14,7 @@ pool:
 
 steps:
 - script: |
-    make firsttime
+    make ciprepare
   displayName: 'Install Rust Dependencies'
 - script: |
     make --keep-going format check=true
@@ -22,6 +22,12 @@ steps:
 - script: |
     make --keep-going test
   displayName: 'Run rust tests'
+- script: |
+    make --keep-going clippy
+  displayName: 'Run clippy linter'
+- script: |
+    make --keep-going mainboards
+  displayName: 'Build all mainboards'
 - script: |
     cd src/mainboard/sifive/hifive
     PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
