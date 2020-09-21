@@ -33,7 +33,7 @@ $(MAINBOARDS):
 
 firsttime:
 	rustup override set $(TOOLCHAIN_VER)
-	rustup component add rust-src llvm-tools-preview rustfmt
+	rustup component add rust-src llvm-tools-preview rustfmt clippy
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
@@ -93,6 +93,13 @@ $(CRATES_TO_TEST):
 	cd $(dir $@) && cargo test
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
+
+# TODO: Fix payloads crate and remove "-A clippy::module-inception" exception.
+CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
+$(CRATES_TO_CLIPPY):
+	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::module-inception
+.PHONY: clippy $(CRATES_TO_CLIPPY)
+clippy: $(CRATES_TO_CLIPPY)
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)

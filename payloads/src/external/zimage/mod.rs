@@ -1,5 +1,5 @@
-pub const KERNEL: &'static [u8] = include_bytes!("zImage");
-pub const DTB: &'static [u8] = include_bytes!("qemu_fdt.dtb");
+pub const KERNEL: &[u8] = include_bytes!("zImage");
+pub const DTB: &[u8] = include_bytes!("qemu_fdt.dtb");
 
 /*
 use crate::payload;

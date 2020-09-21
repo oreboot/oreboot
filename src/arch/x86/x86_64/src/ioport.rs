@@ -15,7 +15,7 @@ fn inb(port: u16) -> u8 {
     unsafe {
         llvm_asm!("inb %dx, %al" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
     }
-    return ret;
+    ret
 }
 
 // /// Write 16 bits to port
