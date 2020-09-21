@@ -29,12 +29,6 @@ use wrappers::SectionReader;
 /// Special value that every device tree in FDT format starts with.
 pub const MAGIC: u32 = 0xd00dfeed;
 
-/// The largest nesting level of the device tree supported by this library. It is a fixed value
-/// because this library does not use heap so we need to know how much memory to allocate in
-/// advance. Value 16 is trying to strike a good balance between supporting
-/// reasonable amount of nesting and not allocating too much memory.
-pub const MAX_DEPTH: usize = 16;
-
 /// Maximum length of a node or property name.
 ///
 /// According to standard, the name has format `node-name@unit-address`:
@@ -79,8 +73,8 @@ enum Token {
 /// name of the property.
 pub struct Path {
     depth: usize,
-    len: [usize; MAX_DEPTH],
-    buf: [[u8; MAX_NAME_SIZE]; MAX_DEPTH],
+    len: usize,
+    buf: [u8; MAX_NAME_SIZE],
 }
 
 impl Path {
@@ -92,16 +86,10 @@ impl Path {
         self.depth
     }
 
-    /// Returns value of the i-th component of the path.
-    /// It has to be lower than `depth()`.
-    pub fn at(&self, i: usize) -> &[u8] {
-        &self.buf[i][..self.len[i]]
-    }
-
     /// Returns the last component of the path.
     /// When used for properties, returns the property name.
     pub fn name(&self) -> &str {
-        let name = self.at(self.depth - 1);
+        let name = &self.buf[..self.len];
         unsafe { core::str::from_utf8_unchecked(name) }
     }
 }
@@ -183,7 +171,7 @@ impl<'a, D: Driver> FdtReader<'a, D> {
     }
 
     pub fn walk(&'a self) -> FdtIterator<'a, D> {
-        FdtIterator { dt: self, cursor: 0, depth: 0, len_buf: [0; MAX_DEPTH], path_buf: [[0; MAX_NAME_SIZE]; MAX_DEPTH] }
+        FdtIterator { dt: self, cursor: 0, depth: 0, name_buf: [0; MAX_NAME_SIZE] }
     }
 }
 
@@ -192,8 +180,8 @@ pub struct FdtIterator<'a, D: Driver> {
     dt: &'a FdtReader<'a, D>,
     cursor: usize,
     depth: usize,
-    len_buf: [usize; MAX_DEPTH],
-    path_buf: [[u8; MAX_NAME_SIZE]; MAX_DEPTH],
+    // Temporary buffer to store the name.
+    name_buf: [u8; MAX_NAME_SIZE],
 }
 
 // TODO: how to return errors from an iterator?
@@ -205,29 +193,21 @@ impl<'a, D: Driver> Iterator for FdtIterator<'a, D> {
             let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap());
             match op {
                 Some(Token::BeginNode) => {
-                    if self.depth == MAX_DEPTH {
-                        panic!("max depth");
-                    }
-                    self.len_buf[self.depth] = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.path_buf[self.depth]).unwrap() as usize;
+                    let len = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf).unwrap() as usize;
                     self.cursor = align4(self.cursor);
                     self.depth += 1;
-                    // Note: This performs a copy of the whole path_buf array!
-                    return Some(Entry::Node { path: Path { depth: self.depth, len: self.len_buf, buf: self.path_buf } });
+                    return Some(Entry::Node { path: Path { depth: self.depth, len, buf: self.name_buf } });
                 }
                 Some(Token::EndNode) => {
                     self.depth -= 1;
                 }
                 Some(Token::Prop) => {
-                    if self.depth == MAX_DEPTH {
-                        panic!("max depth");
-                    }
                     let len = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
                     let mut nameoff = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    self.len_buf[self.depth] = cursor_string(&self.dt.strings_block, &mut nameoff, &mut self.path_buf[self.depth][..]).unwrap() as usize;
+                    let name_len = cursor_string(&self.dt.strings_block, &mut nameoff, &mut self.name_buf[..]).unwrap() as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
-                    // Note: This performs a copy of the whole path_buf array!
-                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: self.len_buf, buf: self.path_buf }, value });
+                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: name_len, buf: self.name_buf }, value });
                 }
                 Some(Token::Nop) => continue,
                 Some(Token::End) => return None,
