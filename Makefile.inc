@@ -5,6 +5,7 @@ BOARD       = $(notdir $(CURDIR))
 MODE       ?= release
 FIXED_DTFS  = fixed-dtfs.dtb
 TOOLS_DIR   = $(TOP)/tools
+FLASHROM_PROGRAMMER ?= dediprog
 # Cargo will build the tools using the target from the .cargo directory which
 # does not work so well if you are cross-compiling. This shell one-liner gets
 # the target of the current system which can be passed via --target for
@@ -57,4 +58,4 @@ objdump: $(ELF)
 	cargo objdump -- -d $(ELF)
 
 flash: $(IMAGE)
-	sudo $(which flashrom) -V -w $(IMAGE) -p dediprog
+	sudo $(which flashrom) -V -w $(IMAGE) -p $(FLASHROM_PROGRAMMER)
