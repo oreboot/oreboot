@@ -16,7 +16,9 @@ use wrappers::SliceReader;
 struct Area {
     description: String,
     compatible: String,
-    offset: u32,
+    // If not specified, it will be automatically computed based on previous areas (if this is
+    // first area, we start with 0).
+    offset: Option<u32>,
     size: u32,
     file: Option<String>,
 }
@@ -54,7 +56,7 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
                     match (path.name(), infer_type(data.as_slice())) {
                         ("description", Type::String(x)) => a.description = String::from(x),
                         ("compatible", Type::String(x)) => a.compatible = String::from(x),
-                        ("offset", Type::U32(x)) => a.offset = x,
+                        ("offset", Type::U32(x)) => a.offset = Some(x),
                         ("size", Type::U32(x)) => a.size = x,
                         ("file", Type::String(x)) => a.file = Some(String::from(x)),
                         (_, _) => {}
@@ -73,15 +75,19 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
     for a in areas {
-        if a.offset < last_area_end {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Areas are overlapping, last area finished at offset {}, next area '{}' starts at {}", last_area_end, a.description, a.offset)));
+        let offset = match a.offset {
+            Some(x) => x,
+            None => last_area_end,
+        };
+        if offset < last_area_end {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Areas are overlapping, last area finished at offset {}, next area '{}' starts at {}", last_area_end, a.description, offset)));
         }
-        last_area_end = a.offset + a.size;
+        last_area_end = offset + a.size;
 
         // First fill with 0xff.
         let mut v = Vec::new();
         v.resize(a.size as usize, 0xff);
-        f.seek(SeekFrom::Start(a.offset as u64))?;
+        f.seek(SeekFrom::Start(offset as u64))?;
         f.write_all(&v)?;
 
         // If a file is specified, write the file.
@@ -97,7 +103,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
                 continue;
             }
 
-            f.seek(SeekFrom::Start(a.offset as u64))?;
+            f.seek(SeekFrom::Start(offset as u64))?;
             let data = match fs::read(&path) {
                 Err(e) => return Err(io::Error::new(e.kind(), format!("Could not open: {}", path))),
                 Ok(data) => data,
