@@ -82,7 +82,7 @@ impl<'a> Driver for SliceReader<'a> {
         }
         let count = data.len().min(self.data.len() - pos);
         data[..count].copy_from_slice(&self.data[pos..pos + count]);
-        Ok(data.len())
+        Ok(count)
     }
 
     fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {

@@ -37,7 +37,12 @@ fn dts_to_dtb(dts: &str) -> std::vec::Vec<u8> {
 
 fn read_all(d: &impl Driver) -> std::vec::Vec<u8> {
     let mut data = [0; 500];
-    let size = d.pread(&mut data, 0).unwrap();
+    let size = match d.pread(&mut data, 0) {
+        Ok(x) => Ok(x),
+        Err("EOF") => Ok(0),
+        Err(other) => Err(other),
+    }
+    .unwrap();
     let mut result = std::vec::Vec::new();
     result.extend_from_slice(&data[0..size]);
     return result;
@@ -70,4 +75,77 @@ fn test_reads_properties() {
     assert_node(it.next().unwrap(), "", 1);
     assert_property(it.next().unwrap(), "#address-cells", 2, &vec![0, 0, 0, 1]);
     assert!(it.next().is_none());
+}
+
+#[test]
+fn test_reads_empty_properties() {
+    let data = dts_to_dtb(
+        r#"
+/dts-v1/;
+/ { 
+    #address-cells;
+};"#,
+    );
+    let slice_reader = &SliceReader::new(&data);
+    let reader = FdtReader::new(slice_reader).unwrap();
+    let mut it = reader.walk();
+
+    assert_node(it.next().unwrap(), "", 1);
+    assert_property(it.next().unwrap(), "#address-cells", 2, &vec![]);
+    assert!(it.next().is_none());
+}
+
+#[test]
+fn test_reads_nested_nodes() {
+    let data = dts_to_dtb(
+        r#"
+/dts-v1/;
+/ {
+    node1 {
+        #address-cells = "ok";
+        node2 {
+        };
+    };
+    node3 {
+    };
+};"#,
+    );
+    let slice_reader = &SliceReader::new(&data);
+    let reader = FdtReader::new(slice_reader).unwrap();
+    let mut it = reader.walk();
+
+    assert_node(it.next().unwrap(), "", 1);
+    assert_node(it.next().unwrap(), "node1", 2);
+    assert_property(it.next().unwrap(), "#address-cells", 3, &vec![111, 107, 0]);
+    assert_node(it.next().unwrap(), "node2", 3);
+    assert_node(it.next().unwrap(), "node3", 2);
+    assert!(it.next().is_none());
+}
+
+#[test]
+fn test_returns_error_when_magic_is_invalid() {
+    let mut data = dts_to_dtb(
+        r#"
+/dts-v1/;
+/ {
+    #address-cells = "ok";
+};"#,
+    );
+    // Magic is a first number
+    data[0] = 1;
+    let slice_reader = &SliceReader::new(&data);
+    assert_eq!(FdtReader::new(slice_reader).err(), Some("invalid magic in device tree header"));
+}
+
+#[test]
+fn test_returns_error_when_header_is_too_short() {
+    let data = dts_to_dtb(
+        r#"
+/dts-v1/;
+/ {
+    #address-cells = "ok";
+};"#,
+    );
+    let slice_reader = &SliceReader::new(&data[0..4]);
+    assert_eq!(FdtReader::new(slice_reader).err(), Some("not enough data to read device tree header"));
 }
