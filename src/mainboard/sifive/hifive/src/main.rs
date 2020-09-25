@@ -176,12 +176,20 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (
 
 // TODO: move out of mainboard
 pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
-    for entry in FdtReader::new(fdt)?.walk() {
+    let reader = FdtReader::new(fdt)?;
+    let mut iter = reader.walk();
+    let mut depth = 0;
+    while let Some(entry) = iter.next() {
+        let entry = entry?;
         match entry {
-            Entry::Node { path: p } => {
-                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
+            Entry::StartNode { name } => {
+                depth += 1;
+                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).unwrap();
             }
-            Entry::Property { path: p, value: v } => {
+            Entry::EndNode {} => {
+                depth -= 1;
+            }
+            Entry::Property { name, value: v } => {
                 let buf = &mut [0; 1024];
                 let len = match v.pread(buf, 0) {
                     Ok(x) => x,
@@ -189,7 +197,7 @@ pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<(), &'
                     Err(y) => return Err(y),
                 };
                 let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2,).unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).unwrap();
             }
         }
     }

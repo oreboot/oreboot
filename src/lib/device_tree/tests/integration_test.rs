@@ -1,27 +1,35 @@
 extern crate device_tree;
 
 use device_tree::{Entry, FdtReader};
-use model::Driver;
+use model::{Driver, Result};
 use std::io::Write;
 use std::process::{Command, Stdio};
 use wrappers::SliceReader;
 
-fn assert_node<D: Driver>(entry: Entry<D>, name: &str, depth: usize) {
-    if let Entry::Node { path } = entry {
-        assert_eq!(path.name(), name);
-        assert_eq!(path.depth(), depth);
+fn assert_start_node<D: Driver>(entry: Option<Result<Entry<D>>>, expected_name: &str) {
+    let entry = entry.unwrap().unwrap();
+    if let Entry::StartNode { name } = entry {
+        assert_eq!(name, expected_name);
     } else {
-        panic!("Expected Node!")
+        panic!("Expected StartNode!")
     }
 }
 
-fn assert_property<D: Driver>(entry: Entry<D>, expected_name: &str, expected_depth: usize, expected_value: &[u8]) {
-    if let Entry::Property { path, value } = entry {
-        assert_eq!(path.name(), expected_name);
-        assert_eq!(path.depth(), expected_depth);
+fn assert_end_node<D: Driver>(entry: Option<Result<Entry<D>>>) {
+    let entry = entry.unwrap().unwrap();
+    if let Entry::EndNode = entry {
+    } else {
+        panic!("Expected EndNode!")
+    }
+}
+
+fn assert_property<D: Driver>(entry: Option<Result<Entry<D>>>, expected_name: &str, expected_value: &[u8]) {
+    let entry = entry.unwrap().unwrap();
+    if let Entry::Property { name, value } = entry {
+        assert_eq!(name, expected_name);
         assert_eq!(read_all(&value), expected_value);
     } else {
-        panic!("Expected Node!")
+        panic!("Expected Property!")
     }
 }
 
@@ -55,7 +63,8 @@ fn test_reads_empty_device_tree() {
     let reader = FdtReader::new(slice_reader).unwrap();
     let mut it = reader.walk();
 
-    assert_node(it.next().unwrap(), "", 1);
+    assert_start_node(it.next(), "");
+    assert_end_node(it.next());
     assert!(it.next().is_none());
 }
 
@@ -72,8 +81,9 @@ fn test_reads_properties() {
     let reader = FdtReader::new(slice_reader).unwrap();
     let mut it = reader.walk();
 
-    assert_node(it.next().unwrap(), "", 1);
-    assert_property(it.next().unwrap(), "#address-cells", 2, &vec![0, 0, 0, 1]);
+    assert_start_node(it.next(), "");
+    assert_property(it.next(), "#address-cells", &vec![0, 0, 0, 1]);
+    assert_end_node(it.next());
     assert!(it.next().is_none());
 }
 
@@ -90,8 +100,9 @@ fn test_reads_empty_properties() {
     let reader = FdtReader::new(slice_reader).unwrap();
     let mut it = reader.walk();
 
-    assert_node(it.next().unwrap(), "", 1);
-    assert_property(it.next().unwrap(), "#address-cells", 2, &vec![]);
+    assert_start_node(it.next(), "");
+    assert_property(it.next(), "#address-cells", &vec![]);
+    assert_end_node(it.next());
     assert!(it.next().is_none());
 }
 
@@ -114,11 +125,15 @@ fn test_reads_nested_nodes() {
     let reader = FdtReader::new(slice_reader).unwrap();
     let mut it = reader.walk();
 
-    assert_node(it.next().unwrap(), "", 1);
-    assert_node(it.next().unwrap(), "node1", 2);
-    assert_property(it.next().unwrap(), "#address-cells", 3, &vec![111, 107, 0]);
-    assert_node(it.next().unwrap(), "node2", 3);
-    assert_node(it.next().unwrap(), "node3", 2);
+    assert_start_node(it.next(), "");
+    assert_start_node(it.next(), "node1");
+    assert_property(it.next(), "#address-cells", &vec![111, 107, 0]);
+    assert_start_node(it.next(), "node2");
+    assert_end_node(it.next());
+    assert_end_node(it.next());
+    assert_start_node(it.next(), "node3");
+    assert_end_node(it.next());
+    assert_end_node(it.next());
     assert!(it.next().is_none());
 }
 

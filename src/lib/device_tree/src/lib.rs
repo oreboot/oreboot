@@ -171,55 +171,75 @@ impl<'a, D: Driver> FdtReader<'a, D> {
     }
 
     pub fn walk(&'a self) -> FdtIterator<'a, D> {
-        FdtIterator { dt: self, cursor: 0, depth: 0, name_buf: [0; MAX_NAME_SIZE] }
+        FdtIterator { dt: self, cursor: 0, name_buf: [0; MAX_NAME_SIZE] }
     }
 }
 
-/// Iterator used to walk through device tree representation.
 pub struct FdtIterator<'a, D: Driver> {
     dt: &'a FdtReader<'a, D>,
     cursor: usize,
-    depth: usize,
-    // Temporary buffer to store the name.
     name_buf: [u8; MAX_NAME_SIZE],
 }
 
-// TODO: how to return errors from an iterator?
-impl<'a, D: Driver> Iterator for FdtIterator<'a, D> {
-    type Item = Entry<'a, SectionReader<'a, D>>;
-
-    fn next(&mut self) -> Option<Self::Item> {
+impl<'a, D: Driver> FdtIterator<'a, D> {
+    #[allow(clippy::should_implement_trait)]
+    pub fn next<'b>(&'b mut self) -> Option<Result<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
         loop {
             let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap());
             match op {
                 Some(Token::BeginNode) => {
                     let len = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf).unwrap() as usize;
                     self.cursor = align4(self.cursor);
-                    self.depth += 1;
-                    return Some(Entry::Node { path: Path { depth: self.depth, len, buf: self.name_buf } });
+                    match core::str::from_utf8(&self.name_buf[..len]) {
+                        Ok(name) => return Some(Ok(Entry::StartNode { name })),
+                        Err(_) => return Some(Err("node name is not valid utf8")),
+                    }
                 }
-                Some(Token::EndNode) => {
-                    self.depth -= 1;
-                }
+                Some(Token::EndNode) => return Some(Ok(Entry::EndNode)),
                 Some(Token::Prop) => {
                     let len = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    let mut nameoff = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    let name_len = cursor_string(&self.dt.strings_block, &mut nameoff, &mut self.name_buf[..]).unwrap() as usize;
+                    let mut name_off = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
+                    let name_len = cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..]).unwrap() as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
-                    return Some(Entry::Property { path: Path { depth: self.depth + 1, len: name_len, buf: self.name_buf }, value });
+                    match core::str::from_utf8(&self.name_buf[..name_len]) {
+                        Ok(name) => return Some(Ok(Entry::Property { name, value })),
+                        Err(_) => return Some(Err("property name is not valid uft8")),
+                    }
                 }
                 Some(Token::Nop) => continue,
                 Some(Token::End) => return None,
-                None => panic!("unexpected token"),
+                None => return Some(Err("unexpected token in device tree")),
             }
         }
+    }
+
+    /// Reads the whole current node skipping all entries within it.
+    pub fn skip_node(&mut self) -> Result<()> {
+        let mut depth = 1;
+        while let Some(item) = self.next() {
+            let item = item?;
+            match item {
+                Entry::StartNode { name: _ } => {
+                    depth += 1;
+                }
+                Entry::EndNode => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return Ok(());
+                    }
+                }
+                Entry::Property { name: _, value: _ } => continue,
+            }
+        }
+        Err("EOF")
     }
 }
 
 pub enum Entry<'a, D: Driver> {
-    Node { path: Path },
-    Property { path: Path, value: SectionReader<'a, D> },
+    StartNode { name: &'a str },
+    EndNode,
+    Property { name: &'a str, value: D },
 }
 
 /// Typed value of device tree properties.
