@@ -4,6 +4,9 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
+const PAGE_SIZE: usize = 4096;
+
+pub mod bzimage;
 pub mod ioport;
 
 pub fn halt() -> ! {

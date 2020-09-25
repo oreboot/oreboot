@@ -4,24 +4,15 @@
 #![no_main]
 #![feature(global_asm)]
 
+use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use core::ptr;
 use model::Driver;
-use payloads::payload;
 use print;
 use uart::i8250::I8250;
 
 global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
-
-//global_asm!(include_str!("init.S"));
-fn poke(v: u32, a: u32) -> () {
-    let y = a as *mut u32;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
@@ -32,13 +23,11 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    let payload = &mut payload::StreamPayload { typ: payload::ftype::CBFS_TYPE_SELF, compression: payload::ctype::CBFS_COMPRESS_NONE, offset: 0, entry: 0x1000020 as usize, rom_len: 0 as usize, mem_len: 0 as usize, dtb: 0, rom: 0xff000000 };
+    // TODO: Get these values from the fdt
+    let payload = &mut BzImage { low_mem_size: 0x80_000_000, high_mem_start: 0x1_000_000_000, high_mem_size: 0, rom_base: 0xff_000_000, rom_size: 0x100_000, load: 0x1_000_000, entry: 0x1_000_200 };
 
-    write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
-    payload.load(w);
-    if false {
-        poke(0xfe, 0x100000);
-    }
+    payload.load(w).unwrap();
+
     write!(w, "Running payload\r\n").unwrap();
     payload.run(w);
 
