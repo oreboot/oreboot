@@ -32,21 +32,30 @@ fn test_slice_reader_returns_zero_for_empty_buf() {
 }
 
 #[test]
-#[should_panic]
+fn test_slice_reader_returns_number_of_bytes_read() {
+    let data = [1, 2, 3, 4, 5];
+    let driver = SliceReader::new(&data);
+    let mut buf = [0; 10];
+
+    assert_eq!(5, driver.pread(&mut buf, 0).unwrap());
+    assert_eq!(&buf[..5], &data);
+    assert_eq!(&buf[5..], &[0; 5]);
+}
+
+#[test]
 fn test_slice_reader_returns_eof() {
     let data = [1, 2, 3, 4, 5];
     let driver = SliceReader::new(&data);
     let mut buf = [0; 5];
 
-    driver.pread(&mut buf, 5).unwrap();
+    assert_eq!(driver.pread(&mut buf, 5).err(), Some("EOF"));
 }
 
 #[test]
-#[should_panic]
 fn test_slice_reader_returns_eof_with_empty_buf() {
     let data = [1, 2, 3, 4, 5];
     let driver = SliceReader::new(&data);
     let mut buf = [0; 0];
 
-    driver.pread(&mut buf, 5).unwrap();
+    assert_eq!(driver.pread(&mut buf, 5).err(), Some("EOF"));
 }
