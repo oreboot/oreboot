@@ -45,20 +45,35 @@ steps:
   displayName: 'Build QEMU q35 board for x86'
 - script: |
     set -e
-    git clone https://github.com/qemu/qemu && cd qemu && git checkout v5.1.0
-    mkdir build-riscv64 && cd build-riscv64
-    ../configure --target-list=riscv64-softmmu
-    make -j16
-    sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
-    sudo ln -s $PWD/qemu-img /usr/bin/
-  displayName: 'Install RISC-V QEMU Dependencies'
+    QVER=5.1.0
+    curl -L https://github.com/qemu/qemu/archive/v$QVER.tar.gz|tar xz
+    pushd qemu-$QVER
+    mkdir build && cd build
+    ../configure --target-list=riscv64-softmmu,x86_64-softmmu --audio-drv-list= --python=/usr/bin/python3 --disable-bzip2 --disable-curl --disable-curses --disable-docs --disable-gcrypt --disable-gnutls --disable-gtk --disable-guest-agent --disable-kvm --disable-libssh --disable-libusb --disable-libxml2 --disable-live-block-migration --disable-lzo --disable-mpath --disable-nettle --disable-numa --disable-opengl --disable-rdma --disable-replication --disable-sdl --disable-snappy --disable-spice --disable-tpm --disable-usb-redir --disable-vhost-crypto --disable-vhost-net --disable-vhost-scsi --disable-vhost-user --disable-vhost-vsock --disable-virglrenderer --disable-vnc --disable-vnc-jpeg --disable-vnc-png --disable-vnc-sasl --disable-xen --disable-debug-mutex --disable-debug-info --disable-debug-tcg --enable-virtfs
+    make -j$(($(nproc) + 1)) qemu-img
+    make -j$(($(nproc) + 1)) -C x86_64-softmmu qemu-system-x86_64
+    make -j$(($(nproc) + 1)) -C riscv64-softmmu qemu-system-riscv64
+    popd
+    mkdir bin
+    ln -s $(realpath qemu-$QVER/build/qemu-img) bin/
+    ln -s $(realpath qemu-$QVER/build/x86_64-softmmu/qemu-system-x86_64) bin/
+    ln -s $(realpath qemu-$QVER/build/riscv64-softmmu/qemu-system-riscv64) bin/
+  displayName: 'Build QEMU for RISC-V and x86_64'
 - script: |
+    export PATH=$(realpath bin):$PATH
     cd src/mainboard/sifive/hifive
     PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V SiFive board QEMU Test'
 - script: |
+    export PATH=$(realpath bin):$PATH
     cd src/mainboard/emulation/qemu-riscv
     timeout 30s make run | tee serial
     grep "Running payload" serial
   displayName: 'RISC-V QEMU Virt board QEMU Test'
+- script: |
+    export PATH=$(realpath bin):$PATH
+    cd src/mainboard/emulation/qemu-q35
+    timeout 120s make run | tee serial
+    grep "Running payload" serial
+  displayName: 'x86 q35 board QEMU Test'
