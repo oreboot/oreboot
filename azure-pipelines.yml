@@ -49,9 +49,9 @@ steps:
   displayName: 'Build QEMU q35 board for x86'
 - task: Cache@2
   inputs:
-    # Note that caches are immutable. To change, use a different name (e.g. qemu-bin-v2) or
+    # Note that caches are immutable. To change, use a different name (e.g. qemu-bins2-...) or
     # update QVER. Cache expires after 7 days of no use.
-    key: qemu-bin | ${{ variables.QVER }}
+    key: 'qemu-bin-v${{ variables.QVER }}'
     path: $(Pipeline.Workspace)/qemu-${{ variables.QVER }}-bin.tar.xz
     cacheHitVar: QEMU_CACHE_RESTORED
   displayName: Get QEMU cache
