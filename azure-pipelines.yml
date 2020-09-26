@@ -12,6 +12,10 @@ schedules:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+- name: QVER
+  value: 5.1.0
+
 steps:
 - script: |
     make ciprepare
@@ -43,10 +47,23 @@ steps:
     cd src/mainboard/emulation/qemu-q35
     make
   displayName: 'Build QEMU q35 board for x86'
+- task: Cache@2
+  inputs:
+    # Note that caches are immutable. To change, use a different name (e.g. qemu-bin-v2) or
+    # update QVER. Cache expires after 7 days of no use.
+    key: qemu-bin | ${{ variables.QVER }}
+    path: $(Pipeline.Workspace)/qemu-${{ variables.QVER }}-bin.tar.xz
+    cacheHitVar: QEMU_CACHE_RESTORED
+  displayName: Get QEMU cache
 - script: |
     set -e
-    QVER=5.1.0
-    git clone -b v$QVER --depth 1 https://github.com/qemu/qemu.git
+    mkdir -p bin
+    tar xJf qemu-${{ variables.QVER }}-bin.tar.xz -C bin
+  condition: eq(variables.QEMU_CACHE_RESTORED, 'true')
+  displayName: Extract QEMU cache
+- script: |
+    set -e
+    git clone -b v${{ variables.QVER }} --depth 1 https://github.com/qemu/qemu.git
     pushd qemu
     mkdir build && cd build
     ../configure --target-list=riscv64-softmmu,x86_64-softmmu --audio-drv-list= --python=/usr/bin/python3 --disable-bzip2 --disable-curl --disable-curses --disable-docs --disable-gcrypt --disable-gnutls --disable-gtk --disable-guest-agent --disable-kvm --disable-libssh --disable-libusb --disable-libxml2 --disable-live-block-migration --disable-lzo --disable-mpath --disable-nettle --disable-numa --disable-opengl --disable-rdma --disable-replication --disable-sdl --disable-snappy --disable-spice --disable-tpm --disable-usb-redir --disable-vhost-crypto --disable-vhost-net --disable-vhost-scsi --disable-vhost-user --disable-vhost-vsock --disable-virglrenderer --disable-vnc --disable-vnc-jpeg --disable-vnc-png --disable-vnc-sasl --disable-xen --disable-debug-mutex --disable-debug-info --disable-debug-tcg
@@ -54,10 +71,13 @@ steps:
     make -j$(($(nproc) + 1)) -C x86_64-softmmu qemu-system-x86_64
     make -j$(($(nproc) + 1)) -C riscv64-softmmu qemu-system-riscv64
     popd
-    mkdir bin
-    ln -s $(realpath qemu/build/qemu-img) bin/
-    ln -s $(realpath qemu/build/x86_64-softmmu/qemu-system-x86_64) bin/
-    ln -s $(realpath qemu/build/riscv64-softmmu/qemu-system-riscv64) bin/
+    mkdir -p bin
+    mv $(realpath qemu/build/qemu-img) bin/
+    mv $(realpath qemu/build/x86_64-softmmu/qemu-system-x86_64) bin/
+    mv $(realpath qemu/build/riscv64-softmmu/qemu-system-riscv64) bin/
+    #because we performed a cache request for this tarball, it will automatically be cached for us at the end of the run
+    tar cJf qemu-${{ variables.QVER }}-bin.tar.xz -C bin .
+  condition: eq(variables.QEMU_CACHE_RESTORED, 'false')
   displayName: 'Build QEMU for RISC-V and x86_64'
 - script: |
     export PATH=$(realpath bin):$PATH
