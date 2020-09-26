@@ -95,5 +95,5 @@ steps:
     export PATH=$(realpath bin):$PATH
     cd src/mainboard/emulation/qemu-q35
     timeout 120s make run | tee serial
-    grep "Running payload" serial
+    grep "PAYLOAD_SEGMENT_BAD" serial
   displayName: 'x86 q35 board QEMU Test'
