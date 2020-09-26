@@ -82,7 +82,7 @@ steps:
 - script: |
     export PATH=$(realpath bin):$PATH
     cd src/mainboard/sifive/hifive
-    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
+    PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 30s make run | tee serial
     grep TESTTESTTEST serial
   displayName: 'RISC-V SiFive board QEMU Test'
 - script: |
@@ -94,6 +94,6 @@ steps:
 - script: |
     export PATH=$(realpath bin):$PATH
     cd src/mainboard/emulation/qemu-q35
-    timeout 120s make run | tee serial
+    timeout 30s make run | tee serial
     grep "PAYLOAD_SEGMENT_BAD" serial
   displayName: 'x86 q35 board QEMU Test'
