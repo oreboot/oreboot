@@ -26,7 +26,7 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x76ff0000;
+    . = 0x76fe0000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));
