@@ -12,6 +12,14 @@ use model::Driver;
 use payloads::payload;
 use print;
 use uart::i8250::I8250;
+mod mainboard;
+use mainboard::MainBoard;
+mod msr;
+use msr::msrs;
+use x86_64::instructions::rdmsr;
+extern crate heapless; // v0.4.x
+use heapless::consts::*;
+use heapless::Vec;
 
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
@@ -47,8 +55,44 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    let payload = &mut payload::StreamPayload { typ: payload::ftype::CBFS_TYPE_SELF, compression: payload::ctype::CBFS_COMPRESS_NONE, offset: 0, entry: 0x1000020 as usize, rom_len: 0 as usize, mem_len: 0 as usize, dtb: 0, rom: 0xff000000 };
-
+    msrs(w);
+    // It is hard to say if we need to do this.
+    if true {
+        let v = rdmsr(0xc001_1004);
+        write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+        // it's set already
+        //unsafe {wrmsr(0xc001_1004, v | (1 << 9));}
+        //let v = rdmsr(0xc001_1004);
+        //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+    }
+    if true {
+        let v = rdmsr(0xc001_1005);
+        write!(w, "c001_1005 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+        // it's set already
+        //unsafe {wrmsr(0xc001_1004, v | (1 << 9));}
+        //let v = rdmsr(0xc001_1004);
+        //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+    }
+        write!(w, "0x1b is {:x} \r\n", rdmsr(0x1b)).unwrap();
+    p[0] = p[0] + 1;
+    let payload = &mut BzImage {
+        low_mem_size: 0x80000000,
+        high_mem_start: 0x100000000,
+        high_mem_size: 0,
+        // TODO: get this from the FDT.
+        rom_base: 0xffc00000,
+        rom_size: 0x300000,
+        load: 0x01000000,
+        entry: 0x1000200,
+    };
+    p[0] = p[0] + 1;
+    write!(w, "Write bios tables\r\n").unwrap();
+    setup_bios_tables(w, 0xf0000, 1);
+    write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
+    debug(w);
+    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
+    poke32(0xfee000d0, 0x1000000);
+    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
     payload.load(w);
     if false {

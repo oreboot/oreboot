@@ -20,17 +20,12 @@ func main() {
 	}
 	a := flag.Args()
 	if len(a) == 0 {
-		// works with simply outb jmp 1b. a = append(a, "loop.bin@0xFFEFBF")
-		// fails if stack is used.a = append(a, "loop.bin@0xFFEFBF")
-		// works and shows log 8 bits a = append(a, "loop.bin@0xFF_fa0f")
-		// works and shows fa a = append(a, "looppostEIP15:8.bin@0xFF_fa0f")
-		// shows ff a = append(a, "looppostEIP23:16.bin@0xFFfa0f")
-		// works, shows 76!!! a = append(a, "looppostEIP31:24.bin@0xFFfa0f")
-		a = append(a, "jmporeboot.bin@FFfa0f")
-		 // GPF a = append(a, "jmpcoreboot.bin@FFefbf")
-		a = append(a, "target/x86_64-unknown-none/release/bootblob.bin@FF0000@EF00")
-		//a = append(a, "build/coreboot.rom@C00000@3f0000")
-		//a = append(a, "target/x86_64-unknown-none/release/bootblob.bin@D00000@2f0000")
+		a = append(a, "jmporeboot.bin@FFefbf")
+		a = append(a, "start.bin@FF0000")
+		//a = append(a, "x.bin@FFEF72@108e")
+		// for oreboot
+		a = append(a, "target/x86_64-unknown-none/release/bootblob.bin@Fe0000@1EF00")
+		a = append(a, "target/x86_64-unknown-none/release/image.bin@C00000@3f0000")
 	}
 	for _, v := range a {
 		parms := strings.Split(v, "@")
