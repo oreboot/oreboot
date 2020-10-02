@@ -5,6 +5,8 @@ name = "arch"
 version = "0.1.0"
 dependencies = [
  "model",
+ "print",
+ "wrappers",
 ]
 
 [[package]]

@@ -6,9 +6,12 @@ edition = "2018"
 
 [dependencies]
 model = { path = "../../../drivers/model" }
+print = { path = "../../../lib/print" }
+wrappers = { path = "../../../drivers/wrappers"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
 
 [features]
 ioport = []
+bzimage = []
