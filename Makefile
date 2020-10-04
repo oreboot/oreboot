@@ -94,10 +94,9 @@ $(CRATES_TO_TEST):
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
 
-# TODO: Fix payloads crate and remove "-A clippy::module-inception" exception.
 CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
 $(CRATES_TO_CLIPPY):
-	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::module-inception
+	cd $(dir $@) && cargo clippy -- -D warnings
 .PHONY: clippy $(CRATES_TO_CLIPPY)
 clippy: $(CRATES_TO_CLIPPY)
 
