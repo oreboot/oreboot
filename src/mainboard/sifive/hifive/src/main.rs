@@ -10,8 +10,8 @@ use core::intrinsics::transmute;
 use core::panic::PanicInfo;
 use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
-use device_tree::{infer_type, Entry, FdtReader};
-use model::{Driver, EOF};
+use device_tree::print_fdt;
+use model::Driver;
 use payloads::payload;
 use print;
 use soc::clock::Clock;
@@ -169,36 +169,6 @@ fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (
         let v = unsafe { ptr::read(addr.add(i)) };
         if v != i as u32 + 1 {
             return Err((unsafe { addr.add(i) }, v));
-        }
-    }
-    Ok(())
-}
-
-// TODO: move out of mainboard
-pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<(), &'static str> {
-    let reader = FdtReader::new(fdt)?;
-    let mut iter = reader.walk();
-    let mut depth = 0;
-    while let Some(entry) = iter.next() {
-        let entry = entry?;
-        match entry {
-            Entry::StartNode { name } => {
-                depth += 1;
-                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).unwrap();
-            }
-            Entry::EndNode {} => {
-                depth -= 1;
-            }
-            Entry::Property { name, value: v } => {
-                let buf = &mut [0; 1024];
-                let len = match v.pread(buf, 0) {
-                    Ok(x) => x,
-                    EOF => 0,
-                    Err(y) => return Err(y),
-                };
-                let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).unwrap();
-            }
         }
     }
     Ok(())
