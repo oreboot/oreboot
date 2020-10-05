@@ -23,6 +23,7 @@ extern crate num_derive;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
+use core::fmt::Write;
 use model::{Driver, Result};
 use wrappers::SectionReader;
 
@@ -234,6 +235,37 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
         }
         Err("EOF")
     }
+}
+
+/// Reads the device tree in FDT format from given driver and writes it in human readable form to
+/// given writer.
+pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<()> {
+    let reader = FdtReader::new(fdt)?;
+    let mut iter = reader.walk();
+    let mut depth = 0;
+    while let Some(entry) = iter.next() {
+        let entry = entry?;
+        match entry {
+            Entry::StartNode { name } => {
+                depth += 1;
+                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).unwrap();
+            }
+            Entry::EndNode {} => {
+                depth -= 1;
+            }
+            Entry::Property { name, value: v } => {
+                let buf = &mut [0; 1024];
+                let len = match v.pread(buf, 0) {
+                    Ok(x) => x,
+                    Err("EOF") => 0,
+                    Err(y) => return Err(y),
+                };
+                let val = infer_type(&buf[..len]);
+                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).unwrap();
+            }
+        }
+    }
+    Ok(())
 }
 
 pub enum Entry<'a, D: Driver> {

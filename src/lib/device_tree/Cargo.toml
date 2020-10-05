@@ -9,6 +9,7 @@ byteorder = { version = "1", default-features = false }
 model = { path = "../../drivers/model"}
 num-derive = { version = "0.2", default-features = false }
 num-traits = { version = "0.2", default-features = false }
+print = { path = "../../lib/print" }
 wrappers = { path = "../../drivers/wrappers"}
 
 [profile.release]
