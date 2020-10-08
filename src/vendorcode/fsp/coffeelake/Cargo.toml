@@ -1,0 +1,11 @@
+[package]
+name = "fsp-coffeelake-sys"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+efi = "0.2.1"
+
+[build-dependencies]
+bindgen = "0.53.1"

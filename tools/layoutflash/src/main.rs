@@ -1,7 +1,6 @@
-#![deny(warnings)]
 use clap::Clap;
-use device_tree::{infer_type, Entry, FdtReader, Type, MAX_NAME_SIZE};
-use model::Driver;
+use device_tree::{infer_type, Entry, FdtIterator, FdtReader, Type, MAX_NAME_SIZE};
+use model::{Driver, Result};
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
 use std::process::exit;
@@ -33,6 +32,31 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
     v
 }
 
+fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
+    let mut area = Area { ..Default::default() };
+    while let Some(item) = iter.next() {
+        let item = item?;
+        match item {
+            Entry::StartNode { name: _ } => {
+                iter.skip_node()?;
+            }
+            Entry::EndNode => return Ok(area),
+            Entry::Property { name, value } => {
+                let data = read_all(&value);
+                match (name, infer_type(data.as_slice())) {
+                    ("description", Type::String(x)) => area.description = String::from(x),
+                    ("compatible", Type::String(x)) => area.compatible = String::from(x),
+                    ("offset", Type::U32(x)) => area.offset = Some(x),
+                    ("size", Type::U32(x)) => area.size = x,
+                    ("file", Type::String(x)) => area.file = Some(String::from(x)),
+                    (_, _) => {}
+                }
+            }
+        }
+    }
+    Ok(area)
+}
+
 // TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
@@ -42,27 +66,18 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let driver = SliceReader::new(data.as_slice());
 
     let mut areas = Vec::new();
-    for item in FdtReader::new(&driver).unwrap().walk() {
-        // TODO: We really need a better iterator for this.
+    let reader = FdtReader::new(&driver).unwrap();
+    let mut iter = reader.walk();
+    while let Some(item) = iter.next() {
+        let item = item.unwrap();
         match item {
-            Entry::Node { path } => {
-                if path.name().starts_with("area@") {
-                    areas.push(Area { ..Default::default() });
+            Entry::StartNode { name } => {
+                if name.starts_with("area@") {
+                    areas.push(read_area_node(&mut iter).unwrap());
                 }
             }
-            Entry::Property { path, value } => {
-                let data = read_all(&value);
-                if let Some(a) = areas.last_mut() {
-                    match (path.name(), infer_type(data.as_slice())) {
-                        ("description", Type::String(x)) => a.description = String::from(x),
-                        ("compatible", Type::String(x)) => a.compatible = String::from(x),
-                        ("offset", Type::U32(x)) => a.offset = Some(x),
-                        ("size", Type::U32(x)) => a.size = x,
-                        ("file", Type::String(x)) => a.file = Some(String::from(x)),
-                        (_, _) => {}
-                    }
-                }
-            }
+            Entry::EndNode => continue,
+            Entry::Property { name: _, value: _ } => continue,
         }
     }
 

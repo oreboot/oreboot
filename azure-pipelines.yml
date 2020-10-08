@@ -14,6 +14,9 @@ pool:
 
 steps:
 - script: |
+    git submodule update --init
+  displayName: 'Checkout submodules'
+- script: |
     make ciprepare
   displayName: 'Install Rust Dependencies'
 - script: |
