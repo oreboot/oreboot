@@ -1,48 +1,18 @@
-//use core::ops;
 use model::*;
-//use register::mmio::{ReadOnly, ReadWrite};
-//use register::{register_bitfields, Field};
 
-/*
-#[repr(C)]
-pub struct RegisterBlock {
-    d: ReadWrite<u8, D::Register>,
-    ie: ReadWrite<u8, IE::Register>,
-    fc: ReadWrite<u8, FC::Register>,
-    lc: ReadWrite<u8, LC::Register>,
-    mc: ReadWrite<u8, MC::Register>,
-    ls: ReadOnly<u8, LS::Register>,
-}
-*/
 pub struct I8250<'a> {
     base: usize,
     _baud: u32,
     d: &'a mut dyn Driver,
 }
 
-// it is possible that trying to make this work is a fool's errand but
-// ... would be nice if the deref used the Driver in the 8250 ... dream on.
-// impl ops::Deref for I8250 {
-//     type Target = RegisterBlock;
-
-//     fn deref(&self) -> &Self::Target {
-//         unsafe { &*self.ptr() }
-//     }
-// }
-
 impl<'a> I8250<'a> {
-    // why is base a usize? for mmio 8250.
     pub fn new(base: usize, _baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
-        I8250 { base: base, _baud: _baud, d: d }
+        I8250 { base, _baud, d }
     }
 
-    /// Returns a pointer to the register block
-    // fn ptr(&self) -> *const RegisterBlock {
-    //     self.base as *const _
-    // }
     /// Poll the status register until the specified field is set to the given value.
     /// Returns false iff it timed out.
-    //    fn poll_status(&self, bit: Field<u8, LS::Register>, val: bool) -> bool {
     fn poll_status(&self, mask: u8, val: u8) -> bool {
         // Timeout after a few thousand cycles to prevent hanging forever.
         for _ in 0..100_000 {
@@ -55,40 +25,31 @@ impl<'a> I8250<'a> {
         return false;
     }
 }
-
 #[allow(dead_code)]
 impl<'a> Driver for I8250<'a> {
     // TODO: properly use the register crate.
     fn init(&mut self) -> Result<()> {
-        const IER: usize = 0x01;
-        const IIR: usize = 0x02;
-        const FCR: usize = 0x02;
-        const LCR: usize = 0x03;
-        const MCR: usize = 0x04;
-        const MCR_DMA_EN: usize = 0x04;
-        const MCR_TX_DFR: usize = 0x08;
-        const DLL: usize = 0x00;
-        const DLM: usize = 0x01;
-        const LSR: usize = 0x05;
-        const MSR: usize = 0x06;
-        const SCR: usize = 0x07;
+        const DLL: usize = 0x00; // Divisor Latch Low Byte               RW
+        const DLH: usize = 0x01; // Divisor Latch High Byte              RW
+        const IER: usize = 0x01; // Interrupt Enable Register            RW
+        const IIR: usize = 0x02; // Interrupt Identification Register    R
+        const FCR: usize = 0x02; // Fifo Control Register                W
+        const LCR: usize = 0x03; // Line Control Register                RW
+        const MCR: usize = 0x04; // Modem Control Register               RW
+        const LSR: usize = 0x05; // Line Status Register                 R
+        const MSR: usize = 0x06; // Modem Status Register                R
+        const SCR: usize = 0x07; // Scratch Register                     RW
 
         const FIFOENABLE: u8 = 1;
-        const DLAB: u8 = 0x80;
-        const EIGHTN1: u8 = 3;
+        const DLAB: u8 = 0b1000; // Divisor Latch Access bit
+        const EIGHTN1: u8 = 0b0011;
 
         let mut s: [u8; 1] = [0u8; 1];
         self.d.pwrite(&s, self.base + IER).unwrap();
-        //outb(0x0, base_port + UART8250_IER);
 
         /* Enable FIFOs */
-        //outb(&s, base_port + fcr);
         s[0] = FIFOENABLE;
         self.d.pwrite(&s, self.base + FCR).unwrap();
-
-        /* assert DTR and RTS so the other end is happy */
-        // 3 wires don't care.
-        //outb(UART8250_MCR_DTR | UART8250_MCR_RTS, base_port + UART8250_MCR);
 
         /* DLAB on */
         // so we can set baud rate.
@@ -100,25 +61,11 @@ impl<'a> Driver for I8250<'a> {
         s[0] = 1;
         self.d.pwrite(&s, self.base + DLL).unwrap();
         s[0] = 0;
-        self.d.pwrite(&s, self.base + DLM).unwrap();
-        //outb(divisor & 0xFF,   base_port + UART8250_DLL);
-        //outb((divisor >> 8) & 0xFF,    base_port + UART8250_DLM);
+        self.d.pwrite(&s, self.base + DLH).unwrap();
 
-        /* Set to 3 for 8N1 */
+        /* Set to 3 for 8N1 (8 data bits, no parity, 1 stop bit)*/
         s[0] = EIGHTN1;
         self.d.pwrite(&s, self.base + LCR).unwrap();
-        //        outb(CONFIG_TTYS0_LCS, base_port + UART8250_LCR);
-        // /* disable all interrupts */
-        // self.ie.set(0u8);
-        // /* Enable dLAB */
-        // self.lc.write(LC::DivisorLatchAccessBit::BaudRate);
-        // // Until we know the clock rate the divisor values are kind of
-        // // impossible to know. Throw in a phony value.
-        // self.lc.write(LC::WLEN::WLEN_8);
-        // // TOdO: what are these bits. how do we write them.
-        // self.fc.set(0xc7);
-        // self.mc.set(0x0b);
-        // self.lc.write(LC::DivisorLatchAccessBit::Normal);
         Ok(())
     }
 
@@ -146,43 +93,76 @@ impl<'a> Driver for I8250<'a> {
     fn shutdown(&mut self) {}
 }
 
-// // TODO: bitfields
-// register_bitfields! {
-//     u8,
-//     // Data register
-//     D [
-//         DATA OFFSET(0) NUMBITS(8) []
-//     ],
-//     IE [
-//         RX OFFSET(0) NUMBITS(1) [],
-//         TX OFFSET(1) NUMBITS(1) [],
-//         Error OFFSET(2) NUMBITS(1) [],
-//         StatusChange OFFSET(3) NUMBITS(1) []
-//     ],
-//     FC [
-//         DATA OFFSET(0) NUMBITS(8) []
-//     ],
-//     LC [
-//         WLEN OFFSET(0) NUMBITS(2) [
-//             WLEN_5 = 0,
-//             WLEN_6 = 1,
-//             WLEN_7 = 2,
-//             WLEN_8 = 3
-//         ],
-//         StopBits OFFSET(3) NUMBITS(1) [],
-//         ParityEnable OFFSET(4) NUMBITS(1) [],
-//         EvenParity OFFSET(5) NUMBITS (1) [],
-//         StickParity OFFSET(6) NUMBITS (1) [],
-//         DivisorLatchAccessBit OFFSET(7) NUMBITS (1) [
-//             Normal = 0,
-//             BaudRate = 1
-//         ]
-//     ],
-//     MC [
-//         DATA OFFSET(0) NUMBITS(8) []
-//     ],
-//     LS [
-//         IF OFFSET(0) NUMBITS(1) [],
-//         OE OFFSET(1) NUMBITS(1) []
-//     ]
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /*
+     * UART pushing into a vec
+     */
+    extern crate heapless;
+    use heapless::Vec;
+    pub struct MockPort<'a> {
+        ldata: &'a mut Vec<u8, heapless::consts::U8>,
+    }
+
+    impl<'a> MockPort<'a> {
+        pub fn new(v: &'a mut Vec<u8, heapless::consts::U8>) -> MockPort {
+            MockPort { ldata: v }
+        }
+    }
+
+    impl<'a> Driver for MockPort<'a> {
+        fn init(&mut self) -> Result<()> {
+            Ok(())
+        }
+
+        fn pread(&self, data: &mut [u8], offset: usize) -> Result<usize> {
+            if self.ldata.len() <= offset {
+                return EOF;
+            }
+            data[0] = self.ldata[offset];
+            return Ok(0);
+        }
+
+        fn pwrite(&mut self, data: &[u8], offset: usize) -> Result<usize> {
+            while self.ldata.len() < offset + data.len() {
+                self.ldata.push(0).unwrap();
+            }
+
+            for (i, &c) in data.iter().enumerate() {
+                self.ldata[offset + i] = c;
+            }
+
+            Ok(data.len())
+        }
+
+        fn shutdown(&mut self) {}
+    }
+
+    const FCR: usize = 0x02; // Fifo Control Register
+    const LCR: usize = 0x03; // Line Control Register
+
+    #[test]
+    fn uart_driver_enables_fifos() {
+        let mut vec = Vec::<u8, heapless::consts::U8>::new();
+        let port = &mut MockPort::new(&mut vec);
+        let test_uart = &mut I8250::new(0, 0, port);
+        test_uart.init().unwrap();
+
+        assert_eq!(1 & vec[FCR], 1); // FIFOs enabled
+    }
+
+    // Line control register should have the bottom bits be 0b011 for 8 data bits and one stop bit
+    #[test]
+    fn uart_driver_sets_wordlength_and_stopbit() {
+        let mut vec = Vec::<u8, heapless::consts::U8>::new();
+        let port = &mut MockPort::new(&mut vec);
+        let test_uart = &mut I8250::new(0, 0, port);
+        test_uart.init().unwrap();
+
+        assert_eq!(vec[LCR], 0b011);
+    }
+
+    // TODO: test baud rate usage
+}
