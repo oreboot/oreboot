@@ -11,10 +11,8 @@ opt-level = 'z'  # Optimize for size.
 model = { path = "../model"}
 clock = { path = "../clock"}
 register = "0.3.2"
-
 # Heapless does not build for rv32imc.
-[dependencies.heapless]
-optional = true
+heapless = { version = "0.4.4", optional = true }
 
 [features]
 i8250 = ["heapless"]
