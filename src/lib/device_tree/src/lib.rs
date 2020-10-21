@@ -185,11 +185,19 @@ pub struct FdtIterator<'a, D: Driver> {
 impl<'a, D: Driver> FdtIterator<'a, D> {
     #[allow(clippy::should_implement_trait)]
     pub fn next<'b>(&'b mut self) -> Option<Result<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
+        macro_rules! check {
+            ($x:expr) => {
+                match $x {
+                    Err(err) => return Some(Err(err)),
+                    Ok(x) => x,
+                }
+            };
+        };
         loop {
-            let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap());
+            let op = num_traits::cast::FromPrimitive::from_u32(check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)));
             match op {
                 Some(Token::BeginNode) => {
-                    let len = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf).unwrap() as usize;
+                    let len = check!(cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf)) as usize;
                     self.cursor = align4(self.cursor);
                     match core::str::from_utf8(&self.name_buf[..len]) {
                         Ok(name) => return Some(Ok(Entry::StartNode { name })),
@@ -198,9 +206,9 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
                 }
                 Some(Token::EndNode) => return Some(Ok(Entry::EndNode)),
                 Some(Token::Prop) => {
-                    let len = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    let mut name_off = cursor_u32(&self.dt.struct_block, &mut self.cursor).unwrap() as usize;
-                    let name_len = cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..]).unwrap() as usize;
+                    let len = check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)) as usize;
+                    let mut name_off = check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)) as usize;
+                    let name_len = check!(cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..])) as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     match core::str::from_utf8(&self.name_buf[..name_len]) {
@@ -248,7 +256,7 @@ pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<()> {
         match entry {
             Entry::StartNode { name } => {
                 depth += 1;
-                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).unwrap();
+                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).map_err(|_e| "failed to write")?;
             }
             Entry::EndNode {} => {
                 depth -= 1;
@@ -261,7 +269,7 @@ pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<()> {
                     Err(y) => return Err(y),
                 };
                 let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).unwrap();
+                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).map_err(|_e| "failed to write")?;
             }
         }
     }
