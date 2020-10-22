@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#![deny(warnings)]
+#![no_std]
 
 #[inline]
 pub fn round_up_4k(num: usize) -> usize {
