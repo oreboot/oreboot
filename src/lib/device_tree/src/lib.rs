@@ -184,41 +184,33 @@ pub struct FdtIterator<'a, D: Driver> {
 
 impl<'a, D: Driver> FdtIterator<'a, D> {
     #[allow(clippy::should_implement_trait)]
-    pub fn next<'b>(&'b mut self) -> Option<Result<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
-        macro_rules! check {
-            ($x:expr) => {
-                match $x {
-                    Err(err) => return Some(Err(err)),
-                    Ok(x) => x,
-                }
-            };
-        };
+    pub fn next<'b>(&'b mut self) -> Result<Option<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
         loop {
-            let op = num_traits::cast::FromPrimitive::from_u32(check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)));
+            let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor)?);
             match op {
                 Some(Token::BeginNode) => {
-                    let len = check!(cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf)) as usize;
+                    let len = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf)? as usize;
                     self.cursor = align4(self.cursor);
                     match core::str::from_utf8(&self.name_buf[..len]) {
-                        Ok(name) => return Some(Ok(Entry::StartNode { name })),
-                        Err(_) => return Some(Err("node name is not valid utf8")),
+                        Ok(name) => return Ok(Some(Entry::StartNode { name })),
+                        Err(_) => return Err("node name is not valid utf8"),
                     }
                 }
-                Some(Token::EndNode) => return Some(Ok(Entry::EndNode)),
+                Some(Token::EndNode) => return Ok(Some(Entry::EndNode)),
                 Some(Token::Prop) => {
-                    let len = check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)) as usize;
-                    let mut name_off = check!(cursor_u32(&self.dt.struct_block, &mut self.cursor)) as usize;
-                    let name_len = check!(cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..])) as usize;
+                    let len = cursor_u32(&self.dt.struct_block, &mut self.cursor)? as usize;
+                    let mut name_off = cursor_u32(&self.dt.struct_block, &mut self.cursor)? as usize;
+                    let name_len = cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..])? as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     match core::str::from_utf8(&self.name_buf[..name_len]) {
-                        Ok(name) => return Some(Ok(Entry::Property { name, value })),
-                        Err(_) => return Some(Err("property name is not valid uft8")),
+                        Ok(name) => return Ok(Some(Entry::Property { name, value })),
+                        Err(_) => return Err("property name is not valid uft8"),
                     }
                 }
                 Some(Token::Nop) => continue,
-                Some(Token::End) => return None,
-                None => return Some(Err("unexpected token in device tree")),
+                Some(Token::End) => return Ok(None),
+                None => return Err("unexpected token in device tree"),
             }
         }
     }
@@ -226,8 +218,7 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
     /// Reads the whole current node skipping all entries within it.
     pub fn skip_node(&mut self) -> Result<()> {
         let mut depth = 1;
-        while let Some(item) = self.next() {
-            let item = item?;
+        while let Some(item) = self.next()? {
             match item {
                 Entry::StartNode { name: _ } => {
                     depth += 1;
@@ -251,8 +242,7 @@ pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<()> {
     let reader = FdtReader::new(fdt)?;
     let mut iter = reader.walk();
     let mut depth = 0;
-    while let Some(entry) = iter.next() {
-        let entry = entry?;
+    while let Some(entry) = iter.next()? {
         match entry {
             Entry::StartNode { name } => {
                 depth += 1;

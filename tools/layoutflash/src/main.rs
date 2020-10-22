@@ -34,8 +34,7 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 
 fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
     let mut area = Area { ..Default::default() };
-    while let Some(item) = iter.next() {
-        let item = item?;
+    while let Some(item) = iter.next()? {
         match item {
             Entry::StartNode { name: _ } => {
                 iter.skip_node()?;
@@ -68,8 +67,7 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let mut areas = Vec::new();
     let reader = FdtReader::new(&driver).unwrap();
     let mut iter = reader.walk();
-    while let Some(item) = iter.next() {
-        let item = item.unwrap();
+    while let Some(item) = iter.next().unwrap() {
         match item {
             Entry::StartNode { name } => {
                 if name.starts_with("area@") {
