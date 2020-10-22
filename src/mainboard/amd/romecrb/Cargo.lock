@@ -5,6 +5,8 @@ name = "arch"
 version = "0.1.0"
 dependencies = [
  "model",
+ "print",
+ "util",
  "wrappers",
 ]
 
@@ -18,6 +20,18 @@ dependencies = [
  "generic-array 0.13.2",
  "stable_deref_trait",
 ]
+
+[[package]]
+name = "bit_field"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed8765909f9009617974ab6b7d332625b320b33c326b1e9321382ef1999b5d56"
+
+[[package]]
+name = "bitflags"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "byteorder"
@@ -164,6 +178,7 @@ name = "romecrb"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "clock",
  "console",
  "heapless 0.4.4",
  "model",
@@ -174,6 +189,7 @@ dependencies = [
  "static-ref",
  "uart",
  "wrappers",
+ "x86_64",
 ]
 
 [[package]]
@@ -248,8 +264,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
+name = "util"
+version = "0.1.0"
+
+[[package]]
 name = "wrappers"
 version = "0.1.0"
 dependencies = [
  "model",
+]
+
+[[package]]
+name = "x86_64"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5b4b42dbabe13b69023e1a1407d395f1a1a33df76e9a9efdbe303acc907e292"
+dependencies = [
+ "bit_field",
+ "bitflags",
 ]

@@ -5,8 +5,9 @@
 #![deny(warnings)]
 
 const PAGE_SIZE: usize = 4096;
-
+pub mod bios;
 pub mod bzimage;
+pub mod consts;
 pub mod ioport;
 
 pub fn halt() -> ! {

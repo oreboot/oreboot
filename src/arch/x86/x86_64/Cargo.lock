@@ -5,11 +5,24 @@ name = "arch"
 version = "0.1.0"
 dependencies = [
  "model",
+ "print",
+ "util",
  "wrappers",
 ]
 
 [[package]]
 name = "model"
+version = "0.1.0"
+
+[[package]]
+name = "print"
+version = "0.1.0"
+dependencies = [
+ "model",
+]
+
+[[package]]
+name = "util"
 version = "0.1.0"
 
 [[package]]

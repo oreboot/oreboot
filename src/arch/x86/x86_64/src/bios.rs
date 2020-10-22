@@ -1,12 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 // from github.com:akaros/vmm-akaros/xhype/xhype
-use crate::consts::x86::*;
-use crate::utils::round_up_4k;
-use core::fmt::Write;
+use crate::consts::x86;
 use core::mem::size_of;
 use core::ptr;
-use print;
+use util::round_up_4k;
 // https://uefi.org/sites/default/files/resources/ACPI_6_3_May16.pdf
 
 // Table 5-27 RSDP Structure
@@ -197,7 +195,7 @@ pub struct AcpiMadtLAPICNMI {
     pub local_interrupt: u8,
 }
 
-fn write<T>(w: &mut print::WriteTo, val: T, offset: usize, index: usize) {
+fn write<T>(w: &mut impl core::fmt::Write, val: T, offset: usize, index: usize) {
     let y = (offset + index * size_of::<T>()) as *mut T;
     unsafe {
         ptr::write_volatile(y, val);
@@ -207,8 +205,7 @@ fn write<T>(w: &mut print::WriteTo, val: T, offset: usize, index: usize) {
 
 fn read<T>(offset: usize, index: usize) -> T {
     let y = (offset + index * size_of::<T>()) as *mut T;
-    let v = unsafe { ptr::read_volatile(y) };
-    v
+    unsafe { ptr::read_volatile(y) }
 }
 
 /*
@@ -254,7 +251,7 @@ fn gencsum(start: usize, end: usize) -> u8 {
     let mut tot: u16 = 0;
     for i in start..end + 1 {
         let b: u8 = read(i, 0);
-        tot = tot + b as u16;
+        tot += b as u16;
     }
     tot as u8
 }
@@ -284,7 +281,7 @@ const MADT_LOCAL_LAPICNMI: u8 = 4;
 /// of the guest. `low_mem` is a host virtual memory block which is mapped to
 /// the lowest memory of the guest. `cores` is the number of logical CPUs of the guest.
 /// Total number of bytes occupied by the BIOS tables is returned.
-pub fn setup_bios_tables(w: &mut print::WriteTo, start: usize, cores: u32) -> usize {
+pub fn setup_bios_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32) -> usize {
     // calculate offsets first
     // variables with suffix `_offset` mean the offset in `low_mem`. They are
     // also the guest physical address of the corresponding tables, since `low_mem` is
@@ -336,7 +333,7 @@ pub fn setup_bios_tables(w: &mut print::WriteTo, start: usize, cores: u32) -> us
 
     // madt
     let madt_total_length = size_of::<AcpiTableMadt>() + size_of::<AcpiMadtIoApic>() + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2apic>());
-    let madt = AcpiTableMadt { header: AcpiTableHeader { signature: SIG_MADT, length: madt_total_length as u32, ..AcpiTableHeader::new() }, address: APIC_BASE as u32, flags: 0, ..Default::default() };
+    let madt = AcpiTableMadt { header: AcpiTableHeader { signature: SIG_MADT, length: madt_total_length as u32, ..AcpiTableHeader::new() }, address: x86::APIC_BASE as u32, flags: 0 };
     write(w, madt, madt_offset, 0);
 
     // local apic
@@ -346,7 +343,7 @@ pub fn setup_bios_tables(w: &mut print::WriteTo, start: usize, cores: u32) -> us
     }
 
     // io apiic
-    let io_apic = AcpiMadtIoApic { header: AcpiSubtableHader { r#type: MADT_IO_APIC, length: size_of::<AcpiMadtIoApic>() as u8 }, id: 0xf0, address: IO_APIC_BASE as u32, global_irq_base: 0, ..Default::default() };
+    let io_apic = AcpiMadtIoApic { header: AcpiSubtableHader { r#type: MADT_IO_APIC, length: size_of::<AcpiMadtIoApic>() as u8 }, id: 0xf0, address: x86::IO_APIC_BASE as u32, global_irq_base: 0, ..Default::default() };
     write(w, io_apic, io_apic_offset, 0);
 
     // local x2apic
@@ -358,16 +355,16 @@ pub fn setup_bios_tables(w: &mut print::WriteTo, start: usize, cores: u32) -> us
 
     // LAPICNMI
     write!(w, "LAPICNMI\r\n").unwrap();
-    let lapicnmi = AcpiMadtLAPICNMI { header: AcpiSubtableHader { r#type: MADT_LOCAL_LAPICNMI, length: size_of::<AcpiMadtLAPICNMI>() as u8 }, acpi_processor_uid: 0xff, flags: 5, local_interrupt: 1, ..Default::default() };
+    let lapicnmi = AcpiMadtLAPICNMI { header: AcpiSubtableHader { r#type: MADT_LOCAL_LAPICNMI, length: size_of::<AcpiMadtLAPICNMI>() as u8 }, acpi_processor_uid: 0xff, flags: 5, local_interrupt: 1 };
     write(w, lapicnmi, local_lapicnmi_offset, 0 as usize);
 
     // isor -- rhymes with eyesore
     write!(w, "First ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 9, globalirq: 9, flags: 0xf, ..Default::default() };
+    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 9, globalirq: 9, flags: 0xf };
     write(w, isor, local_isor_offset, 0 as usize);
 
     write!(w, "Second ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 0, globalirq: 2, flags: 0, ..Default::default() };
+    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 0, globalirq: 2, flags: 0 };
     write(w, isor, local_isor_offset, 1 as usize);
 
     write!(w, "Gencsum from {:x} to {:x} store into {:x}\r\n", madt_offset, madt_offset + madt_total_length, ACPI_TABLE_HEADER_CHECKSUM_OFFSET).unwrap();
