@@ -238,7 +238,7 @@ name = "uart"
 version = "0.1.0"
 dependencies = [
  "clock",
- "heapless 0.5.4",
+ "heapless 0.4.4",
  "model",
  "register",
 ]
