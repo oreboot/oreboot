@@ -1,6 +1,8 @@
 #![no_std]
 #![feature(llvm_asm)]
 
+#[cfg(feature = "debug_port")]
+pub mod debug_port;
 #[cfg(feature = "i8250")]
 pub mod i8250;
 #[cfg(feature = "log")]
