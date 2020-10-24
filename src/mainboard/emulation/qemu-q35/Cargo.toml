@@ -19,7 +19,7 @@ postcard = "0.4.3"
 
 [dependencies.uart]
 path = "../../../drivers/uart"
-features = ["i8250"]
+features = ["i8250", "debug_port"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

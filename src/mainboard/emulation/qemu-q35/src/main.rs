@@ -10,6 +10,7 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use print;
+use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 
 global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
@@ -18,8 +19,13 @@ global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let io = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
+    // Note: on real hardware, use port 0x80 instead for "POST" output
+    let debugIO = &mut IOPort;
+    let debug = &mut DebugPort::new(0xe9, debugIO);
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    debug.init().unwrap();
+    debug.pwrite(b"Welcome to oreboot - debug port E9\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(uart0);
 

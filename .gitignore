@@ -24,3 +24,4 @@ oreboot.asm
 
 target
 **/*.rs.bk
+debug.log

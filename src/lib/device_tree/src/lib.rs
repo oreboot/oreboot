@@ -69,32 +69,6 @@ enum Token {
     End = 0x9,
 }
 
-/// Represents a path to device tree node.
-/// It is also being used by properties, in which case the last component of the path stores the
-/// name of the property.
-pub struct Path {
-    depth: usize,
-    len: usize,
-    buf: [u8; MAX_NAME_SIZE],
-}
-
-impl Path {
-    /// Returns the number of components in the path.
-    ///
-    /// Returns 1 for root path `/`.
-    /// Returns node.depth() + 1 when used for properties.
-    pub fn depth(&self) -> usize {
-        self.depth
-    }
-
-    /// Returns the last component of the path.
-    /// When used for properties, returns the property name.
-    pub fn name(&self) -> &str {
-        let name = &self.buf[..self.len];
-        unsafe { core::str::from_utf8_unchecked(name) }
-    }
-}
-
 /// In-memory reader for Flattened Device Tree format.
 ///
 /// Does not perform any sanity checks.
