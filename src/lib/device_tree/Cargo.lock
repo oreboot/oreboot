@@ -18,7 +18,6 @@ dependencies = [
  "model 0.1.0",
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "print 0.1.0",
  "wrappers 0.1.0",
 ]
 
@@ -42,13 +41,6 @@ version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "autocfg 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "print"
-version = "0.1.0"
-dependencies = [
- "model 0.1.0",
 ]
 
 [[package]]

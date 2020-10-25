@@ -23,7 +23,6 @@ extern crate num_derive;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
-use core::fmt::Write;
 use model::{Driver, Result};
 use wrappers::SectionReader;
 
@@ -212,7 +211,7 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
 
 /// Reads the device tree in FDT format from given driver and writes it in human readable form to
 /// given writer.
-pub fn print_fdt(fdt: &mut impl Driver, w: &mut print::WriteTo) -> Result<()> {
+pub fn print_fdt(fdt: &mut impl Driver, w: &mut impl core::fmt::Write) -> Result<()> {
     let reader = FdtReader::new(fdt)?;
     let mut iter = reader.walk();
     let mut depth = 0;

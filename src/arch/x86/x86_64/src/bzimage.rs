@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 use crate::PAGE_SIZE;
-use core::fmt::Write;
 use core::intrinsics::copy;
 use core::mem::{size_of, transmute};
 use model::{Driver, Result};
@@ -173,7 +172,7 @@ impl Default for BootParams {
 }
 
 impl BzImage {
-    pub fn load(&mut self, w: &mut print::WriteTo) -> Result<usize> {
+    pub fn load(&mut self, w: &mut impl core::fmt::Write) -> Result<usize> {
         // The raw pointer shit is too painful.
         let rom = SectionReader::new(&Memory {}, self.rom_base, self.rom_size);
         let mut header: SetupHeader = {
@@ -271,7 +270,7 @@ impl BzImage {
     }
 
     /// Run the payload. This might not return.
-    pub fn run(&self, w: &mut print::WriteTo) {
+    pub fn run(&self, w: &mut impl core::fmt::Write) {
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
         unsafe {
