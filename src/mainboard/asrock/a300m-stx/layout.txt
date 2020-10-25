@@ -1,0 +1,2 @@
+00000000:00feffff other
+00ff0000:00ffffff bootblock
