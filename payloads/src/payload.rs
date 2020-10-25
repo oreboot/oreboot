@@ -1,4 +1,3 @@
-use core::fmt::Write;
 use core::intrinsics::{copy, transmute};
 use model::{Driver, EOF};
 use postcard::from_bytes;
@@ -186,7 +185,7 @@ pub struct CBFSSeg {
 // TOOD: remove all uses of non-streaming payloads.
 impl StreamPayload {
     /// Load the payload in memory. Returns the entrypoint.
-    pub fn load(&mut self, w: &mut print::WriteTo) {
+    pub fn load(&mut self, w: &mut impl core::fmt::Write) {
         // TODO: how many segments are there?
         // The coreboot convention: ENTRY marks the last segment.
         // we need to ensure we create them that way too.
@@ -254,7 +253,7 @@ impl StreamPayload {
     }
 
     /// Run the payload. This might not return.
-    pub fn run(&self, w: &mut print::WriteTo) {
+    pub fn run(&self, w: &mut impl core::fmt::Write) {
         // Jump to the payload.
         // See: linux/Documentation/arm/Booting
         unsafe {

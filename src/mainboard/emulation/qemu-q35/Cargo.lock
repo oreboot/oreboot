@@ -5,7 +5,6 @@ name = "arch"
 version = "0.1.0"
 dependencies = [
  "model",
- "print",
  "wrappers",
 ]
 
@@ -104,7 +103,6 @@ version = "0.1.0"
 dependencies = [
  "model",
  "postcard",
- "print",
  "serde",
  "wrappers",
 ]

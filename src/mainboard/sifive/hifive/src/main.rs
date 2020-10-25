@@ -156,7 +156,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
 }
 
 // Returns Err((address, got)) or OK(()).
-fn test_ddr(addr: *mut u32, size: usize, w: &mut print::WriteTo) -> Result<(), (*const u32, u32)> {
+fn test_ddr(addr: *mut u32, size: usize, w: &mut impl core::fmt::Write) -> Result<(), (*const u32, u32)> {
     write!(w, "Starting to fill with data\r\n").unwrap();
     // Fill with data.
     for i in 0..(size / 4) {
