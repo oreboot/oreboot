@@ -18,6 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	flag.Parse()
 	a := flag.Args()
 	if len(a) == 0 {
 		a = append(a, "serial.bin@FFFFF0")
