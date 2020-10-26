@@ -21,9 +21,9 @@ BROKEN := \
 
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
-TOOLCHAIN_VER := nightly-2020-04-22
-XBUILD_VER := 0.5.29
-BINUTILS_VER := 0.2.0
+TOOLCHAIN_VER := nightly-2020-10-25
+XBUILD_VER := 0.6.3
+BINUTILS_VER := 0.3.2
 
 .PHONY: mainboards $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
