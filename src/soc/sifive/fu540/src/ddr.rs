@@ -57,6 +57,12 @@ impl DDR {
     }
 }
 
+impl Default for DDR {
+    fn default() -> Self {
+        DDR::new()
+    }
+}
+
 impl Driver for DDR {
     fn init(&mut self) -> Result<()> {
         /* nothing to do. */
@@ -252,7 +258,7 @@ fn sdram_init() {
 
 pub fn mem_size() -> u64 {
     if is_qemu() {
-        return 1 * 1024 * 1024 * 1024;
+        return 1024 * 1024 * 1024;
     }
     reg::DDR_SIZE
 }

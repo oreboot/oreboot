@@ -216,7 +216,7 @@ impl<'a> Driver for Clock<'a> {
 
 impl<'a> Clock<'a> {
     pub fn new(clks: &'a mut [&'a mut dyn ClockNode]) -> Clock<'a> {
-        Clock::<'a> { base: reg::PRCI as usize, clks: clks }
+        Clock::<'a> { base: reg::PRCI as usize, clks }
     }
 
     /// Returns a pointer to the register block

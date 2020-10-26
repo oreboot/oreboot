@@ -13,7 +13,6 @@ use core::{fmt::Write, ptr};
 use device_tree::print_fdt;
 use model::Driver;
 use payloads::payload;
-use print;
 use soc::clock::Clock;
 use soc::ddr::DDR;
 use soc::is_qemu;

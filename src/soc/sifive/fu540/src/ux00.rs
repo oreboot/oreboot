@@ -37,14 +37,14 @@ pub const PHY_RX_CAL_DQ1_0_OFFSET: u64 = 16;
 // This is a 64-bit machine but all this action seems to be on 32-bit values.
 // No idea why this is.
 // index is a word offset.
-fn poke(pointer: u32, index: u32, value: u32) -> () {
+fn poke(pointer: u32, index: u32, value: u32) {
     let addr = (pointer + (index << 2)) as *mut u32;
     unsafe {
         ptr::write_volatile(addr, value);
     }
 }
 
-fn poke64(pointer: u32, index: u32, value: u64) -> () {
+fn poke64(pointer: u32, index: u32, value: u64) {
     let addr = (pointer + (index << 2)) as *mut u64;
     //let addr1 = (pointer + (index << 2) + 4) as *mut u32;
     unsafe {
@@ -56,12 +56,12 @@ fn poke64(pointer: u32, index: u32, value: u64) -> () {
     }
 }
 
-fn set(pointer: u32, index: u32, value: u32) -> () {
+fn set(pointer: u32, index: u32, value: u32) {
     let v = peek(pointer, index);
     poke(pointer, index, v | value);
 }
 
-fn clr(pointer: u32, index: u32, value: u32) -> () {
+fn clr(pointer: u32, index: u32, value: u32) {
     let v = peek(pointer, index);
     poke(pointer, index, v & value);
 }
@@ -196,7 +196,7 @@ pub fn ux00ddr_phy_fixup() -> u64 {
 
     //let mut fails: u64 = 0;
     let mut slicebase: u32 = 0;
-    let mut dq: u32 = 0;
+    //let mut dq: u32 = 0;
     for _ in 0..8 {
         // check errata condition
         let regbase: u32 = slicebase + 34;
@@ -226,7 +226,7 @@ pub fn ux00ddr_phy_fixup() -> u64 {
                     //else uart_puts((void*) UART0_CTRL_ADDR, "D");
                     //uart_puts((void*) UART0_CTRL_ADDR, "\n");
                 }
-                dq = dq + 1;
+                //dq += 1;
             }
         }
         slicebase += 128;
