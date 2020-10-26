@@ -8,10 +8,9 @@
 mod romstage;
 use core::fmt::Write;
 
-use device_tree::Entry::{Node, Property};
-use model::{Driver, Result};
+use device_tree::print_fdt;
+use model::Driver;
 use payloads::external::zimage::DTB;
-use print;
 use uart;
 use wrappers::{DoD, SliceReader};
 
@@ -24,9 +23,10 @@ pub extern "C" fn _start() -> ! {
     uart_driver.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     let s = &mut [uart_driver];
     let console = &mut DoD::new(s);
+    let mut w = print::WriteTo::new(console);
+    let spi = SliceReader::new(DTB);
 
-    if let Err(err) = print_fdt(console) {
-        let mut w = print::WriteTo::new(console);
+    if let Err(err) = print_fdt(&spi, &mut w) {
         write!(w, "error: {}\n", err).expect(err);
     }
 
@@ -44,26 +44,6 @@ pub extern "C" fn _start() -> ! {
     romstage::romstage()
 }
 use core::panic::PanicInfo;
-
-pub fn print_fdt(console: &mut dyn Driver) -> Result<()> {
-    let mut w = print::WriteTo::new(console);
-    let spi = SliceReader::new(DTB);
-
-    for entry in device_tree::FdtReader::new(&spi)?.walk() {
-        match entry {
-            Node { path: p } => {
-                write!(w, "{:depth$}{}\r\n", "", p.name(), depth = p.depth() * 2).unwrap();
-            }
-            Property { path: p, value: v } => {
-                let buf = &mut [0; 1024];
-                let len = v.pread(buf, 0)?;
-                let val = device_tree::infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", p.name(), val, depth = p.depth() * 2).unwrap();
-            }
-        }
-    }
-    Ok(())
-}
 
 pub fn halt() -> ! {
     loop {
