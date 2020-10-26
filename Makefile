@@ -16,7 +16,6 @@ help:
 
 BROKEN := \
 	src/mainboard/ast/ast25x0/Makefile \
-	src/mainboard/nuvoton/npcm7xx/Makefile \
 	src/mainboard/emulation/qemu-armv7/Makefile \
 
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
