@@ -162,5 +162,5 @@ fn test_returns_error_when_header_is_too_short() {
 };"#,
     );
     let slice_reader = &SliceReader::new(&data[0..4]);
-    assert_eq!(FdtReader::new(slice_reader).err(), Some("not enough data to read device tree header"));
+    assert_eq!(FdtReader::new(slice_reader).err(), Some("EOF"));
 }

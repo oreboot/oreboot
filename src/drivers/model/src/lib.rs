@@ -1,5 +1,4 @@
 #![no_std]
-#![deny(warnings)]
 
 pub type Result<T> = core::result::Result<T, &'static str>;
 
@@ -20,4 +19,22 @@ pub trait Driver {
     fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize>;
     /// Shutdown the device.
     fn shutdown(&mut self);
+    /// Reads the exact number of bytes to fill in the `data`.
+    /// Returns ok if `data` is empty.
+    fn pread_exact(&self, mut data: &mut [u8], mut pos: usize) -> Result<()> {
+        while !data.is_empty() {
+            match self.pread(&mut data, pos) {
+                Ok(0) => return Err("unexpected eof"),
+                Ok(x) => {
+                    data = &mut data[x..];
+                    pos += x;
+                }
+                Err(err) => return Err(err),
+            }
+        }
+        Ok(())
+    }
 }
+
+#[cfg(test)]
+mod tests;
