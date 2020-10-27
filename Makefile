@@ -100,7 +100,6 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/opentitan/crb/Cargo.toml \
-	src/soc/aspeed/ast2500/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
 # TODO: Remove write_with_newline
