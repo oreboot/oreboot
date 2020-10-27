@@ -8,7 +8,6 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use payloads::payload;
-use print;
 use uart::ns16550::NS16550;
 use wrappers::{Memory, SectionReader, SliceReader};
 

@@ -103,7 +103,6 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
-	src/mainboard/emulation/qemu-riscv/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/opentitan/crb/Cargo.toml \
 	src/soc/aspeed/ast2500/Cargo.toml \

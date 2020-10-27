@@ -29,7 +29,7 @@ impl ops::Deref for NS16550 {
 
 impl NS16550 {
     pub fn new(base: usize, _baudrate: u32) -> NS16550 {
-        NS16550 { base: base }
+        NS16550 { base }
     }
 
     /// Returns a pointer to the register block
@@ -45,7 +45,7 @@ impl NS16550 {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 
