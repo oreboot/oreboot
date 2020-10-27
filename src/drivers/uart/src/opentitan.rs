@@ -203,7 +203,7 @@ impl ops::Deref for OpenTitanUART {
 
 impl OpenTitanUART {
     pub fn new(base: usize, baudrate: u32) -> OpenTitanUART {
-        OpenTitanUART { base: base, baudrate: baudrate }
+        OpenTitanUART { base, baudrate }
     }
 
     /// Returns a pointer to the register block
@@ -236,7 +236,7 @@ impl Driver for OpenTitanUART {
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
-        return Ok(0);
+        Ok(0)
         // TODO
         //for c in data.iter_mut() {
         //    while ! self.RD.is_set(RD::Empty) {}
