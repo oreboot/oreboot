@@ -94,11 +94,6 @@ $(CRATES_TO_TEST):
 test: $(CRATES_TO_TEST)
 
 BROKEN_CRATES_TO_CLIPPY := \
-	src/arch/arm/armv7/Cargo.toml \
-	src/arch/riscv/rv32/Cargo.toml \
-	src/arch/riscv/rv64/Cargo.toml \
-	src/cpu/armltd/cortex-a9/Cargo.toml \
-	src/cpu/lowrisc/ibex/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
@@ -106,8 +101,6 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/opentitan/crb/Cargo.toml \
 	src/soc/aspeed/ast2500/Cargo.toml \
-	src/soc/opentitan/earlgrey/Cargo.toml \
-	src/soc/sifive/fu540/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
 # TODO: Remove write_with_newline

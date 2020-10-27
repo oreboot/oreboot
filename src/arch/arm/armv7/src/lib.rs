@@ -14,6 +14,12 @@ impl MMU {
     }
 }
 
+impl Default for MMU {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Driver for MMU {
     fn init(&mut self) -> Result<()> {
         Ok(())
