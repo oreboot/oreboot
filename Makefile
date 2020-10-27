@@ -93,9 +93,28 @@ $(CRATES_TO_TEST):
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
 
-CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
+BROKEN_CRATES_TO_CLIPPY := \
+	src/arch/arm/armv7/Cargo.toml \
+	src/arch/riscv/rv32/Cargo.toml \
+	src/arch/riscv/rv64/Cargo.toml \
+	src/cpu/armltd/cortex-a9/Cargo.toml \
+	src/cpu/lowrisc/ibex/Cargo.toml \
+	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/ast/ast25x0/Cargo.toml \
+	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-q35/Cargo.toml \
+	src/mainboard/emulation/qemu-riscv/Cargo.toml \
+	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
+	src/mainboard/opentitan/crb/Cargo.toml \
+	src/soc/aspeed/ast2500/Cargo.toml \
+	src/soc/opentitan/earlgrey/Cargo.toml \
+	src/soc/sifive/fu540/Cargo.toml \
+	src/vendorcode/fsp/coffeelake/Cargo.toml \
+
+# TODO: Remove write_with_newline
+CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_CLIPPY),$(CRATES)))
 $(CRATES_TO_CLIPPY):
-	cd $(dir $@) && cargo clippy -- -D warnings
+	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::write_with_newline
 .PHONY: clippy $(CRATES_TO_CLIPPY)
 clippy: $(CRATES_TO_CLIPPY)
 

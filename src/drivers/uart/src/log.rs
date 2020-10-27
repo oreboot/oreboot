@@ -36,7 +36,7 @@ impl<'a> Driver for Log<'a> {
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
-        return Ok(0);
+        Ok(0)
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {

@@ -87,7 +87,7 @@ register_bitfields! {
 
 impl SiFive {
     pub fn new(base: usize, baudrate: u32) -> SiFive {
-        SiFive { base: base, baudrate: baudrate }
+        SiFive { base, baudrate }
     }
 
     /// Returns a pointer to the register block
