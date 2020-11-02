@@ -11,7 +11,6 @@ use core::fmt::Write;
 use device_tree::print_fdt;
 use model::Driver;
 use payloads::external::zimage::DTB;
-use uart;
 use wrappers::{DoD, SliceReader};
 
 #[no_mangle]
@@ -40,7 +39,7 @@ pub extern "C" fn _start() -> ! {
     write!(w, "5").expect("blame ryan");
     write!(w, "6").expect("blame ryan");
     write!(w, "7").expect("blame ryan");
-    write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
+    write!(w, "{}{}\r\n", 3, 7).expect("blame ryan");
     romstage::romstage()
 }
 use core::panic::PanicInfo;
