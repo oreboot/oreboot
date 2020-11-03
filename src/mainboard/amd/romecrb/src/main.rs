@@ -11,6 +11,7 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use print;
+use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
@@ -22,6 +23,7 @@ use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
 use heapless::Vec;
+use wrappers::DoD;
 
 use core::ptr;
 // Until we are done hacking on this, use our private copy.
@@ -139,11 +141,11 @@ fn memb(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
 pub extern "C" fn _asdebug(w: &mut impl core::fmt::Write, a: u64) -> () {
     write!(w, "here we are in asdebug\r\n").unwrap();
     write!(w, "stack is {:x?}\r\n", a).unwrap();
-    debug(w);
+    consdebug(w);
     write!(w, "back to hell\r\n").unwrap();
 }
 
-fn debug(w: &mut impl core::fmt::Write) -> () {
+fn consdebug(w: &mut impl core::fmt::Write) -> () {
     let mut done: bool = false;
     let newline: [u8; 2] = [10, 13];
     while done == false {
@@ -193,13 +195,21 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let post = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
     uart0.init().unwrap();
+    let debug_io = &mut IOPort;
+    let debug = &mut DebugPort::new(0x80, debug_io);
+    uart0.init().unwrap();
+    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    debug.init().unwrap();
+    debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
+    let console = &mut DoD::new(s);
 
     for _i in 1..32 {
-        uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+        console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
     let mut p: [u8; 1] = [0xf0; 1];
     post.pwrite(&p, 0x80).unwrap();
-    let w = &mut print::WriteTo::new(uart0);
+    let w = &mut print::WriteTo::new(console);
 
     // It is hard to say if we need to do this.
     if true {
@@ -239,7 +249,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     write!(w, "Write bios tables\r\n").unwrap();
     setup_bios_tables(w, 0xf0000, 1);
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
-    debug(w);
+    consdebug(w);
     if false {
         msrs(w);
     }
@@ -254,7 +264,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
     write!(w, "Back from loading payload, call debug\r\n").unwrap();
-    debug(w);
+    consdebug(w);
     write!(w, "Running payload entry is {:x}\r\n", payload.entry).unwrap();
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
