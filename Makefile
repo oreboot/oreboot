@@ -102,7 +102,6 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
-	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/emulation/qemu-riscv/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/opentitan/crb/Cargo.toml \
@@ -111,12 +110,25 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/soc/sifive/fu540/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
+# List crates that should use target specified in .cargo/.
+# This mostly affects the code inside src/mainboard/.
+CRATES_TO_CLIPPY_CUSTOM_TARGET := \
+	src/mainboard/sifive/hifive/Cargo.toml \
+
 # TODO: Remove write_with_newline
-CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_CLIPPY),$(CRATES)))
+CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(CRATES_TO_CLIPPY_CUSTOM_TARGET),$(filter-out $(BROKEN_CRATES_TO_CLIPPY),$(CRATES))))
+
+# Using --manifest-path causes the custom target specified inside .cargo/ to be
+# ignored and the default host target is used.
 $(CRATES_TO_CLIPPY):
+	cargo clippy --manifest-path=$(dir $@)/Cargo.toml -- -D warnings -A clippy::write_with_newline
+# Changing directory directly to the crate causes the custom target in
+# .cargo to be used.
+$(CRATES_TO_CLIPPY_CUSTOM_TARGET):
 	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::write_with_newline
-.PHONY: clippy $(CRATES_TO_CLIPPY)
-clippy: $(CRATES_TO_CLIPPY)
+
+.PHONY: clippy $(CRATES_TO_CLIPPY) $(CRATES_TO_CLIPPY_CUSTOM_TARGET)
+clippy: $(CRATES_TO_CLIPPY) $(CRATES_TO_CLIPPY_CUSTOM_TARGET)
 
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)

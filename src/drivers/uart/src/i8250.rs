@@ -22,7 +22,7 @@ impl<'a> I8250<'a> {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 #[allow(dead_code)]
