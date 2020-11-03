@@ -1,11 +1,9 @@
-use core::fmt::Write;
-use x86_64::instructions::{rdmsr, wrmsr};
+use x86_64::registers::model_specific::Msr;
 
 /// read_msr reads the MSR, compares it to a known good value, and prints a message indicating whether they match
-fn read_msr(w: &mut print::WriteTo, address: u32, expected_value: u64) {
+fn read_msr(w: &mut impl core::fmt::Write, address: u32, expected_value: u64) {
     write!(w, "{:x} ", address).expect("Failed to write!");
-
-    let read_value = rdmsr(address);
+    let read_value = unsafe { Msr::new(address).read() };
     let d = if read_value != expected_value { "DIFF:" } else { "SAME:" };
     writeln!(w, "{}{:x} got {:x}\r", d, expected_value, read_value,).expect("Failed to write!");
 }
@@ -13,22 +11,23 @@ fn read_msr(w: &mut print::WriteTo, address: u32, expected_value: u64) {
 /// read_write_msr reads the MSR, compares the existing contents to the input value,
 /// then writes the input value to the MSR, finally the written to MSR is read and compared
 /// to the input value. The comparison messages are printed
-fn read_write_msr(w: &mut print::WriteTo, address: u32, value: u64) {
+fn read_write_msr(w: &mut impl core::fmt::Write, address: u32, value: u64) {
+    let mut msr = Msr::new(address);
     read_msr(w, address, value);
     unsafe {
-        wrmsr(address, value);
+        msr.write(value);
     }
-    let checked_value = rdmsr(address);
+    let checked_value = unsafe { msr.read() }; // Some msrs error on read so this has to be unsafe
     writeln!(w, " -- wrmsr: and got {:x}; \r", checked_value).expect("Failed to write!");
 }
 
 /// write_msr writes the input value to an MSR without checking
-fn _write_msr(w: &mut print::WriteTo, address: u32, value: u64) {
-    unsafe { wrmsr(address, value) }
+fn _write_msr(_w: &mut impl core::fmt::Write, address: u32, value: u64) {
+    unsafe { Msr::new(address).write(value) }
 }
 
 /// The msrs function configures the MSRs of an AMD Rome CPU, read-only MSRs are checked and compared to known values
-pub fn msrs(w: &mut print::WriteTo) {
+pub fn msrs(w: &mut impl core::fmt::Write) {
     read_write_msr(w, 0xc000_0080, 0xd01); // EFER - Extended Feature Enable
     read_write_msr(w, 0xc000_0081, 0x23001000000000); // STAR - SYSCALL Target Address
     read_write_msr(w, 0xc000_0082, 0xffffffff99a00000); // STAR64 - Long Mode SYSCALL Target Address
@@ -363,7 +362,7 @@ pub fn msrs(w: &mut print::WriteTo) {
     // 0x1dd LastExcpFromIp
     // 0x1de LastExcpToIp
 
-    read_write_msr(w, 0x200, 0x6);            // MtrrVarBase - Variable Size MTRRs Base
+    read_write_msr(w, 0x200, 0x6); // MtrrVarBase - Variable Size MTRRs Base
     read_write_msr(w, 0x201, 0xffff80000800); // MtrrVarMask - Variable Size MTRRs Mask
     read_write_msr(w, 0x202, 0x80000006); // MtrrVarBase
     read_write_msr(w, 0x203, 0xffffe0000800); // MtrrVarMask
@@ -395,6 +394,7 @@ pub fn msrs(w: &mut print::WriteTo) {
     read_write_msr(w, 0x26f, 0x505050505050505); // MtrrFix_4K_7
     read_write_msr(w, 0x277, 0x7040600070406); // PAT - Page Attribute Table
     read_write_msr(w, 0x2ff, 0xc00); // MTRRdefType - MTRR Default Type
+
     // these need X2APICEN to be useful
     // 0x802 APIC_ID
     // 0x803 ApicVersion

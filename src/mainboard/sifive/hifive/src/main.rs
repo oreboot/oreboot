@@ -91,40 +91,40 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    write!(w, "## ROM Device Tree\r\n").unwrap();
+    writeln!(w, "## ROM Device Tree\r").unwrap();
 
     // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
-    write!(w, "ROM FDT address: 0x{:x}\n", fdt_address).unwrap();
+    writeln!(w, "ROM FDT address: 0x{:x}", fdt_address).unwrap();
 
     if is_qemu() {
         // We have no idea how long the FDT really is. This caps it to 1MiB.
         let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 1024 * 1024);
         if let Err(err) = print_fdt(rom_fdt, w) {
-            write!(w, "error: {}\n", err).unwrap();
+            writeln!(w, "error: {}", err).unwrap();
         }
     }
 
-    write!(w, "## Oreboot Fixed Device Tree\r\n").unwrap();
+    writeln!(w, "## Oreboot Fixed Device Tree\r").unwrap();
     // Fixed DTFS is at offset 512KiB in flash. Max size 512Kib.
     let fixed_fdt = &mut SectionReader::new(&Memory {}, 0x20000000 + 512 * 1024, 512 * 1024);
     if let Err(err) = print_fdt(fixed_fdt, w) {
-        write!(w, "error: {}\n", err).unwrap();
+        writeln!(w, "error: {}", err).unwrap();
     }
 
-    write!(w, "Initializing DDR...\r\n").unwrap();
+    writeln!(w, "Initializing DDR...\r").unwrap();
     let mut ddr = DDR::new();
 
     let m = ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
 
-    write!(w, "Done\r\n").unwrap();
+    writeln!(w, "Done\r").unwrap();
 
-    write!(w, "Memory size is: {:x}\r\n", m).unwrap();
+    writeln!(w, "Memory size is: {:x}\r", m).unwrap();
 
-    write!(w, "Testing DDR...\r\n").unwrap();
+    writeln!(w, "Testing DDR...\r").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
-        Err((a, v)) => write!(w, "Unexpected read 0x{:x} at address 0x{:x}\r\n", v, a as usize,).unwrap(),
-        _ => write!(w, "Passed\r\n").unwrap(),
+        Err((a, v)) => writeln!(w, "Unexpected read 0x{:x} at address 0x{:x}\r", v, a as usize,).unwrap(),
+        _ => writeln!(w, "Passed\r").unwrap(),
     }
 
     // TODO; This payload structure should be loaded from SPI rather than hardcoded.
@@ -144,25 +144,25 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
         mem_len: 0,
         segs: kernel_segs,
     };
-    write!(w, "Loading payload\r\n").unwrap();
+    writeln!(w, "Loading payload\r").unwrap();
     payload.load();
-    write!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r\n", payload.entry, payload.dtb).unwrap();
+    writeln!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r", payload.entry, payload.dtb).unwrap();
     SPIN_LOCK.store(payload.entry, Ordering::Relaxed);
     payload.run();
 
-    write!(w, "Unexpected return from payload\r\n").unwrap();
+    writeln!(w, "Unexpected return from payload\r").unwrap();
     arch::halt()
 }
 
 // Returns Err((address, got)) or OK(()).
 fn test_ddr(addr: *mut u32, size: usize, w: &mut impl core::fmt::Write) -> Result<(), (*const u32, u32)> {
-    write!(w, "Starting to fill with data\r\n").unwrap();
+    writeln!(w, "Starting to fill with data\r").unwrap();
     // Fill with data.
     for i in 0..(size / 4) {
         unsafe { ptr::write(addr.add(i), (i + 1) as u32) };
     }
 
-    write!(w, "Starting to read back data\r\n").unwrap();
+    writeln!(w, "Starting to read back data\r").unwrap();
     // Read back data.
     for i in 0..(size / 4) {
         let v = unsafe { ptr::read(addr.add(i)) };
@@ -181,6 +181,6 @@ fn panic(info: &PanicInfo) -> ! {
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
-    let _ = write!(w, "PANIC: {}\r\n", info);
+    let _ = writeln!(w, "PANIC: {}\r", info);
     arch::halt()
 }
