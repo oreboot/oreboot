@@ -1,0 +1,31 @@
+[package]
+name = "qemu-fsp"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+arch = { path = "../../../arch/x86/x86_64"}
+console = { path = "../../../console" }
+fsp-qemu-sys = { path = "../../../vendorcode/fsp/qemu"}
+model = { path = "../../../drivers/model" }
+payloads = { path = "../../../../payloads"}
+print = { path = "../../../lib/print" }
+wrappers = { path = "../../../drivers/wrappers"}
+
+heapless = "0.4.x"
+register = "0.3.2"
+static-ref = "0.1.1"
+postcard = "0.4.3"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["i8250"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

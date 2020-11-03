@@ -80,8 +80,9 @@ BROKEN_CRATES_TO_TEST := \
 	src/cpu/lowrisc/ibex/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
-	src/mainboard/emulation/qemu-armv7/Cargo.toml \
 	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
+	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/emulation/qemu-riscv/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
@@ -101,6 +102,7 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
