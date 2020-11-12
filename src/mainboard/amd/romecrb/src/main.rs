@@ -11,6 +11,7 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use print;
+use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
@@ -34,6 +35,17 @@ fn poke32(a: u32, v: u32) -> () {
     unsafe {
         ptr::write_volatile(y, v);
     }
+}
+fn poke8(a: u32, v: u8) -> () {
+    let y = a as *mut u8;
+    unsafe {
+        ptr::write_volatile(y, v);
+    }
+}
+
+fn peek8(a: u32) -> u8 {
+    let y = a as *mut u8;
+    unsafe { ptr::read_volatile(y) }
 }
 
 /// Write 32 bits to port
@@ -201,7 +213,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
     debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
+    let p0 = &mut AMDMMIO::com1();
+    p0.init().unwrap();
+    p0.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
     for _i in 1..32 {

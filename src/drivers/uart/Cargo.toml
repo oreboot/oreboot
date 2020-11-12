@@ -16,6 +16,7 @@ heapless = { version = "0.4.4", optional = true }
 
 [features]
 i8250 = ["heapless"]
+amdmmio = []
 pl011 = []
 ns16550 = []
 sifive = []
