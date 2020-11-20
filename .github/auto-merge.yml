@@ -1,6 +1,6 @@
 minApprovals:
   COLLABORATOR: 1
 requiredLabels:
-- merge
+- automerge
 mergeMethod: rebase
 reportStatus: true
