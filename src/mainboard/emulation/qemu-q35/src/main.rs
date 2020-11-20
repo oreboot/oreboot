@@ -30,7 +30,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let w = &mut print::WriteTo::new(uart0);
 
     // TODO: Get these values from the fdt
-    let payload = &mut BzImage { low_mem_size: 0x80_000_000, high_mem_start: 0x1_000_000_000, high_mem_size: 0, rom_base: 0xff_000_000, rom_size: 0x100_000, load: 0x1_000_000, entry: 0x1_000_200 };
+    let payload = &mut BzImage { low_mem_size: 0x80_000_000, high_mem_start: 0x1_000_000_000, high_mem_size: 0, rom_base: 0xff_000_000, rom_size: 0x1_000_000, load: 0x1_000_000, entry: 0x1_000_200 };
 
     payload.load(w).unwrap();
 
