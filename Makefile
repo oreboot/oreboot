@@ -37,6 +37,7 @@ firsttime:
 	rustup target add armv7r-none-eabi
 	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	rustup component add llvm-tools-preview
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
