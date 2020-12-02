@@ -4,7 +4,7 @@
 #![no_main]
 #![feature(global_asm)]
 
-use arch::bios::setup_bios_tables;
+use arch::acpi::setup_bios_tables;
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
