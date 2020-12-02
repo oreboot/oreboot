@@ -188,6 +188,7 @@ dependencies = [
  "register",
  "static-ref",
  "uart",
+ "util",
  "wrappers",
  "x86_64",
 ]
