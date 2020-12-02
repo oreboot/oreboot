@@ -11,6 +11,7 @@ console = { path = "../../../console" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
+util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
 
 heapless = "0.4.x"

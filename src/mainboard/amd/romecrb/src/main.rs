@@ -4,7 +4,6 @@
 #![no_main]
 #![feature(global_asm)]
 
-use arch::acpi::setup_bios_tables;
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
@@ -20,6 +19,8 @@ mod msr;
 use msr::msrs;
 mod c00;
 use c00::c00;
+mod acpi;
+use acpi::setup_acpi_tables;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -261,8 +262,8 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         msrs(w);
     }
     p[0] = p[0] + 1;
-    write!(w, "Write bios tables\r\n").unwrap();
-    setup_bios_tables(w, 0xf0000, 1);
+    write!(w, "Write acpi tables\r\n").unwrap();
+    setup_acpi_tables(w, 0xf0000, 1);
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
     consdebug(w);
     if false {
