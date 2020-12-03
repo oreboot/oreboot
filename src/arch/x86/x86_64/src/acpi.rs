@@ -153,7 +153,6 @@ pub struct AcpiTableMadt {
 #[derive(Default)]
 pub struct AcpiTableMcfg {
     pub header: AcpiTableHeader, /* Common ACPI table header */
-    pub address: u32,            /* Physical address of local APIC */
     pub reserved: u8,
     pub base_address: u64,
     pub pci_seg_group: u16,
@@ -312,4 +311,5 @@ pub const SIG_MCFG: [u8; 4] = *b"MCFG";
 pub const MADT_LOCAL_APIC: u8 = 0;
 pub const MADT_IO_APIC: u8 = 1;
 pub const MADT_LOCAL_X2APIC: u8 = 9;
+pub const MADT_LOCAL_X2APIC_NMI: u8 = 0xA;
 pub const MADT_LOCAL_ISOR: u8 = 2;
