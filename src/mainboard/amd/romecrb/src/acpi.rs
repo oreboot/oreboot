@@ -120,11 +120,10 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         let x2apic = AcpiMadtLocalX2apic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC, length: size_of::<AcpiMadtLocalX2apic>() as u8 }, local_apic_id: i, uid: i, lapic_flags: 1, ..Default::default() };
         write(w, x2apic, local_x2apic_offset, i as usize)
     }
-    // write(w, gencsum(madt_offset, madt_offset + madt_total_length), madt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
 
     // Local x2APIC NMI
     write!(w, "LAPICNMI\r\n").unwrap();
-    let lapicnmi = AcpiMadtLocalX2ApicNMI { header: AcpiSubtableHeader { r#type: 0xA, length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8 }, acpi_processor_uid: 0xFFFF_FFFF, flags: 0b101, local_interrupt: 1, ..Default::default() };
+    let lapicnmi = AcpiMadtLocalX2ApicNMI { header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC_NMI, length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8 }, acpi_processor_uid: 0xFFFF_FFFF, flags: 0b101, local_interrupt: 1, ..Default::default() };
     write(w, lapicnmi, local_lapicnmi_offset, 0 as usize);
 
     // isor - interrupt source override0
@@ -140,7 +139,8 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     write(w, gencsum(madt_offset, madt_offset + madt_total_length), madt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(madt_offset, madt_offset + madt_total_length), 0);
 
-    let mcfg = AcpiTableMcfg { header: AcpiTableHeader { signature: SIG_MCFG, length: size_of::<AcpiTableMcfg>() as u32, ..AcpiTableHeader::new() }, base_address: 0xe000_0021, end_bus: 255, ..Default::default() };
+    // MCFG - Memory Mapped Configuration Space Structure
+    let mcfg = AcpiTableMcfg { header: AcpiTableHeader { signature: SIG_MCFG, length: size_of::<AcpiTableMcfg>() as u32, ..AcpiTableHeader::new() }, base_address: 0xE000_0000, end_bus: 0xFF, ..Default::default() };
     write(w, mcfg, mcfg_offset, 0);
     write(w, gencsum(mcfg_offset, mcfg_offset + size_of::<AcpiTableMcfg>()), mcfg_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET);
 
