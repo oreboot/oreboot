@@ -24,24 +24,70 @@
 
 ENTRY(_vector_table);
 
+/* 0x0000_0000..0x0080_0000: Flash memory */
+/* 0x0e00_0000..0x0eff_ffff: Secure SRAM */
+/* 0x4000_0000..: RAM */
+
+MEMORY
+{
+    FLASH_BOOT (rx) : ORIGIN = 0x0, LENGTH = 0x80000
+    FLASH_DATA (r) : ORIGIN = 0x80000, LENGTH = 0x780000
+    SRAM (rwx) : ORIGIN = 0xe000000, LENGTH = 0x1000000
+    DRAM (rwx) : ORIGIN = 0x40000000, LENGTH = 0x1000000
+}
+
 SECTIONS
 {
-    . = 0x40000000;
-	.bootblock :
-	{
-	    KEEP(*(.bootblock.vectortable));
-	}
-
-    . = 0x40008000;
-
     .text :
     {
+	KEEP(*(.bootblock.vectortable));
         KEEP(*(.text .text.*));
-    }
+    } > FLASH_BOOT
+
     .rodata :
     {
         KEEP(*(.rodata .rodata.*));
-    }
+    } > FLASH_BOOT
+
+    .data :
+    {
+	_data = .;
+	KEEP(*(.data .data.*));
+	_edata = .;
+    } > DRAM AT > FLASH_BOOT
+
+    .bss (NOLOAD) :
+    { 
+	. = ALIGN(16);
+	_bss = .;
+	*(.sbss)
+	*(.sbss.*)
+	*(.bss)
+	*(.bss.*)
+	*(COMMON)
+	. = ALIGN(16);
+	_ebss = .;
+    } > DRAM
+
+    /* Stack and heap */
+    .heap (NOLOAD) :
+   {
+         . = ALIGN(16);
+        _heap = .;
+        . += 64*1024;
+        . = ALIGN(16);
+        _eheap = .;
+    } > DRAM
+
+    .stack (NOLOAD) :
+    {
+        _estack = .;
+        . += 64*1024;
+        . = ALIGN(16);
+        _stack = .;
+    } > DRAM
+
+    _end = .;
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
 	    	/* Unused exception related info that only wastes space */
