@@ -24,14 +24,14 @@
 
 ENTRY(_vector_table);
 
-/* 0x0000_0000..0x0080_0000: Flash memory */
+/* 0x0000_0000..0x0800_0000: Flash memory */
 /* 0x0e00_0000..0x0eff_ffff: Secure SRAM */
 /* 0x4000_0000..: RAM */
 
 MEMORY
 {
     FLASH_BOOT (rx) : ORIGIN = 0x0, LENGTH = 0x80000
-    FLASH_DATA (r) : ORIGIN = 0x80000, LENGTH = 0x780000
+    FLASH_DATA (r) : ORIGIN = 0x80000, LENGTH = 0x7F80000
     SRAM (rwx) : ORIGIN = 0xe000000, LENGTH = 0x1000000
     DRAM (rwx) : ORIGIN = 0x40000000, LENGTH = 0x1000000
 }

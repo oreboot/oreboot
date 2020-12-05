@@ -26,14 +26,13 @@
                 description = "QEMU aarch64 virt dtb";
                 compatible = "ore-dtfs";
                 size = <0x100000>; // 1MiB
-                file = "$(TARGET_DIR)/virt.dtb";
+                /* file = "$(TARGET_DIR)/virt.dtb"; */
             };
             area@3 {
                 description = "RomPayload";
                 compatible = "ore-rompayload";
-                size = <0x600000>; // 6MiB
-                file = "$(TARGET_DIR)/kernel.bin";
-                /* half = <1>; */
+                size = <0x2000000>; // 32MiB
+                /* file = "$(TARGET_DIR)/kernel.bin"; */
             };
         };
     };
