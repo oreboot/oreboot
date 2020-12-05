@@ -4,6 +4,7 @@ use postcard::from_bytes;
 use serde::Deserialize;
 use wrappers::{Memory, SectionReader};
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
+pub type EntryPointAarch64 = unsafe extern "C" fn(dtb: usize, rsv0: usize, rsv1: usize, rsv2: usize);
 
 /// compression types
 #[derive(PartialEq, Debug)]
@@ -300,6 +301,17 @@ impl<'a> Payload<'a> {
         unsafe {
             let f = transmute::<usize, EntryPoint>(self.entry);
             f(1, self.dtb);
+        }
+        // TODO: error when payload returns.
+    }
+
+    /// Run the payload. This might not return.
+    pub fn run_aarch64(&self) {
+        // Jump to the payload.
+        // See: linux/Documentation/arm64/booting.rst
+        unsafe {
+            let f = transmute::<usize, EntryPointAarch64>(self.entry);
+            f(self.dtb, 0, 0, 0);
         }
         // TODO: error when payload returns.
     }
