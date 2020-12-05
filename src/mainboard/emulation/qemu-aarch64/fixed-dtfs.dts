@@ -23,16 +23,17 @@
                 file = "$(TARGET_DIR)/fixed-dtfs.dtb";
             };
             area@2 {
-                description = "Reserved";
-                compatible = "ore-reserved";
+                description = "QEMU aarch64 virt dtb";
+                compatible = "ore-dtfs";
                 size = <0x100000>; // 1MiB
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(TARGET_DIR)/virt.dtb";
             };
             area@3 {
                 description = "RomPayload";
                 compatible = "ore-rompayload";
-                half = <1>;
                 size = <0x600000>; // 6MiB
+                file = "$(TARGET_DIR)/kernel.bin";
+                /* half = <1>; */
             };
         };
     };
