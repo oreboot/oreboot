@@ -30,7 +30,7 @@ SECTIONS
     . = 0x20000000;
     .bootblock :
     {
-        /* Ensure that the flash header matches what the OpenTitain ROM expects.
+        /* Ensure that the flash header matches what the OpenTitan ROM expects.
          */
         LONG(_stext);
         _stext = .;
