@@ -35,6 +35,7 @@ firsttime:
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
+	rustup target add aarch64-unknown-none-softfloat
 	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 

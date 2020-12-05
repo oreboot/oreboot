@@ -1,0 +1,63 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "QEMU aarch64";
+        category = "emulation";
+        board-url = "http://wiki.qemu.org/Main_Page";
+        areas {
+            area@0 {
+                description = "Boot Blob";
+                compatible = "ore-bootblob";
+                size = <0x800000>; // 8MiB
+                file = "$(TARGET_DIR)/bootblob.bin";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                compatible = "ore-dtfs";
+                size = <0x80000>; // 512KiB
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+            };
+            area@2 {
+                description = "NVRAM A";
+                compatible = "ore-nvram";
+                half = <0>;
+                size = <0x80000>; // 512KiB
+            };
+            area@3 {
+                description = "NVRAM B";
+                compatible = "ore-nvram";
+                half = <1>;
+                size = <0x80000>; // 512KiB
+            };
+            area@4 {
+                description = "RomPayload DTFS A";
+                compatible = "ore-rompayload";
+                half = <0>;
+                size = <0x100000>; // 1MiB
+            };
+            area@5 {
+                description = "RomPayload DTFS B";
+                compatible = "ore-rompayload";
+                half = <1>;
+                size = <0x100000>; // 1MiB
+            };
+            area@6 {
+                description = "RamPayload DTFS A";
+                compatible = "ore-rampayload";
+                half = <0>;
+                size = <0x600000>; // 6MiB
+            };
+            area@7 {
+                description = "RamPayload DTFS B";
+                compatible = "ore-rampayload";
+                half = <1>;
+                size = <0x600000>; // 6MiB
+            };
+        };
+    };
+};
