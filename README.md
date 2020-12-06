@@ -22,6 +22,10 @@ Oreboot+QEMU for ARM:
 
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
+Oreboot+QEMU for aarch64:
+
+[![asciicast](https://asciinema.org/a/lbvalLX1JlAwL6gsYC2FYM2jh.svg)](https://asciinema.org/a/lbvalLX1JlAwL6gsYC2FYM2jh)
+
 
 Getting oreboot
 ---------------
@@ -128,12 +132,22 @@ make -j$(nproc)
 # QEMU binary is at riscv64-softmmu/qemu-system-riscv64
 ```
 
+To build QEMU from source for aarch64:
+
+```
+git clone https://github.com/qemu/qemu && cd qemu
+mkdir build-aarch64 && cd build-aarch64
+../configure --target-list=aarch64-softmmu
+make -j$(nproc)
+# QEMU binary is at aarch64-softmmu/qemu-system-aarch64
+
 
 Oreboot Mainboards
 ------------------
 
 * Emulation
   * qemu-armv7
+  * qemu-aarch64
   * qemu-q35
   * qemu-riscv
 * Hardware
