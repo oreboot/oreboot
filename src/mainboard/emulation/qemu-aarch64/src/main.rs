@@ -40,7 +40,7 @@ pub fn _init() -> ! {
             estack = estack.offset(1);
         }
     }
-    main();
+    main()
 }
 
 fn main() -> ! {
@@ -63,7 +63,7 @@ fn main() -> ! {
     write!(w, "6").expect("blame ryan");
     write!(w, "7").expect("blame ryan");
     write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
-    romstage::romstage(&mut w);
+    romstage::romstage(&mut w)
 }
 use core::panic::PanicInfo;
 
