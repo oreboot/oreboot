@@ -36,4 +36,21 @@
             };
         };
     };
+    load-info {
+        compatible = "ore-loadinfo";
+        board-name = "QEMU aarch64";
+        category = "emulation";
+        board-url = "http://wiki.qemu.org/Main_Page";
+	load-payload {
+	    description = "Payload load address";
+	    addr = <0x41000000>;
+	    size = <0x2000000>;
+	};
+	load-dtb {
+	    description = "DTB load address";
+	    addr = <0x45000000>;
+	    size = <0x100000>;
+	};
+
+    };
 };

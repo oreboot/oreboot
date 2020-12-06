@@ -3,7 +3,7 @@ use payloads::payload;
 use wrappers::{Memory, SectionReader};
 use device_tree::print_fdt;
 
-/* TODO: better way to get kernel / dtb memory address */
+/* TODO: get kernel / dtb information from the loader dtb */
 const KERNEL_ROM_ADDR: usize = 0x200000;
 const KERNEL_ROM_SIZE: usize = 32 * 1024 * 1024;
 const KERNEL_LOAD_ADDR: usize = 0x41000000;
@@ -21,14 +21,18 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
 
     payload.load();
 
-    let fdt = SectionReader::new(&Memory {}, DTB_LOAD_ADDR, DTB_ROM_SIZE);
+    let loader_fdt = SectionReader::new(&Memory {}, 0x80000, 0x80000);
+    if let Err(err) = print_fdt(&loader_fdt, w) {
+        write!(w, "error: {}\n", err).expect(err);
+    }
 
-    if let Err(err) = print_fdt(&fdt, w) {
+    let kernel_fdt = SectionReader::new(&Memory {}, DTB_LOAD_ADDR, DTB_ROM_SIZE);
+    if let Err(err) = print_fdt(&kernel_fdt, w) {
         write!(w, "error: {}\n", err).expect(err);
     }
 
     write!(w, "Jumping to payload...\r\n\r\n").unwrap();
     payload.run_aarch64();
 
-    halt();
+    halt()
 }
