@@ -11,7 +11,6 @@ use core::mem::zeroed;
 use core::ptr::write_volatile;
 
 use model::Driver;
-use uart;
 use wrappers::DoD;
 
 #[no_mangle]
@@ -62,7 +61,6 @@ fn main() -> ! {
     write!(w, "5").expect("blame ryan");
     write!(w, "6").expect("blame ryan");
     write!(w, "7").expect("blame ryan");
-    write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
     romstage::romstage(&mut w)
 }
 use core::panic::PanicInfo;
