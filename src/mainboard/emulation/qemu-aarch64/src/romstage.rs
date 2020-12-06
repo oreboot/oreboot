@@ -2,14 +2,28 @@ use crate::halt;
 use payloads::payload;
 use wrappers::{Memory, SectionReader};
 use device_tree::print_fdt;
+use core::intrinsics::transmute;
 
 /* TODO: get kernel / dtb information from the loader dtb */
+const LOADER_DTB_ADDR: usize = 0x80000;
+const LOADER_DTB_SIZE: usize = 0x80000;
 const KERNEL_ROM_ADDR: usize = 0x200000;
 const KERNEL_ROM_SIZE: usize = 32 * 1024 * 1024;
 const KERNEL_LOAD_ADDR: usize = 0x41000000;
 const DTB_ROM_ADDR: usize = 0x100000;
 const DTB_ROM_SIZE: usize = 1024 * 1024;
 const DTB_LOAD_ADDR: usize = 0x45000000;
+
+/* TODO: move to payload implementation? */
+type EntryPoint = unsafe extern "C" fn(dtb: usize, rsv0: usize, rsv1: usize, rsv2: usize);
+
+fn boot_to_kernel(kernel_entry: usize, dtb_addr: usize) -> ! {
+    unsafe {
+        let f = transmute::<usize, EntryPoint>(kernel_entry);
+        f(dtb_addr, 0, 0, 0);
+    }
+    halt()
+}
 
 pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
     let kernel_segs = &[payload::Segment { typ: payload::stype::PAYLOAD_SEGMENT_ENTRY, base: KERNEL_LOAD_ADDR, data: &mut SectionReader::new(&Memory {}, KERNEL_ROM_ADDR, KERNEL_ROM_SIZE) }, payload::Segment {
@@ -21,7 +35,7 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
 
     payload.load();
 
-    let loader_fdt = SectionReader::new(&Memory {}, 0x80000, 0x80000);
+    let loader_fdt = SectionReader::new(&Memory {}, LOADER_DTB_ADDR, LOADER_DTB_SIZE);
     if let Err(err) = print_fdt(&loader_fdt, w) {
         write!(w, "error: {}\n", err).expect(err);
     }
@@ -32,7 +46,5 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
     }
 
     write!(w, "Jumping to payload...\r\n\r\n").unwrap();
-    payload.run_aarch64();
-
-    halt()
+    boot_to_kernel(payload.entry, payload.dtb)
 }
