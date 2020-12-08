@@ -36,11 +36,3 @@ impl Driver for MMU {
     // Shutdown. Hmm.
     fn shutdown(&mut self) {}
 }
-
-// TODO
-// extern "C" {
-//     fn mmu_get() -> usize;
-//    fn mmu_set(i: usize);
-// }
-
-// global_asm!(include_str!("mmu.S"));

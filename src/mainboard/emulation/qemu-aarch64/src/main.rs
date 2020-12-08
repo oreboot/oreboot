@@ -67,9 +67,7 @@ use core::panic::PanicInfo;
 
 pub fn halt() -> ! {
     loop {
-        // Bug with LLVM marks empty loops as undefined behaviour.
-        // See: https://github.com/rust-lang/rust/issues/28728
-        unsafe { llvm_asm!("" :::: "volatile") }
+        unsafe { llvm_asm!("wfe" :::: "volatile") }
     }
 }
 
