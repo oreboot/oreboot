@@ -30,17 +30,17 @@ const FCH_LEGACY_3F8_SH: u16 = 1 << 3;
 // 2. It would be JUST ONE MORE.
 // SMN
 
-fn snmr(a: u32) -> u32 {
+fn smn_read(a: u32) -> u32 {
     // the smn device is at (0)
     unsafe {
-        outl(0xcf8, 0x800000b8);
+        outl(0xcf8, 0x8000_00b8);
         outl(0xcfc, a);
-        outl(0xcf8, 0x800000bc);
+        outl(0xcf8, 0x8000_00bc);
         inl(0xcfc)
     }
 }
 
-fn snmw(a: u32, v: u32) {
+fn smn_write(a: u32, v: u32) {
     unsafe {
         outl(0xcf8, 0x800000b8);
         outl(0xcfc, a);
@@ -105,11 +105,11 @@ impl Driver for MainBoard {
         // fed800fc is the uart control reg.
         // bit 28 is the bit which sets it between 48m and 1.8m
         // we want 1.8m. They made oddball 48m default. Stupid.
-        let mut uc = peek32(0xfed800fc);
-        uc = uc | (1 << 28);
-        poke32(0xfed800fc, uc);
-        // Set up the legacy decode.
-        poke16(FCH_UART_LEGACY_DECODE, FCH_LEGACY_3F8_SH);
+        // let mut uc = peek32(0xfed800fc);
+        // uc = uc | (1 << 28);
+        // poke32(0xfed800fc, uc);
+        // // Set up the legacy decode.
+        // poke16(FCH_UART_LEGACY_DECODE, FCH_LEGACY_3F8_SH);
         let mut msr0 = Msr::new(0x1b);
         unsafe {
             let v = msr0.read() | 0x900;
@@ -121,15 +121,17 @@ impl Driver for MainBoard {
         // IOAPIC
         //     wmem fed80300 e3070b77
         //    wmem fed00010 3
-        poke32(0xfed80300, 0xe3070b77);
-        poke32(0xfed00010, 3);
+        poke32(0xfed80300, 0xe3070b77); //FCH PM DECODE EN
+        poke32(0xfed00010, 3); //HPETCONFIG
         let i = peek32(0xfed00010);
         poke32(0xfed00010, i | 8);
         // THis is likely not needed but.
         //poke32(0xfed00108, 0x5b03d997);
 
-        // enable ioapic.
-        snmw(0x13b102f0, 0xfec00001);
+        // enable ioapic redirection
+        // IOHC::IOAPIC_BASE_ADDR_LO
+        smn_write(0x13B1_02f0, 0xFEC0_0001);
+
         Ok(())
     }
 
