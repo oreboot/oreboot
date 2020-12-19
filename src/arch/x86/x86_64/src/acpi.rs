@@ -151,18 +151,6 @@ pub struct AcpiTableMadt {
 
 #[repr(packed)]
 #[derive(Default)]
-pub struct AcpiTableMcfg {
-    pub header: AcpiTableHeader, /* Common ACPI table header */
-    pub reserved: u8,
-    pub base_address: u64,
-    pub pci_seg_group: u16,
-    pub start_bus: u8,
-    pub end_bus: u8,
-    pub reserved_0: [u8; 4],
-}
-
-#[repr(packed)]
-#[derive(Default)]
 pub struct AcpiSubtableHeader {
     pub r#type: u8,
     pub length: u8,
@@ -179,22 +167,22 @@ pub struct AcpiMadtLocalApic {
 
 #[repr(packed)]
 #[derive(Default)]
+pub struct AcpiMadtLocalX2Apic {
+    pub header: AcpiSubtableHeader,
+    pub reserved: u16,      /* reserved - must be zero */
+    pub local_apic_id: u32, /* Processor x2APIC ID  */
+    pub lapic_flags: u32,
+    pub uid: u32, /* ACPI processor UID */
+}
+
+#[repr(packed)]
+#[derive(Default)]
 pub struct AcpiMadtIoApic {
     pub header: AcpiSubtableHeader,
     pub id: u8,               /* I/O APIC ID */
     pub reserved: u8,         /* reserved - must be zero */
     pub address: u32,         /* APIC physical address */
     pub global_irq_base: u32, /* Global system interrupt where INTI lines start */
-}
-
-#[repr(packed)]
-#[derive(Default)]
-pub struct AcpiMadtLocalX2apic {
-    pub header: AcpiSubtableHeader,
-    pub reserved: u16,      /* reserved - must be zero */
-    pub local_apic_id: u32, /* Processor x2APIC ID  */
-    pub lapic_flags: u32,
-    pub uid: u32, /* ACPI processor UID */
 }
 
 #[repr(packed)]
@@ -227,12 +215,25 @@ pub struct AcpiMadtLocalX2ApicNMI {
 
 #[repr(packed)]
 #[derive(Default)]
-pub struct CfgSpace {
+pub struct AcpiTableMcfg {
+    pub header: AcpiTableHeader, /* Common ACPI table header */
+    pub reserved: [u8; 8],
     pub base_address: u64,
     pub pci_seg_group: u16,
     pub start_bus: u8,
     pub end_bus: u8,
-    pub reserved: [u8; 4],
+    pub reserved_0: [u8; 4],
+}
+
+#[repr(packed)]
+#[derive(Default)]
+pub struct AcpiTableHpet {
+    pub header: AcpiTableHeader,
+    pub hw_block_id: u32,
+    pub base_address: AcpiGenericAddress,
+    pub hpet_number: u8,
+    pub min_clock_ticks: u16,
+    pub flags: u8,
 }
 
 pub fn write<T>(w: &mut impl core::fmt::Write, val: T, offset: usize, index: usize) {
@@ -307,6 +308,7 @@ pub const SIG_FADT: [u8; 4] = *b"FACP";
 pub const SIG_FACS: [u8; 4] = *b"FACS";
 pub const SIG_MADT: [u8; 4] = *b"APIC";
 pub const SIG_MCFG: [u8; 4] = *b"MCFG";
+pub const SIG_HPET: [u8; 4] = *b"HPET";
 
 pub const MADT_LOCAL_APIC: u8 = 0;
 pub const MADT_IO_APIC: u8 = 1;
