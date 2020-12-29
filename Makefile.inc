@@ -36,15 +36,16 @@ $(info rustc --version  = $(shell rustc --version))
 $(info rustup --version = $(shell rustup --version))
 $(info **********)
 
-$(TARGET_DIR)/%.dtb: %.dts
-	dtc $< -O dtb -o $@
-
 $(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
 	TARGET_DIR=$(TARGET_DIR) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(TARGET_DIR)/$(FIXED_DTFS) $@
 	@printf "**\n** Output: $@\n**\n"
 
 $(TARGET_DIR)/bootblob.bin: $(ELF)
 	$(OBJCOPY) -O binary -R .bss $< $@
+
+$(TARGET_DIR)/fixed-dtfs.dtb: fixed-dtfs.dts
+	mkdir -p $(TARGET_DIR)
+	dtc -W no-unit_address_vs_reg $< -O dtb -o $@
 
 # Re-run cargo every time.
 .PHONY: $(ELF)
