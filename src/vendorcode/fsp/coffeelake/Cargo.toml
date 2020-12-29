@@ -5,7 +5,8 @@ authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-efi = "0.2.1"
+# TODO: Revert to `efi = "0.x.y"` once changes are merged upstream and published.
+efi = { git = "https://github.com/rjoleary/efi" }
 
 [build-dependencies]
 bindgen = "0.53.1"
