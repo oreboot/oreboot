@@ -1,0 +1,8 @@
+[package]
+name = "fsp-qemu-sys"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[build-dependencies]
+bindgen = "0.53.1"
