@@ -39,12 +39,15 @@ firsttime:
 	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 
+firsttime_fsp:
+	sudo apt-get install build-essential uuid-dev iasl gcc-5 nasm python3-distutils
+
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
 
 .PHONY: ciprepare debiansysprepare firsttime
-ciprepare: debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime firsttime_fsp
 
 update:
 	rustup update
