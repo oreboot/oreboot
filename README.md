@@ -22,10 +22,6 @@ Oreboot+QEMU for ARM:
 
 [![asciinema](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP.png)](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 
-Oreboot+QEMU for aarch64:
-
-[![asciicast](https://asciinema.org/a/lbvalLX1JlAwL6gsYC2FYM2jh.svg)](https://asciinema.org/a/lbvalLX1JlAwL6gsYC2FYM2jh)
-
 
 Getting oreboot
 ---------------
