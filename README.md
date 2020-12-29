@@ -164,7 +164,7 @@ mkdir build-aarch64 && cd build-aarch64
 ../configure --target-list=aarch64-softmmu
 make -j$(nproc)
 # QEMU binary is at aarch64-softmmu/qemu-system-aarch64
-
+```
 
 Oreboot Mainboards
 ------------------
