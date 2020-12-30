@@ -83,6 +83,12 @@ You should definitely do this before reporting any issues.
 Building oreboot
 ----------------
 
+If the mainboard uses FSP (Intel platforms), download the blobs with:
+
+```
+git submodule update --init
+```
+
 To build oreboot for a specific platform, do this:
 
 ```
