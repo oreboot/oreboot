@@ -1,0 +1,22 @@
+[package]
+name = "qemu-aarch64"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+console = { path = "../../../console" }
+cpu = { path = "../../../cpu/armltd/cortex-a53"}
+device_tree = { path = "../../../lib/device_tree" }
+model = { path = "../../../drivers/model" }
+print = { path = "../../../lib/print" }
+payloads = { path = "../../../../payloads"}
+wrappers = { path = "../../../drivers/wrappers"}
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["pl011"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
