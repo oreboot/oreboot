@@ -15,12 +15,11 @@ fn ioapic_write(ioapic_base: u32, register: u32, value: u32) {
 }
 
 fn ioapic_interrupt_count(ioapic_base: u32) -> u32 {
-    let mut ioapic_interrupts = (ioapic_read(ioapic_base, 1) >> 16) & 0xFF;
+    let ioapic_interrupts = (ioapic_read(ioapic_base, 1) >> 16) & 0xFF;
     if ioapic_interrupts == 0xFF {
-        ioapic_interrupts = 23;
+        return 23;
     }
-    ioapic_interrupts += 1;
-    return ioapic_interrupts;
+    ioapic_interrupts + 1
 }
 
 fn set_ioapic_id(w: &mut impl core::fmt::Write, ioapic_base: u32, ioapic_id: u8) {
