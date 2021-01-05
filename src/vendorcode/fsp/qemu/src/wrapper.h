@@ -4,3 +4,11 @@
 #include <FspsUpd.h>
 #include <FsptUpd.h>
 #include <FspUpd.h>
+
+// Data types to parse FSP structure.
+#include <Guid/FspHeaderFile.h>
+#include <Pi/PiFirmwareFile.h>
+#include <Pi/PiFirmwareVolume.h>
+
+// BOOT_MODE
+#include <Pi/PiBootMode.h>
