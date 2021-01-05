@@ -11412,9 +11412,13 @@ fn parse_fsp() -> io::Result<()> {
         let fv = fs::read(path)?;
 
         let mut sections_and_sizes = Vec::new();
-        let result = fv_traverse(&fv, &mut |sec_info, sec_data: SectionData| {
-            sections_and_sizes.push((sec_info, sec_data.len()))
-        });
+        let result = fv_traverse(
+            &fv,
+            FILE_TYPES_WITH_SECTIONS,
+            &mut |sec_info, sec_data: SectionData| {
+                sections_and_sizes.push((sec_info, sec_data.len()))
+            },
+        );
         if let Err(err) = result {
             assert!(false, "failed to parse {}: {}", path.display(), err);
         }

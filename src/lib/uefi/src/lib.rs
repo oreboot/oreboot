@@ -95,8 +95,30 @@ pub struct SectionInfo {
 // without printing thousands of lines of data.
 pub type SectionData<'a> = &'a [u8];
 
+// File types which are guaranteed to contain sections.
+pub const FILE_TYPES_WITH_SECTIONS: &[u32] = &[
+    efi::EFI_FV_FILETYPE_APPLICATION,
+    efi::EFI_FV_FILETYPE_COMBINED_MM_DXE,
+    efi::EFI_FV_FILETYPE_COMBINED_PEIM_DRIVER,
+    efi::EFI_FV_FILETYPE_DRIVER,
+    efi::EFI_FV_FILETYPE_DXE_CORE,
+    efi::EFI_FV_FILETYPE_FIRMWARE_VOLUME_IMAGE,
+    efi::EFI_FV_FILETYPE_FREEFORM,
+    efi::EFI_FV_FILETYPE_MM,
+    efi::EFI_FV_FILETYPE_MM_CORE,
+    efi::EFI_FV_FILETYPE_MM_CORE_STANDALONE,
+    efi::EFI_FV_FILETYPE_MM_STANDALONE,
+    efi::EFI_FV_FILETYPE_PEIM,
+    efi::EFI_FV_FILETYPE_PEI_CORE,
+    efi::EFI_FV_FILETYPE_SECURITY_CORE,
+];
+
 // Supports ffs2 and ffs3. All other firmware volumes are skipped.
-pub fn fv_traverse<'a, F>(data: &'a [u8], mut visitor: F) -> Result<(), FvTraverseError>
+pub fn fv_traverse<'a, F>(
+    data: &'a [u8],
+    file_types: &[u32],
+    mut visitor: F,
+) -> Result<(), FvTraverseError>
 where
     F: FnMut(SectionInfo, SectionData<'a>),
 {
@@ -265,26 +287,7 @@ where
             }
 
             // Only some file types contain sections.
-            let filetypes_with_sections = &[
-                efi::EFI_FV_FILETYPE_APPLICATION,
-                efi::EFI_FV_FILETYPE_COMBINED_MM_DXE,
-                efi::EFI_FV_FILETYPE_COMBINED_PEIM_DRIVER,
-                efi::EFI_FV_FILETYPE_DRIVER,
-                efi::EFI_FV_FILETYPE_DXE_CORE,
-                efi::EFI_FV_FILETYPE_FIRMWARE_VOLUME_IMAGE,
-                efi::EFI_FV_FILETYPE_FREEFORM,
-                efi::EFI_FV_FILETYPE_MM,
-                efi::EFI_FV_FILETYPE_MM_CORE,
-                efi::EFI_FV_FILETYPE_MM_CORE_STANDALONE,
-                efi::EFI_FV_FILETYPE_MM_STANDALONE,
-                efi::EFI_FV_FILETYPE_PEIM,
-                efi::EFI_FV_FILETYPE_PEI_CORE,
-                efi::EFI_FV_FILETYPE_SECURITY_CORE,
-            ];
-            if filetypes_with_sections
-                .iter()
-                .all(|&x| x != ffs.Type as u32)
-            {
+            if file_types.iter().all(|&x| x != ffs.Type as u32) {
                 // Skip to the next file.
                 index = ffs_end;
                 continue;

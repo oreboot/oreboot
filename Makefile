@@ -38,9 +38,11 @@ firsttime:
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
+	git submodule update --init --recursive
+	(cd 3rdparty/fspsdk && git apply ../0001-Change-FLASH_BASE-to-0xFFF80000.patch)
 
 debiansysprepare:
-	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
+	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
 	# --default-toolchain is purely an optimization to avoid downloading stable Rust first.
 	# -y makes it non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)

@@ -23,7 +23,7 @@ SECTIONS
         KEEP(*(.rodata .rodata.*))
         /* There should be no 'data' as such but we'll fix it later */
         KEEP(*(.data.*))
-     }
+    } > bootblock = 0xFFFF
     . = 0xffffff00;
     .reset . :
     {
