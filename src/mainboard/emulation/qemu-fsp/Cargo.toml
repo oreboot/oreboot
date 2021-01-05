@@ -11,6 +11,7 @@ fsp-qemu-sys = { path = "../../../vendorcode/fsp/qemu"}
 model = { path = "../../../drivers/model" }
 payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
+uefi = { path = "../../../lib/uefi"}
 wrappers = { path = "../../../drivers/wrappers"}
 
 heapless = "0.4.x"
