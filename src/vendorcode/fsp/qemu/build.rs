@@ -43,37 +43,39 @@ fn main() -> std::io::Result<()> {
         // The input header we would like to generate bindings for.
         .header("src/wrapper.h")
         .clang_args(include_paths.iter().map(|include| format!("{}{}", "-I", include.display())))
+        .clang_args(&["-DEFIAPI=__attribute__((ms_abi))"])
         // Tell cargo to invalidate the built crate whenever any of the included header files
-        // changed.
+        // change.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Use core:: instead of std::
         .use_core()
+        .ctypes_prefix("cty")
         // Only generate types and constants.
         .with_codegen_config(bindgen::CodegenConfig::TYPES | bindgen::CodegenConfig::VARS)
-        // Whitelist of types and constants to import.
-        .whitelist_type("FSPM_UPD")
-        .whitelist_type("FSPS_UPD")
-        .whitelist_type("FSPT_UPD")
-        .whitelist_type("FSP_S_CONFIG")
-        .whitelist_type("FSP_T_CONFIG")
-        .whitelist_var("FSPM_UPD_SIGNATURE")
-        .whitelist_var("FSPS_UPD_SIGNATURE")
-        .whitelist_var("FSPT_UPD_SIGNATURE")
+        // Allowlist of types and constants to import.
+        .allowlist_type("EFI_COMMON_SECTION_HEADER2?")
+        .allowlist_type("EFI_FFS_FILE_HEADER2?")
+        .allowlist_type("EFI_FIRMWARE_VOLUME_(EXT_)?HEADER")
+        .allowlist_type("FSP[MST]_UPD")
+        .allowlist_type("FSP_INFO_HEADER")
+        .allowlist_type("FSP_MEMORY_INIT")
+        .allowlist_type("FSP_MULTI_PHASE_SI_INIT")
+        .allowlist_type("FSP_NOTIFY_PHASE")
+        .allowlist_type("FSP_SILICON_INIT")
+        .allowlist_type("FSP_TEMP_RAM_EXIT")
+        .allowlist_type("FSP_TEMP_RAM_INIT")
+        .allowlist_type("FSP_[ST]_CONFIG")
+        .allowlist_var("EFI_FVB2_ERASE_POLARITY")
+        .allowlist_var("EFI_FV_FILETYPE_.*")
+        .allowlist_var("EFI_SECTION_RAW")
+        .allowlist_var("FFS_ATTRIB_CHECKSUM")
+        .allowlist_var("FFS_ATTRIB_LARGE_FILE")
+        .allowlist_var("FSP[MST]_UPD_SIGNATURE")
+        .allowlist_var("FSP_STATUS_RESET_REQUIRED_.*")
+        .allowlist_var("BOOT_.*") // BOOT_MODE consts
         // Blacklist types implemented in Rust.
-        .blacklist_type("INT8")
-        .blacklist_type("INT16")
-        .blacklist_type("INT32")
-        .blacklist_type("INT64")
-        .blacklist_type("UINT8")
-        .blacklist_type("UINT16")
-        .blacklist_type("UINT32")
-        .blacklist_type("UINT64")
-        .blacklist_type("UINTN")
-        .blacklist_type("BOOLEAN")
-        .blacklist_type("CHAR8")
-        .blacklist_type("CHAR16")
-        .blacklist_type("GUID")
-        .blacklist_type("EFI_GUID")
+        .blocklist_type("GUID")
+        .blocklist_type("EFI_GUID")
         // Finish the builder and generate the bindings.
         .generate()
         // Unwrap the Result and panic on failure.

@@ -9,4 +9,4 @@ edition = "2018"
 efi = { git = "https://github.com/gurry/efi", default-features = false }
 
 [build-dependencies]
-bindgen = "0.53.1"
+bindgen = "0.58.1"

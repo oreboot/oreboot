@@ -1,0 +1,11 @@
+[package]
+name = "uefi"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+fsp-qemu-sys = { path = "../../vendorcode/fsp/qemu"}
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
