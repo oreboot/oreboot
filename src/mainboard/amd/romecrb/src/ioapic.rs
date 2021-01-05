@@ -1,5 +1,6 @@
 use core::ptr;
 
+//TODO: separate the basic generic ioapic_read and _write from the specific details for this board
 fn ioapic_read(ioapic_base: u32, register: u32) -> u32 {
     unsafe {
         ptr::write_volatile(ioapic_base as *mut u32, register);
