@@ -48,7 +48,7 @@ $(TARGET_DIR)/bootblob.bin: $(ELF)
 # Re-run cargo every time.
 .PHONY: $(ELF)
 $(ELF):
-	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo xbuild $(CARGO_FLAGS)
+	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo build --target "$(TARGET)" -Z build-std=core,alloc $(CARGO_FLAGS)
 
 clean:
 	rm -rf target/
