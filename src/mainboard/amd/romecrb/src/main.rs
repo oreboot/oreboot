@@ -249,9 +249,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     p[0] = p[0] + 1;
     let payload = &mut BzImage {
-        low_mem_size: 0x80000000,
-        high_mem_start: 0x100000000,
-        high_mem_size: 0,
+        low_mem_size: 0x8000_0000,
+        high_mem_start: 0x1_0000_0000,
+        high_mem_size: 0x8000_0000,
         // TODO: get this from the FDT.
         rom_base: 0xffc00000,
         rom_size: 0x300000,
@@ -265,7 +265,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf0000, 1);
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
-    consdebug(w);
+    // consdebug(w);
     if false {
         msrs(w);
     }
@@ -273,6 +273,22 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
+    write!(w, "ORE: addr {:x}\r\n", peek32(0xE00_0000)).unwrap();
+    arch::pci::check_reset_complete(w);
+    arch::pci::scan_bus(w, 0);
+    arch::pci::setup_root_complex(w, 0x20);
+    arch::pci::check_reset_complete(w);
+    // arch::pci::scan_bus(w, 0x20);
+    arch::pci::setup_root_complex(w, 0x40);
+    arch::pci::setup_root_complex(w, 0x60);
+    arch::pci::check_reset_complete(w);
+    arch::pci::setup_root_complex(w, 0x80);
+    arch::pci::setup_root_complex(w, 0xA0);
+    arch::pci::check_reset_complete(w);
+    arch::pci::setup_root_complex(w, 0xC0);
+    arch::pci::setup_root_complex(w, 0xE0);
+    arch::pci::check_reset_complete(w);
+    
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;

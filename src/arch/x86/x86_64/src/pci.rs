@@ -3,49 +3,49 @@ use model::*;
 /* Device config space registers. */
 const REG_VENDOR_ID: u16 = 0x00;
 const REG_DEVICE_ID: u16 = 0x02;
-// const REG_COMMAND: u16 = 0x04;
-// const REG_STATUS: u16 = 0x06;
-// const REG_REVISION_ID: u16 = 0x08;
-// const REG_PROG_IF: u16 = 0x09;
-// const REG_SUBCLASS: u16 = 0x0A;
-// const REG_CLASS: u16 = 0x0B;
-// const REG_CACHE_LINE_SIZE: u16 = 0x0C;
-// const REG_LATENCY_TIMER: u16 = 0x0D;
+const REG_COMMAND: u16 = 0x04;
+const REG_STATUS: u16 = 0x06;
+const REG_REVISION_ID: u16 = 0x08;
+const REG_PROG_IF: u16 = 0x09;
+const REG_SUBCLASS: u16 = 0x0A;
+const REG_CLASS: u16 = 0x0B;
+const REG_CACHE_LINE_SIZE: u16 = 0x0C;
+const REG_LATENCY_TIMER: u16 = 0x0D;
 const REG_HEADER_TYPE: u16 = 0x0E;
-// const REG_BIST: u16 = 0x0F;
-// const REG_BAR0: u16 = 0x10;
-// const REG_BAR1: u16 = 0x14;
-// const REG_BAR2: u16 = 0x18;
-// const REG_BAR3: u16 = 0x1C;
-// const REG_BAR4: u16 = 0x20;
-// const REG_BAR5: u16 = 0x24;
-// const REG_CARDBUS_CIS_POINTER: u16 = 0x28;
-// const REG_SUBSYS_VENDOR_ID: u16 = 0x2C;
-// const REG_SUBSYS_ID: u16 = 0x2E;
-// const REG_DEV_OPROM_BASE: u16 = 0x30;
-// const REG_CAP_POINTER: u16 = 0x34;
-// const REG_INTERRUPT_LINE: u16 = 0x3C;
-// const REG_INTERRUPT_PIN: u16 = 0x3D;
-// const REG_MIN_GRANT: u16 = 0x3E;
-// const REG_MAX_LATENCY: u16 = 0x3F;
+const REG_BIST: u16 = 0x0F;
+const REG_BAR0: u16 = 0x10;
+const REG_BAR1: u16 = 0x14;
+const REG_BAR2: u16 = 0x18;
+const REG_BAR3: u16 = 0x1C;
+const REG_BAR4: u16 = 0x20;
+const REG_BAR5: u16 = 0x24;
+const REG_CARDBUS_CIS_POINTER: u16 = 0x28;
+const REG_SUBSYS_VENDOR_ID: u16 = 0x2C;
+const REG_SUBSYS_ID: u16 = 0x2E;
+const REG_DEV_OPROM_BASE: u16 = 0x30;
+const REG_CAP_POINTER: u16 = 0x34;
+const REG_INTERRUPT_LINE: u16 = 0x3C;
+const REG_INTERRUPT_PIN: u16 = 0x3D;
+const REG_MIN_GRANT: u16 = 0x3E;
+const REG_MAX_LATENCY: u16 = 0x3F;
 
 /* Bridge config space registers. */
-// const REG_PRIMARY_BUS: u16 = 0x18;
+const REG_PRIMARY_BUS: u16 = 0x18;
 const REG_SECONDARY_BUS: u16 = 0x19;
 const REG_SUBORDINATE_BUS: u16 = 0x1A;
-// const REG_SECONDARY_LATENCY: u16 = 0x1B;
-// const REG_IO_BASE: u16 = 0x1C;
-// const REG_IO_LIMIT: u16 = 0x1D;
-// const REG_SECONDARY_STATUS: u16 = 0x1E;
-// const REG_MEMORY_BASE: u16 = 0x20;
-// const REG_MEMORY_LIMIT: u16 = 0x22;
-// const REG_PREFETCH_MEM_BASE: u16 = 0x24;
-// const REG_PREFETCH_MEM_LIMIT: u16 = 0x26;
-// const REG_PREFETCH_BASE_UPPER: u16 = 0x28;
-// const REG_PREFETCH_LIMIT_UPPER: u16 = 0x2C;
-// const REG_IO_BASE_UPPER: u16 = 0x30;
-// const REG_IO_LIMIT_UPPER: u16 = 0x32;
-// const REG_BRIDGE_OPROM_BASE: u16 = 0x38;
+const REG_SECONDARY_LATENCY: u16 = 0x1B;
+const REG_IO_BASE: u16 = 0x1C;
+const REG_IO_LIMIT: u16 = 0x1D;
+const REG_SECONDARY_STATUS: u16 = 0x1E;
+const REG_MEMORY_BASE: u16 = 0x20;
+const REG_MEMORY_LIMIT: u16 = 0x22;
+const REG_PREFETCH_MEM_BASE: u16 = 0x24;
+const REG_PREFETCH_MEM_LIMIT: u16 = 0x26;
+const REG_PREFETCH_BASE_UPPER: u16 = 0x28;
+const REG_PREFETCH_LIMIT_UPPER: u16 = 0x2C;
+const REG_IO_BASE_UPPER: u16 = 0x30;
+const REG_IO_LIMIT_UPPER: u16 = 0x32;
+const REG_BRIDGE_OPROM_BASE: u16 = 0x38;
 const REG_BRIDGE_CONTROL: u16 = 0x3C;
 
 const MMIO_CFG_BASE: u32 = 0xE000_0000;
@@ -54,6 +54,25 @@ struct pci_device {
     bus: u8,
     device: u8,
     function: u8,
+}
+
+fn smn_read(a: u32) -> u32 {
+    // the smn device is at (0)
+    unsafe {
+        outl(0xcf8, 0x8000_00b8);
+        outl(0xcfc, a);
+        outl(0xcf8, 0x8000_00bc);
+        inl(0xcfc)
+    }
+}
+
+fn smn_write(a: u32, v: u32) {
+    unsafe {
+        outl(0xcf8, 0x800000b8);
+        outl(0xcfc, a);
+        outl(0xcf8, 0x800000bc);
+        outl(0xcfc, v);
+    }
 }
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {
@@ -119,18 +138,7 @@ fn pci_write_config16(device: u32, register: u16, val: u16) {
 //     }
 // }
 
-fn pcie_rsmu_read(offset: u16) -> u32 {
-    unsafe {
-        outl(0xcf8, 0x800000b8);
-        outl(0xcfc, 0x1118_0000 | offset as u32);
-        outl(0xcf8, 0x800000bc);
-        inl(0xcfc)
-    }
-}
-
 pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
-    let swrst = pcie_rsmu_read(0x400);
-    writeln!(w, "ORE: RSMU_READ {:x}", swrst);
 
     for devfn in 0..0x100 {
         let device = (devfn >> 3) & 0x1F;
@@ -221,7 +229,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //3f0:
                     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x66, 0x00, 0x11, 0x00, 0x00, 0x00,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f0[i as usize]);
                 }
                 max = 0x1000;
@@ -295,7 +303,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 3f0:
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xff,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f1[i as usize]);
                 }
                 max = 0x1000;
@@ -333,7 +341,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0xa4, 0xa2, 0x00, 0x18, 0x00, 0x00, 0x00,
                 ];
                 // 0x80 is diff board to board
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f2[i as usize]);
                 }
                 max = 0x1000;
@@ -407,7 +415,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 3f0:
                     0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f3[i as usize]);
                 }
                 max = 0x1000;
@@ -481,7 +489,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 3f0:
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f4[i as usize]);
                 }
                 max = 0x1000;
@@ -533,7 +541,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x37, 0x59, 0x1d, 0x8a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f5[i as usize]);
                 }
                 max = 0x1000;
@@ -584,7 +592,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f6[i as usize]);
                 }
                 max = 0x1000;
@@ -621,7 +629,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 ];
-                for i in 4..0x400 {
+                for i in 4..0xff {
                     pci_write_config8(port_address, i, host_bridge_dump_f7[i as usize]);
                 }
                 max = 0x1000;
@@ -643,8 +651,8 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
             // devfn += devfn + 8;
             // pci_write_config8(port_address, REG_COMMAND, 0x14);
 
-            let b_ctrl = pci_read_config16(w, port_address, REG_BRIDGE_CONTROL).unwrap();
-            writeln!(w, "\t Bridge Ctrl Reg: {:X}\r", b_ctrl).unwrap();
+            let b_ctrl = pci_read_config16(w, port_address, REG_COMMAND).unwrap();
+            writeln!(w, "\t OREDEBUG: Bridge Ctrl Reg: {:X}\r", b_ctrl).unwrap();
 
             if bus == 0 && device == 7 && function == 1 {
                 pci_write_config8(port_address, REG_SECONDARY_BUS, 1);
@@ -695,6 +703,30 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
     }
 }
 
+pub fn check_reset_complete(w: &mut impl core::fmt::Write) {
+    
+    // smn_write(0x1118_0428, 0);
+    
+    for _i in 0..32 { 
+        let mut addr = 0x1118_0400;
+
+        for _i in 1..9 {
+            let swrst_command_status = smn_read(addr);
+            writeln!(w, "ORE PCI: SWRST_STATUS {:X} {:X}\r",addr, swrst_command_status);
+            addr += 0x10_0000;
+        };
+        // let swrst_command_status_1 = smn_read(0x1128_0400);
+        // let swrst_command_status_2 = smn_read(0x1138_0400);
+        // let swrst_command_status_3 = smn_read(0x1148_0400);
+        // let swrst_command_status_4 = smn_read(0x1158_0400);
+        // let swrst_command_status_5 = smn_read(0x1168_0400);
+        // let swrst_command_status_6 = smn_read(0x1178_0400);
+        // let swrst_command_status_7 = smn_read(0x1188_0400);
+        // writeln!(w, "ORE PCI: SWRST_STATUS B {:X} {:X}\r",swrst_command_status_2, swrst_command_status_3);
+        // writeln!(w, "ORE PCI: SWRST_STATUS C {:X} {:X}\r",swrst_command_status_4, swrst_command_status_5);
+        // writeln!(w, "ORE PCI: SWRST_STATUS D {:X} {:X}\r",swrst_command_status_6, swrst_command_status_7);
+    };
+}
 pub fn setup_root_complex(w: &mut impl core::fmt::Write, bus: u16) {
     let address = MMIO_CFG_BASE | (bus as u32) << 20;
 
