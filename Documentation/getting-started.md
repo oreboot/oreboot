@@ -50,7 +50,8 @@ statically allocated size.
 
 The binary is generated in two steps:
 
-* Build ELF (Executable and Linkable Format) binary, with `cargo xbuild` command.
+* Build ELF (Executable and Linkable Format) binary, with
+`cargo build --target $(TARGET) -Z build-std=core,alloc` command.
 * Convert it to binary format with `rust-objcopy` into `bootblob.bin` file.
 
 This `bootblob.bin` is then used to construct the image that will be written

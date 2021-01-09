@@ -20,7 +20,6 @@ BROKEN := \
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
 TOOLCHAIN_VER := nightly-2020-10-25
-XBUILD_VER := 0.6.3
 BINUTILS_VER := 0.3.2
 
 .PHONY: mainboards $(MAINBOARDS)
@@ -36,7 +35,6 @@ firsttime:
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
 	rustup target add aarch64-unknown-none-softfloat
-	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 
 firsttime_fsp:
