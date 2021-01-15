@@ -57,7 +57,10 @@ clean:
 
 # The rest of this file are conveniences for debugging.
 objdump: $(ELF)
-	cargo objdump -- -d $(ELF)
+	rust-objdump -d $(ELF)
+
+stack-sizes: $(ELF)
+	stack-sizes $(ELF)
 
 flash: $(IMAGE)
 	sudo $(which flashrom) -V -w $(IMAGE) -p $(FLASHROM_PROGRAMMER)

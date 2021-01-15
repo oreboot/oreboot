@@ -40,6 +40,11 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
+    .stack_sizes (INFO) :
+    {
+        KEEP(*(.stack_sizes));
+    }
+
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
     /* Unused exception related info that only wastes space */
     }

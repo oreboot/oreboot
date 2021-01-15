@@ -51,6 +51,11 @@ SECTIONS
         KEEP(*(.bss .bss.* .sbss .sbss.*)); /* we could just leave this empty ... */
     }
 
+    .stack_sizes (INFO) :
+    {
+        KEEP(*(.stack_sizes));
+    }
+
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
 	    	/* Unused exception related info that only wastes space */
 		}
