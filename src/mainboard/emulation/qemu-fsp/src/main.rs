@@ -19,6 +19,9 @@ global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
+    // FSP has some SSE instructions.
+    arch::enable_sse();
+
     let io = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
     uart0.init().unwrap();
