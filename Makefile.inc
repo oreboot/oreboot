@@ -6,6 +6,7 @@ MODE       ?= release
 FIXED_DTFS  = fixed-dtfs.dtb
 TOOLS_DIR   = $(TOP)/tools
 FLASHROM_PROGRAMMER ?= dediprog
+OBJCOPY    ?= rust-objcopy
 # Cargo will build the tools using the target from the .cargo directory which
 # does not work so well if you are cross-compiling. This shell one-liner gets
 # the target of the current system which can be passed via --target for
@@ -43,7 +44,7 @@ $(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
 	@printf "**\n** Output: $@\n**\n"
 
 $(TARGET_DIR)/bootblob.bin: $(ELF)
-	rust-objcopy -O binary -R .bss $< $@
+	$(OBJCOPY) -O binary -R .bss $< $@
 
 # Re-run cargo every time.
 .PHONY: $(ELF)
