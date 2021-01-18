@@ -24,6 +24,7 @@ MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
+STACK_SIZES_VER := 0.4.0
 
 .PHONY: mainboards $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
@@ -33,6 +34,7 @@ $(MAINBOARDS):
 
 firsttime:
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
