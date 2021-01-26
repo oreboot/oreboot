@@ -105,11 +105,11 @@ impl Driver for MainBoard {
         // fed800fc is the uart control reg.
         // bit 28 is the bit which sets it between 48m and 1.8m
         // we want 1.8m. They made oddball 48m default. Stupid.
-        // let mut uc = peek32(0xfed800fc);
-        // uc = uc | (1 << 28);
-        // poke32(0xfed800fc, uc);
-        // // Set up the legacy decode.
-        // poke16(FCH_UART_LEGACY_DECODE, FCH_LEGACY_3F8_SH);
+        let mut uc = peek32(0xfed800fc);
+        uc = uc | (1 << 28);
+        poke32(0xfed800fc, uc);
+        // Set up the legacy decode.
+        poke16(FCH_UART_LEGACY_DECODE, FCH_LEGACY_3F8_SH);
         let mut msr0 = Msr::new(0x1b);
         unsafe {
             let v = msr0.read() | 0x900;
