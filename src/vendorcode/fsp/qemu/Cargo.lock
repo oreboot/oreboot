@@ -115,7 +115,7 @@ dependencies = [
 [[package]]
 name = "efi"
 version = "0.2.1"
-source = "git+https://github.com/gurry/efi#70cd08e2e9c770bf8e68f1c6179376f90a5081cc"
+source = "git+https://github.com/rjoleary/efi#5c169fc6fd9c402c5f7083c8461874bc8c4d755e"
 dependencies = [
  "byteorder",
  "failure",
@@ -158,7 +158,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fsp-coffeelake-sys"
+name = "fsp-qemu-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",

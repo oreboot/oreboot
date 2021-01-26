@@ -50,11 +50,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, revision: 1, ..AcpiTableHeader::new() };
     write(w, xsdt, xsdt_offset, 0);
     // xsdt entries
-    let mut xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [0; NUM_XSDT_ENTRIES];
-    xsdt_entries[0] = fadt_offset as u64;
-    xsdt_entries[1] = madt_offset as u64;
-    xsdt_entries[2] = mcfg_offset as u64;
-    xsdt_entries[3] = hpet_offset as u64;
+    let xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [fadt_offset as u64, madt_offset as u64, mcfg_offset as u64, hpet_offset as u64];
 
     write(w, xsdt_entries, xsdt_entry_offset, 0);
     write(w, gencsum(xsdt_offset, xsdt_offset + xsdt_total_length), xsdt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX

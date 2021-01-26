@@ -20,7 +20,6 @@ BROKEN := \
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
 TOOLCHAIN_VER := nightly-2020-10-25
-XBUILD_VER := 0.6.3
 BINUTILS_VER := 0.3.2
 
 .PHONY: mainboards $(MAINBOARDS)
@@ -36,15 +35,17 @@ firsttime:
 	rustup target add riscv32imc-unknown-none-elf
 	rustup target add armv7r-none-eabi
 	rustup target add aarch64-unknown-none-softfloat
-	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+
+firsttime_fsp:
+	sudo apt-get install build-essential uuid-dev iasl gcc-5 nasm python3-distutils
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
 
 .PHONY: ciprepare debiansysprepare firsttime
-ciprepare: debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime firsttime_fsp
 
 update:
 	rustup update
@@ -77,8 +78,9 @@ BROKEN_CRATES_TO_TEST := \
 	src/cpu/lowrisc/ibex/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
-	src/mainboard/emulation/qemu-armv7/Cargo.toml \
 	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
+	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/emulation/qemu-riscv/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
@@ -87,7 +89,6 @@ BROKEN_CRATES_TO_TEST := \
 	src/soc/aspeed/ast2500/Cargo.toml \
 	src/soc/opentitan/earlgrey/Cargo.toml \
 	src/soc/sifive/fu540/Cargo.toml \
-	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
 CRATES_TO_TEST := $(patsubst %/Cargo.toml,%/Cargo.toml.test,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
 $(CRATES_TO_TEST):
@@ -99,6 +100,7 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \

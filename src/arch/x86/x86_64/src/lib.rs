@@ -26,3 +26,23 @@ pub fn fence() {
 pub fn nop() {
     unsafe { llvm_asm!("nop" :::: "volatile") }
 }
+
+pub fn enable_sse() {
+    unsafe {
+        llvm_asm!(
+            r#"
+            movq %cr0, %rax
+            /* CR0.EM=0: disable emulation, otherwise SSE instruction cause #UD */
+            andw $$0xFFFB, %ax
+            /* CR0.MP=1: enable monitoring coprocessor */
+            orw $$0x0002, %ax
+            movq %rax, %cr0
+
+            movq %cr4, %rax
+            /* CR4.OSFXSR=1: Operating System Support for FXSAVE and FXRSTOR instructions */
+            /* CR4.OSXMMEXCPT=1: Operating System Support for Unmasked SIMD Floating-Point Exceptions */
+            orw $$0x0600, %ax
+            movq %rax, %cr4"#
+            ::: "rax" : "volatile")
+    }
+}

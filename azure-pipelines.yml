@@ -18,7 +18,7 @@ jobs:
   - checkout: self
     fetchDepth: 1  # Download only latest commit, not all history
   - script: |
-      git submodule update --init
+      git submodule update --init --recursive
     displayName: 'Checkout submodules'
   - script: |
       make ciprepare
@@ -44,11 +44,20 @@ jobs:
   - checkout: self
     fetchDepth: 1  # Download only latest commit, not all history
   - script: |
-      git submodule update --init
+      make ciprepare
+      cd src/mainboard/emulation/qemu-q35
+      make
+- job: BuildFSPQEMU
+  displayName: 'Build FSP QEMU'
+  steps:
+  - checkout: self
+    fetchDepth: 1  # Download only latest commit, not all history
+  - script: |
+      git submodule update --init --recursive
     displayName: 'Checkout submodules'
   - script: |
       make ciprepare
-      cd src/mainboard/emulation/qemu-q35
+      cd src/mainboard/emulation/qemu-fsp
       make
 - job: TestSiFiveQEMU
   displayName: 'Test RISC-V SiFive board in QEMU'
