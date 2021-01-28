@@ -214,10 +214,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
     debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    let p0 = &mut AMDMMIO::com1();
-    p0.init().unwrap();
-    p0.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
+    // let p0 = &mut AMDMMIO::com1();
+    // p0.init().unwrap();
+    // p0.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
     for _i in 1..32 {
@@ -274,20 +274,20 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     write!(w, "ORE: addr {:x}\r\n", peek32(0xE00_0000)).unwrap();
-    arch::pci::check_reset_complete(w);
+    // arch::pci::check_reset_complete(w);
     arch::pci::scan_bus(w, 0);
     arch::pci::setup_root_complex(w, 0x20);
-    arch::pci::check_reset_complete(w);
+    // arch::pci::check_reset_complete(w);
     // arch::pci::scan_bus(w, 0x20);
-    arch::pci::setup_root_complex(w, 0x40);
-    arch::pci::setup_root_complex(w, 0x60);
-    arch::pci::check_reset_complete(w);
-    arch::pci::setup_root_complex(w, 0x80);
-    arch::pci::setup_root_complex(w, 0xA0);
-    arch::pci::check_reset_complete(w);
-    arch::pci::setup_root_complex(w, 0xC0);
-    arch::pci::setup_root_complex(w, 0xE0);
-    arch::pci::check_reset_complete(w);
+    // arch::pci::setup_root_complex(w, 0x40);
+    // arch::pci::setup_root_complex(w, 0x60);
+    // arch::pci::check_reset_complete(w);
+    // arch::pci::setup_root_complex(w, 0x80);
+    // arch::pci::setup_root_complex(w, 0xA0);
+    // arch::pci::check_reset_complete(w);
+    // arch::pci::setup_root_complex(w, 0xC0);
+    // arch::pci::setup_root_complex(w, 0xE0);
+    // arch::pci::check_reset_complete(w);
     
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
     post.pwrite(&p, 0x80).unwrap();
@@ -295,7 +295,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     payload.load(w).unwrap();
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
-    write!(w, "Back from loading payload, call debug\r\n").unwrap();
+    // write!(w, "Back from loading payload, call debug\r\n").unwrap();
     consdebug(w);
     write!(w, "Running payload entry is {:x}\r\n", payload.entry).unwrap();
     post.pwrite(&p, 0x80).unwrap();

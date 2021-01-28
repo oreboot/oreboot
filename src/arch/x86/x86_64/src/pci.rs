@@ -668,14 +668,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
             write!(w, "NN: 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F").unwrap();
 
             for i in 0..0x100 {
-                // if device == 0 && function == 0 {
-                //     if i == 0x4 {
-                //         pci_write_config8(port_address, i, 0x14);
-                //     }
-                //     if i == 0x8 {
-                //         pci_write_config8(port_address, i, 0x16)
-                //     }
-                // }
+
                 if i % 0x10 == 0 {
                     write!(w, "\n\r{:x}:", i).unwrap();
                 }
@@ -690,7 +683,7 @@ pub fn scan_bus(w: &mut impl core::fmt::Write, bus: u16) {
             let next_bus = pci_read_config16(w, port_address, REG_SECONDARY_BUS).unwrap();
             let next_bus = next_bus & 0xFF;
 
-            if next_bus != bus {
+            if next_bus > bus {
                 writeln!(w, "PCI: scanning bridge with bus {:X}\r", next_bus).unwrap();
                 scan_bus(w, next_bus);
             }
