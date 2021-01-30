@@ -19,6 +19,7 @@ use register::register_bitfields;
 
 const RETRY_COUNT: u32 = 100_000;
 const COM1: usize = 0xfedc9000;
+const COM2: usize = 0xfedca000;
 
 // We fill out as little of this as possible.
 // We're firmware and should never plan to use it
@@ -81,6 +82,10 @@ impl AMDMMIO {
 
     pub fn com1() -> AMDMMIO {
         AMDMMIO { base: COM1 }
+    }
+
+    pub fn com2() -> AMDMMIO {
+        AMDMMIO { base: COM2 }
     }
 
     /// Returns a pointer to the register block
