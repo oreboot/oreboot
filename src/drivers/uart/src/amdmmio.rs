@@ -98,7 +98,7 @@ impl Driver for AMDMMIO {
     fn init(&mut self) -> Result<()> {
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::BaudRate);
         self.dlm.set(0);
-        self.d.set(26); // approx. 115200
+        self.d.set(1); // approx. 115200
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::Data);
         self.dlm.set(0); // Just clear the IER to be safe.
         Ok(())
