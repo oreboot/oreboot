@@ -38,7 +38,7 @@ firsttime:
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 
 firsttime_fsp:
-	sudo apt-get install build-essential uuid-dev iasl gcc-5 nasm python3-distutils
+	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
