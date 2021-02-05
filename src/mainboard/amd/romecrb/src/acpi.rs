@@ -102,8 +102,11 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let facs = AcpiTableFacs { signature: SIG_FACS, length: size_of::<AcpiTableFacs>() as u32, flags: 0, version: 2, ..Default::default() };
     write(w, facs, facs_offset, 0);
 
-    // dsdt - Differentiated System Description Table
+    // dsdt - Differentiated System Description Table ******!!!!!!!!!!!
     write(w, DSDT_DSDTTBL_HEADER, dsdt_offset, 0);
+
+    // let DSDT = include_bytes!("../acpi/dsdt.dat");
+    // write(w, DSDT, dsdt_offset, 0);
 
     // madt - Multiple APIC Description Table
     // TODO: Recalculate for SMP

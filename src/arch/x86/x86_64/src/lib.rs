@@ -2,13 +2,14 @@
 #![feature(lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
-#![deny(warnings)]
+// #![deny(warnings)]
 
 const PAGE_SIZE: usize = 4096;
 pub mod acpi;
 pub mod bzimage;
 pub mod consts;
 pub mod ioport;
+pub mod pci;
 
 pub fn halt() -> ! {
     loop {

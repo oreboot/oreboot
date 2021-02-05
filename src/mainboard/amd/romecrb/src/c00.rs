@@ -4,7 +4,7 @@ unsafe fn outb(port: u16, val: u8) {
 }
 
 fn one(w: &mut impl core::fmt::Write, a: u8, v: u8) {
-    write!(w, "{:x} {:x}", a, v).unwrap();
+    write!(w, "{:x}:{:x} ", a, v).unwrap();
     unsafe {
         outb(0xc00, a);
         outb(0xc01, v);
