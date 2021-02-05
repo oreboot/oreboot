@@ -214,10 +214,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
     debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    // let p0 = &mut AMDMMIO::com1();
-    // p0.init().unwrap();
-    // p0.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
+    let p0 = &mut AMDMMIO::com2();
+    p0.init().unwrap();
+    p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
+    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
     for _i in 1..32 {
