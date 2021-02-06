@@ -38,7 +38,7 @@ firsttime:
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 
 firsttime_fsp:
-	sudo apt-get install build-essential uuid-dev iasl gcc-5 nasm python3-distutils
+	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
@@ -76,6 +76,7 @@ BROKEN_CRATES_TO_TEST := \
 	src/arch/riscv/rv64/Cargo.toml \
 	src/cpu/armltd/cortex-a9/Cargo.toml \
 	src/cpu/lowrisc/ibex/Cargo.toml \
+	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
@@ -97,6 +98,7 @@ $(CRATES_TO_TEST):
 test: $(CRATES_TO_TEST)
 
 BROKEN_CRATES_TO_CLIPPY := \
+	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \

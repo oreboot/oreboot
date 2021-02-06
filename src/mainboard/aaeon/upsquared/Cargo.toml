@@ -1,0 +1,30 @@
+[package]
+name = "upsquared"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+arch = { path = "../../../arch/x86/x86_64"}
+console = { path = "../../../console" }
+model = { path = "../../../drivers/model" }
+print = { path = "../../../lib/print" }
+payloads = { path = "../../../../payloads"}
+wrappers = { path = "../../../drivers/wrappers"}
+
+heapless = "0.4.x"
+register = "0.3.2"
+static-ref = "0.1.1"
+postcard = "0.4.3"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["i8250", "debug_port"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
