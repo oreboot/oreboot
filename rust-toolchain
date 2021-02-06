@@ -1,0 +1,9 @@
+[toolchain]
+channel = "nightly-2020-10-25"
+components = [ "rust-src", "llvm-tools-preview", "rustfmt", "clippy" ]
+targets = [
+  "riscv64imac-unknown-none-elf",
+  "riscv32imc-unknown-none-elf",
+  "armv7r-none-eabi",
+  "aarch64-unknown-none-softfloat",
+]
