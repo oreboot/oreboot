@@ -35,6 +35,26 @@ use core::ptr;
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
 global_asm!(include_str!("bootblock.S"));
+
+fn smn_read(a: u32) -> u32 {
+    // the smn device is at (0)
+    unsafe {
+        outl(0xcf8, 0x8000_00b8);
+        outl(0xcfc, a);
+        outl(0xcf8, 0x8000_00bc);
+        inl(0xcfc)
+    }
+}
+
+fn smn_write(a: u32, v: u32) {
+    unsafe {
+        outl(0xcf8, 0x800000b8);
+        outl(0xcfc, a);
+        outl(0xcf8, 0x800000bc);
+        outl(0xcfc, v);
+    }
+}
+
 fn poke32(a: u32, v: u32) -> () {
     let y = a as *mut u32;
     unsafe {
@@ -203,6 +223,16 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     }
 }
 //global_asm!(include_str!("init.S"));
+fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
+    let got = smn_read(reg);
+    write!(w, "{:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+    if got == want {
+        return;
+    }
+    smn_write(reg, want);
+    let got = smn_read(reg);
+    write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+}
 
 fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
     let cpuid = CpuId::new();
@@ -280,6 +310,95 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let mut p: [u8; 1] = [0xf0; 1];
     post.pwrite(&p, 0x80).unwrap();
     let w = &mut print::WriteTo::new(console);
+    // Logging.
+    smnhack(w, 0x13B1_02F4, 0x00000000u32);
+    smnhack(w, 0x13B1_02F0, 0xc9280001u32);
+    smnhack(w, 0x13C1_02F4, 0x00000000u32);
+    smnhack(w, 0x13C1_02F0, 0xf4180001u32);
+    smnhack(w, 0x13D1_02F4, 0x00000000u32);
+    smnhack(w, 0x13D1_02F0, 0xc8180001u32);
+    smnhack(w, 0x13E1_02F4, 0x00000000u32);
+    smnhack(w, 0x13E1_02F0, 0xf5180001u32);
+    smnhack(w, 0x13F0_0044, 0xc9200001u32);
+    smnhack(w, 0x13F0_0048, 0x00000000u32);
+    smnhack(w, 0x1400_0044, 0xf4100001u32);
+    smnhack(w, 0x1400_0048, 0x00000000u32);
+    smnhack(w, 0x1410_0044, 0xc8100001u32);
+    smnhack(w, 0x1410_0048, 0x00000000u32);
+    smnhack(w, 0x1420_0044, 0xf5100001u32);
+    smnhack(w, 0x1420_0048, 0x00000000u32);
+    smnhack(w, 0x1094_2014, 0x00000000u32);
+    smnhack(w, 0x1094_2010, 0x0000000cu32);
+    smnhack(w, 0x10A4_2014, 0x00000000u32);
+    smnhack(w, 0x10A4_2010, 0x0000000cu32);
+    smnhack(w, 0x1074_1014, 0x00000000u32);
+    smnhack(w, 0x1074_1010, 0x00000000u32);
+    smnhack(w, 0x1074_2014, 0x00000000u32);
+    smnhack(w, 0x1074_2010, 0x00000000u32);
+    smnhack(w, 0x1074_3014, 0x00000000u32);
+    smnhack(w, 0x1074_3010, 0xc6000004u32);
+    smnhack(w, 0x1074_4014, 0x00000000u32);
+    smnhack(w, 0x1074_4010, 0x00000000u32);
+    smnhack(w, 0x10B4_2014, 0x00000000u32);
+    smnhack(w, 0x10B4_2010, 0x0000000cu32);
+    smnhack(w, 0x1084_3014, 0x00000000u32);
+    smnhack(w, 0x1084_3010, 0xf8000004u32);
+    smnhack(w, 0x10C4_2014, 0x00000000u32);
+    smnhack(w, 0x10C4_2010, 0x0000000cu32);
+    smnhack(w, 0x13B1_0044, 0x00000160u32);
+    smnhack(w, 0x13C1_0044, 0x00000140u32);
+    smnhack(w, 0x13D1_0044, 0x00000120u32);
+    smnhack(w, 0x13E1_0044, 0x00000100u32);
+    smnhack(w, 0x1010_0018, 0x00636360u32);
+    smnhack(w, 0x1050_0018, 0x00646460u32);
+    smnhack(w, 0x1020_0018, 0x00414140u32);
+    smnhack(w, 0x1060_0018, 0x00424240u32);
+    smnhack(w, 0x1060_1018, 0x00000000u32);
+    smnhack(w, 0x1060_2018, 0x00000000u32);
+    smnhack(w, 0x1030_0018, 0x00212120u32);
+    smnhack(w, 0x1070_0018, 0x00222220u32);
+    smnhack(w, 0x1070_1018, 0x00000000u32);
+    smnhack(w, 0x1070_2018, 0x00000000u32);
+    smnhack(w, 0x1040_0018, 0x00020200u32);
+    smnhack(w, 0x1080_0018, 0x00030300u32);
+    smnhack(w, 0x1090_0018, 0x00000000u32);
+    smnhack(w, 0x10A0_0018, 0x00000000u32);
+    smnhack(w, 0x10B0_0018, 0x00000000u32);
+    smnhack(w, 0x10C0_0018, 0x00000000u32);
+    smnhack(w, 0x1110_0018, 0x00000000u32);
+    smnhack(w, 0x1120_0018, 0x00000000u32);
+    smnhack(w, 0x1130_0018, 0x00000000u32);
+    smnhack(w, 0x1140_0018, 0x00010100u32);
+    smnhack(w, 0x1110_1018, 0x00000000u32);
+    smnhack(w, 0x1120_1018, 0x00000000u32);
+    smnhack(w, 0x1130_1018, 0x00000000u32);
+    smnhack(w, 0x1140_1018, 0x00000000u32);
+    smnhack(w, 0x1110_2018, 0x00000000u32);
+    smnhack(w, 0x1120_2018, 0x00000000u32);
+    smnhack(w, 0x1130_2018, 0x00000000u32);
+    smnhack(w, 0x1140_2018, 0x00000000u32);
+    smnhack(w, 0x1110_3018, 0x00000000u32);
+    smnhack(w, 0x1120_3018, 0x00000000u32);
+    smnhack(w, 0x1130_3018, 0x00000000u32);
+    smnhack(w, 0x1140_3018, 0x00000000u32);
+    smnhack(w, 0x1110_4018, 0x00000000u32);
+    smnhack(w, 0x1120_4018, 0x00000000u32);
+    smnhack(w, 0x1130_4018, 0x00000000u32);
+    smnhack(w, 0x1140_4018, 0x00000000u32);
+    smnhack(w, 0x1110_5018, 0x00000000u32);
+    smnhack(w, 0x1120_5018, 0x00000000u32);
+    smnhack(w, 0x1130_5018, 0x00000000u32);
+    smnhack(w, 0x1140_5018, 0x00000000u32);
+    smnhack(w, 0x1110_6018, 0x00000000u32);
+    smnhack(w, 0x1120_6018, 0x00000000u32);
+    smnhack(w, 0x1130_6018, 0x00000000u32);
+    smnhack(w, 0x1140_6018, 0x00000000u32);
+    smnhack(w, 0x1110_7018, 0x00000000u32);
+    smnhack(w, 0x1120_7018, 0x00000000u32);
+    smnhack(w, 0x1130_7018, 0x00000000u32);
+    smnhack(w, 0x1140_7018, 0x00000000u32);
+
+    // end logging
 
     // It is hard to say if we need to do this.
     if true {
