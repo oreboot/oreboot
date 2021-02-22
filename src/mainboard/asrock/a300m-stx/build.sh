@@ -1,6 +1,9 @@
 #!/bin/sh
 
-as -o serial.o serial.S
-objcopy -O binary serial.o serial.bin
+make
+
+as -o start.o start.S
+objcopy -O binary start.o start.bin
+
 # insert our code into the original image
-./patch serial.bin@ffe928
+go run patch.go
