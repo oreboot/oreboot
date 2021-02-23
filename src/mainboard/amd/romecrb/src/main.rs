@@ -413,6 +413,10 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     }
     c00(w);
 
+    if false {
+        arch::pci::scan_bus(w, 0);
+    }
+
     boot(w, fdt_address);
 
     arch::halt()

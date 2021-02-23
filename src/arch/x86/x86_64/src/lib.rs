@@ -2,7 +2,7 @@
 #![feature(lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
-#![deny(warnings)]
+// #![deny(warnings)]
 
 const PAGE_SIZE: usize = 4096;
 use rpp_procedural::preprocess_asm;
@@ -11,6 +11,7 @@ pub mod acpi;
 pub mod bzimage;
 pub mod consts;
 pub mod ioport;
+pub mod pci;
 
 // NOTE: The ROM page table is defined by a symbol in the bootblock. It
 // will be populated at runtime in new_rom_util.

@@ -19,3 +19,4 @@ opt-level = 'z'  # Optimize for size.
 ioport = []
 bzimage = []
 acpi = []
+pci = []
