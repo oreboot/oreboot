@@ -11,6 +11,8 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use print;
+use raw_cpuid::CpuId;
+use raw_cpuid::FeatureInfo;
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
@@ -201,6 +203,29 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
 }
 //global_asm!(include_str!("init.S"));
 
+// https://github.com/gz/rust-cpuid/issues/26#issuecomment-785280143
+fn amd_family_id(s: &FeatureInfo) -> u8 {
+    let base_family_id = s.family_id();
+    let extended_family_id = s.extended_family_id();
+    if base_family_id < 0xF {
+        base_family_id
+    } else {
+        base_family_id + extended_family_id
+    }
+}
+
+// https://github.com/gz/rust-cpuid/issues/26#issuecomment-785280143
+fn amd_model_id(s: &FeatureInfo) -> u8 {
+    let base_family_id = s.family_id();
+    let base_model_id = s.model_id();
+    let extended_model_id = s.extended_model_id();
+    if base_family_id < 0xF {
+        base_model_id
+    } else {
+        (extended_model_id << 4) | base_model_id
+    }
+}
+
 fn rome_ff_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     let hsmp = HSMP::new(0);
     unsafe {
@@ -230,6 +255,50 @@ fn rome_ff_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
         }
     }
     Ok(())
+}
+
+fn amd_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
+    let cpuid = CpuId::new();
+    match cpuid.get_vendor_info() {
+        Some(vendor) => {
+            if vendor.as_string() != "AuthenticAMD" {
+                panic!("Only AMD is supported");
+            }
+        }
+        None => {
+            panic!("Could not determine whether or not CPU is AMD");
+        }
+    }
+    // write!(w, "CPU Model is: {}\r\n", cpuid.get_extended_function_info().as_ref().map_or_else(|| "n/a", |extfuninfo| extfuninfo.processor_brand_string().unwrap_or("unreadable"),)); // "AMD EPYC TITUS N-Core Processor"
+    let amd_family_id = cpuid.get_feature_info().map(|info| amd_family_id(&info));
+    let amd_model_id = cpuid.get_feature_info().map(|info| amd_model_id(&info));
+    match amd_family_id {
+        Some(family_id) => {
+            match amd_model_id {
+                Some(model_id) => {
+                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id);
+                }
+                None => (),
+            }
+        }
+        None => (),
+    }
+    match amd_family_id {
+        Some(0x17) => {
+            match amd_model_id {
+                Some(v) if v >= 0x31 => {
+                    // Rome
+                    rome_ff_init(w)
+                }
+                _ => Err("Unsupported AMD CPU"),
+            }
+        }
+        Some(0x19) => {
+            // Milan
+            rome_ff_init(w)
+        }
+        _ => Err("Unsupported AMD CPU"),
+    }
 }
 
 #[no_mangle]
@@ -295,7 +364,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     p[0] = p[0] + 1;
 
-    rome_ff_init(w);
+    amd_init(w);
 
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf0000, 1);

@@ -166,6 +166,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw-cpuid"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c27cb5785b85bd05d4eb171556c9a1a514552e26123aeae6bb7d811353148026"
+dependencies = [
+ "bitflags",
+]
+
+[[package]]
 name = "register"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -186,6 +195,7 @@ dependencies = [
  "payloads",
  "postcard",
  "print",
+ "raw-cpuid",
  "register",
  "static-ref",
  "uart",
