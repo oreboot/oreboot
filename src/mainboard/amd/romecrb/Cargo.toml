@@ -20,6 +20,7 @@ static-ref = "0.1.1"
 postcard = "0.4.3"
 x86_64 = "0.12.2"
 vcell = "0.1.2"
+raw-cpuid = "9.0.0"
 
 [dependencies.uart]
 path = "../../../drivers/uart"
