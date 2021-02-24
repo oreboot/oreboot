@@ -4,6 +4,7 @@
 #![no_main]
 #![feature(global_asm)]
 
+use arch::amdromehsmp::HSMP;
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
@@ -200,6 +201,37 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
 }
 //global_asm!(include_str!("init.S"));
 
+fn rome_ff_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
+    let hsmp = HSMP::new(0);
+    unsafe {
+        match hsmp.test(42) {
+            Ok(v) => {
+                write!(w, "HSMP test(42) result: {}\r\n", v);
+            }
+            Err(e) => {
+                write!(w, "HSMP test(42) error: {}\r\n", e);
+            }
+        }
+        match hsmp.smu_version() {
+            Ok((major, minor)) => {
+                write!(w, "HSMP smu version result: {}.{}\r\n", major, minor);
+            }
+            Err(e) => {
+                write!(w, "HSMP smu version error: {}\r\n", e);
+            }
+        }
+        match hsmp.interface_version() {
+            Ok((major, minor)) => {
+                write!(w, "HSMP interface version result: {}.{}\r\n", major, minor);
+            }
+            Err(e) => {
+                write!(w, "HSMP interface version error: {}\r\n", e);
+            }
+        }
+    }
+    Ok(())
+}
+
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
@@ -262,6 +294,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         msrs(w);
     }
     p[0] = p[0] + 1;
+
+    rome_ff_init(w);
+
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf0000, 1);
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
