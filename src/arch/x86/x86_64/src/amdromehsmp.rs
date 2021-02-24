@@ -35,6 +35,7 @@ pub struct HSMP<'a> {
 
 impl HSMP<'_> {
     pub fn new(nbio: usize) -> Self {
+        // TODO: Verify whether it should be 4 PER SOCKET.
         let bus = match nbio {
             0 => 0,
             1 => 0x20,
