@@ -9,6 +9,7 @@ pub mod acpi;
 pub mod bzimage;
 pub mod consts;
 pub mod ioport;
+pub mod pci;
 
 pub fn halt() -> ! {
     loop {
