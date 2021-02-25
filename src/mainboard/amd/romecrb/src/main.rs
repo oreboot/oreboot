@@ -290,14 +290,20 @@ fn amd_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
                     // Rome
                     rome_ff_init(w)
                 }
-                _ => Err("Unsupported AMD CPU"),
+                _ => {
+                    write!(w, "Unsupported AMD CPU\r\n").unwrap();
+                    Err("Unsupported AMD CPU")
+                }
             }
         }
         Some(0x19) => {
             // Milan
             rome_ff_init(w)
         }
-        _ => Err("Unsupported AMD CPU"),
+        _ => {
+            write!(w, "Unsupported AMD CPU\r\n").unwrap();
+            Err("Unsupported AMD CPU")
+        }
     }
 }
 
@@ -364,7 +370,12 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     p[0] = p[0] + 1;
 
-    amd_init(w);
+    match amd_init(w) {
+        Ok(()) => {}
+        Err(_e) => {
+            write!(w, "Error from amd_init acknowledged--continuing anyway\r\n").unwrap();
+        }
+    }
 
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf0000, 1);
