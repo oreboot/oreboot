@@ -240,6 +240,7 @@ name = "soc"
 version = "0.1.0"
 dependencies = [
  "vcell",
+ "arch",
 ]
 
 [[package]]
