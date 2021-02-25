@@ -8,10 +8,11 @@ use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
+use cpu::model::amd_family_id;
+use cpu::model::amd_model_id;
 use model::Driver;
 use print;
 use raw_cpuid::CpuId;
-use raw_cpuid::FeatureInfo;
 use soc::hsmp::HSMP;
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
@@ -202,29 +203,6 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     }
 }
 //global_asm!(include_str!("init.S"));
-
-// https://github.com/gz/rust-cpuid/issues/26#issuecomment-785280143
-fn amd_family_id(s: &FeatureInfo) -> u8 {
-    let base_family_id = s.family_id();
-    let extended_family_id = s.extended_family_id();
-    if base_family_id < 0xF {
-        base_family_id
-    } else {
-        base_family_id + extended_family_id
-    }
-}
-
-// https://github.com/gz/rust-cpuid/issues/26#issuecomment-785280143
-fn amd_model_id(s: &FeatureInfo) -> u8 {
-    let base_family_id = s.family_id();
-    let base_model_id = s.model_id();
-    let extended_model_id = s.extended_model_id();
-    if base_family_id < 0xF {
-        base_model_id
-    } else {
-        (extended_model_id << 4) | base_model_id
-    }
-}
 
 fn rome_ff_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     let hsmp = HSMP::new(0);
