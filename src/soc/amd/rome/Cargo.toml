@@ -8,4 +8,13 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
+arch = { path = "../../../arch/x86/x86_64"}
 vcell = "0.1.2"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

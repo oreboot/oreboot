@@ -6,6 +6,7 @@
 
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
+use soc::{smn_write,smn_read};
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use cpu::model::amd_family_id;
@@ -35,25 +36,6 @@ use core::ptr;
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
 global_asm!(include_str!("bootblock.S"));
-
-fn smn_read(a: u32) -> u32 {
-    // the smn device is at (0)
-    unsafe {
-        outl(0xcf8, 0x8000_00b8);
-        outl(0xcfc, a);
-        outl(0xcf8, 0x8000_00bc);
-        inl(0xcfc)
-    }
-}
-
-fn smn_write(a: u32, v: u32) {
-    unsafe {
-        outl(0xcf8, 0x800000b8);
-        outl(0xcfc, a);
-        outl(0xcf8, 0x800000bc);
-        outl(0xcfc, v);
-    }
-}
 
 fn poke32(a: u32, v: u32) -> () {
     let y = a as *mut u32;
