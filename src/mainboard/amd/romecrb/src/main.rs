@@ -6,7 +6,6 @@
 
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
-use soc::{smn_write,smn_read};
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use cpu::model::amd_family_id;
@@ -15,6 +14,7 @@ use model::Driver;
 use print;
 use raw_cpuid::CpuId;
 use soc::soc_init;
+use soc::{smn_read, smn_write};
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
@@ -301,13 +301,17 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     smnhack(w, 0x13D1_02F0, 0xc8180001u32);
     smnhack(w, 0x13E1_02F4, 0x00000000u32);
     smnhack(w, 0x13E1_02F0, 0xf5180001u32);
-    smnhack(w, 0x13F0_0044, 0xc9200001u32);
+    // IOMMU on    smnhack(w, 0x13F0_0044, 0xc9200001u32);
+    smnhack(w, 0x13F0_0044, 0xc9200000u32);
     smnhack(w, 0x13F0_0048, 0x00000000u32);
-    smnhack(w, 0x1400_0044, 0xf4100001u32);
+    // IOMMU on smnhack(w, 0x1400_0044, 0xf4100001u32);
+    smnhack(w, 0x1400_0044, 0xf4100000u32);
     smnhack(w, 0x1400_0048, 0x00000000u32);
-    smnhack(w, 0x1410_0044, 0xc8100001u32);
+    // IOMMU on smnhack(w, 0x1410_0044, 0xc8100001u32);
+    smnhack(w, 0x1410_0044, 0xc8100000u32);
     smnhack(w, 0x1410_0048, 0x00000000u32);
-    smnhack(w, 0x1420_0044, 0xf5100001u32);
+    // IOMMU on smnhack(w, 0x1420_0044, 0xf5100001u32);
+    smnhack(w, 0x1420_0044, 0xf5100000u32);
     smnhack(w, 0x1420_0048, 0x00000000u32);
     smnhack(w, 0x1094_2014, 0x00000000u32);
     smnhack(w, 0x1094_2010, 0x0000000cu32);

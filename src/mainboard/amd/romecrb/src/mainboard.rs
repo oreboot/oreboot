@@ -180,7 +180,8 @@ impl Driver for MainBoard {
             // Set up the legacy decode for UART 0.
             (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
             let mut msr0 = Msr::new(0x1b);
-            /*unsafe*/ {
+            /*unsafe*/
+            {
                 let v = msr0.read() | 0x900;
                 msr0.write(v);
                 //let v = msr.read() | 0xd00;

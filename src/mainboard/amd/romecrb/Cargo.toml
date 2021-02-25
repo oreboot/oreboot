@@ -6,14 +6,13 @@ edition = "2018"
 
 [dependencies]
 arch = { path = "../../../arch/x86/x86_64"}
-soc = { path = "../../../soc/amd/rome" }
 clock = { path = "../../../drivers/clock"}
 console = { path = "../../../console" }
 cpu = { path = "../../../cpu/amd" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
-soc = { path = "../../../soc/amd/rome"}
+soc = { path = "../../../soc/amd/rome" }
 util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
 

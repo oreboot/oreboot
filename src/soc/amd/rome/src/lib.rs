@@ -1,6 +1,5 @@
-#![feature(llvm_asm)]
 #![no_std]
-#![deny(warnings)]
+#![feature(llvm_asm)]
 
 pub mod hsmp;
 pub mod pci;
@@ -35,9 +34,6 @@ pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     }
     Ok(())
 }
-#![no_std]
-#![no_main]
-#![feature(global_asm)]
 
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {
@@ -48,7 +44,7 @@ unsafe fn outl(port: u16, val: u32) {
 unsafe fn inl(port: u16) -> u32 {
     let ret: u32;
     llvm_asm!("inl %dx, %eax" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
-    return ret;
+    ret
 }
 
 pub fn smn_read(a: u32) -> u32 {
@@ -69,4 +65,3 @@ pub fn smn_write(a: u32, v: u32) {
         outl(0xcfc, v);
     }
 }
-
