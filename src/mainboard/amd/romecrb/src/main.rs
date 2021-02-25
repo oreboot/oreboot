@@ -13,7 +13,7 @@ use cpu::model::amd_model_id;
 use model::Driver;
 use print;
 use raw_cpuid::CpuId;
-use soc::hsmp::HSMP;
+use soc::soc_init;
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
@@ -204,38 +204,7 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
 }
 //global_asm!(include_str!("init.S"));
 
-fn rome_ff_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-    let hsmp = HSMP::new(0);
-    unsafe {
-        match hsmp.test(42) {
-            Ok(v) => {
-                write!(w, "HSMP test(42) result: {}\r\n", v).unwrap();
-            }
-            Err(e) => {
-                write!(w, "HSMP test(42) error: {}\r\n", e).unwrap();
-            }
-        }
-        match hsmp.smu_version() {
-            Ok((major, minor)) => {
-                write!(w, "HSMP smu version result: {}.{}\r\n", major, minor).unwrap();
-            }
-            Err(e) => {
-                write!(w, "HSMP smu version error: {}\r\n", e).unwrap();
-            }
-        }
-        match hsmp.interface_version() {
-            Ok((major, minor)) => {
-                write!(w, "HSMP interface version result: {}.{}\r\n", major, minor).unwrap();
-            }
-            Err(e) => {
-                write!(w, "HSMP interface version error: {}\r\n", e).unwrap();
-            }
-        }
-    }
-    Ok(())
-}
-
-fn amd_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
+fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
     let cpuid = CpuId::new();
     match cpuid.get_vendor_info() {
         Some(vendor) => {
@@ -266,7 +235,7 @@ fn amd_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
             match amd_model_id {
                 Some(v) if v >= 0x31 => {
                     // Rome
-                    rome_ff_init(w)
+                    soc_init(w)
                 }
                 _ => {
                     write!(w, "Unsupported AMD CPU\r\n").unwrap();
@@ -276,7 +245,7 @@ fn amd_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
         }
         Some(0x19) => {
             // Milan
-            rome_ff_init(w)
+            soc_init(w)
         }
         _ => {
             write!(w, "Unsupported AMD CPU\r\n").unwrap();
@@ -348,7 +317,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     p[0] = p[0] + 1;
 
-    match amd_init(w) {
+    match cpu_init(w) {
         Ok(()) => {}
         Err(_e) => {
             write!(w, "Error from amd_init acknowledged--continuing anyway\r\n").unwrap();
