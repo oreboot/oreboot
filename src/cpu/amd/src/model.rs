@@ -1,4 +1,3 @@
-
 use raw_cpuid::FeatureInfo;
 
 // https://github.com/gz/rust-cpuid/issues/26#issuecomment-785280143
