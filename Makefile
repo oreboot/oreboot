@@ -86,6 +86,8 @@ BROKEN_CRATES_TO_TEST := \
 	src/soc/aspeed/ast2500/Cargo.toml \
 	src/soc/opentitan/earlgrey/Cargo.toml \
 	src/soc/sifive/fu540/Cargo.toml \
+	src/vendorcode/fsp/coffeelake/Cargo.toml \
+	src/vendorcode/fsp/qemu/Cargo.toml \
 
 CRATES_TO_TEST := $(patsubst %/Cargo.toml,%/Cargo.toml.test,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
 $(CRATES_TO_TEST):
