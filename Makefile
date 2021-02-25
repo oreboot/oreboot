@@ -74,6 +74,7 @@ BROKEN_CRATES_TO_TEST := \
 	src/cpu/lowrisc/ibex/Cargo.toml \
 	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/asrock/a300m-stx/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
@@ -96,6 +97,7 @@ test: $(CRATES_TO_TEST)
 BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/asrock/a300m-stx/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
 	src/mainboard/emulation/qemu-fsp/Cargo.toml \
