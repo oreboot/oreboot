@@ -4,7 +4,6 @@
 #![no_main]
 #![feature(global_asm)]
 
-use arch::amdromehsmp::HSMP;
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
@@ -13,6 +12,7 @@ use model::Driver;
 use print;
 use raw_cpuid::CpuId;
 use raw_cpuid::FeatureInfo;
+use soc::hsmp::HSMP;
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;

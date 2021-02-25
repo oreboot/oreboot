@@ -6,11 +6,9 @@
 
 const PAGE_SIZE: usize = 4096;
 pub mod acpi;
-pub mod amdromehsmp;
 pub mod bzimage;
 pub mod consts;
 pub mod ioport;
-pub mod pci;
 
 pub fn halt() -> ! {
     loop {
