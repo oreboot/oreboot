@@ -197,6 +197,7 @@ dependencies = [
  "print",
  "raw-cpuid",
  "register",
+ "soc",
  "static-ref",
  "uart",
  "util",
@@ -223,6 +224,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "soc"
+version = "0.1.0"
+dependencies = [
+ "vcell",
 ]
 
 [[package]]
