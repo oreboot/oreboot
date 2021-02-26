@@ -385,6 +385,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     smnhack(w, 0x1140_7018, 0x00000000u32);
 
     // end logging
+    smnhack(w, 0x13b1_0030, 0x00000001u32 << 11);
+    smnhack(w, 0x13c1_0030, 0x00000001u32 << 11);
+    smnhack(w, 0x13d1_0030, 0x00000001u32 << 11);
+    smnhack(w, 0x13e1_0030, 0x00000001u32 << 11);
 
     // It is hard to say if we need to do this.
     if true {
