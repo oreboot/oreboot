@@ -390,6 +390,18 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     smnhack(w, 0x13d1_0030, 0x00000001u32 << 11);
     smnhack(w, 0x13e1_0030, 0x00000001u32 << 11);
 
+    // PCIE crs count
+    smnhack(w, 0x13b1_0028, 0x02620006u32);
+    smnhack(w, 0x13c1_0028, 0x02620006u32);
+    smnhack(w, 0x13d1_0028, 0x02620006u32);
+    smnhack(w, 0x13e1_0028, 0x02620006u32);
+
+    // PCIE 100 mhz
+    smnhack(w, 0x13b1_0020, 0x00000001u32);
+    smnhack(w, 0x13c1_0020, 0x00000001u32);
+    smnhack(w, 0x13d1_0020, 0x00000001u32);
+    smnhack(w, 0x13e1_0020, 0x00000001u32);
+
     // It is hard to say if we need to do this.
     if true {
         let v = unsafe { Msr::new(0xc001_1004).read() };
