@@ -202,6 +202,8 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
+    let m = &mut MainBoard::new();
+    m.init().unwrap();
     let debug_io = &mut IOPort;
     let debug = &mut DebugPort::new(0x80, debug_io);
     debug.init().unwrap();

@@ -157,12 +157,10 @@ impl Driver for MainBoard {
         // we want 1.8m. They made oddball 48m default. Stupid.
         let mut uc = peek32(SMB_UART_CONFIG);
         uc = uc | SMB_UART_CONFIG_UART0_1_8M;
-        uc = uc | SMB_UART_CONFIG_UART1_1_8M;
         poke32(SMB_UART_CONFIG, uc);
 
         d3_control_power_on(FCH_AOAC_DEV_AMBA); // Note: It's on by default
         d3_control_power_on(FCH_AOAC_DEV_UART0); // Note: It's on by default
-        d3_control_power_on(FCH_AOAC_DEV_UART1); // Note: It's on by default
 
         // UART 0
 
@@ -172,15 +170,6 @@ impl Driver for MainBoard {
         pinctrl(137, 0); // [UART0_RTS_L, EGPIO137][0]
         pinctrl(138, 0); // [UART0_TXD, EGPIO138][0]
         pinctrl(139, 0); // [UART0_INTR, AGPIO139][0]; Note: The reset default is 0
-
-        // UART 1
-
-        // See coreboot:src/soc/amd/picasso/include/soc/gpio.h
-        pinctrl(140, 0); // [UART1_CTS_L_UART3_TXD, EGPIO140][0]; Note: The reset default is 0
-        pinctrl(141, 0); // [UART1_RXD, EGPIO141][0]; Note: The reset default is 0
-        pinctrl(142, 0); // [UART1_RTS_L, EGPIO142][0]
-        pinctrl(143, 0); // [UART1_TXD, EGPIO143][0]
-        pinctrl(144, 0); // [UART1_INTR, AGPIO144][0]; Note: The reset default is 0
 
         // Set up the legacy decode for UART 0.
         poke16(FCH_UART_LEGACY_DECODE, FCH_LEGACY_3F8_SH);
