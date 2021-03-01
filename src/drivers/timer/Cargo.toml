@@ -1,0 +1,16 @@
+[package]
+name = "timer"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+
+[dependencies]
+model = { path = "../model"}
+register = "0.3.2"
+vcell = "0.1.2"
+
+#[features]
+#amdmmio = []
