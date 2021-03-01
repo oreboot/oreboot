@@ -149,6 +149,9 @@ fn pinctrl(pin: u8, mode: u8) -> () {
 
 impl Driver for MainBoard {
     fn init(&mut self) -> Result<()> {
+        // FCH PM DECODE EN
+        poke32(0xfed80300, 0xe3070b77);
+
         // Knowledge from coreboot to get minimal serials working.
         // clock defaults are NOT fine.
         //uart_ctrl = sm_pci_read32(SMB_UART_CONFIG);
@@ -184,7 +187,6 @@ impl Driver for MainBoard {
         // IOAPIC
         //     wmem fed80300 e3070b77
         //    wmem fed00010 3
-        poke32(0xfed80300, 0xe3070b77); //FCH PM DECODE EN
         poke32(0xfed00010, 3); //HPETCONFIG
         let i = peek32(0xfed00010);
         poke32(0xfed00010, i | 8);
