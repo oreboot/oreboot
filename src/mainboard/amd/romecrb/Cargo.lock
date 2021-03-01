@@ -267,6 +267,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "timer"
+version = "0.1.0"
+dependencies = [
+ "model",
+ "register",
+ "vcell",
+]
+
+[[package]]
 name = "tock-registers"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -286,6 +295,7 @@ dependencies = [
  "heapless 0.4.4",
  "model",
  "register",
+ "timer",
 ]
 
 [[package]]

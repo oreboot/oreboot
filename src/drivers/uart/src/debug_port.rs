@@ -1,13 +1,15 @@
 use model::{Driver, Result};
+use timer::hpet::HPET;
 
 pub struct DebugPort<'a> {
     address: usize,
     d: &'a mut dyn Driver,
+    timer: HPET,
 }
 
 impl<'a> DebugPort<'a> {
     pub fn new(address: usize, d: &'a mut dyn Driver) -> DebugPort<'a> {
-        DebugPort { address, d }
+        DebugPort { address, d, timer: HPET::hpet() }
     }
 }
 
@@ -27,6 +29,11 @@ impl<'a> Driver for DebugPort<'a> {
         for (_i, &c) in data.iter().enumerate() {
             let mut s = [0u8; 1];
             s[0] = c;
+            // 0.5 microseconds
+            for _j in 0..125 {
+                // shorter sleep time here so that it also works in 32 bit
+                self.timer.sleep(4_000_000); // that's in fs
+            }
             self.d.pwrite(&s, self.address).unwrap();
         }
         Ok(data.len())
