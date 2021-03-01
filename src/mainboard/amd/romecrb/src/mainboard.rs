@@ -147,6 +147,9 @@ fn pinctrl(pin: u8, mode: u8) -> () {
 impl Driver for MainBoard {
     fn init(&mut self) -> Result<()> {
         unsafe {
+            // FCH PM DECODE EN
+            poke(0xfed80300 as *mut u32, 0xe3070b77);
+
             // Knowledge from coreboot to get minimal serials working.
             // clock defaults are NOT fine.
             //uart_ctrl = sm_pci_read32(SMB_UART_CONFIG);
@@ -191,7 +194,6 @@ impl Driver for MainBoard {
             // IOAPIC
             //     wmem fed80300 e3070b77
             //    wmem fed00010 3
-            poke(0xfed80300 as *mut u32, 0xe3070b77); //FCH PM DECODE EN
             poke(0xfed00010 as *mut u32, 3); //HPETCONFIG
             pokers32(0xfed00010 as *mut u32, 0, 8);
             // THis is likely not needed but.
