@@ -10,6 +10,7 @@ opt-level = 'z'  # Optimize for size.
 [dependencies]
 model = { path = "../model"}
 clock = { path = "../clock"}
+timer = { path = "../timer"}
 register = "0.3.2"
 # Heapless does not build for rv32imc.
 heapless = { version = "0.4.4", optional = true }
