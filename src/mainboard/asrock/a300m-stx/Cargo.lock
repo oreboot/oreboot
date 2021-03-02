@@ -7,15 +7,19 @@ dependencies = [
  "arch",
  "clock",
  "console",
+ "cpu",
  "heapless 0.4.4",
  "model",
  "payloads",
  "postcard",
  "print",
+ "raw-cpuid",
  "register",
+ "soc",
  "static-ref",
  "uart",
  "util",
+ "vcell",
  "wrappers",
  "x86_64",
 ]
@@ -67,6 +71,14 @@ version = "0.1.0"
 [[package]]
 name = "console"
 version = "0.1.0"
+
+[[package]]
+name = "cpu"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "raw-cpuid",
+]
 
 [[package]]
 name = "generic-array"
@@ -143,6 +155,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "pci"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "vcell",
+]
+
+[[package]]
 name = "postcard"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -186,6 +206,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw-cpuid"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c27cb5785b85bd05d4eb171556c9a1a514552e26123aeae6bb7d811353148026"
+dependencies = [
+ "bitflags",
+]
+
+[[package]]
 name = "register"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,6 +241,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "soc"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "pci",
+ "vcell",
 ]
 
 [[package]]

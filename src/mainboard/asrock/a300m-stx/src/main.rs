@@ -8,19 +8,23 @@ use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
+use cpu::model::amd_family_id;
+use cpu::model::amd_model_id;
 use model::Driver;
 use print;
-use uart::amdmmio::AMDMMIO;
+use raw_cpuid::CpuId;
+use soc::soc_init;
+// use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
 mod msr;
 use msr::msrs;
-mod c00;
-use c00::c00;
-mod acpi;
-use acpi::setup_acpi_tables;
+// mod c00;
+// use c00::c00;
+// mod acpi;
+// use acpi::setup_acpi_tables;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -31,6 +35,7 @@ use core::ptr;
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
 global_asm!(include_str!("bootblock.S"));
+
 fn poke32(a: u32, v: u32) -> () {
     let y = a as *mut u32;
     unsafe {
@@ -200,16 +205,141 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
 }
 //global_asm!(include_str!("init.S"));
 
+fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
+    let cpuid = CpuId::new();
+    match cpuid.get_vendor_info() {
+        Some(vendor) => {
+            if vendor.as_string() != "AuthenticAMD" {
+                panic!("Only AMD is supported");
+            }
+        }
+        None => {
+            panic!("Could not determine whether or not CPU is AMD");
+        }
+    }
+    // write!(w, "CPU Model is: {}\r\n", cpuid.get_extended_function_info().as_ref().map_or_else(|| "n/a", |extfuninfo| extfuninfo.processor_brand_string().unwrap_or("unreadable"),)); // "AMD EPYC TITUS N-Core Processor"
+    let amd_family_id = cpuid.get_feature_info().map(|info| amd_family_id(&info));
+    let amd_model_id = cpuid.get_feature_info().map(|info| amd_model_id(&info));
+    match amd_family_id {
+        Some(family_id) => {
+            match amd_model_id {
+                Some(model_id) => {
+                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id).unwrap();
+                }
+                None => (),
+            }
+        }
+        None => (),
+    }
+    match amd_family_id {
+        Some(0x17) => {
+            match amd_model_id {
+                Some(0x18) => {
+                    // Picasso :-)
+                    soc_init(w)
+                }
+                _ => {
+                    write!(w, "Unsupported AMD CPU\r\n").unwrap();
+                    Err("Unsupported AMD CPU")
+                }
+            }
+        }
+        _ => {
+            write!(w, "Unsupported AMD CPU\r\n").unwrap();
+            Err("Unsupported AMD CPU")
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
+    let io = &mut IOPort;
+    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    uart0.init().unwrap();
     let debug_io = &mut IOPort;
     let debug = &mut DebugPort::new(0x80, debug_io);
+    uart0.init().unwrap();
+    uart0.pwrite(b"Welcome to oreboot - UART0\r\n", 0).unwrap();
     debug.init().unwrap();
-    for _i in 1..128 {
-        debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
+    let console = &mut DoD::new(s);
+
+    for _i in 1..32 {
+        console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
+    let w = &mut print::WriteTo::new(console);
+    // It is hard to say if we need to do this.
+    if true {
+        let v = unsafe { Msr::new(0xc001_1004).read() };
+        write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+        // it's set already
+        //unsafe {wrmsr(0xc001_1004, v | (1 << 9));}
+        //let v = rdmsr(0xc001_1004);
+        //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+    }
+    if true {
+        let v = unsafe { Msr::new(0xc001_1005).read() };
+        write!(w, "c001_1005 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+        // it's set already
+        //unsafe {wrmsr(0xc001_1004, v | (1 << 9));}
+        //let v = rdmsr(0xc001_1004);
+        //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
+    }
+    unsafe {
+        write!(w, "0x1b is {:x} \r\n", Msr::new(0x1b).read()).unwrap();
+    }
+
+    let payload = &mut BzImage {
+        low_mem_size: 0x80000000,
+        high_mem_start: 0x100000000,
+        high_mem_size: 0,
+        // TODO: get this from the FDT.
+        rom_base: 0xffc00000,
+        rom_size: 0x300000,
+        load: 0x01000000,
+        entry: 0x1000200,
+    };
+    if true {
+        msrs(w);
+    }
+
+    match cpu_init(w) {
+        Ok(()) => {}
+        Err(_e) => {
+            write!(w, "Error from amd_init acknowledged--continuing anyway\r\n").unwrap();
+        }
+    }
+
+    /*
+    write!(w, "Write acpi tables\r\n").unwrap();
+    setup_acpi_tables(w, 0xf0000, 1);
+    write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
+    */
+
+    if false {
+        msrs(w);
+    }
+    // TODO: Is this specific to Rome?
+    // c00(w);
+    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
+    poke32(0xfee000d0, 0x1000000);
+    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
+    write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
+    // TODO: debug out HERE
+    payload.load(w).unwrap();
+    // TODO: debug out HERE
+    write!(w, "Back from loading payload, call debug\r\n").unwrap();
+
+    write!(w, "Running payload entry is {:x}\r\n", payload.entry).unwrap();
+    // TODO: debug out HERE
+    payload.run(w);
+    // TODO: debug out HERE
+
+    write!(w, "Unexpected return from payload\r\n").unwrap();
+    // TODO: debug out HERE
     arch::halt()
 }
 

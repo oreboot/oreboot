@@ -44,22 +44,28 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
                                                         // 0xc000_103                               // TSC_AUX - Auxiliary Time Stamp Counter
     read_write_msr(w, 0xc000_0104, 0x100000000); // TscRateMsr - Time Stamp Counter Ratio
 
-    read_write_msr(w, 0xc000_0200, 0x800); // 020x L3 QOS Bandwidth Control
-    read_write_msr(w, 0xc000_0201, 0x800);
-    read_write_msr(w, 0xc000_0202, 0x800);
-    read_write_msr(w, 0xc000_0203, 0x800);
-    read_write_msr(w, 0xc000_0204, 0x800);
-    read_write_msr(w, 0xc000_0205, 0x800);
-    read_write_msr(w, 0xc000_0206, 0x800);
-    read_write_msr(w, 0xc000_0207, 0x800);
-    read_write_msr(w, 0xc000_0208, 0x800);
-    read_write_msr(w, 0xc000_0209, 0x800);
-    read_write_msr(w, 0xc000_020a, 0x800);
-    read_write_msr(w, 0xc000_020b, 0x800);
-    read_write_msr(w, 0xc000_020c, 0x800);
-    read_write_msr(w, 0xc000_020d, 0x800);
-    read_write_msr(w, 0xc000_020e, 0x800);
-    read_write_msr(w, 0xc000_020f, 0x800); // 020x L3 QOS Bandwidth Control
+    // NOTE: This is copied from Rome, but gets stuck here with a Ryzen 5 3400G
+    // (Picasso); it's possibly not defined there
+    // see 55570-B1 Rev 3.15 - Jul 9, 2020 / PPR for AMD Family 17h Model 18h B1
+    // https://www.amd.com/system/files/TechDocs/55570-B1-PUB.zip
+    // https://www.amd.com/en/support/tech-docs?keyword=ppr
+    // docs saved: https://bugzilla.kernel.org/show_bug.cgi?id=206537
+    // read_write_msr(w, 0xc000_0200, 0x800); // 020x L3 QOS Bandwidth Control
+    // read_write_msr(w, 0xc000_0201, 0x800);
+    // read_write_msr(w, 0xc000_0202, 0x800);
+    // read_write_msr(w, 0xc000_0203, 0x800);
+    // read_write_msr(w, 0xc000_0204, 0x800);
+    // read_write_msr(w, 0xc000_0205, 0x800);
+    // read_write_msr(w, 0xc000_0206, 0x800);
+    // read_write_msr(w, 0xc000_0207, 0x800);
+    // read_write_msr(w, 0xc000_0208, 0x800);
+    // read_write_msr(w, 0xc000_0209, 0x800);
+    // read_write_msr(w, 0xc000_020a, 0x800);
+    // read_write_msr(w, 0xc000_020b, 0x800);
+    // read_write_msr(w, 0xc000_020c, 0x800);
+    // read_write_msr(w, 0xc000_020d, 0x800);
+    // read_write_msr(w, 0xc000_020e, 0x800);
+    // read_write_msr(w, 0xc000_020f, 0x800); // 020x L3 QOS Bandwidth Control
 
     read_write_msr(w, 0xc000_0410, 0x1001028); // McaIntrCfg - MCA Interrupt Configuration
 
@@ -113,6 +119,7 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
     read_write_msr(w, 0xc000_20e4, 0x50000007f); // MCA_CONFIG_L3
     read_write_msr(w, 0xc000_20e5, 0x700b020750300); // MCA_IPID_L3
 
+    // p251 PPR for AMD Family 17h Model 18h B1
     // MP5 - Microprocessor5 Management Controller
     read_write_msr(w, 0xc000_20f4, 0x300000079); // MCA_CONFIG_MP5 - MP5 Machine Check Configuration
     read_write_msr(w, 0xc000_20f5, 0x2000130430400); // MCA_IPID_MP5 - MP5 IP Identification
@@ -235,7 +242,9 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
     read_write_msr(w, 0xc001_0299, 0xa1003); // RAPL_PWR_UNIT
     read_write_msr(w, 0xc001_029a, 0x9731905d); // CORE_ENERGY_STAT
     read_write_msr(w, 0xc001_029b, 0x95073877); // PKG_ENERGY_STAT
-    read_write_msr(w, 0xc001_02b3, 0xfff0); // undoc
+
+    // NOTE: stuck on Picasso
+    //read_write_msr(w, 0xc001_02b3, 0xfff0); // undoc
 
     // read_write_msr(w, 0xc001_02f0, 0x1);	    // PPIN_CTL - Protected Precessor Inventory Number Control
     // 0xc001_02f1							    // PPIN_CTL - Protected Precessor Inventory Number
@@ -329,17 +338,19 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
     read_write_msr(w, 0xc001_1097, 0x5dbf); // undoc
 
     // boots ok, does not fix apic timer
-    read_write_msr(w, 0xc001_1098, 0xa); // undoc
-    read_write_msr(w, 0xc001_10a2, 0xc9000000); // undoc
-    read_write_msr(w, 0xc001_10dc, 0x3030018cf757); // undoc
+    // NOTE: stuck on Picasso
+    //read_write_msr(w, 0xc001_1098, 0xa); // undoc
+    // commented for Picasso just to be sure
+    //read_write_msr(w, 0xc001_10a2, 0xc9000000); // undoc
+    //read_write_msr(w, 0xc001_10dc, 0x3030018cf757); // undoc
 
     // if these next four are enabled, we get past apic verification as failure
-    read_write_msr(w, 0xc001_10dd, 0x13bcff); // undoc
-    read_write_msr(w, 0xc001_10e1, 0x410e50400c2cb4e0); // undoc
+    //read_write_msr(w, 0xc001_10dd, 0x13bcff); // undoc
+    //read_write_msr(w, 0xc001_10e1, 0x410e50400c2cb4e0); // undoc
 
     // if one of these two are disabled, apic fails.
-    read_write_msr(w, 0xc001_10e2, 0x2afa00082018); // It's this one. It's undocumented.
-    read_write_msr(w, 0xc001_10e3, 0x1); // undoc
+    //read_write_msr(w, 0xc001_10e2, 0x2afa00082018); // It's this one. It's undocumented.
+    //read_write_msr(w, 0xc001_10e3, 0x1); // undoc
 
     // one(w, 0x10, 0x6780a9b73d4, true); // TSC - Time Stamp Counter
     // one(w, 0x1b, 0xfee00900, true); // APIC_BAR - APIC Base Address
