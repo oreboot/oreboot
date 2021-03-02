@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(llvm_asm)]
 
+pub mod df;
 pub mod hsmp;
 pub mod pci;
 
