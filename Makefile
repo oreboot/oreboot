@@ -58,7 +58,8 @@ CRATES := \
 	$(wildcard */Cargo.toml) \
 	$(wildcard */*/Cargo.toml) \
 	$(wildcard */*/*/Cargo.toml) \
-	$(wildcard */*/*/*/Cargo.toml)
+	$(wildcard */*/*/*/Cargo.toml) \
+	$(wildcard */*/*/*/*/Cargo.toml)
 
 CRATES_TO_FORMAT := $(patsubst %/Cargo.toml,%/Cargo.toml.format,$(CRATES))
 $(CRATES_TO_FORMAT):
