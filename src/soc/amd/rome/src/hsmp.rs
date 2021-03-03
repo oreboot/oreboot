@@ -31,8 +31,6 @@ pub struct HSMP<'a> {
     NB_SMN_DATA_3: &'a VolatileCell<u32>,
 }
 
-// trait: pub unsafe fn test(&self, v: u32) -> Result<u32, u32>
-
 impl HSMP<'_> {
     pub fn new(nbio: usize) -> Self {
         // TODO: Verify whether it should be 4 PER SOCKET.
@@ -46,27 +44,17 @@ impl HSMP<'_> {
         HSMP { NB_SMN_INDEX_3: config32(PciAddress { segment: 0, bus, device: 0, function: 0, offset: 0xc4 }), NB_SMN_DATA_3: config32(PciAddress { segment: 0, bus, device: 0, function: 0, offset: 0xc8 }) }
     }
 
-    /// # Safety
-    ///
-    /// This function should be pretty safe--but who knows what the proxied hardware does in corner cases
-    unsafe fn smu_register_read(&self, a: u32) -> u32 {
+    fn smu_register_read(&self, a: u32) -> u32 {
         self.NB_SMN_INDEX_3.set(a);
         self.NB_SMN_DATA_3.get()
     }
 
-    /// # Safety
-    ///
-    /// The SMU can basically power you off or set your clock speed to 0 MHz--so writing in general is definitely not safe
-    unsafe fn smu_register_write(&self, a: u32, v: u32) {
+    fn smu_register_write(&self, a: u32, v: u32) {
         self.NB_SMN_INDEX_3.set(a);
         self.NB_SMN_DATA_3.set(v)
     }
 
-    /// # Safety
-    ///
-    /// The SMU can basically power you off or set your clock speed to 0 MHz--so writing in general is definitely not safe.
-    /// Also, if the SMU is not loaded or is mapped at the wrong place, this will hang
-    unsafe fn service_call(&self, request: SmuServiceRequest) -> Result<SmuServiceResponse, u32> {
+    fn service_call(&self, request: SmuServiceRequest) -> Result<SmuServiceResponse, u32> {
         //let mut response: u32 = self.smu_register_read(HSMP_MESSAGE_RESPONSE_SMN);
         self.smu_register_write(HSMP_MESSAGE_RESPONSE_SMN, 0);
         self.smu_register_write(HSMP_MESSAGE_ARGUMENT_0_SMN, request.data[0]);
@@ -103,29 +91,17 @@ impl HSMP<'_> {
         }
     }
 
-    /// # Safety
-    ///
-    /// This might be safe--but it depends on the SMU firmware.
-    /// Also, if the SMU is not loaded or is mapped at the wrong place, this will hang
-    pub unsafe fn test(&self, v: u32) -> Result<u32, u32> {
+    pub fn test(&self, v: u32) -> Result<u32, u32> {
         let result = self.service_call(SmuServiceRequest { command: 1, data: [v, 0, 0, 0, 0, 0, 0, 0] })?;
         Ok(result.data[0])
     }
 
-    /// # Safety
-    ///
-    /// This might be safe--but it depends on the SMU firmware.
-    /// Also, if the SMU is not loaded or is mapped at the wrong place, this will hang
-    pub unsafe fn smu_version(&self) -> Result<(u32, u32), u32> {
+    pub fn smu_version(&self) -> Result<(u32, u32), u32> {
         let result = self.service_call(SmuServiceRequest { command: 2, data: [0; 8] })?;
         Ok((result.data[0], result.data[1]))
     }
 
-    /// # Safety
-    ///
-    /// This might be safe--but it depends on the SMU firmware.
-    /// Also, if the SMU is not loaded or is mapped at the wrong place, this will hang
-    pub unsafe fn interface_version(&self) -> Result<(u32, u32), u32> {
+    pub fn interface_version(&self) -> Result<(u32, u32), u32> {
         let result = self.service_call(SmuServiceRequest { command: 3, data: [0; 8] })?;
         Ok((result.data[0], result.data[1]))
     }
