@@ -5,7 +5,8 @@ authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64"}
+arch = { path = "../../../arch/x86/x86_64" }
+pci = { path = "../common/pci" }
 vcell = "0.1.2"
 
 [profile.release]

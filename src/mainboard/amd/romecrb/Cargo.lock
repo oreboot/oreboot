@@ -131,6 +131,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "pci"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "vcell",
+]
+
+[[package]]
 name = "postcard"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -240,6 +248,7 @@ name = "soc"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "pci",
  "vcell",
 ]
 
