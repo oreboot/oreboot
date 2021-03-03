@@ -1,12 +1,11 @@
 [package]
-name = "soc"
+name = "pci"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64" }
-pci = { path = "../common/pci" }
+arch = { path = "../../../../arch/x86/x86_64"}
 vcell = "0.1.2"
 
 [profile.release]
