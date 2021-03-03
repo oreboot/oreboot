@@ -95,3 +95,9 @@ impl SMU<'_> {
         Ok((result.data[0], result.data[1]))
     }
 }
+
+impl Default for SMU<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
