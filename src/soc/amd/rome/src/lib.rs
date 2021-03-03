@@ -3,7 +3,6 @@
 
 pub mod df;
 pub mod hsmp;
-pub mod pci;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     let hsmp = hsmp::HSMP::new(0);

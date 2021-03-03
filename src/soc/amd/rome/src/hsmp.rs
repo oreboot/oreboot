@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use crate::pci::config32;
-use crate::pci::PciAddress;
+use pci::pci::config32;
+use pci::pci::PciAddress;
 use vcell::VolatileCell;
 
 const HSMP_MESSAGE_ID_SMN: u32 = 0x3B1_0534;
