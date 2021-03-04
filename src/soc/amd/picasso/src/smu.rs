@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #![allow(non_snake_case)]
 
-use pci::pci::config32;
-use pci::pci::PciAddress;
+use pci::config32;
+use pci::PciAddress;
 use vcell::VolatileCell;
 
 // See coreboot:src/soc/amd/common/block/smu/smu.c

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-use pci::pci::config32;
-use pci::pci::PciAddress;
+use pci::config32;
+use pci::PciAddress;
 
 // See coreboot:/src/soc/amd/picasso/data_fabric.c
 
