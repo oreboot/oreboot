@@ -329,18 +329,13 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
-    // TODO: debug out HERE
     payload.load(w).unwrap();
-    // TODO: debug out HERE
     write!(w, "Back from loading payload, call debug\r\n").unwrap();
 
     write!(w, "Running payload entry is {:x}\r\n", payload.entry).unwrap();
-    // TODO: debug out HERE
     payload.run(w);
-    // TODO: debug out HERE
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
-    // TODO: debug out HERE
     arch::halt()
 }
 
