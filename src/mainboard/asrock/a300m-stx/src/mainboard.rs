@@ -156,7 +156,9 @@ impl Driver for MainBoard {
             //uart_ctrl |= 1 << (SMB_UART_1_8M_SHIFT + idx);
             //sm_pci_write32(SMB_UART_CONFIG, uart_ctrl);
             // we want 1.8m. They made oddball 48m default. Stupid.
-            pokers(SMB_UART_CONFIG, 0, SMB_UART_CONFIG_UART0_1_8M | SMB_UART_CONFIG_UART1_1_8M);
+            //pokers(SMB_UART_CONFIG, 0, SMB_UART_CONFIG_UART0_1_8M | SMB_UART_CONFIG_UART1_1_8M);
+            // NOTE: With the default 48m, we can use 3f8 serial via super I/O
+            // at least that is how Daniel understands it :D
 
             d3_control_power_on(FCH_AOAC_DEV_AMBA); // Note: It's on by default
             d3_control_power_on(FCH_AOAC_DEV_UART0); // Note: It's on by default
@@ -171,7 +173,8 @@ impl Driver for MainBoard {
             pinctrl(139, 0); // [UART0_INTR, AGPIO139][0]; Note: The reset default is 0
 
             // Set up the legacy decode for UART 0.
-            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
+            //(*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
+
             let mut msr0 = Msr::new(0x1b);
             /*unsafe*/
             {

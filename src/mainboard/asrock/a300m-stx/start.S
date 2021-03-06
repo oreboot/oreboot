@@ -72,10 +72,10 @@ movb $0x08, %al ##
 outb %al, $0x2f
 
 # 2f -> 40; no clue
-movb $0x2f, %al ##
-outb %al, $0x2e
-movb $0x40, %al ##
-outb %al, $0x2f
+##movb $0x2f, %al ##
+##outb %al, $0x2e
+##movb $0x40, %al ##
+##outb %al, $0x2f
 
 ######## LDN 0x07 ########
 ## not yet working, probably relies on some global registers
