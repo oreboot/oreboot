@@ -1,7 +1,6 @@
 #![no_std]
 #![feature(llvm_asm)]
 
-pub mod df;
 pub mod hsmp;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {

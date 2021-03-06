@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#![no_std]
 
 use pci::config32;
 use pci::PciAddress;

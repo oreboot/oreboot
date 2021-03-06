@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 arch = { path = "../../../arch/x86/x86_64" }
+df = { path = "../common/df" }
 pci = { path = "../common/pci" }
 vcell = "0.1.2"
 

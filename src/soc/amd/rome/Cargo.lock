@@ -12,6 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "df"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "pci",
+ "vcell",
+]
+
+[[package]]
 name = "model"
 version = "0.1.0"
 
@@ -35,6 +44,7 @@ name = "soc"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "df",
  "pci",
  "vcell",
 ]
