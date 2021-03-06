@@ -1,13 +1,12 @@
 [package]
-name = "soc"
+name = "df"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64" }
-df = { path = "../common/df" }
-pci = { path = "../common/pci" }
+arch = { path = "../../../../arch/x86/x86_64"}
+pci = { path = "../pci" }
 vcell = "0.1.2"
 
 [profile.release]
