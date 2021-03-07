@@ -1,7 +1,7 @@
 #![no_std]
 #![feature(llvm_asm)]
 
-pub mod smu;
+pub mod mp1;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     let smu = smu::SMU::new();
