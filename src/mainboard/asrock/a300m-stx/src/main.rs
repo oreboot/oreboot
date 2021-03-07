@@ -23,8 +23,8 @@ mod msr;
 use msr::msrs;
 // mod c00;
 // use c00::c00;
-// mod acpi;
-// use acpi::setup_acpi_tables;
+mod acpi;
+use acpi::setup_acpi_tables;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -314,11 +314,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         }
     }
 
-    /*
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf0000, 1);
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
-    */
 
     if false {
         msrs(w);
