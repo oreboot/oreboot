@@ -12,7 +12,7 @@ cpu = { path = "../../../cpu/amd" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
-soc = { path = "../../../soc/amd/rome" }
+soc = { path = "../../../soc/amd/picasso" }
 util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
 
