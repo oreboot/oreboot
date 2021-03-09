@@ -108,14 +108,14 @@ impl FabricTopology {
                 1 => FabricInstanceType::GCM,
                 2 => FabricInstanceType::NCM,
                 3 => {
-                    result.ioms_count = result.ioms_count + 1;
+                    result.ioms_count += 1;
                     FabricInstanceType::IOMS
                 }
                 4 => FabricInstanceType::CS,
                 5 => FabricInstanceType::NCS,
                 6 => FabricInstanceType::TCDX,
                 7 => {
-                    result.pie_count = result.pie_count + 1;
+                    result.pie_count += 1;
                     FabricInstanceType::PIE
                 }
                 8 => FabricInstanceType::SPF,
@@ -123,10 +123,7 @@ impl FabricTopology {
                 0xA => FabricInstanceType::CAKE,
                 _ => FabricInstanceType::Unknown,
             };
-            let enabled = match info0 & (1 << 6) {
-                0 => false,
-                _ => true,
-            };
+            let enabled = info0 & (1 << 6) != 0;
 
             let ids = df_read_indirect(0, x_instance_id, 0, 0x50); // _inst[PIE0,IOM[3:0],CCM[7:0],CCIX[3:0],CS[7:0],BCST]_aliasHOST;
             let instance_id: u8 = (ids & 0xFF) as u8; // Note: 0 usually means off, except for the first entry
