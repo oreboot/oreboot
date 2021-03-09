@@ -1,9 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #![allow(non_snake_case)]
 
-use pci::config32;
-use pci::PciAddress;
-use vcell::VolatileCell;
+use smn::{smn_read, smn_write};
 
 // See coreboot:src/soc/amd/common/block/smu/smu.c
 
@@ -27,53 +25,33 @@ struct ServiceResponse {
     data: [u32; 6],
 }
 
-pub struct MP1<'a> {
-    NB_SMN_INDEX_2: &'a VolatileCell<u32>,
-    NB_SMN_DATA_2: &'a VolatileCell<u32>,
-}
+pub struct MP1;
 
-impl MP1<'_> {
+impl MP1 {
     pub fn new() -> Self {
-        Self { NB_SMN_INDEX_2: config32(PciAddress { segment: 0, bus: 0, device: 0, function: 0, offset: 0xb8 }), NB_SMN_DATA_2: config32(PciAddress { segment: 0, bus: 0, device: 0, function: 0, offset: 0xbc }) }
-    }
-
-    fn register_read_smn(&self, a: u32) -> u32 {
-        self.NB_SMN_INDEX_2.set(a);
-        self.NB_SMN_DATA_2.get()
-    }
-
-    fn register_write_smn(&self, a: u32, v: u32) {
-        self.NB_SMN_INDEX_2.set(a);
-        self.NB_SMN_DATA_2.set(v)
+        Self
     }
 
     fn service_call(&self, request: ServiceRequest) -> Result<ServiceResponse, u32> {
-        //let mut response: u32 = self.register_read_smn(MESSAGE_RESPONSE_SMN);
-        self.register_write_smn(MESSAGE_RESPONSE_SMN, 0);
-        self.register_write_smn(MESSAGE_ARGUMENT_0_SMN, request.data[0]);
-        self.register_write_smn(MESSAGE_ARGUMENT_1_SMN, request.data[1]);
-        self.register_write_smn(MESSAGE_ARGUMENT_2_SMN, request.data[2]);
-        self.register_write_smn(MESSAGE_ARGUMENT_3_SMN, request.data[3]);
-        self.register_write_smn(MESSAGE_ARGUMENT_4_SMN, request.data[4]);
-        self.register_write_smn(MESSAGE_ARGUMENT_5_SMN, request.data[5]);
-        self.register_write_smn(MESSAGE_ID_SMN, request.command);
-        let mut response: u32 = self.register_read_smn(MESSAGE_RESPONSE_SMN);
+        //let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
+        smn_write(MESSAGE_RESPONSE_SMN, 0);
+        smn_write(MESSAGE_ARGUMENT_0_SMN, request.data[0]);
+        smn_write(MESSAGE_ARGUMENT_1_SMN, request.data[1]);
+        smn_write(MESSAGE_ARGUMENT_2_SMN, request.data[2]);
+        smn_write(MESSAGE_ARGUMENT_3_SMN, request.data[3]);
+        smn_write(MESSAGE_ARGUMENT_4_SMN, request.data[4]);
+        smn_write(MESSAGE_ARGUMENT_5_SMN, request.data[5]);
+        smn_write(MESSAGE_ID_SMN, request.command);
+        let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
         while response == 0 {
-            response = self.register_read_smn(MESSAGE_RESPONSE_SMN);
+            response = smn_read(MESSAGE_RESPONSE_SMN);
         }
 
         if response == 1 {
             // OK
             Ok(ServiceResponse {
                 status: response,
-                data: [
-                    self.register_read_smn(MESSAGE_ARGUMENT_0_SMN),
-                    self.register_read_smn(MESSAGE_ARGUMENT_1_SMN),
-                    self.register_read_smn(MESSAGE_ARGUMENT_2_SMN),
-                    self.register_read_smn(MESSAGE_ARGUMENT_3_SMN),
-                    self.register_read_smn(MESSAGE_ARGUMENT_4_SMN),
-                    self.register_read_smn(MESSAGE_ARGUMENT_5_SMN),
-                ],
+                data: [smn_read(MESSAGE_ARGUMENT_0_SMN), smn_read(MESSAGE_ARGUMENT_1_SMN), smn_read(MESSAGE_ARGUMENT_2_SMN), smn_read(MESSAGE_ARGUMENT_3_SMN), smn_read(MESSAGE_ARGUMENT_4_SMN), smn_read(MESSAGE_ARGUMENT_5_SMN)],
             })
         } else {
             Err(response)
@@ -96,7 +74,7 @@ impl MP1<'_> {
     }
 }
 
-impl Default for MP1<'_> {
+impl Default for MP1 {
     fn default() -> Self {
         Self::new()
     }

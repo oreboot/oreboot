@@ -247,6 +247,7 @@ dependencies = [
  "print",
  "raw-cpuid",
  "register",
+ "smn",
  "soc",
  "static-ref",
  "uart",
@@ -274,6 +275,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "smn"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "vcell",
 ]
 
 [[package]]

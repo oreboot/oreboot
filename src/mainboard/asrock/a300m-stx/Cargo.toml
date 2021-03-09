@@ -11,7 +11,8 @@ console = { path = "../../../console" }
 cpu = { path = "../../../cpu/amd" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
-payloads = { path = "../../../../payloads"}
+payloads = { path = "../../../../payloads" }
+smn = { path = "../../../soc/amd/common/smn" }
 soc = { path = "../../../soc/amd/picasso" }
 util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
