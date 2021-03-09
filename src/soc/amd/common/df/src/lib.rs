@@ -85,6 +85,7 @@ pub struct FabricTopology {
     pub pie_count: u8,       // total in system
     pub ioms_count: u8,      // total in system
     pub dies_per_socket: u8,
+    pub ccm0_instance_id: Option<u8>,
     pub components: Vec<FabricComponent, U256>,
 }
 
@@ -95,7 +96,7 @@ impl FabricTopology {
             0 => 1,
             _ => 2,
         };
-        let mut result = Self { processor_count, pie_count: 0, ioms_count: 0, dies_per_socket: 1, components: Vec::new() };
+        let mut result = Self { processor_count, pie_count: 0, ioms_count: 0, dies_per_socket: 1, ccm0_instance_id: None, components: Vec::new() };
         let total_count: usize = (df_read_broadcast_indirect(0, 0, 0x40) & 0xFF) as usize;
         for x_instance_id in 0..=255 {
             if result.components.len() >= total_count {
@@ -104,7 +105,15 @@ impl FabricTopology {
 
             let info0 = df_read_indirect(0, x_instance_id, 0, 0x44);
             let instance_type = match info0 & 0xF {
-                0 => FabricInstanceType::CCM,
+                0 => {
+                    match result.ccm0_instance_id {
+                        None => {
+                            result.ccm0_instance_id = Some(x_instance_id);
+                        }
+                        _ => {}
+                    }
+                    FabricInstanceType::CCM
+                }
                 1 => FabricInstanceType::GCM,
                 2 => FabricInstanceType::NCM,
                 3 => {
