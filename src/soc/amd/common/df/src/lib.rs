@@ -142,3 +142,9 @@ impl FabricTopology {
         result
     }
 }
+
+impl Default for FabricTopology {
+    fn default() -> Self {
+        Self::new()
+    }
+}
