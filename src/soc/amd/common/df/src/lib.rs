@@ -79,13 +79,17 @@ pub struct FabricComponent {
     // netmask: D18F1x208 [System Fabric ID Mask 0] (DF::SystemFabricIdMask0) etc
 }
 
+#[derive(Debug)]
 pub struct FabricTopology {
+    pub pie_count: u8,  // total in system
+    pub ioms_count: u8, // total in system
+    pub dies_per_socket: u8,
     pub components: Vec<FabricComponent, U256>,
 }
 
 impl FabricTopology {
     pub fn new() -> Self {
-        let mut result = Self { components: Vec::new() };
+        let mut result = Self { pie_count: 0, ioms_count: 0, dies_per_socket: 1, components: Vec::new() };
         let total_count: usize = (df_read_broadcast_indirect(0, 0, 0x40) & 0xFF) as usize;
         for x_instance_id in 0..=255 {
             if result.components.len() >= total_count {
@@ -97,11 +101,17 @@ impl FabricTopology {
                 0 => FabricInstanceType::CCM,
                 1 => FabricInstanceType::GCM,
                 2 => FabricInstanceType::NCM,
-                3 => FabricInstanceType::IOMS,
+                3 => {
+                    result.ioms_count = result.ioms_count + 1;
+                    FabricInstanceType::IOMS
+                }
                 4 => FabricInstanceType::CS,
                 5 => FabricInstanceType::NCS,
                 6 => FabricInstanceType::TCDX,
-                7 => FabricInstanceType::PIE,
+                7 => {
+                    result.pie_count = result.pie_count + 1;
+                    FabricInstanceType::PIE
+                }
                 8 => FabricInstanceType::SPF,
                 9 => FabricInstanceType::LLC,
                 0xA => FabricInstanceType::CAKE,
