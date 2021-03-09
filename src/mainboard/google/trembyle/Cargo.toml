@@ -1,0 +1,37 @@
+[package]
+name = "trembyle"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+arch = { path = "../../../arch/x86/x86_64"}
+clock = { path = "../../../drivers/clock"}
+console = { path = "../../../console" }
+cpu = { path = "../../../cpu/amd" }
+model = { path = "../../../drivers/model" }
+print = { path = "../../../lib/print" }
+payloads = { path = "../../../../payloads"}
+soc = { path = "../../../soc/amd/rome" }
+util = { path = "../../../lib/util" }
+wrappers = { path = "../../../drivers/wrappers"}
+
+heapless = "0.4.x"
+raw-cpuid = "9.0.0"
+register = "0.3.2"
+static-ref = "0.1.1"
+postcard = "0.4.3"
+vcell = "0.1.2"
+x86_64 = "0.12.2"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["i8250", "debug_port", "amdmmio"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
