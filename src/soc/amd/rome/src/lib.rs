@@ -31,7 +31,6 @@ pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     }
     let topology = df::FabricTopology::new();
     write!(w, "Topology: {:?}\r\n", topology);
-    //write!(w, "IOMS topology: {:?}\r\n", topology.iomss);
     Ok(())
 }
 
