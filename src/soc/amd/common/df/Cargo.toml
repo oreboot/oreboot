@@ -8,6 +8,7 @@ edition = "2018"
 arch = { path = "../../../../arch/x86/x86_64"}
 pci = { path = "../pci" }
 vcell = "0.1.2"
+heapless = "0.6.1"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
