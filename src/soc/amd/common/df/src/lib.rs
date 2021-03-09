@@ -81,15 +81,21 @@ pub struct FabricComponent {
 
 #[derive(Debug)]
 pub struct FabricTopology {
-    pub pie_count: u8,  // total in system
-    pub ioms_count: u8, // total in system
+    pub processor_count: u8, // total in system
+    pub pie_count: u8,       // total in system
+    pub ioms_count: u8,      // total in system
     pub dies_per_socket: u8,
     pub components: Vec<FabricComponent, U256>,
 }
 
 impl FabricTopology {
     pub fn new() -> Self {
-        let mut result = Self { pie_count: 0, ioms_count: 0, dies_per_socket: 1, components: Vec::new() };
+        let system_config = df_read_broadcast_indirect(0, 1, 0x200);
+        let processor_count = match system_config & (1 << 27) {
+            0 => 1,
+            _ => 2,
+        };
+        let mut result = Self { processor_count, pie_count: 0, ioms_count: 0, dies_per_socket: 1, components: Vec::new() };
         let total_count: usize = (df_read_broadcast_indirect(0, 0, 0x40) & 0xFF) as usize;
         for x_instance_id in 0..=255 {
             if result.components.len() >= total_count {
