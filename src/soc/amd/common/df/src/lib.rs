@@ -36,6 +36,12 @@ pub fn df_read_indirect(node_id: u8, target_instance_id: u8, target_function: u8
     ficad3_lo.get()
 }
 
+pub fn df_read_broadcast_indirect(node_id: u8, target_function: u8, target_offset: u16) -> u32 {
+    df_access_indirect(node_id, None, target_function, target_offset);
+    let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
+    ficad3_lo.get()
+}
+
 pub fn df_write_indirect(node_id: u8, target_instance_id: u8, target_function: u8, target_offset: u16, value: u32) {
     df_access_indirect(node_id, Some(target_instance_id), target_function, target_offset);
     let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
@@ -80,7 +86,7 @@ pub struct FabricTopology {
 impl FabricTopology {
     pub fn new() -> Self {
         let mut result = Self { components: Vec::new() };
-        let total_count: usize = (config32(PciAddress { segment: 0, bus: 0, device: 0x18, function: 0, offset: 0x40 }).get() & 0xFF) as usize;
+        let total_count: usize = (df_read_broadcast_indirect(0, 0, 0x40) & 0xFF) as usize;
         for x_instance_id in 0..=255 {
             if result.components.len() >= total_count {
                 break;
