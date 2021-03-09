@@ -1,0 +1,65 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "trembyle";
+        category = "AMD";
+        board-url = "http://oreboot.org/trembyle/Main_Page";
+        areas {
+            area@0 {
+                description = "Boot Blob";
+                compatible = "ore-bootblob";
+                offset = <0x3e0000>;
+                size = <0x20000>;
+                file = "$(TARGET_DIR)/bootblob.bin";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                compatible = "ore-dtfs";
+                offset = <0x3d8000>;
+                size = <0x8000>;
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+            };
+            area@2 {
+                description = "NVRAM A";
+                compatible = "ore-nvram";
+                half = <0>;
+                offset = <0x3d0000>;
+                size = <0x8000>;
+            };
+            area@3 {
+                description = "NVRAM B";
+                compatible = "ore-nvram";
+                half = <1>;
+                offset = <0x3c0000>;
+                size = <0x8000>;
+            };
+            area@4 {
+                description = "RomPayload DTFS A";
+                compatible = "ore-rompayload";
+                half = <0>;
+                offset = <0x3b8000>;
+                size = <0x4000>;
+		};
+            area@5 {
+                description = "RomPayload DTFS B";
+                compatible = "ore-rompayload";
+                half = <1>;
+                offset = <0x3b0000>;
+                size = <0x4000>;
+            };
+            area@6 {
+                description = "RamPayload DTFS A";
+                compatible = "ore-rampayload";
+                half = <0>;
+                offset = <0x0>;
+                size = <0x300000>;
+                file = "$(PAYLOAD_A)";
+            };
+        };
+    };
+};
