@@ -6,9 +6,9 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "Rome CRB";
+        board-name = "A300M-STX";
         category = "AMD";
-        board-url = "http://wiki.qemu.org/Main_Page";
+        board-url = "https://www.asrock.com/nettop/AMD/DeskMini%20A300%20Series/";
         areas {
             area@0 {
                 description = "Boot Blob";
