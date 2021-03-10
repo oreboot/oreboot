@@ -106,11 +106,8 @@ impl FabricTopology {
             let info0 = df_read_indirect(0, x_instance_id, 0, 0x44);
             let instance_type = match info0 & 0xF {
                 0 => {
-                    match result.ccm0_instance_id {
-                        None => {
-                            result.ccm0_instance_id = Some(x_instance_id);
-                        }
-                        _ => {}
+                    if result.ccm0_instance_id.is_none() {
+                        result.ccm0_instance_id = Some(x_instance_id);
                     }
                     FabricInstanceType::CCM
                 }
@@ -142,7 +139,7 @@ impl FabricTopology {
                 // instance_id = 0 should be skipped except for the first entry
             } else {
                 assert!(instance_id == x_instance_id);
-                result.components.push(FabricComponent { instance_id, instance_type, enabled, fabric_id: if fabric_id != 0 || result.components.len() == 0 { Some(fabric_id) } else { None } });
+                result.components.push(FabricComponent { instance_id, instance_type, enabled, fabric_id: if fabric_id != 0 || result.components.len() == 0 { Some(fabric_id) } else { None } }).unwrap();
             }
         }
         result
