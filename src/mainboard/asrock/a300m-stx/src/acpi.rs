@@ -25,8 +25,10 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     // let madt_offset = dsdt_offset + 69887;
     let madt_offset = dsdt_offset + DSDT_DSDTTBL_HEADER.len();
     let madt_local_apic_offset = madt_offset + size_of::<AcpiTableMadt>();
-    let madt_local_x2apic_offset = madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
-    let madt_local_x2apic_nmi_offset = madt_local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2Apic>();
+    let madt_local_x2apic_offset =
+        madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
+    let madt_local_x2apic_nmi_offset =
+        madt_local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2Apic>();
     let madt_io_apic_offset = madt_local_x2apic_nmi_offset + size_of::<AcpiMadtLocalX2ApicNMI>();
     let madt_local_isor_offset = madt_io_apic_offset + size_of::<AcpiMadtIoApic>();
 
@@ -35,31 +37,62 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let total_size = hpet_offset + size_of::<AcpiTableHpet>() - start;
 
     // setup rsdp - Root System Description Pointer
-    let rsdp = AcpiTableRsdp { signature: SIG_RSDP, revision: 2, length: 36, xsdt_physical_address: xsdt_offset as u64, ..Default::default() };
+    let rsdp = AcpiTableRsdp {
+        signature: SIG_RSDP,
+        revision: 2,
+        length: 36,
+        xsdt_physical_address: xsdt_offset as u64,
+        ..Default::default()
+    };
 
     write!(w, "Write rsdp  at {:x?} \r\n", rsdp_offset).unwrap();
     write(w, rsdp, rsdp_offset, 0);
-    write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_CHECKSUM_OFFSET); // XXX
+    write(
+        w,
+        gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH),
+        rsdp_offset,
+        ACPI_RSDP_CHECKSUM_OFFSET,
+    ); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), 0);
 
-    write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_XCHECKSUM_OFFSET); // XXX
+    write(
+        w,
+        gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH),
+        rsdp_offset,
+        ACPI_RSDP_XCHECKSUM_OFFSET,
+    ); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), 0);
     /*
     // xsdt - Extended System Description Table
     let xsdt_total_length = size_of::<AcpiTableHeader>() + size_of::<u64>() * NUM_XSDT_ENTRIES;
-    let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, revision: 1, ..AcpiTableHeader::new() };
+    let xsdt = AcpiTableHeader {
+        signature: SIG_XSDT,
+        length: xsdt_total_length as u32,
+        revision: 1,
+        ..AcpiTableHeader::new()
+    };
     write(w, xsdt, xsdt_offset, 0);
     // xsdt entries
-    let xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [fadt_offset as u64, madt_offset as u64, mcfg_offset as u64, hpet_offset as u64];
+    let xsdt_entries: [u64; NUM_XSDT_ENTRIES] =
+        [fadt_offset as u64, madt_offset as u64, mcfg_offset as u64, hpet_offset as u64];
 
     write(w, xsdt_entries, xsdt_entry_offset, 0);
-    write(w, gencsum(xsdt_offset, xsdt_offset + xsdt_total_length), xsdt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
+    write(
+        w,
+        gencsum(xsdt_offset, xsdt_offset + xsdt_total_length),
+        xsdt_offset,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
+    ); // XXX
     debug_assert_eq!(acpi_tb_checksum(xsdt_offset, xsdt_offset + xsdt_total_length), 0);
 
     const FADT_FLAGS: u32 = 0b0011_0000_0101_1010_0101;
     // fadt - Fixed ACPI Description Table
     let fadt = AcpiTableFadt {
-        header: AcpiTableHeader { signature: SIG_FADT, length: size_of::<AcpiTableFadt>() as u32, ..AcpiTableHeader::new() },
+        header: AcpiTableHeader {
+            signature: SIG_FADT,
+            length: size_of::<AcpiTableFadt>() as u32,
+            ..AcpiTableHeader::new()
+        },
         preferred_profile: 0x04,
         sci_interrupt: 0x09,
         smi_command: 0xB2,
@@ -83,23 +116,64 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         century: 0x32,
         boot_flags: 1,
         flags: FADT_FLAGS,
-        reset_register: AcpiGenericAddress { space_id: 1, bit_width: 8, bit_offset: 0, access_width: 0, address: 0xCF9 },
+        reset_register: AcpiGenericAddress {
+            space_id: 1,
+            bit_width: 8,
+            bit_offset: 0,
+            access_width: 0,
+            address: 0xCF9,
+        },
         reset_value: 0x06,
         minor_revision: 2,
         xfacs: facs_offset as u64,
         xdsdt: dsdt_offset as u64,
-        xpm1a_event_block: AcpiGenericAddress { space_id: 1, bit_width: 32, bit_offset: 0, access_width: 2, address: 0x800 },
-        xpm1a_control_block: AcpiGenericAddress { space_id: 1, bit_width: 16, bit_offset: 0, access_width: 2, address: 0x804 },
-        xpm_timer_block: AcpiGenericAddress { space_id: 1, bit_width: 32, bit_offset: 0, access_width: 3, address: 0x808 },
-        xgpe0_block: AcpiGenericAddress { space_id: 1, bit_width: 64, bit_offset: 0, access_width: 1, address: 0x820 },
+        xpm1a_event_block: AcpiGenericAddress {
+            space_id: 1,
+            bit_width: 32,
+            bit_offset: 0,
+            access_width: 2,
+            address: 0x800,
+        },
+        xpm1a_control_block: AcpiGenericAddress {
+            space_id: 1,
+            bit_width: 16,
+            bit_offset: 0,
+            access_width: 2,
+            address: 0x804,
+        },
+        xpm_timer_block: AcpiGenericAddress {
+            space_id: 1,
+            bit_width: 32,
+            bit_offset: 0,
+            access_width: 3,
+            address: 0x808,
+        },
+        xgpe0_block: AcpiGenericAddress {
+            space_id: 1,
+            bit_width: 64,
+            bit_offset: 0,
+            access_width: 1,
+            address: 0x820,
+        },
         ..Default::default()
     };
     write(w, fadt, fadt_offset, 0);
-    write(w, gencsum(fadt_offset, fadt_offset + size_of::<AcpiTableFadt>()), fadt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
+    write(
+        w,
+        gencsum(fadt_offset, fadt_offset + size_of::<AcpiTableFadt>()),
+        fadt_offset,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
+    ); // XXX
     debug_assert_eq!(acpi_tb_checksum(fadt_offset, fadt_offset + size_of::<AcpiTableFadt>()), 0);
 
     // facs - Firmware ACPI Control Structure
-    let facs = AcpiTableFacs { signature: SIG_FACS, length: size_of::<AcpiTableFacs>() as u32, flags: 0, version: 2, ..Default::default() };
+    let facs = AcpiTableFacs {
+        signature: SIG_FACS,
+        length: size_of::<AcpiTableFacs>() as u32,
+        flags: 0,
+        version: 2,
+        ..Default::default()
+    };
     write(w, facs, facs_offset, 0);
 
     // dsdt - Differentiated System Description Table
@@ -108,15 +182,35 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     // madt - Multiple APIC Description Table
     // TODO: Recalculate for SMP
     // let madt_total_length = size_of::<AcpiTableMadt>() + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2apic>());
-    let madt_total_length =
-        (size_of::<AcpiTableMadt>() + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2Apic>()) + size_of::<AcpiMadtLocalX2ApicNMI>() + size_of::<AcpiMadtIoApic>() + 2 * size_of::<AcpiMadtInterruptOverride>());
+    let madt_total_length = (size_of::<AcpiTableMadt>()
+        + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2Apic>())
+        + size_of::<AcpiMadtLocalX2ApicNMI>()
+        + size_of::<AcpiMadtIoApic>()
+        + 2 * size_of::<AcpiMadtInterruptOverride>());
 
-    let madt = AcpiTableMadt { header: AcpiTableHeader { signature: SIG_MADT, length: madt_total_length as u32, revision: 4, ..AcpiTableHeader::new() }, address: x86::APIC_BASE as u32, flags: 1 };
+    let madt = AcpiTableMadt {
+        header: AcpiTableHeader {
+            signature: SIG_MADT,
+            length: madt_total_length as u32,
+            revision: 4,
+            ..AcpiTableHeader::new()
+        },
+        address: x86::APIC_BASE as u32,
+        flags: 1,
+    };
     write(w, madt, madt_offset, 0);
 
     // Processor Local APIC
     for i in 0..cores {
-        let local_apic = AcpiMadtLocalApic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_APIC, length: size_of::<AcpiMadtLocalApic>() as u8 }, processor_id: i as u8, id: i as u8, lapic_flags: 1 };
+        let local_apic = AcpiMadtLocalApic {
+            header: AcpiSubtableHeader {
+                r#type: MADT_LOCAL_APIC,
+                length: size_of::<AcpiMadtLocalApic>() as u8,
+            },
+            processor_id: i as u8,
+            id: i as u8,
+            lapic_flags: 1,
+        };
         write(w, local_apic, madt_local_apic_offset, i as usize)
     }
     */

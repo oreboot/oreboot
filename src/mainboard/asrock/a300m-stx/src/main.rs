@@ -227,7 +227,8 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
         Some(family_id) => {
             match amd_model_id {
                 Some(model_id) => {
-                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id).unwrap();
+                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id)
+                        .unwrap();
                 }
                 None => (),
             }
