@@ -13,7 +13,7 @@ SECTIONS
         KEEP(*(.fspblob))
         . = ORIGIN(fspblob) + LENGTH(fspblob);
     } > fspblob = 0xFFFF
-
+    . = 0xffff0000;
     .bootblock :
     {
         /* TODO: Everything is within 64KiB for real-mode jump. */
@@ -23,8 +23,10 @@ SECTIONS
         KEEP(*(.rodata .rodata.*))
         /* There should be no 'data' as such but we'll fix it later */
         KEEP(*(.data.*))
-
-        . = ORIGIN(bootblock) + LENGTH(bootblock) - 16;
+     }
+    . = 0xffffff00;
+    .reset . :
+    {
         KEEP(*(.reset .reset.* .reset*))
     } > bootblock = 0xFFFF
 

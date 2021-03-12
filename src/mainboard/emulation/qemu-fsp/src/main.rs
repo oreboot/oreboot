@@ -15,7 +15,7 @@ use uart::i8250::I8250;
 // introduces the symbols containing the FSP binary which get picked up by the linker.
 extern crate fsp_qemu_sys;
 
-global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
+global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock_nomem.S"));
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
