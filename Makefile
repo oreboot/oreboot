@@ -20,8 +20,7 @@ BROKEN := \
 	src/mainboard/emulation/qemu-fsp/Makefile \
 
 # Turn them all off. We'll turn them back on to try to get to working tests.
-# MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
-MAINBOARDS := 
+MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
