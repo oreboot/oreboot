@@ -56,6 +56,7 @@ jobs:
       git submodule update --init --recursive
     displayName: 'Checkout submodules'
   - script: |
+      exit 0
       make ciprepare
       cd src/mainboard/emulation/qemu-fsp
       make

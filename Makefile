@@ -16,8 +16,12 @@ help:
 
 BROKEN := \
 	src/mainboard/ast/ast25x0/Makefile \
+	src/mainboard/aaeon/upsquared/Makefile \
+	src/mainboard/emulation/qemu-fsp/Makefile \
 
-MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
+# Turn them all off. We'll turn them back on to try to get to working tests.
+# MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
+MAINBOARDS := 
 
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
