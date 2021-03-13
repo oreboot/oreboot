@@ -1,6 +1,7 @@
 use arch::acpi::*;
 use arch::consts::x86;
 use core::mem::size_of;
+use timer::hpet::HPET;
 use util::round_up_4k;
 
 /// Setup the BIOS tables in the low memory
@@ -32,6 +33,14 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let madt_io_apic_offset = madt_local_x2apic_nmi_offset + size_of::<AcpiMadtLocalX2ApicNMI>();
     let madt_local_isor_offset = madt_io_apic_offset + size_of::<AcpiMadtIoApic>();
 
+    /*
+    let timer = HPET::hpet();
+    for _i in 1..250 {
+        // 1ms
+        timer.sleep(4_000_000); // *10^-15
+    }
+    */
+
     let mcfg_offset = madt_local_isor_offset + 2 * size_of::<AcpiMadtInterruptOverride>();
     let hpet_offset = mcfg_offset + size_of::<AcpiTableMcfg>();
     let total_size = hpet_offset + size_of::<AcpiTableHpet>() - start;
@@ -47,6 +56,10 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
 
     write!(w, "Write rsdp  at {:x?} \r\n", rsdp_offset).unwrap();
     write(w, rsdp, rsdp_offset, 0);
+    let rsdp_sig: u64 = read(rsdp_offset, 0);
+    write!(w, "RSDP signature: {:x?}\r\n", rsdp_sig).unwrap();
+
+    /*
     write(
         w,
         gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH),
@@ -84,7 +97,9 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
     ); // XXX
     debug_assert_eq!(acpi_tb_checksum(xsdt_offset, xsdt_offset + xsdt_total_length), 0);
+    */
 
+    /*
     const FADT_FLAGS: u32 = 0b0011_0000_0101_1010_0101;
     // fadt - Fixed ACPI Description Table
     let fadt = AcpiTableFadt {
@@ -199,7 +214,9 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         flags: 1,
     };
     write(w, madt, madt_offset, 0);
+    */
 
+    /*
     // Processor Local APIC
     for i in 0..cores {
         let local_apic = AcpiMadtLocalApic {
@@ -215,11 +232,13 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     }
     */
 
-    /*
     // Processor Local x2APIC
     for i in 0..cores {
         let local_x2apic = AcpiMadtLocalX2Apic {
-            header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC, length: size_of::<AcpiMadtLocalX2Apic>() as u8 },
+            header: AcpiSubtableHeader {
+                r#type: MADT_LOCAL_X2APIC,
+                length: size_of::<AcpiMadtLocalX2Apic>() as u8,
+            },
             local_apic_id: i * 2, /* Per even SMT thread */
             lapic_flags: 1,
             uid: i * 2, /* uid = apic_id */
@@ -227,58 +246,125 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         };
         write(w, local_x2apic, madt_local_x2apic_offset, i as usize)
     }
+    */
 
+    /*
     // Local x2APIC NMI
     let local_x2apic_nmi = AcpiMadtLocalX2ApicNMI {
-        header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC_NMI, length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8 },
+        header: AcpiSubtableHeader {
+            r#type: MADT_LOCAL_X2APIC_NMI,
+            length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8,
+        },
         flags: 5,                        /* polarity and trigger mode */
         acpi_processor_uid: 0xFFFF_FFFF, /* FF.. Applies to all processors */
         local_interrupt: 1,
         ..Default::default()
     };
     write(w, local_x2apic_nmi, madt_local_x2apic_nmi_offset, 0 as usize);
-    */
 
-    /*
     // I/O APICs
-    let io_apic = AcpiMadtIoApic { header: AcpiSubtableHeader { r#type: MADT_IO_APIC, length: size_of::<AcpiMadtIoApic>() as u8 }, id: 0xf0, address: 0xFEC0_0000 as u32, global_irq_base: 0, ..Default::default() };
+    let io_apic = AcpiMadtIoApic {
+        header: AcpiSubtableHeader {
+            r#type: MADT_IO_APIC,
+            length: size_of::<AcpiMadtIoApic>() as u8,
+        },
+        id: 0xf0,
+        address: 0xFEC0_0000 as u32,
+        global_irq_base: 0,
+        ..Default::default()
+    };
     write(w, io_apic, madt_io_apic_offset, 0);
     */
 
     /*
     // isor - interrupt source override0
     write!(w, "First ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 0, globalirq: 2, flags: 0 /* polarity and trigger mode = 0 */ };
+    let isor = AcpiMadtInterruptOverride {
+        header: AcpiSubtableHeader {
+            r#type: MADT_LOCAL_ISOR,
+            length: size_of::<AcpiMadtInterruptOverride>() as u8,
+        },
+        bus: 0,
+        sourceirq: 0,
+        globalirq: 2,
+        flags: 0, /* polarity and trigger mode = 0 */
+    };
     write(w, isor, madt_local_isor_offset, 0 as usize);
 
     write!(w, "Second ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 9, globalirq: 9, flags: 0xf /* polarity and trigger mode = 3 */ };
+    let isor = AcpiMadtInterruptOverride {
+        header: AcpiSubtableHeader {
+            r#type: MADT_LOCAL_ISOR,
+            length: size_of::<AcpiMadtInterruptOverride>() as u8,
+        },
+        bus: 0,
+        sourceirq: 9,
+        globalirq: 9,
+        flags: 0xf, /* polarity and trigger mode = 3 */
+    };
     write(w, isor, madt_local_isor_offset, 1 as usize);
 
-    write!(w, "MADT checksum from {:x} to {:x} store into {:x}\r\n", madt_offset, madt_offset + madt_total_length, ACPI_TABLE_HEADER_CHECKSUM_OFFSET).unwrap();
-    write(w, gencsum(madt_offset, madt_offset + madt_total_length), madt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
+    write!(
+        w,
+        "MADT checksum from {:x} to {:x} store into {:x}\r\n",
+        madt_offset,
+        madt_offset + madt_total_length,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET
+    )
+    .unwrap();
+    write(
+        w,
+        gencsum(madt_offset, madt_offset + madt_total_length),
+        madt_offset,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
+    ); // XXX
     debug_assert_eq!(acpi_tb_checksum(madt_offset, madt_offset + madt_total_length), 0);
-    */
 
-    /*
     // MCFG - Memory Mapped Configuration Space Structure
-    let mcfg = AcpiTableMcfg { header: AcpiTableHeader { signature: SIG_MCFG, length: size_of::<AcpiTableMcfg>() as u32, ..AcpiTableHeader::new() }, base_address: 0xE000_0000, end_bus: 0xFF, ..Default::default() };
+    let mcfg = AcpiTableMcfg {
+        header: AcpiTableHeader {
+            signature: SIG_MCFG,
+            length: size_of::<AcpiTableMcfg>() as u32,
+            ..AcpiTableHeader::new()
+        },
+        base_address: 0xE000_0000,
+        end_bus: 0xFF,
+        ..Default::default()
+    };
     write(w, mcfg, mcfg_offset, 0);
-    write(w, gencsum(mcfg_offset, mcfg_offset + size_of::<AcpiTableMcfg>()), mcfg_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET);
-    */
+    write(
+        w,
+        gencsum(mcfg_offset, mcfg_offset + size_of::<AcpiTableMcfg>()),
+        mcfg_offset,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
+    );
 
-    /*
     // HPET - High Precision Event Timer Table
     let hpet = AcpiTableHpet {
-        header: AcpiTableHeader { signature: SIG_HPET, length: size_of::<AcpiTableHpet>() as u32, ..AcpiTableHeader::new() },
+        header: AcpiTableHeader {
+            signature: SIG_HPET,
+            length: size_of::<AcpiTableHpet>() as u32,
+            ..AcpiTableHeader::new()
+        },
         hw_block_id: 0x1022_8201, /* PCI Vendor ID, HW Rev ID */
-        base_address: AcpiGenericAddress { space_id: 0, bit_width: 64, bit_offset: 0, access_width: 0, address: 0xFED0_0000 },
+        base_address: AcpiGenericAddress {
+            space_id: 0,
+            bit_width: 64,
+            bit_offset: 0,
+            access_width: 0,
+            address: 0xFED0_0000,
+        },
         hpet_number: 0,
         min_clock_ticks: 0x37EE,
         flags: 0,
     };
     write(w, hpet, hpet_offset, 0);
-    write(w, gencsum(hpet_offset, hpet_offset + size_of::<AcpiTableHpet>()), hpet_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET);
+    write(
+        w,
+        gencsum(hpet_offset, hpet_offset + size_of::<AcpiTableHpet>()),
+        hpet_offset,
+        ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
+    );
     */
 
     round_up_4k(total_size)
