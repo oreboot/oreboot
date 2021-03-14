@@ -302,14 +302,14 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
 
     let payload = &mut BzImage {
-        low_mem_size: 0x80000000,
-        high_mem_start: 0x100000000,
+        low_mem_size: 0x8000_0000,
+        high_mem_start: 0x1_0000_0000,
         high_mem_size: 0,
         // TODO: get this from the FDT.
-        rom_base: 0xffc00000,
-        rom_size: 0x300000,
-        load: 0x01000000,
-        entry: 0x1000200,
+        rom_base: 0xffc0_0000,
+        rom_size: 0x30_0000,
+        load: 0x0100_0000,
+        entry: 0x100_0200,
     };
     if true {
         msrs(w);
