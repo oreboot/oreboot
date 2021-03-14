@@ -14,6 +14,7 @@ use cpu::model::amd_model_id;
 use model::Driver;
 use print;
 use raw_cpuid::CpuId;
+use smn::{smn_read, smn_write};
 use soc::soc_init;
 // use uart::amdmmio::UART;
 use uart::debug_port::DebugPort;
@@ -207,6 +208,16 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     }
 }
 //global_asm!(include_str!("init.S"));
+fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
+    let got = smn_read(reg);
+    write!(w, "{:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+    if got == want {
+        return;
+    }
+    smn_write(reg, want);
+    let got = smn_read(reg);
+    write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+}
 
 fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
     let cpuid = CpuId::new();
