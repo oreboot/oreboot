@@ -40,15 +40,15 @@ impl<'a> Driver for I8250<'a> {
         const MSR: usize = 0x06; // Modem Status Register                R
         const SCR: usize = 0x07; // Scratch Register                     RW
 
-        const FIFOENABLE: u8 = 1;
+        const FIFODISABLE: u8 = 0;
         const DLAB: u8 = 0b1000_0000; // Divisor Latch Access bit
         const EIGHTN1: u8 = 0b0011;
 
         let mut s: [u8; 1] = [0u8; 1];
         self.d.pwrite(&s, self.base + IER).unwrap();
 
-        /* Enable FIFOs */
-        s[0] = FIFOENABLE;
+        /* Disable FIFOs */
+        s[0] = FIFODISABLE;
         self.d.pwrite(&s, self.base + FCR).unwrap();
 
         /* DLAB on */
@@ -144,13 +144,13 @@ mod tests {
     const LCR: usize = 0x03; // Line Control Register
 
     #[test]
-    fn uart_driver_enables_fifos() {
+    fn uart_driver_disables_fifos() {
         let mut vec = Vec::<u8, heapless::consts::U8>::new();
         let port = &mut MockPort::new(&mut vec);
         let test_uart = &mut I8250::new(0, 0, port);
         test_uart.init().unwrap();
 
-        assert_eq!(1 & vec[FCR], 1); // FIFOs enabled
+        assert_eq!(0 & vec[FCR], 0); // FIFOs disabled
     }
 
     // Line control register should have the bottom bits be 0b011 for 8 data bits and one stop bit
