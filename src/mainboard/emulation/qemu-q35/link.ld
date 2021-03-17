@@ -35,7 +35,7 @@ SECTIONS
 	/* There should be no 'data' as such but we'll fix it later */
         KEEP(*(.data.*))
     }
-    . = 0xfffffff0;
+    . = 0xffffff00;
     .reset . :
     {
 	KEEP(*(.reset .reset.* .reset*))

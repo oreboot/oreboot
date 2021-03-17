@@ -9,6 +9,7 @@ model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
+vcell = "0.1.2"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

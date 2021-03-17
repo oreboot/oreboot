@@ -41,7 +41,7 @@ impl<'a> Driver for I8250<'a> {
         const SCR: usize = 0x07; // Scratch Register                     RW
 
         const FIFOENABLE: u8 = 1;
-        const DLAB: u8 = 0b1000; // Divisor Latch Access bit
+        const DLAB: u8 = 0b1000_0000; // Divisor Latch Access bit
         const EIGHTN1: u8 = 0b0011;
 
         let mut s: [u8; 1] = [0u8; 1];

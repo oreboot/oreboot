@@ -1,0 +1,19 @@
+[package]
+name = "soc"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+arch = { path = "../../../arch/x86/x86_64" }
+df = { path = "../common/df" }
+pci = { path = "../common/pci" }
+vcell = "0.1.2"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

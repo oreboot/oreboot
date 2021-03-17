@@ -1,0 +1,5 @@
+00000000:00bfffff psp
+00c00000:00ffffff orefull
+00c00000:00fdffff oreboot
+00fe0000:00feffff bootblock
+00ff0000:00ffffff start

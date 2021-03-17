@@ -16,11 +16,13 @@ help:
 
 BROKEN := \
 	src/mainboard/ast/ast25x0/Makefile \
+	src/mainboard/aaeon/upsquared/Makefile \
+	src/mainboard/emulation/qemu-fsp/Makefile \
 
+# Turn them all off. We'll turn them back on to try to get to working tests.
 MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
 
-TOOLCHAIN_VER := nightly-2020-10-25
-XBUILD_VER := 0.6.3
+TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
 
 .PHONY: mainboards $(MAINBOARDS)
@@ -30,21 +32,19 @@ $(MAINBOARDS):
 	cd $(dir $@) && make
 
 firsttime:
-	rustup override set $(TOOLCHAIN_VER)
-	rustup component add rust-src llvm-tools-preview rustfmt clippy
-	rustup target add riscv64imac-unknown-none-elf
-	rustup target add riscv32imc-unknown-none-elf
-	rustup target add armv7r-none-eabi
-	rustup target add aarch64-unknown-none-softfloat
-	cargo install $(if $(XBUILD_VER),--version $(XBUILD_VER),) cargo-xbuild
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+
+firsttime_fsp:
+	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang
+	# --default-toolchain is purely an optimization to avoid downloading stable Rust first.
+	# -y makes it non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
 
 .PHONY: ciprepare debiansysprepare firsttime
-ciprepare: debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime firsttime_fsp
 
 update:
 	rustup update
@@ -61,7 +61,8 @@ CRATES := \
 	$(wildcard */Cargo.toml) \
 	$(wildcard */*/Cargo.toml) \
 	$(wildcard */*/*/Cargo.toml) \
-	$(wildcard */*/*/*/Cargo.toml)
+	$(wildcard */*/*/*/Cargo.toml) \
+	$(wildcard */*/*/*/*/Cargo.toml)
 
 CRATES_TO_FORMAT := $(patsubst %/Cargo.toml,%/Cargo.toml.format,$(CRATES))
 $(CRATES_TO_FORMAT):
@@ -75,10 +76,13 @@ BROKEN_CRATES_TO_TEST := \
 	src/arch/riscv/rv64/Cargo.toml \
 	src/cpu/armltd/cortex-a9/Cargo.toml \
 	src/cpu/lowrisc/ibex/Cargo.toml \
+	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/asrock/a300m-stx/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
-	src/mainboard/emulation/qemu-armv7/Cargo.toml \
 	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
+	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/emulation/qemu-riscv/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
@@ -87,7 +91,6 @@ BROKEN_CRATES_TO_TEST := \
 	src/soc/aspeed/ast2500/Cargo.toml \
 	src/soc/opentitan/earlgrey/Cargo.toml \
 	src/soc/sifive/fu540/Cargo.toml \
-	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
 CRATES_TO_TEST := $(patsubst %/Cargo.toml,%/Cargo.toml.test,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
 $(CRATES_TO_TEST):
@@ -96,9 +99,12 @@ $(CRATES_TO_TEST):
 test: $(CRATES_TO_TEST)
 
 BROKEN_CRATES_TO_CLIPPY := \
+	src/mainboard/aaeon/upsquared/Cargo.toml \
 	src/mainboard/amd/romecrb/Cargo.toml \
+	src/mainboard/asrock/a300m-stx/Cargo.toml \
 	src/mainboard/ast/ast25x0/Cargo.toml \
 	src/mainboard/emulation/qemu-armv7/Cargo.toml \
+	src/mainboard/emulation/qemu-fsp/Cargo.toml \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \

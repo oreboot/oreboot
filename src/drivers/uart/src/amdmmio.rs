@@ -19,6 +19,7 @@ use register::register_bitfields;
 
 const RETRY_COUNT: u32 = 100_000;
 const COM1: usize = 0xfedc9000;
+const COM2: usize = 0xfedca000;
 
 // We fill out as little of this as possible.
 // We're firmware and should never plan to use it
@@ -57,8 +58,8 @@ register_bitfields! {
     ],
     STAT[
         DR OFFSET(0) NUMBITS(1) [],
-        THRE OFFSET(6) NUMBITS(1) [],
-        TDRE OFFSET(5) NUMBITS(1) []
+        THRE OFFSET(5) NUMBITS(1) [],
+        TEMT OFFSET(6) NUMBITS(1) []
     ],
     FCR[
         FIFOENABLE OFFSET(0) NUMBITS(1) []
@@ -83,6 +84,10 @@ impl AMDMMIO {
         AMDMMIO { base: COM1 }
     }
 
+    pub fn com2() -> AMDMMIO {
+        AMDMMIO { base: COM2 }
+    }
+
     /// Returns a pointer to the register block
     fn ptr(&self) -> *const RegisterBlock {
         self.base as *const _
@@ -92,8 +97,8 @@ impl AMDMMIO {
 impl Driver for AMDMMIO {
     fn init(&mut self) -> Result<()> {
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::BaudRate);
-        self.d.set(1);
         self.dlm.set(0);
+        self.d.set(1); // approx. 115200
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::Data);
         self.dlm.set(0); // Just clear the IER to be safe.
         Ok(())
@@ -117,7 +122,7 @@ impl Driver for AMDMMIO {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         'outer: for (sent_count, &c) in data.iter().enumerate() {
             for _ in 0..RETRY_COUNT {
-                if !self.stat.is_set(STAT::THRE) || !self.stat.is_set(STAT::THRE) {
+                if self.stat.is_set(STAT::THRE) {
                     self.d.set(c.into());
                     continue 'outer;
                 }

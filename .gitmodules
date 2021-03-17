@@ -6,3 +6,8 @@
 	path = 3rdparty/fsp
 	url = https://github.com/intel/FSP
 	ignore = dirty
+[submodule "fspsdk"]
+	path = 3rdparty/fspsdk
+	url = https://github.com/universalpayload/fspsdk
+	branch = qemu_fsp_x64
+	ignore = dirty

@@ -11,44 +11,47 @@ use util::round_up_4k;
 /// Total number of bytes occupied by the BIOS tables is returned.
 pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32) -> usize {
     // calculate offsets first
-    // variables with suffix `_offset` mean the offset in `low_mem`. They are
-    // also the guest physical address of the corresponding tables, since `low_mem` is
-    // mapped to the lowest memory of the guest's physical address space.
+    // variables with suffix `_offset` mean the offset in `low_mem`.
+
+    const NUM_XSDT_ENTRIES: usize = 4;
 
     let rsdp_offset = start;
     let xsdt_offset = rsdp_offset + size_of::<AcpiTableRsdp>();
     let xsdt_entry_offset = xsdt_offset + size_of::<AcpiTableHeader>();
-    const NUM_XSDT_ENTRIES: usize = 8;
     let fadt_offset = xsdt_entry_offset + NUM_XSDT_ENTRIES * size_of::<u64>();
     let facs_offset = fadt_offset + size_of::<AcpiTableFadt>();
     let dsdt_offset = facs_offset + size_of::<AcpiTableFacs>();
+
+    // let madt_offset = dsdt_offset + 69887;
     let madt_offset = dsdt_offset + DSDT_DSDTTBL_HEADER.len();
     let madt_local_apic_offset = madt_offset + size_of::<AcpiTableMadt>();
-    let io_apic_offset = madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
-    let local_x2apic_offset = io_apic_offset + size_of::<AcpiMadtIoApic>();
-    let local_lapicnmi_offset = local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2apic>();
-    let local_isor_offset = local_lapicnmi_offset + size_of::<AcpiMadtLocalX2ApicNMI>();
-    let mcfg_offset = local_isor_offset + 2 * size_of::<AcpiMadtInterruptOverride>();
-    let total_size = mcfg_offset + size_of::<AcpiTableMcfg>() - start;
+    let madt_local_x2apic_offset = madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
+    let madt_local_x2apic_nmi_offset = madt_local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2Apic>();
+    let madt_io_apic_offset = madt_local_x2apic_nmi_offset + size_of::<AcpiMadtLocalX2ApicNMI>();
+    let madt_local_isor_offset = madt_io_apic_offset + size_of::<AcpiMadtIoApic>();
+
+    let mcfg_offset = madt_local_isor_offset + 2 * size_of::<AcpiMadtInterruptOverride>();
+    let hpet_offset = mcfg_offset + size_of::<AcpiTableMcfg>();
+    let total_size = hpet_offset + size_of::<AcpiTableHpet>() - start;
 
     // setup rsdp - Root System Description Pointer
     let rsdp = AcpiTableRsdp { signature: SIG_RSDP, revision: 2, length: 36, xsdt_physical_address: xsdt_offset as u64, ..Default::default() };
+
     write!(w, "Write rsdp  at {:x?} \r\n", rsdp_offset).unwrap();
     write(w, rsdp, rsdp_offset, 0);
     write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_CHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), 0);
+
     write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_XCHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), 0);
 
     // xsdt - Extended System Description Table
     let xsdt_total_length = size_of::<AcpiTableHeader>() + size_of::<u64>() * NUM_XSDT_ENTRIES;
-    let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, ..AcpiTableHeader::new() };
+    let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, revision: 1, ..AcpiTableHeader::new() };
     write(w, xsdt, xsdt_offset, 0);
     // xsdt entries
-    let mut xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [0; NUM_XSDT_ENTRIES];
-    xsdt_entries[0] = fadt_offset as u64;
-    xsdt_entries[1] = madt_offset as u64;
-    // xsdt_entries[2] = mcfg_offset as u64;
+    let xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [fadt_offset as u64, madt_offset as u64, mcfg_offset as u64, hpet_offset as u64];
+
     write(w, xsdt_entries, xsdt_entry_offset, 0);
     write(w, gencsum(xsdt_offset, xsdt_offset + xsdt_total_length), xsdt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(xsdt_offset, xsdt_offset + xsdt_total_length), 0);
@@ -75,11 +78,15 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         flush_size: 0x400,
         flush_stride: 0x10,
         duty_offset: 1,
-        duty_width: 3,
+        duty_width: 0,
+        day_alarm: 0xD,
+        century: 0x32,
+        boot_flags: 1,
         flags: FADT_FLAGS,
         reset_register: AcpiGenericAddress { space_id: 1, bit_width: 8, bit_offset: 0, access_width: 0, address: 0xCF9 },
         reset_value: 0x06,
         minor_revision: 2,
+        xfacs: facs_offset as u64,
         xdsdt: dsdt_offset as u64,
         xpm1a_event_block: AcpiGenericAddress { space_id: 1, bit_width: 32, bit_offset: 0, access_width: 2, address: 0x800 },
         xpm1a_control_block: AcpiGenericAddress { space_id: 1, bit_width: 16, bit_offset: 0, access_width: 2, address: 0x804 },
@@ -92,7 +99,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     debug_assert_eq!(acpi_tb_checksum(fadt_offset, fadt_offset + size_of::<AcpiTableFadt>()), 0);
 
     // facs - Firmware ACPI Control Structure
-    let facs = AcpiTableFacs { signature: SIG_FACS, length: 64, flags: 0b0011, version: 2, ..Default::default() };
+    let facs = AcpiTableFacs { signature: SIG_FACS, length: size_of::<AcpiTableFacs>() as u32, flags: 0, version: 2, ..Default::default() };
     write(w, facs, facs_offset, 0);
 
     // dsdt - Differentiated System Description Table
@@ -101,41 +108,52 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     // madt - Multiple APIC Description Table
     // TODO: Recalculate for SMP
     // let madt_total_length = size_of::<AcpiTableMadt>() + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2apic>());
-    let madt_total_length = size_of::<AcpiTableMadt>() + size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtIoApic>() + size_of::<AcpiMadtLocalX2apic>() + size_of::<AcpiMadtLocalX2ApicNMI>() + 2 * size_of::<AcpiMadtInterruptOverride>();
-    let madt = AcpiTableMadt { header: AcpiTableHeader { signature: SIG_MADT, length: madt_total_length as u32, ..AcpiTableHeader::new() }, address: x86::APIC_BASE as u32, flags: 1 };
-    write(w, madt, madt_offset, 0);
+    let madt_total_length = size_of::<AcpiTableMadt>() + cores as usize * (size_of::<AcpiMadtLocalApic>() + size_of::<AcpiMadtLocalX2Apic>()) + size_of::<AcpiMadtLocalX2ApicNMI>() + size_of::<AcpiMadtIoApic>() + 2 * size_of::<AcpiMadtInterruptOverride>();
 
-    // CPU Local APIC
+    let madt = AcpiTableMadt { header: AcpiTableHeader { signature: SIG_MADT, length: madt_total_length as u32, revision: 4, ..AcpiTableHeader::new() }, address: x86::APIC_BASE as u32, flags: 1 };
+    write(w, madt, madt_offset, 0);
+    // Processor Local APIC
     for i in 0..cores {
-        let lapic = AcpiMadtLocalApic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_APIC, length: size_of::<AcpiMadtLocalApic>() as u8 }, processor_id: i as u8, id: i as u8, lapic_flags: 1 };
-        write(w, lapic, madt_local_apic_offset, i as usize)
+        let local_apic = AcpiMadtLocalApic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_APIC, length: size_of::<AcpiMadtLocalApic>() as u8 }, processor_id: i as u8, id: i as u8, lapic_flags: 1 };
+        write(w, local_apic, madt_local_apic_offset, i as usize)
     }
 
-    // io apiic
-    let io_apic = AcpiMadtIoApic { header: AcpiSubtableHeader { r#type: MADT_IO_APIC, length: size_of::<AcpiMadtIoApic>() as u8 }, id: 0xf0, address: x86::IO_APIC_BASE as u32, global_irq_base: 0, ..Default::default() };
-    write(w, io_apic, io_apic_offset, 0);
-
-    // local x2apic
+    // Processor Local x2APIC
     for i in 0..cores {
-        let x2apic = AcpiMadtLocalX2apic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC, length: size_of::<AcpiMadtLocalX2apic>() as u8 }, local_apic_id: i, uid: i, lapic_flags: 1, ..Default::default() };
-        write(w, x2apic, local_x2apic_offset, i as usize)
+        let local_x2apic = AcpiMadtLocalX2Apic {
+            header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC, length: size_of::<AcpiMadtLocalX2Apic>() as u8 },
+            local_apic_id: i * 2, /* Per even SMT thread */
+            lapic_flags: 1,
+            uid: i * 2, /* uid = apic_id */
+            ..Default::default()
+        };
+        write(w, local_x2apic, madt_local_x2apic_offset, i as usize)
     }
 
     // Local x2APIC NMI
-    write!(w, "LAPICNMI\r\n").unwrap();
-    let lapicnmi = AcpiMadtLocalX2ApicNMI { header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC_NMI, length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8 }, acpi_processor_uid: 0xFFFF_FFFF, flags: 0b101, local_interrupt: 1, ..Default::default() };
-    write(w, lapicnmi, local_lapicnmi_offset, 0 as usize);
+    let local_x2apic_nmi = AcpiMadtLocalX2ApicNMI {
+        header: AcpiSubtableHeader { r#type: MADT_LOCAL_X2APIC_NMI, length: size_of::<AcpiMadtLocalX2ApicNMI>() as u8 },
+        flags: 5,                        /* polarity and trigger mode */
+        acpi_processor_uid: 0xFFFF_FFFF, /* FF.. Applies to all processors */
+        local_interrupt: 1,
+        ..Default::default()
+    };
+    write(w, local_x2apic_nmi, madt_local_x2apic_nmi_offset, 0 as usize);
+
+    // I/O APICs
+    let io_apic = AcpiMadtIoApic { header: AcpiSubtableHeader { r#type: MADT_IO_APIC, length: size_of::<AcpiMadtIoApic>() as u8 }, id: 0xf0, address: 0xFEC0_0000 as u32, global_irq_base: 0, ..Default::default() };
+    write(w, io_apic, madt_io_apic_offset, 0);
 
     // isor - interrupt source override0
     write!(w, "First ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 0, globalirq: 0, flags: 0x0 };
-    write(w, isor, local_isor_offset, 0 as usize);
+    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 0, globalirq: 2, flags: 0 /* polarity and trigger mode = 0 */ };
+    write(w, isor, madt_local_isor_offset, 0 as usize);
 
     write!(w, "Second ISOR\r\n").unwrap();
-    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 9, globalirq: 9, flags: 0xf };
-    write(w, isor, local_isor_offset, 1 as usize);
+    let isor = AcpiMadtInterruptOverride { header: AcpiSubtableHeader { r#type: MADT_LOCAL_ISOR, length: size_of::<AcpiMadtInterruptOverride>() as u8 }, bus: 0, sourceirq: 9, globalirq: 9, flags: 0xf /* polarity and trigger mode = 3 */ };
+    write(w, isor, madt_local_isor_offset, 1 as usize);
 
-    write!(w, "Gencsum from {:x} to {:x} store into {:x}\r\n", madt_offset, madt_offset + madt_total_length, ACPI_TABLE_HEADER_CHECKSUM_OFFSET).unwrap();
+    write!(w, "MADT checksum from {:x} to {:x} store into {:x}\r\n", madt_offset, madt_offset + madt_total_length, ACPI_TABLE_HEADER_CHECKSUM_OFFSET).unwrap();
     write(w, gencsum(madt_offset, madt_offset + madt_total_length), madt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(madt_offset, madt_offset + madt_total_length), 0);
 
@@ -143,6 +161,18 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let mcfg = AcpiTableMcfg { header: AcpiTableHeader { signature: SIG_MCFG, length: size_of::<AcpiTableMcfg>() as u32, ..AcpiTableHeader::new() }, base_address: 0xE000_0000, end_bus: 0xFF, ..Default::default() };
     write(w, mcfg, mcfg_offset, 0);
     write(w, gencsum(mcfg_offset, mcfg_offset + size_of::<AcpiTableMcfg>()), mcfg_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET);
+
+    // HPET - High Precision Event Timer Table
+    let hpet = AcpiTableHpet {
+        header: AcpiTableHeader { signature: SIG_HPET, length: size_of::<AcpiTableHpet>() as u32, ..AcpiTableHeader::new() },
+        hw_block_id: 0x1022_8201, /* PCI Vendor ID, HW Rev ID */
+        base_address: AcpiGenericAddress { space_id: 0, bit_width: 64, bit_offset: 0, access_width: 0, address: 0xFED0_0000 },
+        hpet_number: 0,
+        min_clock_ticks: 0x37EE,
+        flags: 0,
+    };
+    write(w, hpet, hpet_offset, 0);
+    write(w, gencsum(hpet_offset, hpet_offset + size_of::<AcpiTableHpet>()), hpet_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET);
 
     round_up_4k(total_size)
 }

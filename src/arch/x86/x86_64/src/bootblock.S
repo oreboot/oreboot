@@ -230,6 +230,230 @@ __protected_start:
 	movw	%ax, %ss
 	movw	%ax, %fs
 	movw	%ax, %gs
+	// Let's try to enable cache as ram.
+	// This is from: coreboot/src/cpu/intel/car/p3/cache_as_ram.S
+/* SPDX-License-Identifier: GPL-2.0-only */
+
+_cache_as_ram_setup:
+cache_as_ram:
+	// Don't make a habit of using this macro.
+	// It's deliberately made to be inconvenient.
+	// It's very dangerous. Be careful what it is in %al.
+	// it's best to make sure %eax is "dead"
+#define post_code_be_careful_about_al(x) movb $x, %al ; outb %al, $0x80
+	//post_code_be_careful_about_al(0x20)
+
+	/* Clear/disable fixed MTRRs */
+	mov	$fixed_mtrr_list_size, %ebx
+	xor	%eax, %eax
+	xor	%edx, %edx
+
+clear_fixed_mtrr:
+	add	$-2, %ebx
+	movzwl	fixed_mtrr_list(%ebx), %ecx
+	wrmsr
+	jnz	clear_fixed_mtrr
+
+	/* Figure out how many MTRRs we have, and clear them out */
+	// This is a standard definition.
+#define MTRR_CAP_MSR			0x0fe	
+#define MTRR_PHYS_BASE(reg)		(0x200 + 2 * (reg))
+#define MTRR_PHYS_MASK(reg)		(MTRR_PHYS_BASE(reg) + 1)
+#define MTRR_DEF_TYPE_MSR		0x2ff
+#define MTRR_DEF_TYPE_MASK		0xff
+#define MTRR_DEF_TYPE_EN		(1 << 11)
+#define MTRR_DEF_TYPE_FIX_EN		(1 << 10)
+	mov	$/*MTRR_CAP_MSR*/0xfe, %ecx
+	rdmsr
+	movzb	%al, %ebx		/* Number of variable MTRRs */
+	mov	/*$MTRR_PHYS_BASE(0)*/0x200, %ecx
+	xor	%eax, %eax
+	xor	%edx, %edx
+
+clear_var_mtrr:
+	wrmsr
+	inc	%ecx
+	wrmsr
+	inc	%ecx
+	dec	%ebx
+	jnz	clear_var_mtrr
+
+	//post_code_be_careful_about_al(0x21)
+
+	/* Configure the default memory type to uncacheable. */
+	movl	$MTRR_DEF_TYPE_MSR, %ecx
+	rdmsr
+	andl	$(~0x00000cff), %eax
+	wrmsr
+
+	//post_code_be_careful_about_al(0x22)
+
+	/* Determine CPU_ADDR_BITS and load PHYSMASK high word to %edx. */
+	movl	$1, %eax
+	cpuid
+	andl	$(1 << 6 | 1 << 17), %edx	/* PAE or PSE36 */
+	jz	addrsize_set_high
+	movl	$0x0f, %edx
+
+	/* Preload high word of address mask (in %edx) for Variable
+	   MTRRs 0 and 1. */
+addrsize_set_high:
+	xorl	%eax, %eax
+	movl	/*$MTRR_PHYS_MASK(0)*/$(0x200 + 1), %ecx
+	wrmsr
+	movl	/*$MTRR_PHYS_MASK(1)*/$(0x202 + 1), %ecx
+	wrmsr
+
+	//post_code_be_careful_about_al(0x2a)
+
+	/* Set Cache-as-RAM base address. */
+	movl	/*$(MTRR_PHYS_BASE(0))*/$0x200, %ecx
+	movl	$_car_mtrr_start, %eax
+	orl	$MTRR_TYPE_WRBACK, %eax
+	xorl	%edx, %edx
+	wrmsr
+
+	/* Set Cache-as-RAM mask. */
+	movl	/*$(MTRR_PHYS_MASK(0))*/$0x201, %ecx
+	rdmsr
+	movl	$_car_mtrr_mask, %eax
+	orl	$MTRR_PHYS_MASK_VALID, %eax
+	wrmsr
+
+	//post_code_be_careful_about_al(0x2b)
+
+	/* Enable MTRR. */
+	movl	$MTRR_DEF_TYPE_MSR, %ecx
+	rdmsr
+	orl	$MTRR_DEF_TYPE_EN, %eax
+	wrmsr
+
+	//post_code_be_careful_about_al(0x2c)
+
+	/* Enable cache (CR0.CD = 0, CR0.NW = 0). */
+	movl	%cr0, %eax
+	andl	/*$(~(CR0_CacheDisable | CR0_NoWriteThrough))*/$((1<<30)|(1<<29)), %eax
+	invd
+	movl	%eax, %cr0
+
+	/* Read then clear the CAR region. This will also fill up the cache.
+	 * IMPORTANT: The read is mandatory.
+	 */
+	cld
+	movl	$_car_mtrr_start, %edi
+	movl	$_car_mtrr_size, %ecx
+	shr	$2, %ecx
+	movl	%ecx, %ebx
+	movl	%edi, %esi
+	rep	lodsl
+	movl	%ebx, %ecx
+	xorl	%eax, %eax
+	rep	stosl
+#define CR0_PE          (1 <<  0)
+#define CR0_MP          (1 <<  1)
+#define CR0_EM          (1 <<  2)
+#define CR0_TS          (1 <<  3)
+#define CR0_ET          (1 <<  4)
+#define CR0_NE          (1 <<  5)
+#define CR0_WP          (1 << 16)
+#define CR0_AM          (1 << 18)
+#define CR0_NW          (1 << 29)
+#define CR0_CD          (1 << 30)
+#define CR0_PG          (1 << 31)
+	//post_code_be_careful_about_al(0x2d)
+	/* Enable Cache-as-RAM mode by disabling cache. */
+	movl	%cr0, %eax
+	orl	/*$CR0_CacheDisable*/$CR0_CD, %eax
+	movl	%eax, %cr0
+
+	/* Enable cache for our code in Flash because we do XIP here */
+	movl	/*$MTRR_PHYS_BASE(1)*/$(0x202+1), %ecx
+	xorl	%edx, %edx
+	movl	$_program, %eax
+	andl	$_xip_mtrr_mask, %eax
+	orl	$MTRR_TYPE_WRPROT, %eax
+	wrmsr
+	movl	/*MTRR_PHYS_MASK(1)*/$(0x202+1), %ecx
+	rdmsr
+	movl	$_xip_mtrr_mask, %eax
+	orl	$MTRR_PHYS_MASK_VALID, %eax
+	wrmsr
+
+	//post_code_be_careful_about_al(0x2e)
+	/* Enable cache. */
+	movl	%cr0, %eax
+	andl	/*$(~(CR0_CacheDisable | CR0_NoWriteThrough))*/$(~((1<<30)|(1<<29))), %eax
+	movl	%eax, %cr0
+
+	/* Setup the stack. */
+	mov	$_ecar_stack, %esp
+
+	/* Need to align stack to 16 bytes at call instruction. Account for
+	the pushes below. */
+	andl	$0xfffffff0, %esp
+	subl	$4, %esp
+
+	/* push TSC and BIST to stack */
+	movd	%mm0, %eax
+	pushl	%eax	/* BIST */
+	movd	%mm2, %eax
+	pushl	%eax	/* tsc[63:32] */
+	movd	%mm1, %eax
+	pushl	%eax	/* tsc[31:0] */
+
+before_c_entry:
+	//post_code_be_careful_about_al(0x29)
+	jmp 1f
+
+	/* Should never see this postcode */
+	//post_code_be_careful_about_al(0xfe)
+
+.Lhlt:
+	hlt
+	jmp	.Lhlt
+
+#define NUM_FIXED_RANGES                88
+#define RANGES_PER_FIXED_MTRR           8
+#define MTRR_FIX_64K_00000              0x250
+#define MTRR_FIX_16K_80000              0x258
+#define MTRR_FIX_16K_A0000              0x259
+#define MTRR_FIX_4K_C0000               0x268
+#define MTRR_FIX_4K_C8000               0x269
+#define MTRR_FIX_4K_D0000               0x26a
+#define MTRR_FIX_4K_D8000               0x26b
+#define MTRR_FIX_4K_E0000               0x26c
+#define MTRR_FIX_4K_E8000               0x26d
+#define MTRR_FIX_4K_F0000               0x26e
+#define MTRR_FIX_4K_F8000               0x26f
+fixed_mtrr_list:
+/*	.word	MTRR_FIX_64K_00000
+	.word	MTRR_FIX_16K_80000
+	.word	MTRR_FIX_16K_A0000
+	.word	MTRR_FIX_4K_C0000
+	.word	MTRR_FIX_4K_C8000
+	.word	MTRR_FIX_4K_D0000
+	.word	MTRR_FIX_4K_D8000
+	.word	MTRR_FIX_4K_E0000
+	.word	MTRR_FIX_4K_E8000
+	.word	MTRR_FIX_4K_F0000
+	.word	MTRR_FIX_4K_F8000
+*/
+	.long 0x250
+	.long 0x258
+	.long 0x259
+	.long 0x268
+	.long 0x269
+	.long 0x26a
+	.long 0x26b
+	.long 0x26c
+	.long 0x26d
+	.long 0x26e
+	.long 0x26f
+fixed_mtrr_list_size = . - fixed_mtrr_list
+
+1:
+_cache_as_ram_setup_end:
+
 	// Set a pointer to the page table pages in %cr3.
 	// We can use cr3 as a scratch register here;
 	// its value won't matter until we set PG in CR0 below.
