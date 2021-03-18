@@ -77,6 +77,7 @@ pub struct FabricComponent {
     pub enabled: bool,
     pub fabric_id: Option<u8>,
     // netmask: D18F1x208 [System Fabric ID Mask 0] (DF::SystemFabricIdMask0) etc
+    pub ios_secondary_bus: Option<u8>,
 }
 
 #[derive(Debug)]
@@ -139,7 +140,15 @@ impl FabricTopology {
                 // instance_id = 0 should be skipped except for the first entry
             } else {
                 assert!(instance_id == x_instance_id);
-                result.components.push(FabricComponent { instance_id, instance_type, enabled, fabric_id: if fabric_id != 0 || result.components.len() == 0 { Some(fabric_id) } else { None } }).unwrap();
+                let ios_secondary_bus: Option<u8> = match instance_type {
+                    FabricInstanceType::IOMS => {
+                        let id = (df_read_indirect(0, x_instance_id, 0, 0x84) & 0xFF) as u8;
+                        Some(id)
+                    }
+                    _ => None,
+                };
+
+                result.components.push(FabricComponent { instance_id, instance_type, enabled, fabric_id: if fabric_id != 0 || result.components.len() == 0 { Some(fabric_id) } else { None }, ios_secondary_bus }).unwrap();
             }
         }
         result
