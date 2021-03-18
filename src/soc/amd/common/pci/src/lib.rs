@@ -24,8 +24,8 @@ impl PciAddress {
     }
 }
 
-pub fn config16(address: PciAddress) -> &'static VolatileCell<u32> {
-    unsafe { &*(PciAddress::mmio_config_address(address) as *const VolatileCell<u32>) }
+pub fn config16(address: PciAddress) -> &'static VolatileCell<u16> {
+    unsafe { &*(PciAddress::mmio_config_address(address) as *const VolatileCell<u16>) }
 }
 pub fn config32(address: PciAddress) -> &'static VolatileCell<u32> {
     unsafe { &*(PciAddress::mmio_config_address(address) as *const VolatileCell<u32>) }
