@@ -214,9 +214,9 @@ fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     if got == want {
         return;
     }
-    smn_write(reg, want);
-    let got = smn_read(reg);
-    write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+    // smn_write(reg, want);
+    // let got = smn_read(reg);
+    // write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
 }
 
 fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
@@ -290,6 +290,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         }
         write!(w, "Didn't explode :(\r\n").unwrap();
     }
+
+    // disable legacy interrupts
+    // smnhack(w, 0x13F0_0004, 0x0010_0400u32);
+    smnhack(w, 0x13F0_0064, 0x0010_0400u32); // 847405
 
     // It is hard to say if we need to do this.
     if true {
