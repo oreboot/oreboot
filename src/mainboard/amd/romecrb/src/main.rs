@@ -20,6 +20,8 @@ use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
+mod fabric;
+use fabric::fabric;
 mod msr;
 use msr::msrs;
 mod c00;
@@ -214,6 +216,11 @@ fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     smn_write(reg, want);
     let got = smn_read(reg);
     write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+}
+
+fn smngotwant(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
+    let got = smn_read(reg);
+    write!(w, "{:x}: GOT {:x}, WANT {:x}\r\n", reg, got, want).unwrap();
 }
 
 fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
@@ -499,6 +506,47 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     smnhack(w, 0x13e3_1404, 0x00040005 | 0x100u32);
     smnhack(w, 0x13e3_1004, 0x00040001 | 0x100u32);
 
+    smnhack(w, 0x13b102e0, 0xc9000101);
+    smnhack(w, 0x13b102e4, 0x00000000);
+    smnhack(w, 0x13b102e8, 0xc9100003);
+    smnhack(w, 0x13b102ec, 0x00000000);
+    smnhack(w, 0x13b10300, 0x00000000);
+    smnhack(w, 0x13b10304, 0x00000000);
+    smnhack(w, 0x13b10308, 0x00000000);
+    smnhack(w, 0x13b1030c, 0x00000000);
+    smnhack(w, 0x13b102f0, 0xc9280001);
+    smnhack(w, 0x13b102f4, 0x00000000);
+    smnhack(w, 0x13c102e0, 0x00000000);
+    smnhack(w, 0x13c102e4, 0x00000000);
+    smnhack(w, 0x13c102e8, 0xf4000003);
+    smnhack(w, 0x13c102ec, 0x00000000);
+    smnhack(w, 0x13c10300, 0x00000000);
+    smnhack(w, 0x13c10304, 0x00000000);
+    smnhack(w, 0x13c10308, 0x00000000);
+    smnhack(w, 0x13c1030c, 0x00000000);
+    smnhack(w, 0x13c102f0, 0xf4180001);
+    smnhack(w, 0x13c102f4, 0x00000000);
+    smnhack(w, 0x13d102e0, 0x00000000);
+    smnhack(w, 0x13d102e4, 0x00000000);
+    smnhack(w, 0x13d102e8, 0xc8000003);
+    smnhack(w, 0x13d102ec, 0x00000000);
+    smnhack(w, 0x13d10300, 0x00000000);
+    smnhack(w, 0x13d10304, 0x00000000);
+    smnhack(w, 0x13d10308, 0x00000000);
+    smnhack(w, 0x13d1030c, 0x00000000);
+    smnhack(w, 0x13d102f0, 0xc8180001);
+    smnhack(w, 0x13d102f4, 0x00000000);
+    smnhack(w, 0x13e102e0, 0x00000000);
+    smnhack(w, 0x13e102e4, 0x00000000);
+    smnhack(w, 0x13e102e8, 0xf5000003);
+    smnhack(w, 0x13e102ec, 0x00000000);
+    smnhack(w, 0x13e10300, 0x00000000);
+    smnhack(w, 0x13e10304, 0x00000000);
+    smnhack(w, 0x13e10308, 0x00000000);
+    smnhack(w, 0x13e1030c, 0x00000000);
+    smnhack(w, 0x13e102f0, 0xf5180001);
+    smnhack(w, 0x13e102f4, 0x00000000);
+
     // It is hard to say if we need to do this.
     if true {
         let v = unsafe { Msr::new(0xc001_1004).read() };
@@ -540,6 +588,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         Err(_e) => {
             write!(w, "Error from amd_init acknowledged--continuing anyway\r\n").unwrap();
         }
+    }
+
+    if true {
+        fabric(w);
     }
 
     write!(w, "Write acpi tables\r\n").unwrap();
