@@ -308,9 +308,11 @@ gdtptr16:
 	nop
 	/* WE ARE GETTING HERE! */
 	outb %al, $0x80
-	// Uses first part of gdt as stack.
+  // TODO:
+	// Using the first part of the gdt as stack might be insufficient.
 	// This jumps to the bootblock (bootblob.bin)
-	movl $0x76fe0010, %esp
+	movl $0x10000, %esp #
+	# movl $0x76fe0010, %esp
 	push $0x76fe0000 # 0x76c00000 (dest) + 0x3e0000 (offset in fixed-dtfs.dts)
 	# We patch the PSP dir entry to have it copy our image to 0x76c00000 in RAM
 	ret
