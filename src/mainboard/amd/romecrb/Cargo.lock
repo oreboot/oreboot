@@ -36,6 +36,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
+name = "boot"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "clock",
+ "console",
+ "cpu",
+ "heapless 0.4.4",
+ "model",
+ "payloads",
+ "print",
+ "raw-cpuid",
+ "smn",
+ "uart",
+ "util",
+ "wrappers",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -237,6 +256,7 @@ name = "romecrb"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "boot",
  "clock",
  "console",
  "cpu",

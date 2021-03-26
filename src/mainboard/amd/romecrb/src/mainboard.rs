@@ -16,13 +16,20 @@
 
 #![allow(non_upper_case_globals)]
 
+use uart::amdmmio::AMDMMIO;
+use uart::debug_port::DebugPort;
+
+use crate::c00::c00;
+use crate::msr::msrs;
+use arch::ioport::IOPort;
 use clock::ClockNode;
 use core::ops::BitAnd;
 use core::ops::BitOr;
 use core::ops::Not;
 use core::ptr;
 use model::*;
-use smn::smn_write;
+use smn::{smn_read, smn_write};
+use uart::i8250::I8250;
 use vcell::VolatileCell;
 use x86_64::registers::model_specific::Msr;
 
@@ -32,7 +39,7 @@ const SMB_UART_CONFIG_UART0_1_8M: u32 = 1 << SMB_UART_1_8M_SHIFT;
 const SMB_UART_CONFIG_UART1_1_8M: u32 = 1 << (SMB_UART_1_8M_SHIFT + 1);
 
 const FCH_UART_LEGACY_DECODE: *const VolatileCell<u16> = 0xfedc_0020 as *const _;
-const FCH_LEGACY_3F8_SH: u16 = 1 << 3;
+const FCH_LEGACY_3F8_SH: u16 = 3;
 //const FCH_LEGACY_2F8_SH: u16 = 1 << 1;
 
 // See coreboot:src/soc/amd/common/block/include/amdblocks/acpimmio_map.h
@@ -80,11 +87,18 @@ where
 }
 
 // WIP: mainboard driver. I mean the concept is a WIP.
-pub struct MainBoard {}
+pub struct MainBoard<'a> {
+    pub debug_io: IOPort,
+    pub debug: DebugPort<'a>,
+    pub uart0_io: IOPort,
+    pub uart0: I8250<'a>,
+    pub amdmmio: AMDMMIO,
+    pub text_outputs: [&'a mut dyn Driver],
+}
 
-impl MainBoard {
+impl MainBoard<'_> {
     pub fn new() -> MainBoard {
-        MainBoard {}
+        MainBoard { text_outputs: [] }
     }
 }
 
@@ -103,7 +117,18 @@ fn pinctrl(pin: u8, mode: u8) -> () {
     }
 }
 
-impl Driver for MainBoard {
+fn smnhack(w: &mut dyn core::fmt::Write, reg: u32, want: u32) -> () {
+    let got = smn_read(reg);
+    write!(w, "{:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+    if got == want {
+        return;
+    }
+    smn_write(reg, want);
+    let got = smn_read(reg);
+    write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
+}
+
+impl Driver for MainBoard<'_> {
     fn init(&mut self) -> Result<()> {
         unsafe {
             // FCH PM DECODE EN
@@ -140,7 +165,7 @@ impl Driver for MainBoard {
             pinctrl(144, 0); // [UART1_INTR, AGPIO144][0]; Note: The reset default is 0
 
             // Set up the legacy decode for UART 0.
-            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
+            (*FCH_UART_LEGACY_DECODE).set(1 << FCH_LEGACY_3F8_SH);
             let mut msr0 = Msr::new(0x1b);
             /*unsafe*/
             {
@@ -162,6 +187,251 @@ impl Driver for MainBoard {
             // IOHC::IOAPIC_BASE_ADDR_LO
             smn_write(0x13B1_02f0, 0xFEC0_0001);
 
+            let io = &mut self.uart0_io;
+            //let post = &mut IOPort;
+            let uart0 = &mut I8250::new(0x3f8, 0, io);
+            uart0.init().unwrap();
+            let debug_io = &mut self.debug_io;
+            self.debug = DebugPort::new(0x80, debug_io);
+            uart0.init().unwrap();
+            uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+            self.debug.init().unwrap();
+            self.debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+            let p0 = &mut self.amdmmio;
+            *p0 = AMDMMIO::com2();
+            p0.init().unwrap();
+            p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
+            self.text_outputs = [&mut self.debug as &mut dyn Driver, &mut uart0 as &mut dyn Driver, &mut p0 as &mut dyn Driver];
+            //let mut p: [u8; 1] = [0xf0; 1];
+            //post.pwrite(&p, 0x80).unwrap();
+
+            let w = &mut print::WriteTo::new(self.text_outputs[0]);
+
+            // Logging.
+            smnhack(w, 0x13B1_02F4, 0x00000000u32);
+            /* FIXME
+                smnhack(w, 0x13B1_02F0, 0xc9280001u32);
+                smnhack(w, 0x13C1_02F4, 0x00000000u32);
+                smnhack(w, 0x13C1_02F0, 0xf4180001u32);
+                smnhack(w, 0x13D1_02F4, 0x00000000u32);
+                smnhack(w, 0x13D1_02F0, 0xc8180001u32);
+                smnhack(w, 0x13E1_02F4, 0x00000000u32);
+                smnhack(w, 0x13E1_02F0, 0xf5180001u32);
+                // IOMMU on    smnhack(w, 0x13F0_0044, 0xc9200001u32);
+                smnhack(w, 0x13F0_0044, 0xc9200000u32);
+                smnhack(w, 0x13F0_0048, 0x00000000u32);
+                // IOMMU on smnhack(w, 0x1400_0044, 0xf4100001u32);
+                smnhack(w, 0x1400_0044, 0xf4100000u32);
+                smnhack(w, 0x1400_0048, 0x00000000u32);
+                // IOMMU on smnhack(w, 0x1410_0044, 0xc8100001u32);
+                smnhack(w, 0x1410_0044, 0xc8100000u32);
+                smnhack(w, 0x1410_0048, 0x00000000u32);
+                // IOMMU on smnhack(w, 0x1420_0044, 0xf5100001u32);
+                smnhack(w, 0x1420_0044, 0xf5100000u32);
+                smnhack(w, 0x1420_0048, 0x00000000u32);
+                smnhack(w, 0x1094_2014, 0x00000000u32);
+                smnhack(w, 0x1094_2010, 0x0000000cu32);
+                smnhack(w, 0x10A4_2014, 0x00000000u32);
+                smnhack(w, 0x10A4_2010, 0x0000000cu32);
+                smnhack(w, 0x1074_1014, 0x00000000u32);
+                smnhack(w, 0x10A4_2010, 0x0000000cu32);
+                smnhack(w, 0x1074_1014, 0x00000000u32);
+                smnhack(w, 0x1074_1010, 0x00000000u32);
+                smnhack(w, 0x1074_2014, 0x00000000u32);
+                smnhack(w, 0x1074_2010, 0x00000000u32);
+                smnhack(w, 0x1074_3014, 0x00000000u32);
+                smnhack(w, 0x1074_3010, 0xc6000004u32);
+                smnhack(w, 0x1074_4014, 0x00000000u32);
+                smnhack(w, 0x1074_4010, 0x00000000u32);
+                smnhack(w, 0x10B4_2014, 0x00000000u32);
+                smnhack(w, 0x10B4_2010, 0x0000000cu32);
+                smnhack(w, 0x1084_3014, 0x00000000u32);
+                smnhack(w, 0x1084_3010, 0xf8000004u32);
+                smnhack(w, 0x10C4_2014, 0x00000000u32);
+                smnhack(w, 0x10C4_2010, 0x0000000cu32);
+                smnhack(w, 0x13B1_0044, 0x00000160u32);
+                smnhack(w, 0x13C1_0044, 0x00000140u32);
+                smnhack(w, 0x13D1_0044, 0x00000120u32);
+                smnhack(w, 0x13E1_0044, 0x00000100u32);
+                smnhack(w, 0x1010_0018, 0x00636360u32);
+                smnhack(w, 0x1050_0018, 0x00646460u32);
+                smnhack(w, 0x1020_0018, 0x00414140u32);
+                smnhack(w, 0x1060_0018, 0x00424240u32);
+                smnhack(w, 0x1060_1018, 0x00000000u32);
+                smnhack(w, 0x1060_2018, 0x00000000u32);
+                smnhack(w, 0x1030_0018, 0x00212120u32);
+                smnhack(w, 0x1070_0018, 0x00222220u32);
+                smnhack(w, 0x1070_1018, 0x00000000u32);
+                smnhack(w, 0x1070_2018, 0x00000000u32);
+                smnhack(w, 0x1040_0018, 0x00020200u32);
+                smnhack(w, 0x1080_0018, 0x00030300u32);
+                smnhack(w, 0x1090_0018, 0x00000000u32);
+                smnhack(w, 0x10A0_0018, 0x00000000u32);
+                smnhack(w, 0x10B0_0018, 0x00000000u32);
+                smnhack(w, 0x10C0_0018, 0x00000000u32);
+                smnhack(w, 0x1110_0018, 0x00000000u32);
+                smnhack(w, 0x1120_0018, 0x00000000u32);
+                smnhack(w, 0x1130_0018, 0x00000000u32);
+                smnhack(w, 0x1120_0018, 0x00000000u32);
+                smnhack(w, 0x1130_0018, 0x00000000u32);
+                smnhack(w, 0x1140_0018, 0x00010100u32);
+                smnhack(w, 0x1110_1018, 0x00000000u32);
+                smnhack(w, 0x1120_1018, 0x00000000u32);
+                smnhack(w, 0x1130_1018, 0x00000000u32);
+                smnhack(w, 0x1140_1018, 0x00000000u32);
+                smnhack(w, 0x1110_2018, 0x00000000u32);
+                smnhack(w, 0x1120_2018, 0x00000000u32);
+                smnhack(w, 0x1130_2018, 0x00000000u32);
+                smnhack(w, 0x1140_2018, 0x00000000u32);
+                smnhack(w, 0x1110_3018, 0x00000000u32);
+                smnhack(w, 0x1120_3018, 0x00000000u32);
+                smnhack(w, 0x1130_3018, 0x00000000u32);
+                smnhack(w, 0x1140_3018, 0x00000000u32);
+                smnhack(w, 0x1110_4018, 0x00000000u32);
+                smnhack(w, 0x1120_4018, 0x00000000u32);
+                smnhack(w, 0x1130_4018, 0x00000000u32);
+                smnhack(w, 0x1140_4018, 0x00000000u32);
+                smnhack(w, 0x1110_5018, 0x00000000u32);
+                smnhack(w, 0x1120_5018, 0x00000000u32);
+                smnhack(w, 0x1130_5018, 0x00000000u32);
+                smnhack(w, 0x1140_5018, 0x00000000u32);
+                smnhack(w, 0x1110_6018, 0x00000000u32);
+                smnhack(w, 0x1120_6018, 0x00000000u32);
+                smnhack(w, 0x1130_6018, 0x00000000u32);
+                smnhack(w, 0x1140_6018, 0x00000000u32);
+                smnhack(w, 0x1110_7018, 0x00000000u32);
+                smnhack(w, 0x1120_7018, 0x00000000u32);
+                smnhack(w, 0x1130_7018, 0x00000000u32);
+                smnhack(w, 0x1140_7018, 0x00000000u32);
+
+                // end logging
+                smnhack(w, 0x13b1_0030, 0x00000001u32 << 11);
+                smnhack(w, 0x13c1_0030, 0x00000001u32 << 11);
+                smnhack(w, 0x13d1_0030, 0x00000001u32 << 11);
+                smnhack(w, 0x13e1_0030, 0x00000001u32 << 11);
+                smnhack(w, 0x13e1_0030, 0x00000001u32 << 11);
+
+                // PCIE crs count
+                smnhack(w, 0x13b1_0028, 0x02620006u32);
+                smnhack(w, 0x13c1_0028, 0x02620006u32);
+                smnhack(w, 0x13d1_0028, 0x02620006u32);
+                smnhack(w, 0x13e1_0028, 0x02620006u32);
+
+                // PCIE 100 mhz
+                smnhack(w, 0x13b1_0020, 0x00000001u32);
+                smnhack(w, 0x13c1_0020, 0x00000001u32);
+                smnhack(w, 0x13d1_0020, 0x00000001u32);
+                smnhack(w, 0x13e1_0020, 0x00000001u32);
+
+                // lovely bridges
+                smnhack(w, 0x13b3_C004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13b3_9804, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13b3_9404, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13b3_9004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13b3_8004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13b3_5404, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13b3_5004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_4C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_4804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_4404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_4004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_3C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_3804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_3404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_3004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_2C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_2804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_2404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_2004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13b3_1004, 0x00040005 | 0x100u32);
+
+                smnhack(w, 0x13c3_C004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13c3_9804, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13c3_9404, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13c3_9004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13c3_8004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13c3_5404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_5004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_4C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_4804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_4404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_4004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_3C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_3804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_3404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_3004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_2C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_2804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_2404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_2004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_1C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_1804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13c3_1004, 0x00040005 | 0x100u32);
+
+                smnhack(w, 0x13d3_C004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13d3_9804, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13d3_9404, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13d3_9004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13d3_8004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13d3_5404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_5004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_4004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_3C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_3804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_3404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_3004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_2C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_2804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_2404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_2004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_1C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_1804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13d3_1004, 0x00040005 | 0x100u32);
+
+                smnhack(w, 0x13e3_C004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13e3_9804, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13e3_9404, 0x00040007 | 0x100u32);
+                smnhack(w, 0x13e3_9004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13e3_8004, 0x00040000 | 0x100u32);
+                smnhack(w, 0x13e3_5404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_5004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_4C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_4804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_4404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_4004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_3C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_3804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_3404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_3004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_2C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_2804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_2404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_2004, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_1C04, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_1804, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_1004, 0x00040001 | 0x100u32);
+                smnhack(w, 0x13e3_1404, 0x00040005 | 0x100u32);
+                smnhack(w, 0x13e3_1004, 0x00040001 | 0x100u32);
+            */
+
+            if true {
+                msrs(w);
+            }
+            c00(w);
+
             Ok(())
         }
     }
@@ -177,7 +447,7 @@ impl Driver for MainBoard {
     fn shutdown(&mut self) {}
 }
 
-impl ClockNode for MainBoard {
+impl ClockNode for MainBoard<'_> {
     // This uses hfclk as the input rate.
     fn set_clock_rate(&mut self, _rate: u32) {}
 }
