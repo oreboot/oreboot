@@ -67,11 +67,6 @@ impl MP1 {
         let result = self.service_call(ServiceRequest { command: 2, data: [0; 6] })?;
         Ok((result.data[0], result.data[1]))
     }
-
-    pub fn interface_version(&self) -> Result<(u32, u32), u32> {
-        let result = self.service_call(ServiceRequest { command: 3, data: [0; 6] })?;
-        Ok((result.data[0], result.data[1]))
-    }
 }
 
 impl Default for MP1 {

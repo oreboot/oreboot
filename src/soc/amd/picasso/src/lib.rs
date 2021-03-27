@@ -20,13 +20,5 @@ pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
             write!(w, "MP1 smu version error: {}\r\n", e).unwrap();
         }
     }
-    match mp1.interface_version() {
-        Ok((major, minor)) => {
-            write!(w, "MP1 interface version result: {}.{}\r\n", major, minor).unwrap();
-        }
-        Err(e) => {
-            write!(w, "MP1 interface version error: {}\r\n", e).unwrap();
-        }
-    }
     Ok(())
 }
