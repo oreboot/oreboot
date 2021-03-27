@@ -93,12 +93,17 @@ pub struct MainBoard<'a> {
     pub uart0_io: IOPort,
     pub uart0: I8250<'a>,
     pub amdmmio: AMDMMIO,
-    pub text_outputs: [&'a mut dyn Driver],
+    pub text_outputs: [&'a mut dyn Driver; 3],
 }
 
 impl MainBoard<'_> {
     pub fn new() -> MainBoard {
-        MainBoard { text_outputs: [] }
+        MainBoard { uart0_io: IOPort,
+                    uart0: I8250::new(0x3f8, 0, uart0_io),
+                    debug_io: IOPort,
+                    debug: DebugPort::new(0x80, debug_io),
+                    amdmmio: AMDMMIO::com2(),
+                    text_outputs: [&uart0, &debug, &amdmmio] }
     }
 }
 
@@ -187,21 +192,14 @@ impl Driver for MainBoard<'_> {
             // IOHC::IOAPIC_BASE_ADDR_LO
             smn_write(0x13B1_02f0, 0xFEC0_0001);
 
-            let io = &mut self.uart0_io;
-            //let post = &mut IOPort;
-            let uart0 = &mut I8250::new(0x3f8, 0, io);
             uart0.init().unwrap();
-            let debug_io = &mut self.debug_io;
-            self.debug = DebugPort::new(0x80, debug_io);
             uart0.init().unwrap();
             uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
             self.debug.init().unwrap();
             self.debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-            let p0 = &mut self.amdmmio;
-            *p0 = AMDMMIO::com2();
             p0.init().unwrap();
             p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
-            self.text_outputs = [&mut self.debug as &mut dyn Driver, &mut uart0 as &mut dyn Driver, &mut p0 as &mut dyn Driver];
+            //self.text_outputs = [self.debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
             //let mut p: [u8; 1] = [0xf0; 1];
             //post.pwrite(&p, 0x80).unwrap();
 
