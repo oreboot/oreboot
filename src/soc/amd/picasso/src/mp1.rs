@@ -1,12 +1,14 @@
-use mp::mp1::pcie::PCIeTraining;
-use mp::mp1::usb::USBTraining;
+use mp::pcie::PCIeTraining;
+use mp::usb::USBTraining;
+use mp::mpmailbox::MPMailbox;
+use mp::mpmailbox::Result;
 
-struct MP1 {
-    mailbox: MPMailbox<6>;
+pub struct MP1 {
+    mailbox: MPMailbox<6>,
 }
 
 impl MP1 {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             mailbox: MPMailbox::<6>::new(0x3B1_0528, 0x3B1_0564, 0x3B1_0998),
         }
@@ -19,7 +21,7 @@ impl MP1 {
     }
 }
 
-impl MP1Training for MP1 {
+impl PCIeTraining for MP1 {
 }
 
 impl USBTraining for MP1 {
