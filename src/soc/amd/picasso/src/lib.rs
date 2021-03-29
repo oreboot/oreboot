@@ -1,9 +1,9 @@
 #![no_std]
 
-pub mod mp1;
+use mp::mpmailbox::MPMailbox;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-    let mp1 = mp1::MP1::new();
+    let mp1 = MPMailbox::new(0x3B1_0528, 0x3B1_0564, 0x3B1_0998, 6);
     match mp1.test(42) {
         Ok(v) => {
             write!(w, "MP1 test(42) result: {}\r\n", v).unwrap();
