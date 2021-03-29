@@ -3,30 +3,33 @@
 
 pub mod hsmp;
 
+use hsmp::HSMP;
+use mp::mpmailbox::MPMailbox;
+
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-    let hsmp = hsmp::HSMP::new(0);
+    let hsmp = HSMP::new();
     match hsmp.test(42) {
         Ok(v) => {
-            write!(w, "HSMP test(42) result: {}\r\n", v).unwrap();
+            write!(w, "HSMP test(42) result: {:x?}\r\n", v).unwrap();
         }
         Err(e) => {
-            write!(w, "HSMP test(42) error: {}\r\n", e).unwrap();
+            write!(w, "HSMP test(42) error: {:x?}\r\n", e).unwrap();
         }
     }
     match hsmp.smu_version() {
-        Ok((major, minor)) => {
-            write!(w, "HSMP smu version result: {}.{}\r\n", major, minor).unwrap();
+        Ok(v) => {
+            write!(w, "HSMP smu version result: {:x?}\r\n", v).unwrap();
         }
         Err(e) => {
-            write!(w, "HSMP smu version error: {}\r\n", e).unwrap();
+            write!(w, "HSMP smu version error: {:x?}\r\n", e).unwrap();
         }
     }
     match hsmp.interface_version() {
-        Ok((major, minor)) => {
-            write!(w, "HSMP interface version result: {}.{}\r\n", major, minor).unwrap();
+        Ok(v) => {
+            write!(w, "HSMP interface version result: {:x?}\r\n", v).unwrap();
         }
         Err(e) => {
-            write!(w, "HSMP interface version error: {}\r\n", e).unwrap();
+            write!(w, "HSMP interface version error: {:x?}\r\n", e).unwrap();
         }
     }
     let topology = df::FabricTopology::new();
