@@ -1,5 +1,6 @@
 #![no_std]
 
+mod mp1;
 use mp1::MP1;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
