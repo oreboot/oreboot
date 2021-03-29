@@ -1,16 +1,11 @@
 [package]
-name = "soc"
+name = "mp"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64" }
-df = { path = "../common/df" }
-mp = { path = "../common/mp" }
-pci = { path = "../common/pci" }
-smn = { path = "../common/smn" }
-vcell = "0.1.2"
+smn = { path = "../smn"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.
