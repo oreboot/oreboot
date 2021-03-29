@@ -10,21 +10,21 @@ pub type Result<T> = core::result::Result<T, MPMailboxCallError>;
 
 // See coreboot:src/soc/amd/common/block/smu/smu.c
 
-pub struct MPMailbox<const message_argument_count: usize> {
+pub struct MPMailbox<const MESSAGE_ARGUMENT_COUNT: usize> {
     message_id_smn_address: u32,
     message_response_smn_address: u32,
     message_first_arguments_smn_address: u32,
 }
 
-impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
+impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
     pub fn new(message_id_smn_address: u32, message_response_smn_address: u32, message_first_arguments_smn_address: u32) -> Self {
         Self { message_id_smn_address, message_response_smn_address, message_first_arguments_smn_address }
     }
 
-    fn call(&self, command: u32, arguments: &mut [u32; message_argument_count]) -> Result<()> {
+    fn call(&self, command: u32, arguments: &mut [u32; MESSAGE_ARGUMENT_COUNT]) -> Result<()> {
         //let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
         smn_write(self.message_response_smn_address, 0);
-        for i in 0..message_argument_count {
+        for i in 0..MESSAGE_ARGUMENT_COUNT {
             smn_write(self.message_first_arguments_smn_address + (i as u32) * 4, arguments[i]);
         }
         smn_write(self.message_id_smn_address, command);
@@ -35,7 +35,7 @@ impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
 
         if response == 1 {
             // OK
-            for i in 0..message_argument_count {
+            for i in 0..MESSAGE_ARGUMENT_COUNT {
                 arguments[i] = smn_read(self.message_first_arguments_smn_address + (i as u32) * 4);
             }
             Ok(())
@@ -45,9 +45,9 @@ impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
     }
 
     pub fn call1(&self, command: u32, v: u32) -> Result<u32> {
-        let mut arguments: [u32; message_argument_count] = [0; message_argument_count];
+        let mut arguments: [u32; MESSAGE_ARGUMENT_COUNT] = [0; MESSAGE_ARGUMENT_COUNT];
         arguments[0] = v;
-        let result = self.call(command, &mut arguments)?;
+        let _result = self.call(command, &mut arguments)?;
         Ok(arguments[0])
     }
 
