@@ -22,3 +22,9 @@ impl HSMP {
         Ok(result)
     }
 }
+
+impl Default for HSMP {
+    fn default() -> Self {
+        Self::new()
+    }
+}

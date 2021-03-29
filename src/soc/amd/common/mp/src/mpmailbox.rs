@@ -24,8 +24,8 @@ impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
     fn call(&self, command: u32, arguments: &mut [u32; MESSAGE_ARGUMENT_COUNT]) -> Result<()> {
         //let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
         smn_write(self.message_response_smn_address, 0);
-        for i in 0..MESSAGE_ARGUMENT_COUNT {
-            smn_write(self.message_first_arguments_smn_address + (i as u32) * 4, arguments[i]);
+        for (i, argument) in arguments.iter().enumerate().take(MESSAGE_ARGUMENT_COUNT) {
+            smn_write(self.message_first_arguments_smn_address + (i as u32) * 4, *argument);
         }
         smn_write(self.message_id_smn_address, command);
         let mut response: u32 = smn_read(self.message_response_smn_address);
@@ -35,8 +35,8 @@ impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
 
         if response == 1 {
             // OK
-            for i in 0..MESSAGE_ARGUMENT_COUNT {
-                arguments[i] = smn_read(self.message_first_arguments_smn_address + (i as u32) * 4);
+            for (i, argument) in arguments.iter_mut().enumerate().take(MESSAGE_ARGUMENT_COUNT) {
+                *argument = smn_read(self.message_first_arguments_smn_address + (i as u32) * 4);
             }
             Ok(())
         } else {
