@@ -1,2 +1,2 @@
-trait USBTraining {
+pub trait USBTraining {
 }
