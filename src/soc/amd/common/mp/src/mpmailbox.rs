@@ -18,11 +18,7 @@ pub struct MPMailbox<const message_argument_count: usize> {
 
 impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
     pub fn new(message_id_smn_address: u32, message_response_smn_address: u32, message_first_arguments_smn_address: u32) -> Self {
-        Self {
-            message_id_smn_address,
-            message_response_smn_address,
-            message_first_arguments_smn_address,
-        }
+        Self { message_id_smn_address, message_response_smn_address, message_first_arguments_smn_address }
     }
 
     fn call(&self, command: u32, arguments: &mut [u32; message_argument_count]) -> Result<()> {
