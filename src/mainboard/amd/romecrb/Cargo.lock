@@ -247,6 +247,7 @@ dependencies = [
  "clock",
  "console",
  "cpu",
+ "df",
  "heapless 0.4.4",
  "model",
  "payloads",
