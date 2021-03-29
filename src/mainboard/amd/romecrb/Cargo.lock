@@ -154,6 +154,13 @@ name = "model"
 version = "0.1.0"
 
 [[package]]
+name = "mp"
+version = "0.1.0"
+dependencies = [
+ "smn",
+]
+
+[[package]]
 name = "payloads"
 version = "0.1.0"
 dependencies = [
@@ -292,6 +299,7 @@ version = "0.1.0"
 dependencies = [
  "arch",
  "df",
+ "mp",
  "pci",
  "vcell",
 ]

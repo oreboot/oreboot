@@ -3,6 +3,11 @@
 
 use smn::{smn_read, smn_write};
 
+#[derive(Debug, Clone)]
+pub struct MPMailboxCallError(u32);
+
+pub type Result<T> = core::result::Result<T, MPMailboxCallError>;
+
 // See coreboot:src/soc/amd/common/block/smu/smu.c
 
 pub struct MPMailbox<const message_argument_count: usize> {
@@ -20,7 +25,7 @@ impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
         }
     }
 
-    fn call(&self, command: u32, arguments: &mut [u32; message_argument_count]) -> Result<(), u32> {
+    fn call(&self, command: u32, arguments: &mut [u32; message_argument_count]) -> Result<()> {
         //let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
         smn_write(self.message_response_smn_address, 0);
         for i in 0..message_argument_count {
@@ -39,22 +44,22 @@ impl<const message_argument_count: usize> MPMailbox<message_argument_count> {
             }
             Ok(())
         } else {
-            Err(response)
+            Err(MPMailboxCallError(response))
         }
     }
 
-    pub fn call1(&self, command: u32, v: u32) -> Result<u32, u32> {
+    pub fn call1(&self, command: u32, v: u32) -> Result<u32> {
         let mut arguments: [u32; message_argument_count] = [0; message_argument_count];
         arguments[0] = v;
         let result = self.call(command, &mut arguments)?;
         Ok(arguments[0])
     }
 
-    pub fn test(&self, v: u32) -> Result<u32, u32> {
+    pub fn test(&self, v: u32) -> Result<u32> {
         self.call1(1, v)
     }
 
-    pub fn smu_version(&self) -> Result<u32, u32> {
+    pub fn smu_version(&self) -> Result<u32> {
         self.call1(2, 0)
     }
 }
