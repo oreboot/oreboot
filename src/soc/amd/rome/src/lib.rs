@@ -4,7 +4,6 @@
 pub mod hsmp;
 
 use hsmp::HSMP;
-use mp::mpmailbox::MPMailbox;
 
 pub fn soc_init(w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
     let hsmp = HSMP::new();
