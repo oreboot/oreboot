@@ -1,2 +1,2 @@
-trait PCIeTraining {
+pub trait PCIeTraining {
 }
