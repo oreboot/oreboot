@@ -13,19 +13,19 @@ pub type Result<T> = core::result::Result<T, MPMailboxCallError>;
 pub struct MPMailbox<const MESSAGE_ARGUMENT_COUNT: usize> {
     message_id_smn_address: u32,
     message_response_smn_address: u32,
-    message_first_arguments_smn_address: u32,
+    message_first_argument_smn_address: u32,
 }
 
 impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
-    pub fn new(message_id_smn_address: u32, message_response_smn_address: u32, message_first_arguments_smn_address: u32) -> Self {
-        Self { message_id_smn_address, message_response_smn_address, message_first_arguments_smn_address }
+    pub fn new(message_id_smn_address: u32, message_response_smn_address: u32, message_first_argument_smn_address: u32) -> Self {
+        Self { message_id_smn_address, message_response_smn_address, message_first_argument_smn_address }
     }
 
     fn call(&self, command: u32, arguments: &mut [u32; MESSAGE_ARGUMENT_COUNT]) -> Result<()> {
         //let mut response: u32 = smn_read(MESSAGE_RESPONSE_SMN);
         smn_write(self.message_response_smn_address, 0);
         for (i, argument) in arguments.iter().enumerate().take(MESSAGE_ARGUMENT_COUNT) {
-            smn_write(self.message_first_arguments_smn_address + (i as u32) * 4, *argument);
+            smn_write(self.message_first_argument_smn_address + (i as u32) * 4, *argument);
         }
         smn_write(self.message_id_smn_address, command);
         let mut response: u32 = smn_read(self.message_response_smn_address);
@@ -36,7 +36,7 @@ impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
         if response == 1 {
             // OK
             for (i, argument) in arguments.iter_mut().enumerate().take(MESSAGE_ARGUMENT_COUNT) {
-                *argument = smn_read(self.message_first_arguments_smn_address + (i as u32) * 4);
+                *argument = smn_read(self.message_first_argument_smn_address + (i as u32) * 4);
             }
             Ok(())
         } else {
@@ -47,7 +47,7 @@ impl<const MESSAGE_ARGUMENT_COUNT: usize> MPMailbox<MESSAGE_ARGUMENT_COUNT> {
     pub fn call1(&self, command: u32, v: u32) -> Result<u32> {
         let mut arguments: [u32; MESSAGE_ARGUMENT_COUNT] = [0; MESSAGE_ARGUMENT_COUNT];
         arguments[0] = v;
-        let _result = self.call(command, &mut arguments)?;
+        self.call(command, &mut arguments)?;
         Ok(arguments[0])
     }
 
