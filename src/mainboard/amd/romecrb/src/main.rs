@@ -14,7 +14,7 @@ use model::Driver;
 use print;
 use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
-use soc::soc_init;
+use soc::SOC;
 use uart::amdmmio::AMDMMIO;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
@@ -223,7 +223,7 @@ fn smngotwant(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     write!(w, "{:x}: GOT {:x}, WANT {:x}\r\n", reg, got, want).unwrap();
 }
 
-fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
+fn cpu_init<'a>(w: &mut impl core::fmt::Write, soc: &'a mut soc::SOC) -> Result<(), &'a str> {
     let cpuid = CpuId::new();
     match cpuid.get_vendor_info() {
         Some(vendor) => {
@@ -254,7 +254,7 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
             match amd_model_id {
                 Some(v) if v >= 0x31 => {
                     // Rome
-                    soc_init(w)
+                    soc.init(w)
                 }
                 _ => {
                     write!(w, "Unsupported AMD CPU\r\n").unwrap();
@@ -264,7 +264,7 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
         }
         Some(0x19) => {
             // Milan
-            soc_init(w)
+            soc.init(w)
         }
         _ => {
             write!(w, "Unsupported AMD CPU\r\n").unwrap();
@@ -292,6 +292,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
     let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
+
+    // todo: this should do the cpu init.
+    // soc is a superset of cpu is a superset of architecture.
+    let s = &mut SOC::new();
 
     for _i in 1..32 {
         console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
@@ -583,7 +587,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     p[0] = p[0] + 1;
 
-    match cpu_init(w) {
+    match cpu_init(w, s) {
         Ok(()) => {}
         Err(_e) => {
             write!(w, "Error from amd_init acknowledged--continuing anyway\r\n").unwrap();
