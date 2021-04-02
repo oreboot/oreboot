@@ -2,19 +2,20 @@
 #![feature(llvm_asm)]
 
 pub mod hsmp;
-
 use hsmp::HSMP;
 
-pub struct SOC {}
+pub struct SOC {
+    hsmp: HSMP,
+}
 
 impl SOC {
     pub fn new() -> SOC {
-        Self {}
+        let hsmp = HSMP::new();
+        Self { hsmp }
     }
 
     pub fn init(&mut self, w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-        let hsmp = HSMP::new();
-        match hsmp.test(42) {
+        match self.hsmp.test(42) {
             Ok(v) => {
                 write!(w, "HSMP test(42) result: {:x?}\r\n", v).unwrap();
             }
@@ -22,7 +23,7 @@ impl SOC {
                 write!(w, "HSMP test(42) error: {:x?}\r\n", e).unwrap();
             }
         }
-        match hsmp.smu_version() {
+        match self.hsmp.smu_version() {
             Ok(v) => {
                 write!(w, "HSMP smu version result: {:x?}\r\n", v).unwrap();
             }
@@ -30,7 +31,7 @@ impl SOC {
                 write!(w, "HSMP smu version error: {:x?}\r\n", e).unwrap();
             }
         }
-        match hsmp.interface_version() {
+        match self.hsmp.interface_version() {
             Ok(v) => {
                 write!(w, "HSMP interface version result: {:x?}\r\n", v).unwrap();
             }
