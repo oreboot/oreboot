@@ -73,7 +73,7 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
-    let console = &mut DoD::new(&mut m.text_outputs);
+    let console = &mut DoD::new(&mut m.text_outputs());
     let w = &mut print::WriteTo::new(console);
     cpu_init(w);
     boot(w, fdt_address);
