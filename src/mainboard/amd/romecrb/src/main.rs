@@ -16,7 +16,6 @@ use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
 use soc::SOC;
 use uart::amdmmio::AMDMMIO;
-use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
@@ -298,16 +297,16 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let post = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
     uart0.init().unwrap();
-    let debug_io = &mut IOPort;
-    let debug = &mut DebugPort::new(0x80, debug_io);
+    //let debug_io = &mut IOPort;
+    //let debug = &mut DebugPort::new(0x80, debug_io);
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-    debug.init().unwrap();
-    debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    //debug.init().unwrap();
+    //debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
     let p0 = &mut AMDMMIO::com2();
     p0.init().unwrap();
     p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
-    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
+    let s = &mut [uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
     // todo: this should do the cpu init.
