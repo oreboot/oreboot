@@ -168,9 +168,9 @@ protected:
 	shr $24, %ebx
 
 	mov %ebx, %esp
-	shl $13, %esp
-	add $0x2000, %esp
-	// Note: All the stacks are below address 0x20_0000
+	inc %esp
+	shl $15, %esp
+	// Note: All the stacks are below address 0x80_0000
 
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
