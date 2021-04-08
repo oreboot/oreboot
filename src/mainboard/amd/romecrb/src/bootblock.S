@@ -79,9 +79,7 @@ gdt_end:
 3:
 	movb $0x42, %al
 	outb %al, $0x80
-	movw $0x3F8, %dx
   movb $0xAA, %al
-  call p4
 	// TOS contains a pointer to the gdt descriptor
 	popl %eax
 	// The low 4 bits of %eax are 3.
@@ -103,12 +101,6 @@ gdt_end:
 	outb %al, $0x80
 	popl %eax
 	lgdt (%eax)
-
-  pushl %edx /* Print num */
-  movw $0x3f8, %dx
-  movb $'1', %al
-  outb %al, %dx
-  popl %edx /* Print num */
 
 	movb $0xbf, %al
 	outb %al, $0x80
@@ -132,65 +124,6 @@ gdt_end:
 
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
 	ljmpl	$0x18, $__protected_start
-
-p4:
-  push %ebx
-  push %eax // Input in ax
-
-  movw $0x3FD, %dx  // Check LCR while transmit buffer is full
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  pop %eax
-  push %eax // Restore input to ax
-
-  movw $0x3F8, %dx  // UART port
-  rorb $4, %al      // Upper nibble first
-  andb $0x0f, %al
-  cmp $9, %al
-  jg 1f
-  add $'0', %al
-  jmp 2f
-  1: add $0x37, %al
-  2: outb %al, %dx
-
-  movw $0x3FD, %dx  // LCR check
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  pop %eax
-  push %eax // Restore input to ax
-
-  movw $0x3F8, %dx  // UART port
-  andb $0x0f, %al
-  cmp $9, %al
-  jg 1f
-  add $'0', %al
-  jmp 2f
-  1: add $0x37, %al
-  2: outb %al, %dx
-
-  movw $0x3FD, %dx  // LCR check
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  movw $0x3F8, %dx  // UART port
-  movb $0x0A, %al // \r\n after a print
-  outb %al, %dx
-  movb $0x0D, %al
-  outb %al, %dx
-
-  pop %eax
-  pop %ebx
-  ret
-
-
 
 	// TODO: should set accessed and dirty bits in gdt entries
 	// so CPU does not try to write them to ROM?
@@ -269,7 +202,6 @@ lme:
 //	shrl $24, %eax
 //	outb    %al, $0x80
 //1: jmp 1b
-  movw $0x3f8, %dx /* Print num */
 	movl	%cr0, %eax
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
