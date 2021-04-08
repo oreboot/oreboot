@@ -178,6 +178,9 @@ protected:
 	shl $15, %esp
 	// Note: All the stacks are below address 0x80_0000
 
+        // Push the APIC_ID on the stack as a little debugging helper
+        push %ebx
+
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
 	jmp 1f
