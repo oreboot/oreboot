@@ -162,6 +162,12 @@ protected:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
+	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
+	movl   $0x1b, %ecx
+	rdmsr
+	orl $0x800, %eax
+	wrmsr
+
 	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
 	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
 	movl ($0xFEE0_0020), %ebx
