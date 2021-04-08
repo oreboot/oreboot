@@ -631,8 +631,9 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     // See <https://developer.amd.com/resources/epyc-resources/epyc-specifications/>, "Processor Programming Reference (PPR) for Family 17h Model 31h, Revision B0 Processors"
-    let apic_base = unsafe { Msr::new(0x1b).read() };
-    if apic_base & (1 << 8) != 0 {
+    let apic_base = unsafe { Msr::new(0x1b).read() }; // Note: This MSR is per-thread
+    let bootstrap_core = apic_base & (1 << 8) != 0;
+    if bootstrap_core {
         start_bootstrap_core(fdt_address);
     } else {
         // See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
