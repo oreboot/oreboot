@@ -272,25 +272,7 @@ fn cpu_init<'a>(w: &mut impl core::fmt::Write, soc: &'a mut soc::SOC) -> Result<
     }
 }
 
-#[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
-    // See <https://developer.amd.com/resources/epyc-resources/epyc-specifications/>, "Processor Programming Reference (PPR) for Family 17h Model 31h, Revision B0 Processors"
-    let apic_base = unsafe { Msr::new(0x1b).read() };
-    if apic_base & (1 << 8) == 0 {
-        // not bootstrap core
-        // See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
-        // APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
-        let apic_id = (peek32(0xFEE0_0020) >> 24) as u8;
-
-        let post = &mut IOPort;
-        let mut p: [u8; 1] = [0; 1];
-        p[0] = apic_id;
-        post.pwrite(&p, 0x80).unwrap();
-        loop {
-            arch::halt();
-        }
-    }
-
+fn start_bootstrap_core(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
     let io = &mut IOPort;
@@ -584,9 +566,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         //let v = rdmsr(0xc001_1004);
         //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
     }
-    unsafe {
-        write!(w, "0x1b is {:x} \r\n", apic_base).unwrap();
-    }
+    // unsafe {
+    //    write!(w, "0x1b is {:x} \r\n", apic_base).unwrap();
+    //}
     p[0] = p[0] + 1;
     let payload = &mut BzImage {
         low_mem_size: 0x80000000,
@@ -644,6 +626,27 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
     arch::halt()
+}
+
+#[no_mangle]
+pub extern "C" fn _start(fdt_address: usize) -> ! {
+    // See <https://developer.amd.com/resources/epyc-resources/epyc-specifications/>, "Processor Programming Reference (PPR) for Family 17h Model 31h, Revision B0 Processors"
+    let apic_base = unsafe { Msr::new(0x1b).read() };
+    if apic_base & (1 << 8) != 0 {
+        start_bootstrap_core(fdt_address);
+    } else {
+        // See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
+        // APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
+        let apic_id = (peek32(0xFEE0_0020) >> 24) as u8;
+
+        let post = &mut IOPort;
+        let mut p: [u8; 1] = [0x33; 1];
+        p[0] = apic_id;
+        post.pwrite(&p, 0x80).unwrap();
+        loop {
+            arch::halt();
+        }
+    }
 }
 
 #[panic_handler]
