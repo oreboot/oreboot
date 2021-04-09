@@ -16,7 +16,6 @@ use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
 use soc::SOC;
 use uart::amdmmio::AMDMMIO;
-use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
@@ -273,24 +272,23 @@ fn cpu_init<'a>(w: &mut impl core::fmt::Write, soc: &'a mut soc::SOC) -> Result<
     }
 }
 
-#[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
+fn start_bootstrap_core(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
     let io = &mut IOPort;
     let post = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
     uart0.init().unwrap();
-    let debug_io = &mut IOPort;
-    let debug = &mut DebugPort::new(0x80, debug_io);
+    //let debug_io = &mut IOPort;
+    //let debug = &mut DebugPort::new(0x80, debug_io);
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-    debug.init().unwrap();
-    debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    //debug.init().unwrap();
+    //debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
     let p0 = &mut AMDMMIO::com2();
     p0.init().unwrap();
     p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
-    let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
+    let s = &mut [uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
     // todo: this should do the cpu init.
@@ -568,9 +566,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         //let v = rdmsr(0xc001_1004);
         //write!(w, "c001_1004 is {:x} and APIC is bit {:x}\r\n", v, 1 << 9).unwrap();
     }
-    unsafe {
-        write!(w, "0x1b is {:x} \r\n", Msr::new(0x1b).read()).unwrap();
-    }
+    // unsafe {
+    //    write!(w, "0x1b is {:x} \r\n", apic_base).unwrap();
+    //}
     p[0] = p[0] + 1;
     let payload = &mut BzImage {
         low_mem_size: 0x80000000,
@@ -628,6 +626,28 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
     arch::halt()
+}
+
+#[no_mangle]
+pub extern "C" fn _start(fdt_address: usize) -> ! {
+    // See <https://developer.amd.com/resources/epyc-resources/epyc-specifications/>, "Processor Programming Reference (PPR) for Family 17h Model 31h, Revision B0 Processors"
+    let apic_base = unsafe { Msr::new(0x1b).read() }; // Note: This MSR is per-thread
+    let bootstrap_core = apic_base & (1 << 8) != 0;
+    if bootstrap_core {
+        start_bootstrap_core(fdt_address);
+    } else {
+        // See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
+        // APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
+        let apic_id = (peek32(0xFEE0_0020) >> 24) as u8;
+
+        let post = &mut IOPort;
+        let mut p: [u8; 1] = [0x33; 1];
+        p[0] = apic_id;
+        post.pwrite(&p, 0x80).unwrap();
+        loop {
+            arch::halt();
+        }
+    }
 }
 
 #[panic_handler]
