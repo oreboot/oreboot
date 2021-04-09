@@ -31,8 +31,16 @@ const SMB_UART_1_8M_SHIFT: u8 = 28;
 const SMB_UART_CONFIG_UART0_1_8M: u32 = 1 << SMB_UART_1_8M_SHIFT;
 const SMB_UART_CONFIG_UART1_1_8M: u32 = 1 << (SMB_UART_1_8M_SHIFT + 1);
 
+// Nothing from these three lines is documented anywhere that we can find.
+// FCH_UART_LEGACY_DECODE is in coreboot.
+// Some idea of the proper values was obtained using the u-root io command,
+// coupled with dumping ACPI to get some idea what the values might mean.
+// The rest is further interpolation.
 const FCH_UART_LEGACY_DECODE: *const VolatileCell<u16> = 0xfedc_0020 as *const _;
+// ACPI calls this IER3, which we assume means Io Enable Redirect 3?
 const FCH_LEGACY_3F8_SH: u16 = 1 << 3;
+// ACPI calls this WUR3, which means ... ?
+// This is two-bit field for bits 15:14.
 const FCH_WUR3: u16 = 1 << 14;
 //const FCH_LEGACY_2F8_SH: u16 = 1 << 1;
 
