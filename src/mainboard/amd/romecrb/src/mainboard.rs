@@ -33,6 +33,7 @@ const SMB_UART_CONFIG_UART1_1_8M: u32 = 1 << (SMB_UART_1_8M_SHIFT + 1);
 
 const FCH_UART_LEGACY_DECODE: *const VolatileCell<u16> = 0xfedc_0020 as *const _;
 const FCH_LEGACY_3F8_SH: u16 = 1 << 3;
+const FCH_WUR3: u16 = 1 << 14;
 //const FCH_LEGACY_2F8_SH: u16 = 1 << 1;
 
 // See coreboot:src/soc/amd/common/block/include/amdblocks/acpimmio_map.h
@@ -140,7 +141,7 @@ impl Driver for MainBoard {
             pinctrl(144, 0); // [UART1_INTR, AGPIO144][0]; Note: The reset default is 0
 
             // Set up the legacy decode for UART 0.
-            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
+            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH | FCH_WUR3);
             let mut msr0 = Msr::new(0x1b);
             /*unsafe*/
             {
