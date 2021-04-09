@@ -4,7 +4,7 @@ use mp::mpmailbox::MPMailbox;
 use mp::mpmailbox::Result;
 
 pub struct HSMP {
-    mailbox: MPMailbox<8>,
+    pub(crate) mailbox: MPMailbox<8>,
 }
 
 impl HSMP {

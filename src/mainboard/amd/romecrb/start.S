@@ -135,7 +135,7 @@ outb	%al, $0x80
 	subw	%ax, %bx
 	lidt	%cs:(%bx)
 */
-	movl	$0xffffffc8, %ebx
+	movl	$0xffffffe8, %ebx
 	// Leave it hand assembled. gas will NOT do the right thing.
 	//lgdtl	%cs:(%bx)
 	.byte 0x66, 0x2E, 0x0F, 0x01, 0x17
@@ -162,6 +162,25 @@ protected:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
+	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
+	movl   $0x1b, %ecx
+	rdmsr
+	orl $0x800, %eax
+	wrmsr
+
+	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
+	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
+	movl ($0xFEE0_0020), %ebx
+	shr $24, %ebx
+
+	mov %ebx, %esp
+	inc %esp
+	shl $15, %esp
+	// Note: All the stacks are below address 0x80_0000
+
+        // Push the APIC_ID on the stack as a little debugging helper
+        push %ebx
+
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
 	jmp 1f
@@ -170,7 +189,7 @@ protected:
 	 * The gdt is defined in entry32.inc, it has a 4 Gb code segment
 	 * at 0x08, and a 4 GB data segment at 0x10;
 	 */
-.org 0xFFc8
+.org 0xFFe8
 9:
 .globl gdtptr16
 gdtptr16:
@@ -186,6 +205,6 @@ gdtptr16:
 //	nop
 	nop
 	outb %al, $0x80
-	movl $0x2000, %esp
+
 	push $0x76f08000
 	ret

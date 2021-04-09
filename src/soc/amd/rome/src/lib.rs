@@ -26,7 +26,7 @@ impl SOC {
     }
 
     pub fn init(&mut self, w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-        let mps = [&self.mp0, &self.mp1, &self.mp2, &self.mp3];
+        let mps = [&self.mp0, &self.mp1, &self.mp2, &self.mp3, &self.hsmp.mailbox];
         for mp in mps.iter() {
             match mp.test(42) {
                 Ok(v) => {
@@ -44,31 +44,8 @@ impl SOC {
                     write!(w, "mp smu version error: {:x?}\r\n", e).unwrap();
                 }
             }
-            // match mp.interface_version() {
-            //     Ok(v) => {
-            //         write!(w, "mp interface version result: {:x?}\r\n", v).unwrap();
-            //     }
-            //     Err(e) => {
-            //         write!(w, "mp interface version error: {:x?}\r\n", e).unwrap();
-            //     }
-            // }
         }
-        match self.hsmp.test(42) {
-            Ok(v) => {
-                write!(w, "HSMP test(42) result: {:x?}\r\n", v).unwrap();
-            }
-            Err(e) => {
-                write!(w, "HSMP test(42) error: {:x?}\r\n", e).unwrap();
-            }
-        }
-        match self.hsmp.smu_version() {
-            Ok(v) => {
-                write!(w, "HSMP smu version result: {:x?}\r\n", v).unwrap();
-            }
-            Err(e) => {
-                write!(w, "HSMP smu version error: {:x?}\r\n", e).unwrap();
-            }
-        }
+
         match self.hsmp.interface_version() {
             Ok(v) => {
                 write!(w, "HSMP interface version result: {:x?}\r\n", v).unwrap();
