@@ -167,7 +167,15 @@ protected:
 	rdmsr
 	orl $0x800, %eax
 	wrmsr
+	// Check whether bootstrap core (and thread)
+	test $0x100, %eax
+	jz 2f
 
+	// Give bootstrap core and thread a bigger stack (32 KiB)
+	mov $0x8000, %esp
+	jmp 3f
+
+2:
 	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
 	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
 	movl ($0xFEE0_0020), %ebx
@@ -175,11 +183,12 @@ protected:
 
 	mov %ebx, %esp
 	inc %esp
-	shl $15, %esp
-	// Note: All the stacks are below address 0x80_0000
+	// Give other threads a smaller stack (4 KiB)
+	shl $12, %esp
+	add $0x1000, %esp
 
-        // Push the APIC_ID on the stack as a little debugging helper
-        push %ebx
+	// Note: All the stacks are below address 0x10_8000
+3:
 
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
