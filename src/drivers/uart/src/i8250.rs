@@ -1,13 +1,14 @@
 use model::*;
+use arch::ioport::IOPort;
 
-pub struct I8250<'a> {
+pub struct I8250 {
     base: usize,
     _baud: u32,
-    d: &'a mut dyn Driver,
+    d: IOPort,
 }
 
-impl<'a> I8250<'a> {
-    pub fn new(base: usize, _baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
+impl<'a> I8250 {
+    pub fn new(base: usize, _baud: u32, d: IOPort) -> I8250 {
         I8250 { base, _baud, d }
     }
 
@@ -26,7 +27,7 @@ impl<'a> I8250<'a> {
     }
 }
 #[allow(dead_code)]
-impl<'a> Driver for I8250<'a> {
+impl<'a> Driver for I8250 {
     // TODO: properly use the register crate.
     fn init(&mut self) -> Result<()> {
         const DLL: usize = 0x00; // Divisor Latch Low Byte               RW

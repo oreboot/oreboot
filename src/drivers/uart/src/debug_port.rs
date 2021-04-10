@@ -1,19 +1,20 @@
 use model::{Driver, Result};
+use arch::ioport::IOPort;
 use timer::hpet::HPET;
 
-pub struct DebugPort<'a> {
+pub struct DebugPort {
     address: usize,
-    d: &'a mut dyn Driver,
+    d: IOPort,
     timer: HPET,
 }
 
-impl<'a> DebugPort<'a> {
-    pub fn new(address: usize, d: &'a mut dyn Driver) -> DebugPort<'a> {
+impl<'a> DebugPort {
+    pub fn new(address: usize, d: IOPort) -> DebugPort {
         DebugPort { address, d, timer: HPET::hpet() }
     }
 }
 
-impl<'a> Driver for DebugPort<'a> {
+impl<'a> Driver for DebugPort {
     // Nothing to set up here
     fn init(&mut self) -> Result<()> {
         Ok(())

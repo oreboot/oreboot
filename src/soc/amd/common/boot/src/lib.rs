@@ -153,7 +153,7 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     let mut done: bool = false;
     let newline: [u8; 2] = [10, 13];
     while done == false {
-        let io = &mut IOPort;
+        let io = IOPort {};
         let uart0 = &mut I8250::new(0x3f8, 0, io);
         let mut line: Vec<u8, U16> = Vec::new();
         loop {
