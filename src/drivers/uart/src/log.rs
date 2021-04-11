@@ -40,7 +40,7 @@ impl<'a> Driver for Log<'a> {
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_, &c) in data.iter().enumerate() {
+        for &c in data {
             self.dat.push(c).unwrap();
         }
         Ok(data.len())

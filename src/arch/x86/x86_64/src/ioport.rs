@@ -55,7 +55,7 @@ impl Driver for IOPort {
     }
 
     fn pwrite(&mut self, data: &[u8], offset: usize) -> Result<usize> {
-        for (_i, &c) in data.iter().enumerate() {
+        for &c in data {
             unsafe {
                 outb(offset as u16, c);
             }

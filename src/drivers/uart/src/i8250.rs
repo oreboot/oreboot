@@ -80,7 +80,7 @@ impl<'a> Driver for I8250<'a> {
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_i, &c) in data.iter().enumerate() {
+        for &c in data {
             // Poll the status for long enough to let a char out; then push it out anyway.
             while !self.poll_status(0x20, 0x20) && !self.poll_status(0x40, 0x40) {}
             let mut s = [0u8; 1];
