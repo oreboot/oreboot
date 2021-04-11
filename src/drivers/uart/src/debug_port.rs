@@ -26,7 +26,7 @@ impl<'a> Driver for DebugPort<'a> {
 
     // Just write out byte for byte :)
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_i, &c) in data.iter().enumerate() {
+        for &c in data {
             let mut s = [0u8; 1];
             s[0] = c;
             // 0.5 microseconds

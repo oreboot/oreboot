@@ -246,15 +246,13 @@ impl Driver for OpenTitanUART {
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_, &c) in data.iter().enumerate() {
+        for &c in data {
             // TODO: give up after 100k tries.
             while self.status.is_set(STATUS::TXFULL) {
                 // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
                 //       this loop. Remove if we deem it not necessary.
                 unsafe { llvm_asm!("" :::: "volatile") }
             }
-            //return Ok(i);
-            //}
             self.wdata.set(c.into());
         }
         Ok(data.len())
