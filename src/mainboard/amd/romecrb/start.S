@@ -163,8 +163,8 @@ protected:
 	movw	%ax, %gs
 
 	// Give bootstrap core and thread a bigger stack (32 KiB)
-	// The 0x500 is in order to avoid the BIOS data area
-	mov $0x8500, %esp
+	// Added 0x500 is in order to avoid the BIOS data area, then an extra 0x500 in order to page-align the stack again
+	mov $0x9000, %esp
 
 	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
 	movl   $0x1b, %ecx
@@ -188,7 +188,7 @@ protected:
 	shl $11, %ebx
 	add %ebx, %esp
 
-	// Note: All the stacks are below address 0x88_500
+	// Note: All the stacks are below address 0x89_000
 	// Video memory via MMIO is eventually mapped at 0xA0000--avoid area
 3:
 
