@@ -148,8 +148,8 @@ outb	%al, $0x80
 	movl	%ebp, %eax
 
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
-	ljmpl	$8, $0xffffffb1
-.org 0xffb1
+	ljmpl	$8, $0xffffffa8
+.org 0xffa8
 .code32
 protected:
 	movb $0xac, %al
@@ -162,24 +162,35 @@ protected:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
+	// Give bootstrap core and thread a bigger stack (32 KiB)
+	// The 0x500 is in order to avoid the BIOS data area
+	mov $0x8500, %esp
+
 	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
 	movl   $0x1b, %ecx
 	rdmsr
 	orl $0x800, %eax
 	wrmsr
 
+	// Check whether we are running on the bootstrap core (and thread)
+	test $0x100, %eax
+	jnz 3f
+
+	// Note: Non-bootstrap cores reach this place
+
 	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
 	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
 	movl ($0xFEE0_0020), %ebx
 	shr $24, %ebx
+	inc %ebx
 
-	mov %ebx, %esp
-	inc %esp
-	shl $15, %esp
-	// Note: All the stacks are below address 0x80_0000
+	// Give other cores and threads a smaller stack (2 KiB)
+	shl $11, %ebx
+	add %ebx, %esp
 
-        // Push the APIC_ID on the stack as a little debugging helper
-        push %ebx
+	// Note: All the stacks are below address 0x88_500
+	// Video memory via MMIO is eventually mapped at 0xA0000--avoid area
+3:
 
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
