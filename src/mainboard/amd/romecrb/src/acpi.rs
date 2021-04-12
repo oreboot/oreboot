@@ -1,6 +1,7 @@
 use arch::acpi::*;
 use arch::consts::x86;
 use core::mem::size_of;
+use raw_cpuid::cpuid;
 use util::round_up_4k;
 
 /// Setup the BIOS tables in the low memory
@@ -9,11 +10,13 @@ use util::round_up_4k;
 /// of the guest. `low_mem` is a host virtual memory block which is mapped to
 /// the lowest memory of the guest. `cores` is the number of logical CPUs of the guest.
 /// Total number of bytes occupied by the BIOS tables is returned.
-pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32) -> usize {
+pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
     // calculate offsets first
     // variables with suffix `_offset` mean the offset in `low_mem`.
 
     const NUM_XSDT_ENTRIES: usize = 4;
+    // See <https://developer.amd.com/wp-content/resources/55803_B0_PUB_0_91.pdf>, CPUID_Fn80000008_ECX [Size Identifiers] (Core::X86::Cpuid::SizeId), field "NC".
+    let cores = (cpuid!(0x80000008).ecx & 0xFF) + 1;
 
     let rsdp_offset = start;
     let xsdt_offset = rsdp_offset + size_of::<AcpiTableRsdp>();
