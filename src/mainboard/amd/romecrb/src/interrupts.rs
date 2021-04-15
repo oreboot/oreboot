@@ -4,13 +4,15 @@ use lazy_static::lazy_static;
 use x86_64::structures::idt::InterruptDescriptorTable;
 use x86_64::structures::idt::InterruptStackFrame;
 
-unsafe fn outl(port: u16, val: u32) {
-    llvm_asm!("outl %eax, %dx" :: "{dx}"(port), "{al}"(val));
+fn outb(port: u16, val: u8) {
+    unsafe {
+        llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
+    }
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame) {
     unsafe {
-        outl(0x80, 0x11);
+        outb(0x80, 0x11);
     }
     panic!("Exception: Breakpoint.\r\n{:#?}", stack_frame);
 }
