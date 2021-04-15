@@ -598,8 +598,10 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
 
     write!(w, "Write acpi tables\r\n").unwrap();
     setup_acpi_tables(w, 0xf_0000); // Note: Linux needs to be compiled with CONFIG_ACPI_LEGACY_TABLES_LOOKUP enabled for that address to be used.
-    write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
-    consdebug(w);
+    if false {
+        write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
+        consdebug(w);
+    }
     if false {
         msrs(w);
     }
@@ -613,8 +615,10 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     payload.load(w).unwrap();
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
-    write!(w, "Back from loading payload, call debug\r\n").unwrap();
-    consdebug(w);
+    if false {
+        write!(w, "Back from loading payload, call debug\r\n").unwrap();
+        consdebug(w);
+    }
     write!(w, "Running payload entry is {:x}\r\n", payload.entry).unwrap();
     post.pwrite(&p, 0x80).unwrap();
     p[0] = p[0] + 1;
