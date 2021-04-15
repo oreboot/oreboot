@@ -188,8 +188,8 @@ protected:
 	shl $11, %ebx
 	add %ebx, %esp
 
-	// Note: All the stacks are below address 0x89_000
-	// Video memory via MMIO is eventually mapped at 0xA0000--avoid area
+	// Note: All the stacks are below address 0x8_9000
+	// Video memory via MMIO is eventually mapped at 0xA_0000--avoid area
 3:
 
 	/* Restore the BIST value to %eax */
