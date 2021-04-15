@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![feature(abi_x86_interrupt)]
 
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
@@ -25,11 +26,14 @@ use msr::msrs;
 // use c00::c00;
 mod acpi;
 use acpi::setup_acpi_tables;
+mod interrupts;
+use interrupts::init_idt;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
 use heapless::Vec;
 use wrappers::DoD;
+use x86_64::instructions::interrupts::int3;
 
 use core::ptr;
 // Until we are done hacking on this, use our private copy.
@@ -261,6 +265,19 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
     let w = &mut print::WriteToDyn::new(console);
+
+    init_idt();
+
+    if false {
+        write!(w, "Let's go BOOM!\r\n").unwrap();
+        //panic!("AAAAAAAAAH"); <-- this works :)
+        unsafe {
+            // llvm_asm!("int3" :::: "volatile");
+            int3();
+            // llvm_asm!("xorl %ebx, %ebx\ndiv %ebx" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
+        }
+        write!(w, "Didn't explode :(\r\n").unwrap();
+    }
 
     // It is hard to say if we need to do this.
     if true {
