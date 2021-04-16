@@ -202,7 +202,7 @@ impl Driver for MainBoard {
             //post.pwrite(&p, 0x80).unwrap();
 
             let r: &mut dyn Driver = self.text_outputs()[0];
-            let w = &mut print::WriteTo::new(r);
+            let w = &mut print::WriteToDyn::new(r);
 
             // Logging.
             smnhack(w, 0x13B1_02F4, 0x00000000u32);
