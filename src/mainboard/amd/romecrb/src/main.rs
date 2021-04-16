@@ -28,7 +28,7 @@ use c00::c00;
 use wrappers::DoD;
 use x86_64::registers::model_specific::Msr;
 mod interrupts;
-use interrupts::init_idt;
+use interrupts::{init_idt, init_pics};
 
 use core::ptr;
 
@@ -131,8 +131,14 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     }
     let w = &mut print::WriteToDyn::new(console);
 
+    init_pics();
     init_idt();
 
+    /*
+        unsafe {
+            llvm_asm!("mov %ebx, 0\ndiv %ebx" :::: "volatile");
+        }
+    */
     /*unsafe {
         llvm_asm!("int3" :::: "volatile");
     }*/
