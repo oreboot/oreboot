@@ -98,10 +98,10 @@ pub struct MainBoard {
 
 impl MainBoard {
     pub fn new() -> Self {
-        let mut result = Self { uart0: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), p0: AMDMMIO::com2() };
+        let result = Self { uart0: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), p0: AMDMMIO::com2() };
         result
     }
-    pub fn text_outputs(&self) -> [&mut dyn Driver; 3] {
+    pub fn text_outputs(&mut self) -> [&mut dyn Driver; 3] {
         [&mut self.uart0, &mut self.debug, &mut self.p0]
     }
 }
