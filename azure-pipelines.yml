@@ -1,12 +1,12 @@
 trigger:
-- master
+- main
 
 schedules:
 - cron: "0 0 * * *"
   displayName: Daily midnight (UTC) build
   branches:
     include:
-    - master
+    - main
   always: true
 
 pool:
