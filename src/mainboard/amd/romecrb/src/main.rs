@@ -8,7 +8,6 @@ use cpu::model::amd_family_id;
 use cpu::model::amd_model_id;
 use raw_cpuid::CpuId;
 use soc::soc_init;
-use uart::amdmmio::AMDMMIO;
 use wrappers::DoD;
 mod c00;
 mod mainboard;
