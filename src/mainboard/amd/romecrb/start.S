@@ -181,7 +181,7 @@ gdtptr16:
 	.long	0xffffff00		 /* offset */
 .align	4
 .org 0xfff0
-	// This a hand-assembled jump back as far as possible
+	// This a hand-assembled jump back as far as possible (so to _start16bit)
 	.byte 0xeb, 0x80
 .code32
 // Make the jmp be the last bytes -- makes patching it easy
