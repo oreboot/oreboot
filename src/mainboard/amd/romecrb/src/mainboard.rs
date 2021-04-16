@@ -96,15 +96,13 @@ pub struct MainBoard {
     //pub text_outputs: [&'a mut dyn Driver; 3],
 }
 
-impl<'a> MainBoard {
+impl MainBoard {
     pub fn new() -> Self {
-        let mut result = Self { uart0: I8250::new(0x3f8, 0, IOPort {}),
-                                debug: DebugPort::new(0x80, IOPort {}),
-                                p0: AMDMMIO::com2() };
+        let mut result = Self { uart0: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), p0: AMDMMIO::com2() };
         result
     }
-    pub fn text_outputs(&self) -> [&'a mut dyn Driver; 3] {
-        [&'a mut self.uart0, &'a mut self.debug, &'a mut self.p0]
+    pub fn text_outputs(&self) -> [&mut dyn Driver; 3] {
+        [&mut self.uart0, &mut self.debug, &mut self.p0]
     }
 }
 
@@ -203,7 +201,7 @@ impl Driver for MainBoard {
             //let mut p: [u8; 1] = [0xf0; 1];
             //post.pwrite(&p, 0x80).unwrap();
 
-            let w = &mut print::WriteTo::new(&mut self.text_outputs()[0]);
+            let w = &mut print::WriteTo::new(self.text_outputs()[0]);
 
             // Logging.
             smnhack(w, 0x13B1_02F4, 0x00000000u32);
