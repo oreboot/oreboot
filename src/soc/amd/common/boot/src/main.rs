@@ -17,12 +17,12 @@ use smn::{smn_read, smn_write};
 use soc::soc_init;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
-mod mainboard;
-use mainboard::MainBoard;
-mod msr;
-use msr::msrs;
-mod c00;
-use c00::c00;
+//mod mainboard;
+//use mainboard::MainBoard;
+//mod msr;
+//use msr::msrs;
+//mod c00;
+//use c00::c00;
 mod acpi;
 use acpi::setup_acpi_tables;
 use x86_64::registers::model_specific::Msr;
@@ -267,8 +267,8 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
-    let m = &mut MainBoard::new();
-    m.init().unwrap();
+    //FIXME let m = &mut MainBoard::new();
+    //m.init().unwrap();
     let io = &mut IOPort;
     let post = &mut IOPort;
     let uart0 = &mut I8250::new(0x3f8, 0, io);
@@ -529,9 +529,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         load: 0x01000000,
         entry: 0x1000200,
     };
-    if true {
-        msrs(w);
-    }
+    // FIXME    if true {
+    // FIXME        msrs(w);
+    // FIXME    }
     p[0] = p[0] + 1;
 
     match cpu_init(w) {
@@ -548,7 +548,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     if false {
         msrs(w);
     }
-    c00(w);
+    // FIXME c00(w);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
