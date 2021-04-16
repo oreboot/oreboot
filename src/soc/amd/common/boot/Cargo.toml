@@ -1,0 +1,31 @@
+[package]
+name = "boot"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+
+[dependencies]
+arch = { path = "../../../../arch/x86/x86_64"}
+clock = { path = "../../../../drivers/clock"}
+console = { path = "../../../../console" }
+cpu = { path = "../../../../cpu/amd" }
+heapless = "0.4.x"
+model = { path = "../../../../drivers/model" }
+print = { path = "../../../../lib/print" }
+payloads = { path = "../../../../../payloads"}
+raw-cpuid = "9.0.0"
+smn = { path = "../../../../soc/amd/common/smn" }
+util = { path = "../../../../lib/util" }
+wrappers = { path = "../../../../drivers/wrappers"}
+
+[dependencies.uart]
+path = "../../../../drivers/uart"
+features = ["i8250", "debug_port", "amdmmio"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
