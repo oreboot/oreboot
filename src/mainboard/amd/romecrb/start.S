@@ -39,17 +39,39 @@
 
 .org 0xff00
 gdt:
+	/* format:
+	 *   limit: word,
+	 *   base_lo: word,
+	 *   base_hi: byte,
+	 *   access: byte, // bit 7: present; bit 6...5: privilege ring; bit 4: descriptor type (1 for code and data); bit 3: executable; bit 2: direction (0 is up--so base <= limit); bit 1: writable; bit 0: accessed flag
+	 *   limit_hi: nibble,
+	 *   flags: nibble, // bit 3: unit of base and limit (1: 4 KiB page; 0: 1 Byte); bit 2: protected mode kind (0: 16 bit protected mode; 1: 32 bit protected mode); bit 1: 0; bit 0: 0
+	 *   base_highest: byte
+	 */
+
 	/* selgdt 0, unused */
-	.word	0x0000, 0x0000		/* dummy */
-	.byte	0x00, 0x00, 0x00, 0x00
+	.word	0x0000     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0x00       /* access; so present=0 */
+	.byte	0x00       /* high nibble: flags; low nibble: limit_hi; ignored since present=0 */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x08, flat code segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10011011 /* access; so present, code and data, executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x10,flat data segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x93, 0xcf, 0x00
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10010011 /* access: so present, code and data, not executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 gdt_end:
 
 // This is as far down as we can go?
@@ -80,13 +102,14 @@ outb	%al, $0x80
 	 * in protected mode before c_start.S sets up a 32bit IDT when entering
 	 * RAM stage. In practise: CPU will shutdown on any exception.
 	 * See IA32 manual Vol 3A 19.26 Interrupts.
+	 *
+	 * movw	%cs, %ax
+	 * shlw	$4, %ax
+	 * movw	$0xffe8, %bx
+	 * subw	%ax, %bx
+	 * lidt	%cs:(%bx)
+	 */
 
-	movw	%cs, %ax
-	shlw	$4, %ax
-	movw	$0xffe8, %bx
-	subw	%ax, %bx
-	lidt	%cs:(%bx)
-*/
 	movl	$0xffffffe8, %ebx
 	// Leave it hand assembled. gas will NOT do the right thing.
 	//lgdtl	%cs:(%bx)
@@ -156,8 +179,8 @@ protected:
 9:
 .globl gdtptr16
 gdtptr16:
-	.word	0x1f			  /* compute the table limit */
-	.long	0xffffff00		 /* we know the offset */
+	.word	0x1f			 /* gdt limit (size - 1) */
+	.long	0xffffff00		 /* offset */
 .align	4
 .org 0xfff0
 	// This a hand-assembled jump back as far as possible
