@@ -170,8 +170,8 @@ protected:
 	jmp 1f
 
 	/**
-	 * The gdt is defined in entry32.inc, it has a 4 Gb code segment
-	 * at 0x08, and a 4 GB data segment at 0x10;
+	 * The gdt is defined at the top of this file; it has a 4 GiB code segment
+	 * at 0x08, and a 4 GiB data segment at 0x10;
 	 */
 .org 0xFFe8
 9:
