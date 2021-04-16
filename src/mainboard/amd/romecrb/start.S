@@ -31,8 +31,6 @@
 // CS is 0xf0000, and it starts at the top 4K of "flash".
 // It then jumps to 8:760000 using the classic push and ret.
 // Due to the 4k alignment, we just eat the whole last page.
-// This makes things easier: we can just place tables at .org 0x800,
-// code at 0, and avoid coreboot's strenuous bootloader and gas games.
 
 /* Start code to put an i386 or later processor into 32-bit protected mode.
  */
