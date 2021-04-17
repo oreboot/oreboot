@@ -1,13 +1,13 @@
 use model::*;
 
-pub struct I8250<'a> {
+pub struct I8250<D: Driver> {
     base: usize,
     _baud: u32,
-    d: &'a mut dyn Driver,
+    d: D,
 }
 
-impl<'a> I8250<'a> {
-    pub fn new(base: usize, _baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
+impl<'a, D: Driver> I8250<D> {
+    pub fn new(base: usize, _baud: u32, d: D) -> I8250<D> {
         I8250 { base, _baud, d }
     }
 
@@ -26,7 +26,7 @@ impl<'a> I8250<'a> {
     }
 }
 #[allow(dead_code)]
-impl<'a> Driver for I8250<'a> {
+impl<D: Driver> Driver for I8250<D> {
     // TODO: properly use the register crate.
     fn init(&mut self) -> Result<()> {
         const DLL: usize = 0x00; // Divisor Latch Low Byte               RW
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn uart_driver_disables_fifos() {
         let mut vec = Vec::<u8, heapless::consts::U8>::new();
-        let port = &mut MockPort::new(&mut vec);
+        let port = MockPort::new(&mut vec);
         let test_uart = &mut I8250::new(0, 0, port);
         test_uart.init().unwrap();
 
@@ -157,7 +157,7 @@ mod tests {
     #[test]
     fn uart_driver_sets_wordlength_and_stopbit() {
         let mut vec = Vec::<u8, heapless::consts::U8>::new();
-        let port = &mut MockPort::new(&mut vec);
+        let port = MockPort::new(&mut vec);
         let test_uart = &mut I8250::new(0, 0, port);
         test_uart.init().unwrap();
 
