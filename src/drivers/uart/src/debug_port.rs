@@ -1,19 +1,19 @@
 use model::{Driver, Result};
 use timer::hpet::HPET;
 
-pub struct DebugPort<'a> {
+pub struct DebugPort<D: Driver> {
     address: usize,
-    d: &'a mut dyn Driver,
+    d: D,
     timer: HPET,
 }
 
-impl<'a> DebugPort<'a> {
-    pub fn new(address: usize, d: &'a mut dyn Driver) -> DebugPort<'a> {
+impl<D: Driver> DebugPort<D> {
+    pub fn new(address: usize, d: D) -> DebugPort<D> {
         DebugPort { address, d, timer: HPET::hpet() }
     }
 }
 
-impl<'a> Driver for DebugPort<'a> {
+impl<D: Driver> Driver for DebugPort<D> {
     // Nothing to set up here
     fn init(&mut self) -> Result<()> {
         Ok(())
