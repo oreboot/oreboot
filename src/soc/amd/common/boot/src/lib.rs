@@ -1,7 +1,6 @@
 #![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
-#![no_main]
 #![feature(global_asm)]
 
 use arch::bzimage::BzImage;
@@ -24,17 +23,6 @@ fn poke32(a: u32, v: u32) -> () {
     unsafe {
         ptr::write_volatile(y, v);
     }
-}
-fn poke8(a: u32, v: u8) -> () {
-    let y = a as *mut u8;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
-
-fn peek8(a: u32) -> u8 {
-    let y = a as *mut u8;
-    unsafe { ptr::read_volatile(y) }
 }
 
 /// Write 32 bits to port
