@@ -15,10 +15,9 @@ use print;
 use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
 use soc::SOC;
-use uart::amdmmio::AMDMMIO;
-use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
+use uart::i8250::I8250;
 mod fabric;
 use fabric::fabric;
 mod msr;
@@ -26,9 +25,6 @@ use msr::msrs;
 mod c00;
 use c00::c00;
 use x86_64::registers::model_specific::Msr;
-extern crate heapless; // v0.4.x
-use heapless::consts::*;
-use heapless::Vec;
 use wrappers::DoD;
 
 use core::ptr;
@@ -120,20 +116,8 @@ fn cpu_init<'a>(w: &mut impl core::fmt::Write, soc: &'a mut soc::SOC) -> Result<
 fn start_bootstrap_core(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
-    let post = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
-    uart0.init().unwrap();
-    //let debug_io = &mut IOPort;
-    //let debug = &mut DebugPort::new(0x80, debug_io);
-    uart0.init().unwrap();
-    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-    //debug.init().unwrap();
-    //debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    let p0 = &mut AMDMMIO::com2();
-    p0.init().unwrap();
-    p0.pwrite(b"Welcome to oreboot - com2\r\n", 0).unwrap();
-    let s = &mut [uart0 as &mut dyn Driver, p0 as &mut dyn Driver];
-    let console = &mut DoD::new(s);
+    let mut text_output_drivers = m.text_output_drivers();
+    let console = &mut DoD::new(&mut text_output_drivers);
 
     // todo: this should do the cpu init.
     // soc is a superset of cpu is a superset of architecture.
@@ -142,9 +126,8 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     for _i in 1..32 {
         console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
-    let mut p: [u8; 1] = [0xf0; 1];
-    post.pwrite(&p, 0x80).unwrap();
-    let w = &mut print::WriteTo::new(console);
+    let w = &mut print::WriteToDyn::new(console);
+
     // Logging.
     smnhack(w, 0x13B1_02F4, 0x00000000u32);
     smnhack(w, 0x13B1_02F0, 0xc9280001u32);
@@ -413,11 +396,9 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     // unsafe {
     //    write!(w, "0x1b is {:x} \r\n", apic_base).unwrap();
     //}
-    p[0] = p[0] + 1;
     if true {
         msrs(w);
     }
-    p[0] = p[0] + 1;
 
     match cpu_init(w, s) {
         Ok(()) => {}
@@ -438,14 +419,10 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
-    post.pwrite(&p, 0x80).unwrap();
-    p[0] = p[0] + 1;
 
     boot(w, fdt_address);
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
-    post.pwrite(&p, 0x80).unwrap();
-    p[0] = p[0] + 1;
     arch::halt()
 }
 
