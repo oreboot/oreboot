@@ -18,7 +18,7 @@ use core::ptr;
 // Plan to copy it back later.
 global_asm!(include_str!("bootblock.S"));
 
-fn poke32(a: u32, v: u32) -> () {
+fn poke32(a: u32, v: u32) {
     let y = a as *mut u32;
     unsafe {
         ptr::write_volatile(y, v);
@@ -34,7 +34,7 @@ unsafe fn outl(port: u16, val: u32) {
 unsafe fn inl(port: u16) -> u32 {
     let ret: u32;
     llvm_asm!("inl %dx, %eax" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
-    return ret;
+    ret
 }
 fn peek32(a: u32) -> u32 {
     let y = a as *const u32;
@@ -55,15 +55,15 @@ fn peekb(a: u64) -> u8 {
 }
 
 // Returns a slice of u32 for each sequence of hex chars in a.
-fn hex(a: &[u8], vals: &mut Vec<u64, U8>) -> () {
+fn hex(a: &[u8], vals: &mut Vec<u64, U8>) {
     let mut started: bool = false;
     let mut val: u64 = 0u64;
     for c in a.iter() {
         let v = *c;
         if v >= b'0' && v <= b'9' {
             started = true;
-            val = val << 4;
-            val = val + (*c - b'0') as u64;
+            val <<= 4;
+            val += (*c - b'0') as u64;
         } else if v >= b'a' && v <= b'f' {
             started = true;
             val = (val << 4) | (*c - b'a' + 10) as u64;
@@ -77,7 +77,7 @@ fn hex(a: &[u8], vals: &mut Vec<u64, U8>) -> () {
     }
 }
 
-fn mem(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
+fn mem(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) {
     let mut vals: Vec<u64, U8> = Vec::new();
     hex(&a, &mut vals);
 
@@ -88,7 +88,7 @@ fn mem(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
     }
 }
 
-fn ind(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
+fn ind(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) {
     let mut vals: Vec<u64, U8> = Vec::new();
     hex(&a, &mut vals);
 
@@ -99,7 +99,7 @@ fn ind(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
     }
 }
 
-fn out(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
+fn out(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) {
     let mut vals: Vec<u64, U8> = Vec::new();
     hex(&a, &mut vals);
 
@@ -114,7 +114,7 @@ fn out(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
     }
 }
 
-fn memb(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
+fn memb(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) {
     let mut vals: Vec<u64, U8> = Vec::new();
     hex(&a, &mut vals);
     write!(w, "dump bytes: {:x?}\r\n", vals).expect("Failed to write.");
@@ -127,17 +127,18 @@ fn memb(w: &mut impl core::fmt::Write, a: Vec<u8, U16>) -> () {
 }
 
 #[no_mangle]
-pub extern "C" fn _asdebug(w: &mut impl core::fmt::Write, a: u64) -> () {
+#[allow(no_mangle_generic_items)]
+pub extern "C" fn _asdebug(w: &mut impl core::fmt::Write, a: u64) {
     write!(w, "here we are in asdebug\r\n").unwrap();
     write!(w, "stack is {:x?}\r\n", a).unwrap();
     consdebug(w);
     write!(w, "back to hell\r\n").unwrap();
 }
 
-fn consdebug(w: &mut impl core::fmt::Write) -> () {
+fn consdebug(w: &mut impl core::fmt::Write) {
     let mut done: bool = false;
     let newline: [u8; 2] = [10, 13];
-    while done == false {
+    while !done {
         let mut io = IOPort {};
         let uart0 = &mut I8250::new(0x3f8, 0, &mut io);
         let mut line: Vec<u8, U16> = Vec::new();

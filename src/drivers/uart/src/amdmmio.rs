@@ -77,7 +77,7 @@ register_bitfields! {
 
 impl AMDMMIO {
     pub fn new(base: usize) -> AMDMMIO {
-        AMDMMIO { base: base }
+        AMDMMIO { base }
     }
 
     pub fn com1() -> AMDMMIO {
