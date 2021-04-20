@@ -14,8 +14,6 @@ use heapless::consts::*;
 use heapless::Vec;
 
 use core::ptr;
-// Until we are done hacking on this, use our private copy.
-// Plan to copy it back later.
 global_asm!(include_str!("bootblock.S"));
 
 fn poke32(a: u32, v: u32) {
