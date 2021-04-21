@@ -24,8 +24,8 @@ mod msr;
 use msr::msrs;
 mod c00;
 use c00::c00;
-use x86_64::registers::model_specific::Msr;
 use wrappers::DoD;
+use x86_64::registers::model_specific::Msr;
 
 use core::ptr;
 
