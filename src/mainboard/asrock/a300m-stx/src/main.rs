@@ -167,8 +167,7 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     let mut done: bool = false;
     let newline: [u8; 2] = [10, 13];
     while done == false {
-        let io = &mut IOPort;
-        let uart0 = &mut I8250::new(0x3f8, 0, io);
+        let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
         let mut line: Vec<u8, U16> = Vec::new();
         loop {
             let mut c: [u8; 1] = [12; 1];
@@ -255,8 +254,7 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     uart0.init().unwrap();
     //let debug_io = &mut IOPort;
     //let debug = &mut DebugPort::new(0x80, debug_io);
@@ -340,8 +338,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
