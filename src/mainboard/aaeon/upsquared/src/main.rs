@@ -19,8 +19,7 @@ global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock.S"));
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
     let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     // Note: on real hardware, use port 0x80 instead for "POST" output
-    let debug_io = &mut IOPort;
-    let debug = &mut DebugPort::new(0xe9, debug_io);
+    let debug = &mut DebugPort::new(0xe9, IOPort {});
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
