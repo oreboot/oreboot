@@ -18,8 +18,8 @@ use register::mmio::{ReadOnly, ReadWrite};
 use register::register_bitfields;
 
 const RETRY_COUNT: u32 = 100_000;
-const COM1: usize = 0xfedc9000;
-const COM2: usize = 0xfedca000;
+const UART0: usize = 0xfedc9000;
+const UART1: usize = 0xfedca000;
 
 // We fill out as little of this as possible.
 // We're firmware and should never plan to use it
@@ -38,13 +38,13 @@ pub struct RegisterBlock {
     stat: ReadOnly<u32, STAT::Register>, /* status */
 }
 
-pub struct AMDMMIO {
+pub struct UART {
     base: usize,
     // TODO: implement baudrate
     //baudrate: u32,
 }
 
-impl ops::Deref for AMDMMIO {
+impl ops::Deref for UART {
     type Target = RegisterBlock;
     fn deref(&self) -> &Self::Target {
         unsafe { &*self.ptr() }
@@ -75,17 +75,19 @@ register_bitfields! {
     ]
 }
 
-impl AMDMMIO {
-    pub fn new(base: usize) -> AMDMMIO {
-        AMDMMIO { base }
+impl UART {
+    /// # Safety
+    /// This could alias any other reference, and also it's losing provenance information
+    pub unsafe fn new(base: usize) -> UART {
+        Self { base }
     }
 
-    pub fn com1() -> AMDMMIO {
-        AMDMMIO { base: COM1 }
+    pub fn uart0() -> UART {
+        Self { base: UART0 }
     }
 
-    pub fn com2() -> AMDMMIO {
-        AMDMMIO { base: COM2 }
+    pub fn uart1() -> UART {
+        Self { base: UART1 }
     }
 
     /// Returns a pointer to the register block
@@ -94,7 +96,7 @@ impl AMDMMIO {
     }
 }
 
-impl Driver for AMDMMIO {
+impl Driver for UART {
     fn init(&mut self) -> Result<()> {
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::BaudRate);
         self.dlm.set(0);
