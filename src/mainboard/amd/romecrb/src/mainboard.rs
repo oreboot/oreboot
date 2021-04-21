@@ -24,7 +24,7 @@ use core::ops::Not;
 use core::ptr;
 use model::*;
 use smn::smn_write;
-use uart::amdmmio::AMDMMIO;
+use uart::amdmmio::UART;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 use vcell::VolatileCell;
@@ -96,12 +96,12 @@ where
 pub struct MainBoard {
     com1: I8250<IOPort>,
     debug: DebugPort<IOPort>,
-    uart0: AMDMMIO,
+    uart0: UART,
 }
 
 impl MainBoard {
     pub fn new() -> MainBoard {
-        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: AMDMMIO::com1() }
+        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: UART::uart0() }
     }
     pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 3] {
         [&mut self.com1, &mut self.debug, &mut self.uart0]

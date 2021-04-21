@@ -14,7 +14,7 @@ use model::Driver;
 use print;
 use raw_cpuid::CpuId;
 use soc::soc_init;
-// use uart::amdmmio::AMDMMIO;
+// use uart::amdmmio::UART;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 mod mainboard;
