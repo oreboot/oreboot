@@ -96,15 +96,15 @@ where
 pub struct MainBoard {
     com1: I8250<IOPort>,
     debug: DebugPort<IOPort>,
-    uart1: AMDMMIO,
+    uart0: AMDMMIO,
 }
 
 impl MainBoard {
     pub fn new() -> MainBoard {
-        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart1: AMDMMIO::com2() }
+        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: AMDMMIO::com1() }
     }
     pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 3] {
-        [&mut self.com1, &mut self.debug, &mut self.uart1]
+        [&mut self.com1, &mut self.debug, &mut self.uart0]
     }
 }
 
