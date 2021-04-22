@@ -1,9 +1,3 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
-#![no_std]
-#![no_main]
-#![feature(global_asm)]
-
 use core::fmt::Write;
 use df::*;
 
