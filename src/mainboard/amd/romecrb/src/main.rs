@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![feature(abi_x86_interrupt)]
 
 use arch::ioport::IOPort;
 use boot::boot;
@@ -26,6 +27,8 @@ mod c00;
 use c00::c00;
 use wrappers::DoD;
 use x86_64::registers::model_specific::Msr;
+mod interrupts;
+use interrupts::init_idt;
 
 use core::ptr;
 
@@ -127,6 +130,12 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
         console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
     let w = &mut print::WriteToDyn::new(console);
+
+    init_idt();
+
+    /*unsafe {
+        llvm_asm!("int3" :::: "volatile");
+    }*/
 
     // Logging.
     smnhack(w, 0x13B1_02F4, 0x00000000u32);
