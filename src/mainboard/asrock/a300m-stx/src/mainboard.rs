@@ -43,6 +43,9 @@ const ACPI_MMIO_BASE: usize = 0xfed8_0000;
 //const IOMUX_BASE: *mut u8 = (ACPI_MMIO_BASE + 0xd00) as *mut _;
 const IOMUX_BASE: *const [VolatileCell<u8>; 256] = (ACPI_MMIO_BASE + 0xd00) as *const _; // Note: 256 u8 block--one u8 per pinctrl
 const AOAC_BASE: usize = ACPI_MMIO_BASE + 0x1e00;
+const PM_DECODE_EN: usize = ACPI_MMIO_BASE + 0x0300;
+const WATCHDOG_TIMER_EN: u8 = 1 << 7;
+const SMBUS_ASF_IO_EN: u8 = 1 << 4;
 
 // See coreboot:src/soc/amd/common/block/include/amdblocks/aoac.h
 
@@ -119,7 +122,11 @@ impl Driver for MainBoard {
     fn init(&mut self) -> Result<()> {
         unsafe {
             // FCH PM DECODE EN
-            poke(0xfed80300 as *mut u32, 0xe3070b77);
+            // 1110 0011  0000 0111  0000 1011  0111 0111
+            // poke(PM_DECODE_EN as *mut u32, 0xe3070b77);
+            // 1110 0011  0000 0111  0000 1011  1111 0111
+            poke(PM_DECODE_EN as *mut u32, 0xe3070bf7);
+            // pokers(&(*PM_DECODE_EN)[usize::from(n * 2)], 0, WATCHDOG_TIMER_EN | SMBUS_ASF_IO_EN);
 
             // Knowledge from coreboot to get minimal serials working.
             // clock defaults are NOT fine.
