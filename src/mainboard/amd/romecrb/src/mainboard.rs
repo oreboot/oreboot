@@ -182,6 +182,10 @@ impl Driver for MainBoard {
             // IOHC::IOAPIC_BASE_ADDR_LO
             smn_write(0x13B1_02f0, 0xFEC0_0001);
 
+            for driver in self.text_output_drivers().iter_mut() {
+                driver.init()?;
+            }
+
             Ok(())
         }
     }
