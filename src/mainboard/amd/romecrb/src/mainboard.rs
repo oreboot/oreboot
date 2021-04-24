@@ -173,8 +173,8 @@ impl Driver for MainBoard {
             // IOAPIC
             //     wmem fed80300 e3070b77
             //    wmem fed00010 3
-            poke(0xfed00010 as *mut u32, 3); //HPETCONFIG
-            pokers32(0xfed00010 as *mut u32, 0, 8);
+            pokers32(0xfed00010 as *mut u32, 0, 3); //HPETCONFIG
+
             // THis is likely not needed but.
             //poke32(0xfed00108, 0x5b03d997);
 
