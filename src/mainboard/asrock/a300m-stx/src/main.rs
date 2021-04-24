@@ -293,7 +293,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     // disable legacy interrupts
     // smnhack(w, 0x13F0_0004, 0x0010_0400u32);
-    smnhack(w, 0x13F0_0064, 0x0010_0400u32); // 847405
+    // smnhack(w, 0x13F0_0064, 0x0010_0400u32); // 847405
 
     // It is hard to say if we need to do this.
     if true {
