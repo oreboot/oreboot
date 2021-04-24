@@ -145,6 +145,7 @@ impl Driver for MainBoard {
 
             // Set up the legacy decode for UART 0.
             //(*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
+            (*FCH_UART_LEGACY_DECODE).set(0);
 
             // IOAPIC
             //     wmem fed80300 e3070b77
