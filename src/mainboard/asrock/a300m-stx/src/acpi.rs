@@ -59,7 +59,6 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let rsdp_sig: u64 = read(rsdp_offset, 0);
     write!(w, "RSDP signature: {:x?}\r\n", rsdp_sig).unwrap();
 
-    /*
     write(
         w,
         gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH),
@@ -97,7 +96,6 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
     ); // XXX
     debug_assert_eq!(acpi_tb_checksum(xsdt_offset, xsdt_offset + xsdt_total_length), 0);
-    */
 
     /*
     const FADT_FLAGS: u32 = 0b0011_0000_0101_1010_0101;
@@ -180,7 +178,9 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         ACPI_TABLE_HEADER_CHECKSUM_OFFSET,
     ); // XXX
     debug_assert_eq!(acpi_tb_checksum(fadt_offset, fadt_offset + size_of::<AcpiTableFadt>()), 0);
+    */
 
+    /*
     // facs - Firmware ACPI Control Structure
     let facs = AcpiTableFacs {
         signature: SIG_FACS,
