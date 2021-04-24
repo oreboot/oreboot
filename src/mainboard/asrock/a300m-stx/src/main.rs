@@ -273,9 +273,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let mut text_output_drivers = m.text_output_drivers();
     let console = &mut DoD::new(&mut text_output_drivers);
 
-    for _i in 1..32 {
-        console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-    }
+    console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     let w = &mut print::WriteToDyn::new(console);
 
     init_idt();
