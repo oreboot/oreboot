@@ -336,7 +336,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
 
     write!(w, "Write acpi tables\r\n").unwrap();
-    setup_acpi_tables(w, 0xf0000, 1);
+    if (true) {
+        setup_acpi_tables(w, 0xf0000, 1);
+    }
     write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
 
     if false {
