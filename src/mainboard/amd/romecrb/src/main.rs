@@ -418,6 +418,18 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     poke32(0xfee000d0, 0x1000000);
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
+
+    write!(w, "ORE: addr {:x}\r\n", peek32(0xE00_0000)).unwrap(); // MMIO config base address, should have a device and VEN ID
+    arch::pci::scan_bus(w, 0);
+    // arch::pci::setup_root_complex(w, 0x20);
+    // arch::pci::scan_bus(w, 0x20);
+    // arch::pci::setup_root_complex(w, 0x40);
+    // arch::pci::setup_root_complex(w, 0x60);
+    // arch::pci::setup_root_complex(w, 0x80);
+    // arch::pci::setup_root_complex(w, 0xA0);
+    // arch::pci::setup_root_complex(w, 0xC0);
+    // arch::pci::setup_root_complex(w, 0xE0);
+
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
 
     boot(w, fdt_address);
