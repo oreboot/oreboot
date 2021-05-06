@@ -254,21 +254,14 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
-    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
-    uart0.init().unwrap();
-    //let debug = &mut DebugPort::new(0x80, IOPort {});
-    uart0.init().unwrap();
-    uart0.pwrite(b"Welcome to oreboot - UART0\r\n", 0).unwrap();
-    //debug.init().unwrap();
-    //debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
-    //let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
-    let s = &mut [uart0 as &mut dyn Driver];
-    let console = &mut DoD::new(s);
+    let mut text_output_drivers = m.text_output_drivers();
+    let console = &mut DoD::new(&mut text_output_drivers);
 
     for _i in 1..32 {
         console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     }
-    let w = &mut print::WriteTo::new(console);
+    let w = &mut print::WriteToDyn::new(console);
+
     // It is hard to say if we need to do this.
     if true {
         let v = unsafe { Msr::new(0xc001_1004).read() };
