@@ -35,12 +35,6 @@ fn poke32(a: u32, v: u32) -> () {
         ptr::write_volatile(y, v);
     }
 }
-fn poke8(a: u32, v: u8) -> () {
-    let y = a as *mut u8;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
 
 fn peek32(a: u32) -> u32 {
     let y = a as *const u32;
