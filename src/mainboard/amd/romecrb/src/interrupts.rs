@@ -11,24 +11,24 @@ fn outb(port: u16, val: u8) {
     }
 }
 
-extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame) {
     panic!("Exception: Breakpoint.\r\n{:#?}", stack_frame);
 }
 
-extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, _error_code: u64) -> ! {
+extern "x86-interrupt" fn double_fault_handler(stack_frame: &mut InterruptStackFrame, _error_code: u64) -> ! {
     panic!("Exception: Double fault.\r\n{:#?}", stack_frame);
     arch::halt();
 }
 
-extern "x86-interrupt" fn general_protection_fault_handler(stack_frame: InterruptStackFrame, _error_code: u64) {
+extern "x86-interrupt" fn general_protection_fault_handler(stack_frame: &mut InterruptStackFrame, _error_code: u64) {
     panic!("Exception: General protection fault.\r\n{:#?}", stack_frame);
 }
 
-extern "x86-interrupt" fn divide_error_handler(stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn divide_error_handler(stack_frame: &mut InterruptStackFrame) {
     panic!("Exception: Division by zero.\r\n{:#?}", stack_frame);
 }
 
-extern "x86-interrupt" fn interrupt_handler(stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn interrupt_handler(stack_frame: &mut InterruptStackFrame) {
     panic!("Interrupt.\r\n{:#?}", stack_frame);
 }
 
