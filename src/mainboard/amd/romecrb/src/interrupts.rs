@@ -54,12 +54,13 @@ pub fn init_idt() {
         (*idt).double_fault.set_handler_fn(double_fault_handler).set_privilege_level(PrivilegeLevel::Ring0);
         (*idt).general_protection_fault.set_handler_fn(general_protection_fault_handler).set_privilege_level(PrivilegeLevel::Ring0);
         (*idt).divide_error.set_handler_fn(divide_error_handler).set_privilege_level(PrivilegeLevel::Ring0);
-        //(*idt)[32].set_handler_fn(interrupt_handler);
+        (*idt)[0x21].set_handler_fn(interrupt_handler);
         (*idt).load();
     }
- unsafe {
-            llvm_asm!("xorl %ebx, %ebx\ndiv %ebx" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
-        }
+    unsafe {
+        //llvm_asm!("xorl %ebx, %ebx\ndiv %ebx" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
+        llvm_asm!("int $$0x21" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
+    }
     panic!("X");
 }
 
