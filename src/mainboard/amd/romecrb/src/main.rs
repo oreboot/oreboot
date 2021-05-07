@@ -415,14 +415,9 @@ fn start_bootstrap_core(fdt_address: usize) -> ! {
         msrs(w);
     }
     c00(w);
-    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
-    poke32(0xfee000d0, 0x1000000);
-    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
-    write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
 
     boot(w, fdt_address);
 
-    write!(w, "Unexpected return from payload\r\n").unwrap();
     arch::halt()
 }
 
