@@ -24,7 +24,7 @@ register = "0.3.2"
 static-ref = "0.1.1"
 postcard = "0.4.3"
 vcell = "0.1.2"
-x86_64 = "0.14.0"
+x86_64 = "0.13.0"
 
 [dependencies.lazy_static]
 version = "1.0"
