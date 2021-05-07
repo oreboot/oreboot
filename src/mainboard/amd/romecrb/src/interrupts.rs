@@ -3,6 +3,7 @@ use x86_64::structures::idt::EntryOptions;
 use x86_64::structures::idt::InterruptDescriptorTable;
 use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::PrivilegeLevel;
+use x86_64::instructions;
 
 fn outb(port: u16, val: u8) {
     unsafe {
@@ -55,13 +56,16 @@ pub fn init_idt() {
         (*idt).general_protection_fault.set_handler_fn(general_protection_fault_handler).set_privilege_level(PrivilegeLevel::Ring0);
         (*idt).divide_error.set_handler_fn(divide_error_handler).set_privilege_level(PrivilegeLevel::Ring0);
         (*idt)[0x21].set_handler_fn(interrupt_handler);
+        for i in 32..256 {
+            (*idt)[i].set_handler_fn(interrupt_handler);
+        }
         (*idt).load();
+        x86_64::instructions::interrupts::enable();
     }
     unsafe {
         //llvm_asm!("xorl %ebx, %ebx\ndiv %ebx" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
-        llvm_asm!("int $$0x21" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
+        //llvm_asm!("int $$0x21" : /* no outputs */ : /* no inputs */ : "ebx" : "volatile");
     }
-    panic!("X");
 }
 
 pub fn init_pics() {
