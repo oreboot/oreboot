@@ -90,8 +90,9 @@ gdt_end:
 	// The low 4 bits of %eax are 3.
 	// the gdt pointer is aligned to 16.
 	// Set the low 4-bits of offset to 16.
-	andb $0xf0, %al
-	orb $0x10, %al
+	addl $0x0f, %eax
+	andl $0xfffffff0, %eax
+	//mov $gdtptr, %eax
 	pushl %eax
 	// Adjust the gdt pointer for where we are.
 	addl	$8, %eax
