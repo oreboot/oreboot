@@ -192,8 +192,7 @@ pub fn boot(w: &mut impl core::fmt::Write, fdt_address: usize) {
         write!(w, "Wrote bios tables, entering debug\r\n").unwrap();
         consdebug(w);
     }
-    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
-    poke32(0xfee000d0, 0x1000000);
+    poke32(0xfee000d0, 0x1000000); // APICx0D0 [Logical Destination] (Core::X86::Apic::LocalDestination) 55803_B0_PUB_0_91.pdf
     write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
     write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
     payload.load(w).unwrap();
