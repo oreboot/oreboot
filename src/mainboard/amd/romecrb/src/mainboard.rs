@@ -102,8 +102,8 @@ impl MainBoard {
     pub fn new() -> MainBoard {
         Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: UART::uart0() }
     }
-    pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 3] {
-        [&mut self.com1, &mut self.debug, &mut self.uart0]
+    pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 2] {
+        [&mut self.com1, &mut self.uart0]
     }
 }
 
