@@ -12,6 +12,7 @@ use acpi::setup_acpi_tables;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
 use heapless::Vec;
+mod interrupts;
 
 use core::ptr;
 global_asm!(include_str!("bootblock.S"));
@@ -175,6 +176,7 @@ fn consdebug(w: &mut impl core::fmt::Write) {
 //global_asm!(include_str!("init.S"));
 
 pub fn boot(w: &mut impl core::fmt::Write, fdt_address: usize) {
+    interrupts::init_pics();
     let payload = &mut BzImage {
         low_mem_size: 0x80000000,
         high_mem_start: 0x100000000,
