@@ -83,20 +83,20 @@ where
 
 // WIP: mainboard driver. I mean the concept is a WIP.
 pub struct MainBoard {
-    com1: I8250<IOPort>,
-    // debug: DebugPort<IOPort>,
+    // com1: I8250<IOPort>,
+    debug: DebugPort<IOPort>,
 }
 
 impl MainBoard {
     pub fn new() -> MainBoard {
         // Uncomment for port 0x80 testing, but it's sluggish and mutually
         // exclusive on the super I/O
-        // Self { debug: DebugPort::new(0x80, IOPort {}) }
-        Self { com1: I8250::new(0x3f8, 0, IOPort {}) }
+        Self { debug: DebugPort::new(0x80, IOPort {}) }
+        // Self { com1: I8250::new(0x3f8, 0, IOPort {}) }
     }
     pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 1] {
-        // [&mut self.debug]
-        [&mut self.com1]
+        [&mut self.debug]
+        // [&mut self.com1]
     }
 }
 

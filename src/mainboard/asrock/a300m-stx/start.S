@@ -100,10 +100,10 @@ movb $0x21, %al ##
 outb %al, $0x2f
 
 # 2f -> 40; uncomment to switch to port 0x80 forward instead of 3f8 on UART
-##movb $0x2f, %al ##
-##outb %al, $0x2e
-##movb $0x40, %al ##
-##outb %al, $0x2f
+movb $0x2f, %al ##
+outb %al, $0x2e
+movb $0x40, %al ##
+outb %al, $0x2f
 
 ######## LDN 0x07 ########
 ## not yet working, probably relies on some global registers
