@@ -36,24 +36,6 @@ use x86_64::instructions::interrupts::int3;
 
 use core::ptr;
 
-fn poke32(a: u32, v: u32) -> () {
-    let y = a as *mut u32;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
-fn poke8(a: u32, v: u8) -> () {
-    let y = a as *mut u8;
-    unsafe {
-        ptr::write_volatile(y, v);
-    }
-}
-
-fn peek32(a: u32) -> u32 {
-    let y = a as *const u32;
-    unsafe { ptr::read_volatile(y) }
-}
-
 fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     let got = smn_read(reg);
     write!(w, "{:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
@@ -176,14 +158,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     }
     // TODO: Is this specific to Rome?
     // c00(w);
-    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
-    poke32(0xfee000d0, 0x1000000);
-    write!(w, "LDN is {:x}\r\n", peek32(0xfee000d0)).unwrap();
-    write!(w, "loading payload with fdt_address {}\r\n", fdt_address).unwrap();
 
     boot(w, fdt_address);
 
-    write!(w, "Unexpected return from payload\r\n").unwrap();
     arch::halt()
 }
 
