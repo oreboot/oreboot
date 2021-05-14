@@ -1,19 +1,19 @@
 use model::{Driver, Result};
 use timer::hpet::HPET;
 
-pub struct DebugPort<'a> {
+pub struct DebugPort<D: Driver> {
     address: usize,
-    d: &'a mut dyn Driver,
+    d: D,
     timer: HPET,
 }
 
-impl<'a> DebugPort<'a> {
-    pub fn new(address: usize, d: &'a mut dyn Driver) -> DebugPort<'a> {
+impl<D: Driver> DebugPort<D> {
+    pub fn new(address: usize, d: D) -> DebugPort<D> {
         DebugPort { address, d, timer: HPET::hpet() }
     }
 }
 
-impl<'a> Driver for DebugPort<'a> {
+impl<D: Driver> Driver for DebugPort<D> {
     // Nothing to set up here
     fn init(&mut self) -> Result<()> {
         Ok(())
@@ -26,7 +26,7 @@ impl<'a> Driver for DebugPort<'a> {
 
     // Just write out byte for byte :)
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_i, &c) in data.iter().enumerate() {
+        for &c in data {
             let mut s = [0u8; 1];
             s[0] = c;
             // 0.5 microseconds

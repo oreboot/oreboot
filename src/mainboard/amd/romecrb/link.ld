@@ -26,7 +26,7 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x76fe0000;
+    . = 0x76f08000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));
@@ -35,12 +35,12 @@ SECTIONS
 	/* There should be no 'data' as such but we'll fix it later */
         KEEP(*(.data.*))
     }
-/*    . = 0xfffffff0;
-    .reset . :
+
+    .stack_sizes (INFO) :
     {
-	KEEP(*(.reset .reset.* .reset*))
+        KEEP(*(.stack_sizes));
     }
-	    */
+
     /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*)
     /* Unused exception related info that only wastes space */
     }

@@ -17,11 +17,9 @@ global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock_nomem.S"));
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     // Note: on real hardware, use port 0x80 instead for "POST" output
-    let debugIO = &mut IOPort;
-    let debug = &mut DebugPort::new(0xe9, debugIO);
+    let debug = &mut DebugPort::new(0xe9, IOPort {});
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
@@ -44,8 +42,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.

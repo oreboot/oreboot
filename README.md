@@ -1,7 +1,9 @@
 oreboot README
 ==============
 
-[![Build Status](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_apis/build/status/oreboot.oreboot?branchName=master)](https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&branchName=master)
+[![Build Status](
+https://dev.azure.com/azure0427/Oreboot%20Pipeline/_apis/build/status/oreboot.oreboot?branchName=main)](
+https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&branchName=main)
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 

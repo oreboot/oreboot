@@ -1,13 +1,13 @@
 use model::*;
 
-pub struct I8250<'a> {
+pub struct I8250<D: Driver> {
     base: usize,
     _baud: u32,
-    d: &'a mut dyn Driver,
+    d: D,
 }
 
-impl<'a> I8250<'a> {
-    pub fn new(base: usize, _baud: u32, d: &'a mut dyn Driver) -> I8250<'a> {
+impl<'a, D: Driver> I8250<D> {
+    pub fn new(base: usize, _baud: u32, d: D) -> I8250<D> {
         I8250 { base, _baud, d }
     }
 
@@ -22,11 +22,11 @@ impl<'a> I8250<'a> {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 #[allow(dead_code)]
-impl<'a> Driver for I8250<'a> {
+impl<D: Driver> Driver for I8250<D> {
     // TODO: properly use the register crate.
     fn init(&mut self) -> Result<()> {
         const DLL: usize = 0x00; // Divisor Latch Low Byte               RW
@@ -40,15 +40,15 @@ impl<'a> Driver for I8250<'a> {
         const MSR: usize = 0x06; // Modem Status Register                R
         const SCR: usize = 0x07; // Scratch Register                     RW
 
-        const FIFOENABLE: u8 = 1;
+        const FIFODISABLE: u8 = 0;
         const DLAB: u8 = 0b1000_0000; // Divisor Latch Access bit
         const EIGHTN1: u8 = 0b0011;
 
         let mut s: [u8; 1] = [0u8; 1];
         self.d.pwrite(&s, self.base + IER).unwrap();
 
-        /* Enable FIFOs */
-        s[0] = FIFOENABLE;
+        /* Disable FIFOs */
+        s[0] = FIFODISABLE;
         self.d.pwrite(&s, self.base + FCR).unwrap();
 
         /* DLAB on */
@@ -80,7 +80,7 @@ impl<'a> Driver for I8250<'a> {
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        for (_i, &c) in data.iter().enumerate() {
+        for &c in data {
             // Poll the status for long enough to let a char out; then push it out anyway.
             while !self.poll_status(0x20, 0x20) && !self.poll_status(0x40, 0x40) {}
             let mut s = [0u8; 1];
@@ -144,20 +144,20 @@ mod tests {
     const LCR: usize = 0x03; // Line Control Register
 
     #[test]
-    fn uart_driver_enables_fifos() {
+    fn uart_driver_disables_fifos() {
         let mut vec = Vec::<u8, heapless::consts::U8>::new();
-        let port = &mut MockPort::new(&mut vec);
+        let port = MockPort::new(&mut vec);
         let test_uart = &mut I8250::new(0, 0, port);
         test_uart.init().unwrap();
 
-        assert_eq!(1 & vec[FCR], 1); // FIFOs enabled
+        assert_eq!(0 & vec[FCR], 0); // FIFOs disabled
     }
 
     // Line control register should have the bottom bits be 0b011 for 8 data bits and one stop bit
     #[test]
     fn uart_driver_sets_wordlength_and_stopbit() {
         let mut vec = Vec::<u8, heapless::consts::U8>::new();
-        let port = &mut MockPort::new(&mut vec);
+        let port = MockPort::new(&mut vec);
         let test_uart = &mut I8250::new(0, 0, port);
         test_uart.init().unwrap();
 

@@ -31,34 +31,51 @@
 // CS is 0xf0000, and it starts at the top 4K of "flash".
 // It then jumps to 8:760000 using the classic push and ret.
 // Due to the 4k alignment, we just eat the whole last page.
-// This makes things easier: we can just place tables at .org 0x800,
-// code at 0, and avoid coreboot's strenuous bootloader and gas games.
 
 /* Start code to put an i386 or later processor into 32-bit protected mode.
  */
 
 .org 0xff00
 gdt:
+	/* format:
+	 *   limit: word,
+	 *   base_lo: word,
+	 *   base_hi: byte,
+	 *   access: byte, // bit 7: present; bit 6...5: privilege ring; bit 4: descriptor type (1 for code and data); bit 3: executable; bit 2: direction (0 is up--so base <= limit); bit 1: writable; bit 0: accessed flag
+	 *   limit_hi: nibble,
+	 *   flags: nibble, // bit 3: unit of base and limit (1: 4 KiB page; 0: 1 Byte); bit 2: protected mode kind (0: 16 bit protected mode; 1: 32 bit protected mode); bit 1: 0; bit 0: 0
+	 *   base_highest: byte
+	 */
+
 	/* selgdt 0, unused */
-	.word	0x0000, 0x0000		/* dummy */
-	.byte	0x00, 0x00, 0x00, 0x00
+	.word	0x0000     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0x00       /* access; so present=0 */
+	.byte	0x00       /* high nibble: flags; low nibble: limit_hi; ignored since present=0 */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x08, flat code segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10011011 /* access; so present, code and data, executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x10,flat data segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x93, 0xcf, 0x00
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10010011 /* access: so present, code and data, not executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 gdt_end:
 
 // This is as far down as we can go?
 .org 0xff72
 
 .code16
-/* Symbol _start16bit must be aligned to 4kB to start AP CPUs with
- * Startup IPI message without RAM.
-*/
 .globl _start16bit
 .type _start16bit, @function
 
@@ -78,64 +95,20 @@ outb	%al, $0x80
 	xorl	%eax, %eax
 	movl	%eax, %cr3    /* Invalidate TLB*/
 
-	/* Invalidating the cache here seems to be a bad idea on
-	 * modern processors.  Don't.
-	 * If we are hyperthreaded or we have multiple cores it is bad,
-	 * for SMP startup.  On Opterons it causes a 5 second delay.
-	 * Invalidating the cache was pure paranoia in any event.
-	 * If your CPU needs it you can write a CPU dependent version of
-	 * entry16.inc.
-	 */
-
-	/* Note: gas handles memory addresses in 16 bit code very poorly.
-	 * In particular it doesn't appear to have a directive allowing you
-	 * associate a section or even an absolute offset with a segment register.
-	 *
-	 * This means that anything except cs:ip relative offsets are
-	 * a real pain in 16 bit mode.  And explains why it is almost
-	 * impossible to get gas to do lgdt correctly.
-	 *
-	 * One way to work around this is to have the linker do the
-	 * math instead of the assembler.  This solves the very
-	 * practical problem of being able to write code that can
-	 * be relocated.
-	 *
-	 * An lgdt call before we have memory enabled cannot be
-	 * position independent, as we cannot execute a call
-	 * instruction to get our current instruction pointer.
-	 * So while this code is relocatable it isn't arbitrarily
-	 * relocatable.
-	 *
-	 * The criteria for relocation have been relaxed to their
-	 * utmost, so that we can use the same code for both
-	 * our initial entry point and startup of the second CPU.
-	 * The code assumes when executing at _start16bit that:
-	 * (((cs & 0xfff) == 0) and (ip == _start16bit & 0xffff))
-	 * or
-	 * ((cs == anything) and (ip == 0)).
-	 *
-	 * The restrictions in reset16.inc mean that _start16bit initially
-	 * must be loaded at or above 0xffff0000 or below 0x100000.
-	 *
-	 * The linker scripts computes gdtptr16_offset by simply returning
-	 * the low 16 bits.  This means that the initial segment used
-	 * when start is called must be 64K aligned.  This should not
-	 * restrict the address as the ip address can be anything.
-	 *
+	/*
 	 * Also load an IDT with NULL limit to prevent the 16bit IDT being used
 	 * in protected mode before c_start.S sets up a 32bit IDT when entering
 	 * RAM stage. In practise: CPU will shutdown on any exception.
 	 * See IA32 manual Vol 3A 19.26 Interrupts.
+	 *
+	 * movw	%cs, %ax
+	 * shlw	$4, %ax
+	 * movw	$0xffe8, %bx
+	 * subw	%ax, %bx
+	 * lidt	%cs:(%bx)
 	 */
 
-/*
-	movw	%cs, %ax
-	shlw	$4, %ax
-	movw	$0xffe8, %bx
-	subw	%ax, %bx
-	lidt	%cs:(%bx)
-*/
-	movl	$0xffffffc8, %ebx
+	movl	$0xffffffe8, %ebx
 	// Leave it hand assembled. gas will NOT do the right thing.
 	//lgdtl	%cs:(%bx)
 	.byte 0x66, 0x2E, 0x0F, 0x01, 0x17
@@ -148,8 +121,8 @@ outb	%al, $0x80
 	movl	%ebp, %eax
 
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
-	ljmpl	$8, $0xffffffb1
-.org 0xffb1
+	ljmpl	$8, $0xffffffa8
+.org 0xffa8
 .code32
 protected:
 	movb $0xac, %al
@@ -162,23 +135,53 @@ protected:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
+	// Give bootstrap core and thread a bigger stack (32 KiB)
+	// Added 0x500 is in order to avoid the BIOS data area, then an extra 0x500 in order to page-align the stack again
+	mov $0x9000, %esp
+
+	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
+	movl   $0x1b, %ecx
+	rdmsr
+	orl $0x800, %eax
+	wrmsr
+
+	// Check whether we are running on the bootstrap core (and thread)
+	test $0x100, %eax
+	jnz 3f
+
+	// Note: Non-bootstrap cores reach this place
+
+	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
+	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
+	movl ($0xFEE0_0020), %ebx
+	shr $24, %ebx
+	inc %ebx
+
+	// Give other cores and threads a smaller stack (2 KiB)
+	shl $11, %ebx
+	add %ebx, %esp
+
+	// Note: All the stacks are below address 0x8_9000
+	// Video memory via MMIO is eventually mapped at 0xA_0000--avoid area
+3:
+
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
 	jmp 1f
 
 	/**
-	 * The gdt is defined in entry32.inc, it has a 4 Gb code segment
-	 * at 0x08, and a 4 GB data segment at 0x10;
+	 * The gdt is defined at the top of this file; it has a 4 GiB code segment
+	 * at 0x08, and a 4 GiB data segment at 0x10;
 	 */
-.org 0xFFc8
+.org 0xFFe8
 9:
 .globl gdtptr16
 gdtptr16:
-	.word	0x1f			  /* compute the table limit */
-	.long	0xffffff00		 /* we know the offset */
+	.word	0x1f			 /* gdt limit (size - 1) */
+	.long	0xffffff00		 /* offset */
 .align	4
 .org 0xfff0
-	// This a hand-assembled jump back as far as possible
+	// This a hand-assembled jump back as far as possible (so to _start16bit)
 	.byte 0xeb, 0x80
 .code32
 // Make the jmp be the last bytes -- makes patching it easy
@@ -186,7 +189,6 @@ gdtptr16:
 //	nop
 	nop
 	outb %al, $0x80
-	// Uses first part of gdt as stack.
-	movl $0x76fe0010, %esp
-	push $0x76fe0000
+
+	push $0x76f08000
 	ret

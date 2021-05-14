@@ -66,29 +66,33 @@ gdt:
 #define CODE32 0x18
 	/* selgdt 0x18, flat code segment */
 	.word	0xffff, 0x0000
-	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
-#define DAT32 0x20					  for limit */
+	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes for limit */
+#define DAT32 0x20
 	/* selgdt 0x20,flat data segment */
 	.word	0xffff, 0x0000
 	.byte	0x00, 0x93, 0xcf, 0x00
 #define LM 0x28
 	/* selgdt 0x28, long mode code segment. */
-	.quad	0x0020980000000000		/* Long mode CS */
+	.word 0x0000 /* segment limit lo */
+	.word 0x0000 /* base address lo */
+	.byte 0x00 /* base address mid */
+	.byte 0x98 /* P=1 DPL=00 S=1 Type=1000 */
+	.byte 0x20 /* segment limit hi; so limit = 0x200000 (8 GiB with 4 KiB pages) */
+	.byte 0x00 /* base address hi */
 
 gdt_end:
 3:
 	movb $0x42, %al
 	outb %al, $0x80
-	movw $0x3F8, %dx
   movb $0xAA, %al
-  call p4
 	// TOS contains a pointer to the gdt descriptor
 	popl %eax
 	// The low 4 bits of %eax are 3.
 	// the gdt pointer is aligned to 16.
 	// Set the low 4-bits of offset to 16.
-	andb $0xf0, %al
-	orb $0x10, %al
+	addl $0x0f, %eax
+	andl $0xfffffff0, %eax
+	//mov $gdtptr, %eax
 	pushl %eax
 	// Adjust the gdt pointer for where we are.
 	addl	$8, %eax
@@ -103,12 +107,6 @@ gdt_end:
 	outb %al, $0x80
 	popl %eax
 	lgdt (%eax)
-
-  pushl %edx /* Print num */
-  movw $0x3f8, %dx
-  movb $'1', %al
-  outb %al, %dx
-  popl %edx /* Print num */
 
 	movb $0xbf, %al
 	outb %al, $0x80
@@ -132,65 +130,6 @@ gdt_end:
 
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
 	ljmpl	$0x18, $__protected_start
-
-p4:
-  push %ebx
-  push %eax // Input in ax
-
-  movw $0x3FD, %dx  // Check LCR while transmit buffer is full
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  pop %eax
-  push %eax // Restore input to ax
-
-  movw $0x3F8, %dx  // UART port
-  rorb $4, %al      // Upper nibble first
-  andb $0x0f, %al
-  cmp $9, %al
-  jg 1f
-  add $'0', %al
-  jmp 2f
-  1: add $0x37, %al
-  2: outb %al, %dx
-
-  movw $0x3FD, %dx  // LCR check
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  pop %eax
-  push %eax // Restore input to ax
-
-  movw $0x3F8, %dx  // UART port
-  andb $0x0f, %al
-  cmp $9, %al
-  jg 1f
-  add $'0', %al
-  jmp 2f
-  1: add $0x37, %al
-  2: outb %al, %dx
-
-  movw $0x3FD, %dx  // LCR check
-  1: inb %dx, %al
-  andb $0x20, %al
-  cmp $0x20, %al
-  jl 1b             // End check
-
-  movw $0x3F8, %dx  // UART port
-  movb $0x0A, %al // \r\n after a print
-  outb %al, %dx
-  movb $0x0D, %al
-  outb %al, %dx
-
-  pop %eax
-  pop %ebx
-  ret
-
-
 
 	// TODO: should set accessed and dirty bits in gdt entries
 	// so CPU does not try to write them to ROM?
@@ -242,8 +181,8 @@ __protected_start_no_load_segs:
 	// Set a pointer to the page table pages in %cr3.
 	// We can use cr3 as a scratch register here;
 	// its value won't matter until we set PG in CR0 below.
-	movl $pml4, %esp
-	movl %esp, %cr3
+	movl $pml4, %eax
+	movl %eax, %cr3
 
 	// Now for the big fun: Long Mode.
 	// Once again we put the data structures inline in this
@@ -269,7 +208,6 @@ lme:
 //	shrl $24, %eax
 //	outb    %al, $0x80
 //1: jmp 1b
-  movw $0x3f8, %dx /* Print num */
 	movl	%cr0, %eax
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.

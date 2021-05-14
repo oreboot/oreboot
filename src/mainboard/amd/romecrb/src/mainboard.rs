@@ -16,6 +16,7 @@
 
 #![allow(non_upper_case_globals)]
 
+use arch::ioport::IOPort;
 use clock::ClockNode;
 use core::ops::BitAnd;
 use core::ops::BitOr;
@@ -23,16 +24,27 @@ use core::ops::Not;
 use core::ptr;
 use model::*;
 use smn::smn_write;
+use uart::amdmmio::UART;
+use uart::debug_port::DebugPort;
+use uart::i8250::I8250;
 use vcell::VolatileCell;
-use x86_64::registers::model_specific::Msr;
 
 const SMB_UART_CONFIG: *const VolatileCell<u32> = 0xfed8_00fc as *const _;
 const SMB_UART_1_8M_SHIFT: u8 = 28;
 const SMB_UART_CONFIG_UART0_1_8M: u32 = 1 << SMB_UART_1_8M_SHIFT;
 const SMB_UART_CONFIG_UART1_1_8M: u32 = 1 << (SMB_UART_1_8M_SHIFT + 1);
 
+// Nothing from these three lines is documented anywhere that we can find.
+// FCH_UART_LEGACY_DECODE is in coreboot.
+// Some idea of the proper values was obtained using the u-root io command,
+// coupled with dumping ACPI to get some idea what the values might mean.
+// The rest is further interpolation.
 const FCH_UART_LEGACY_DECODE: *const VolatileCell<u16> = 0xfedc_0020 as *const _;
+// ACPI calls this IER3, which we assume means Io Enable Redirect 3?
 const FCH_LEGACY_3F8_SH: u16 = 1 << 3;
+// ACPI calls this WUR3, which means ... ?
+// This is two-bit field for bits 15:14.
+const FCH_WUR3: u16 = 1 << 14;
 //const FCH_LEGACY_2F8_SH: u16 = 1 << 1;
 
 // See coreboot:src/soc/amd/common/block/include/amdblocks/acpimmio_map.h
@@ -80,11 +92,18 @@ where
 }
 
 // WIP: mainboard driver. I mean the concept is a WIP.
-pub struct MainBoard {}
+pub struct MainBoard {
+    com1: I8250<IOPort>,
+    debug: DebugPort<IOPort>,
+    uart0: UART,
+}
 
 impl MainBoard {
     pub fn new() -> MainBoard {
-        MainBoard {}
+        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: UART::uart0() }
+    }
+    pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 2] {
+        [&mut self.com1, &mut self.uart0]
     }
 }
 
@@ -140,27 +159,22 @@ impl Driver for MainBoard {
             pinctrl(144, 0); // [UART1_INTR, AGPIO144][0]; Note: The reset default is 0
 
             // Set up the legacy decode for UART 0.
-            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH);
-            let mut msr0 = Msr::new(0x1b);
-            /*unsafe*/
-            {
-                let v = msr0.read() | 0x900;
-                msr0.write(v);
-                //let v = msr.read() | 0xd00;
-                //write!(w, "NOT ENABLING x2apic!!!\n\r");
-                //msr.write(v);
-            }
+            (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH | FCH_WUR3);
             // IOAPIC
             //     wmem fed80300 e3070b77
             //    wmem fed00010 3
-            poke(0xfed00010 as *mut u32, 3); //HPETCONFIG
-            pokers32(0xfed00010 as *mut u32, 0, 8);
+            pokers32(0xfed00010 as *mut u32, 0, 3); //HPETCONFIG
+
             // THis is likely not needed but.
             //poke32(0xfed00108, 0x5b03d997);
 
             // enable ioapic redirection
             // IOHC::IOAPIC_BASE_ADDR_LO
             smn_write(0x13B1_02f0, 0xFEC0_0001);
+
+            for driver in self.text_output_drivers().iter_mut() {
+                driver.init()?;
+            }
 
             Ok(())
         }
