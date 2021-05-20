@@ -71,7 +71,13 @@ outb %al, $0x2e
 movb $0x08, %al ##
 outb %al, $0x2f
 
-# 2f -> 40; no clue
+# from stock firmware; pin 34 is GP33, pin 58 is TSIC
+movb $0x2c, %al ##
+outb %al, $0x2e
+movb $0x21, %al ##
+outb %al, $0x2f
+
+# 2f -> 40; uncomment to switch to port 0x80 forward instead of 3f8 on UART
 ##movb $0x2f, %al ##
 ##outb %al, $0x2e
 ##movb $0x40, %al ##
@@ -103,12 +109,14 @@ outb %al, $0x2f
 movb $0xaa, %al
 outb %al, $0x2e
 // 1, 2, 3.....
-movb $0x30, %al
-outb	%al, $0x80
+3:
 movb $0x31, %al
 outb	%al, $0x80
 movb $0x32, %al
 outb	%al, $0x80
+movb $0x33, %al
+outb	%al, $0x80
+# jmp 3b ## uncomment for infinite port 0x80 loop
 
 jmp 2f
 

@@ -16,6 +16,7 @@
 
 #![allow(non_upper_case_globals)]
 
+use arch::ioport::IOPort;
 use clock::ClockNode;
 use core::ops::BitAnd;
 use core::ops::BitOr;
@@ -23,8 +24,10 @@ use core::ops::Not;
 use core::ptr;
 use model::*;
 use smn::smn_write;
+use uart::amdmmio::UART;
+use uart::debug_port::DebugPort;
+use uart::i8250::I8250;
 use vcell::VolatileCell;
-use x86_64::registers::model_specific::Msr;
 
 const SMB_UART_CONFIG: *const VolatileCell<u32> = 0xfed8_00fc as *const _;
 const SMB_UART_1_8M_SHIFT: u8 = 28;
@@ -89,11 +92,18 @@ where
 }
 
 // WIP: mainboard driver. I mean the concept is a WIP.
-pub struct MainBoard {}
+pub struct MainBoard {
+    com1: I8250<IOPort>,
+    debug: DebugPort<IOPort>,
+    uart0: UART,
+}
 
 impl MainBoard {
     pub fn new() -> MainBoard {
-        MainBoard {}
+        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: UART::uart0() }
+    }
+    pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 2] {
+        [&mut self.com1, &mut self.uart0]
     }
 }
 
@@ -150,26 +160,21 @@ impl Driver for MainBoard {
 
             // Set up the legacy decode for UART 0.
             (*FCH_UART_LEGACY_DECODE).set(FCH_LEGACY_3F8_SH | FCH_WUR3);
-            let mut msr0 = Msr::new(0x1b);
-            /*unsafe*/
-            {
-                let v = msr0.read() | 0x900;
-                msr0.write(v);
-                //let v = msr.read() | 0xd00;
-                //write!(w, "NOT ENABLING x2apic!!!\n\r");
-                //msr.write(v);
-            }
             // IOAPIC
             //     wmem fed80300 e3070b77
             //    wmem fed00010 3
-            poke(0xfed00010 as *mut u32, 3); //HPETCONFIG
-            pokers32(0xfed00010 as *mut u32, 0, 8);
+            pokers32(0xfed00010 as *mut u32, 0, 3); //HPETCONFIG
+
             // THis is likely not needed but.
             //poke32(0xfed00108, 0x5b03d997);
 
             // enable ioapic redirection
             // IOHC::IOAPIC_BASE_ADDR_LO
             smn_write(0x13B1_02f0, 0xFEC0_0001);
+
+            for driver in self.text_output_drivers().iter_mut() {
+                driver.init()?;
+            }
 
             Ok(())
         }

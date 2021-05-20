@@ -44,7 +44,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
 
     write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_XCHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), 0);
-
+    /*
     // xsdt - Extended System Description Table
     let xsdt_total_length = size_of::<AcpiTableHeader>() + size_of::<u64>() * NUM_XSDT_ENTRIES;
     let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, revision: 1, ..AcpiTableHeader::new() };
@@ -119,6 +119,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
         let local_apic = AcpiMadtLocalApic { header: AcpiSubtableHeader { r#type: MADT_LOCAL_APIC, length: size_of::<AcpiMadtLocalApic>() as u8 }, processor_id: i as u8, id: i as u8, lapic_flags: 1 };
         write(w, local_apic, madt_local_apic_offset, i as usize)
     }
+    */
 
     /*
     // Processor Local x2APIC
