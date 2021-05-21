@@ -224,7 +224,10 @@ lme:
 	#define PG 0x80000000     //Paging        If 1, enable paging and use the § CR3 register, else disable paging.
 	#define CDNWTSMP 0x6000000a
 	//ANDL	/*$~(CD|NW|TS|MP)*/$~0x6000000a, %eax
+	// The most important thing here is enabling caching by clearing CD and NW
+	andl	$0x9ffffff5, %eax
 	//ORL	/*$(PG|WP)*/$0x80010000, %eax			/* Paging Enable */
+	// Consider re-enabling WP. But it's pretty pointless at this level with 1 GiB pages!
 	ORL	$0x80000000, %eax			/* Paging Enable */
 	movl	%eax, %cr0
 	ljmp $0x28, $_identity
