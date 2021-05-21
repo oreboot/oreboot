@@ -39,17 +39,39 @@
 
 .org 0xff00
 gdt:
+	/* format:
+	 *   limit: word,
+	 *   base_lo: word,
+	 *   base_hi: byte,
+	 *   access: byte, // bit 7: present; bit 6...5: privilege ring; bit 4: descriptor type (1 for code and data); bit 3: executable; bit 2: direction (0 is up--so base <= limit); bit 1: writable; bit 0: accessed flag
+	 *   limit_hi: nibble,
+	 *   flags: nibble, // bit 3: unit of base and limit (1: 4 KiB page; 0: 1 Byte); bit 2: protected mode kind (0: 16 bit protected mode; 1: 32 bit protected mode); bit 1: 0; bit 0: 0
+	 *   base_highest: byte
+	 */
+
 	/* selgdt 0, unused */
-	.word	0x0000, 0x0000		/* dummy */
-	.byte	0x00, 0x00, 0x00, 0x00
+	.word	0x0000     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0x00       /* access; so present=0 */
+	.byte	0x00       /* high nibble: flags; low nibble: limit_hi; ignored since present=0 */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x08, flat code segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10011011 /* access; so present, code and data, executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 
 	/* selgdt 0x10,flat data segment */
-	.word	0xffff, 0x0000
-	.byte	0x00, 0x93, 0xcf, 0x00
+	.word	0xffff     /* limit */
+	.word	0x0000     /* base_lo */
+	.byte	0x00       /* base_hi */
+	.byte	0b10010011 /* access: so present, code and data, not executable, writable, accessed */
+	.byte	0xcf       /* high nibble: flags; low nibble: limit_hi; so 32 bit protected mode, base and limit in units of pages, limit = 0xf_ffff--so we get 4 GiB */
+	.byte	0x00       /* base_highest */
 gdt_end:
 .code16
 1:
@@ -85,25 +107,25 @@ outb %al, $0x2f
 
 ######## LDN 0x07 ########
 ## not yet working, probably relies on some global registers
-movb $0x07, %al ## command for device selection
-outb %al, $0x2e
-movb $0x07, %al ## select logical device 0x07: GPIOs 7 and 8
-outb %al, $0x2f
-
-movb $0x30, %al ## control register 0x30: GPIO activation
-outb %al, $0x2e
-movb $0x02, %al ## does this activate GPIO 7?
-outb %al, $0x2f
-
-movb $0xe0, %al ## control register 0xE0: GPIO 7 I/O
-outb %al, $0x2e
-movb $0xef, %al ## set value 1110 1111: GPIO 74 is output
-outb %al, $0x2f
-
-movb $0xec, %al ## control register 0xEC: LED function config
-outb %al, $0x2e
-movb $0x10, %al ## 0001 0000 - GPIO 74 is GRN LED
-outb %al, $0x2f
+# movb $0x07, %al ## command for device selection
+# outb %al, $0x2e
+# movb $0x07, %al ## select logical device 0x07: GPIOs 7 and 8
+# outb %al, $0x2f
+#
+# movb $0x30, %al ## control register 0x30: GPIO activation
+# outb %al, $0x2e
+# movb $0x02, %al ## does this activate GPIO 7?
+# outb %al, $0x2f
+#
+# movb $0xe0, %al ## control register 0xE0: GPIO 7 I/O
+# outb %al, $0x2e
+# movb $0xef, %al ## set value 1110 1111: GPIO 74 is output
+# outb %al, $0x2f
+#
+# movb $0xec, %al ## control register 0xEC: LED function config
+# outb %al, $0x2e
+# movb $0x10, %al ## 0001 0000 - GPIO 74 is GRN LED
+# outb %al, $0x2f
 
 // exit extended function mode
 movb $0xaa, %al
@@ -133,9 +155,9 @@ jmp 2f
 _start16bit:
 jmp 1b
 2:
-	cli
-movb $0xaa, %al
-outb	%al, $0x80
+#	cli
+#movb $0xaa, %al
+#outb	%al, $0x80
 	/* Save the BIST result */
 	movl	%eax, %ebp
 
@@ -196,16 +218,15 @@ outb	%al, $0x80
 	 * in protected mode before c_start.S sets up a 32bit IDT when entering
 	 * RAM stage. In practise: CPU will shutdown on any exception.
 	 * See IA32 manual Vol 3A 19.26 Interrupts.
+	 *
+	 * movw	%cs, %ax
+	 * shlw	$4, %ax
+	 * movw	$0xffe8, %bx
+	 * subw	%ax, %bx
+	 * lidt	%cs:(%bx)
 	 */
 
-/*
-	movw	%cs, %ax
-	shlw	$4, %ax
-	movw	$0xffe8, %bx
-	subw	%ax, %bx
-	lidt	%cs:(%bx)
-*/
-	movl	$0xffffffc8, %ebx
+	movl	$0xffffffe8, %ebx
 	// Leave it hand assembled. gas will NOT do the right thing.
 	//lgdtl	%cs:(%bx)
 	.byte 0x66, 0x2E, 0x0F, 0x01, 0x17
@@ -216,9 +237,10 @@ outb	%al, $0x80
 
 	/* Restore BIST to %eax */
 	movl	%ebp, %eax
+
 	/* Now that we are in protected mode jump to a 32 bit code segment. */
-	ljmpl	$8, $0xffffffb1
-.org 0xffb1
+	ljmpl	$8, $0xffffffa8
+.org 0xffa8
 .code32
 protected:
 	movb $0xac, %al
@@ -231,20 +253,50 @@ protected:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
+	// Give bootstrap core and thread a bigger stack (32 KiB)
+	// Added 0x500 is in order to avoid the BIOS data area, then an extra 0x500 in order to page-align the stack again
+	mov $0x9000, %esp
+
+	// Enable APIC (in xAPIC mode) so we can read out the APIC_ID from MMIO at $0xFEE0_0020
+	movl   $0x1b, %ecx
+	rdmsr
+	orl $0x800, %eax
+	wrmsr
+
+	// Check whether we are running on the bootstrap core (and thread)
+	test $0x100, %eax
+	jnz 3f
+
+	// Note: Non-bootstrap cores reach this place
+
+	// See coreboot:src/cpu/x86/smm/smihandler.c function "nodeid".
+	// APICx020: bits 31...24 (8 bits): APIC_ID; APIC defaults to 0xFEE0_0000
+	movl ($0xFEE0_0020), %ebx
+	shr $24, %ebx
+	inc %ebx
+
+	// Give other cores and threads a smaller stack (2 KiB)
+	shl $11, %ebx
+	add %ebx, %esp
+
+	// Note: All the stacks are below address 0x8_9000
+	// Video memory via MMIO is eventually mapped at 0xA_0000--avoid area
+3:
+
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
 	jmp 1f # jump to next label named "1" forward
 
 	/**
-	 * The gdt is defined in entry32.inc, it has a 4 Gb code segment
-	 * at 0x08, and a 4 GB data segment at 0x10;
+	 * The gdt is defined at the top of this file; it has a 4 GiB code segment
+	 * at 0x08, and a 4 GiB data segment at 0x10;
 	 */
-.org 0xFFc8
+.org 0xFFe8
 9:
 .globl gdtptr16
 gdtptr16:
-	.word	0x1f			  /* compute the table limit */
-	.long	0xffffff00		 /* we know the offset */
+	.word	0x1f			 /* gdt limit (size - 1) */
+	.long	0xffffff00		 /* offset */
 .align	4
 .org 0xfff0
 	// This a hand-assembled jump back as far as possible
