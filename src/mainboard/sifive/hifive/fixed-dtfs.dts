@@ -11,7 +11,7 @@
         board-url = "https://www.sifive.com/boards/hifive-unleashed";
         areas {
             area@0 {
-                description = "Boot Blob and Ramstage";
+                description = "Boot Blob and Romstage";
                 size = <0x80000>; // 512KiB
                 file = "$(TARGET_DIR)/bootblob.bin";
             };
