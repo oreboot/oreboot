@@ -10,7 +10,7 @@
         category = "Emulation";
         areas {
             area@0 {
-                description = "Boot Blob and Ramstage";
+                description = "Boot Blob and Romstage";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
                 file = "$(TARGET_DIR)/bootblob.bin";
