@@ -13,6 +13,7 @@ dependencies = [
  "lazy_static",
  "model",
  "payloads",
+ "pci",
  "postcard",
  "print",
  "raw-cpuid",

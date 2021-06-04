@@ -25,6 +25,8 @@ mod msr;
 use msr::msrs;
 // mod c00;
 // use c00::c00;
+use pci::config32;
+use pci::PciAddress;
 mod interrupts;
 use interrupts::init_idt;
 use x86_64::registers::model_specific::Msr;
@@ -35,6 +37,16 @@ use wrappers::DoD;
 use x86_64::instructions::interrupts::int3;
 
 use core::ptr;
+
+const LPC_ISA_BRIDGE_DEVICE: u8 = 0x14;
+const LPC_ISA_BRIDGE_FUNCTION: u8 = 0x3;
+// p 433
+const IO_PORT_DECODE_ENABLE: u16 = 0x044;
+const IO_PORT_DECODE_ENABLE_3F8_SHIFT: u8 = 6;
+const IO_PORT_DECODE_ENABLE_3F8: u32 = 1 << IO_PORT_DECODE_ENABLE_3F8_SHIFT;
+
+const LPC_IO_OR_MEM_DECODE_ENABLE: u16 = 0x048;
+const DECODE_SIO_ENABLE: u32 = 1;
 
 fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     let got = smn_read(reg);
@@ -145,6 +157,29 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     if true {
         msrs(w);
     }
+
+    // see src/soc/amd/common/df/src/lib.rs
+    let io_port_decode_enable = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: LPC_ISA_BRIDGE_DEVICE,
+        function: LPC_ISA_BRIDGE_FUNCTION,
+        offset: IO_PORT_DECODE_ENABLE,
+    });
+    write!(w, "io_port_decode_enable is {:x} \r\n", io_port_decode_enable.get()).unwrap();
+    io_port_decode_enable.set(io_port_decode_enable.get() | IO_PORT_DECODE_ENABLE_3F8);
+
+    let lpc_io_or_mem_decode_enable = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: LPC_ISA_BRIDGE_DEVICE,
+        function: LPC_ISA_BRIDGE_FUNCTION,
+        offset: LPC_IO_OR_MEM_DECODE_ENABLE,
+    });
+    // 0010 0000  1111 1111  0000 0111
+    write!(w, "lpc_io_or_mem_decode_enable is {:x} \r\n", lpc_io_or_mem_decode_enable.get())
+        .unwrap();
+    lpc_io_or_mem_decode_enable.set(lpc_io_or_mem_decode_enable.get() | DECODE_SIO_ENABLE);
 
     match cpu_init(w) {
         Ok(()) => {}
