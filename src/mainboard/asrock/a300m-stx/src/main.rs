@@ -25,6 +25,8 @@ use msr::msrs;
 // use c00::c00;
 mod acpi;
 use acpi::setup_acpi_tables;
+use pci::config32;
+use pci::PciAddress;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -202,6 +204,17 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
         }
     }
 }
+
+const LPC_ISA_BRIDGE_DEVICE: u8 = 0x14;
+const LPC_ISA_BRIDGE_FUNCTION: u8 = 0x3;
+// p 433
+const IO_PORT_DECODE_ENABLE: u16 = 0x044;
+const IO_PORT_DECODE_ENABLE_3F8_SHIFT: u8 = 6;
+const IO_PORT_DECODE_ENABLE_3F8: u32 = 1 << IO_PORT_DECODE_ENABLE_3F8_SHIFT;
+
+const LPC_IO_OR_MEM_DECODE_ENABLE: u16 = 0x048;
+const DECODE_SIO_ENABLE: u32 = 1;
+
 //global_asm!(include_str!("init.S"));
 
 fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
@@ -299,6 +312,37 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     if true {
         msrs(w);
     }
+
+    let io_port_decode_enable = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: LPC_ISA_BRIDGE_DEVICE,
+        function: LPC_ISA_BRIDGE_FUNCTION,
+        offset: IO_PORT_DECODE_ENABLE,
+    });
+    write!(
+        w,
+        "io_port_decode_enable is {:x} \r\n",
+        io_port_decode_enable.get()
+    )
+    .unwrap();
+    io_port_decode_enable.set(io_port_decode_enable.get() | IO_PORT_DECODE_ENABLE_3F8);
+
+    let lpc_io_or_mem_decode_enable = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: LPC_ISA_BRIDGE_DEVICE,
+        function: LPC_ISA_BRIDGE_FUNCTION,
+        offset: LPC_IO_OR_MEM_DECODE_ENABLE,
+    });
+
+    write!(
+        w,
+        "lpc_io_or_mem_decode_enable is {:x} \r\n",
+        lpc_io_or_mem_decode_enable.get()
+    )
+    .unwrap();
+    lpc_io_or_mem_decode_enable.set(lpc_io_or_mem_decode_enable.get() | DECODE_SIO_ENABLE);
 
     match cpu_init(w) {
         Ok(()) => {}
