@@ -9,7 +9,9 @@ pub struct HSMP {
 
 impl HSMP {
     pub fn new() -> HSMP {
-        Self { mailbox: MPMailbox::<8>::new(0x3B1_0534, 0x3B1_0980, 0x3B1_09E0) }
+        Self {
+            mailbox: MPMailbox::<8>::new(0x3B1_0534, 0x3B1_0980, 0x3B1_09E0),
+        }
     }
     pub fn test(&self, v: u32) -> Result<u32> {
         self.mailbox.test(v)

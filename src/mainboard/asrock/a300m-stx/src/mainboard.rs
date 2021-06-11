@@ -92,7 +92,9 @@ impl MainBoard {
         // Uncomment for port 0x80 testing, but it's sluggish and mutually
         // exclusive on the super I/O
         // Self { debug: DebugPort::new(0x80, IOPort {}) }
-        Self { com1: I8250::new(0x3f8, 0, IOPort {}) }
+        Self {
+            com1: I8250::new(0x3f8, 0, IOPort {}),
+        }
     }
     pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 1] {
         // [&mut self.debug]
@@ -103,7 +105,11 @@ impl MainBoard {
 fn d3_control_power_on(n: u8) -> () {
     if n < 32 {
         unsafe {
-            pokers(&(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)], 0, AOAC_PWR_ON_DEV);
+            pokers(
+                &(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)],
+                0,
+                AOAC_PWR_ON_DEV,
+            );
         }
     }
 }

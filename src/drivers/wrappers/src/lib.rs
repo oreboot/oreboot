@@ -16,13 +16,13 @@ impl<'a> DoD<'a> {
 
 impl<'a> Driver for DoD<'a> {
     fn init(&mut self) -> Result<()> {
-        self.drivers.iter_mut().fold(Ok(()), |ret, d| {
-            match (ret, d.init()) {
+        self.drivers
+            .iter_mut()
+            .fold(Ok(()), |ret, d| match (ret, d.init()) {
                 (Ok(()), Ok(())) => Ok(()),
                 (_, Err(err)) => Err(err),
                 (err, _) => err,
-            }
-        })
+            })
     }
 
     fn pread(&self, _data: &mut [u8], _pos: usize) -> Result<usize> {
@@ -31,13 +31,13 @@ impl<'a> Driver for DoD<'a> {
 
     // If there are multiple errors, the last one is returned.
     fn pwrite(&mut self, data: &[u8], pos: usize) -> Result<usize> {
-        self.drivers.iter_mut().fold(Ok(0), |ret, d| {
-            match (ret, d.pwrite(data, pos)) {
+        self.drivers
+            .iter_mut()
+            .fold(Ok(0), |ret, d| match (ret, d.pwrite(data, pos)) {
                 (Ok(sum), Ok(count)) => Ok(sum + count),
                 (_, err @ Err(_)) => err,
                 (err, _) => err,
-            }
-        })
+            })
     }
 
     fn shutdown(&mut self) {
@@ -101,7 +101,11 @@ pub struct SectionReader<'a, D: Driver> {
 
 impl<'a, D: Driver> SectionReader<'a, D> {
     pub fn new(driver: &'a D, offset: usize, size: usize) -> SectionReader<D> {
-        SectionReader { driver, offset, size }
+        SectionReader {
+            driver,
+            offset,
+            size,
+        }
     }
 }
 

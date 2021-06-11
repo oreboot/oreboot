@@ -98,7 +98,8 @@ impl UART {
 
 impl Driver for UART {
     fn init(&mut self) -> Result<()> {
-        self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::BaudRate);
+        self.lcr
+            .write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::BaudRate);
         self.dlm.set(0);
         self.d.set(1); // approx. 115200
         self.lcr.write(LCR::BITSPARITY::EIGHTN1 + LCR::DLAB::Data);

@@ -202,7 +202,11 @@ impl StreamPayload {
             // Better minds than mine can figure this shit out. Or when I learn more.
             let typ: stype = core::convert::From::from(seg.typ);
             match typ {
-                stype::CBFS_SEGMENT_ENTRY | stype::CBFS_SEGMENT_CODE | stype::CBFS_SEGMENT_DATA | stype::CBFS_SEGMENT_BSS | stype::CBFS_SEGMENT_PARAMS => {
+                stype::CBFS_SEGMENT_ENTRY
+                | stype::CBFS_SEGMENT_CODE
+                | stype::CBFS_SEGMENT_DATA
+                | stype::CBFS_SEGMENT_BSS
+                | stype::CBFS_SEGMENT_PARAMS => {
                     writeln!(w, "seg {:?}", seg).unwrap();
                     seg.off = seg.off.to_be();
                     seg.load = seg.load.to_be();
@@ -211,7 +215,10 @@ impl StreamPayload {
                     writeln!(w, "afterward seg {:?}", seg).unwrap();
                 }
                 stype::PAYLOAD_SEGMENT_BAD => {
-                    panic!("Panic'ing on PAYLOAD_SEGMENT_BAD: seg now {:?} {:?} typ {:?}", self.rom, seg, typ);
+                    panic!(
+                        "Panic'ing on PAYLOAD_SEGMENT_BAD: seg now {:?} {:?} typ {:?}",
+                        self.rom, seg, typ
+                    );
                 }
                 _ => {
                     writeln!(w, "Seg is unchanged: {:?}\n", seg).unwrap();
@@ -233,7 +240,11 @@ impl StreamPayload {
                 stype::PAYLOAD_SEGMENT_DTB => self.dtb = load,
                 stype::CBFS_SEGMENT_DATA | stype::CBFS_SEGMENT_CODE => {
                     writeln!(w, "set up from at {:x}", self.rom + seg.off as usize).unwrap();
-                    let data = SectionReader::new(&Memory {}, self.rom + seg.off as usize, seg.len as usize);
+                    let data = SectionReader::new(
+                        &Memory {},
+                        self.rom + seg.off as usize,
+                        seg.len as usize,
+                    );
                     let mut i: usize = 0;
                     loop {
                         let size = match data.pread(&mut buf, i) {

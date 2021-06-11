@@ -28,16 +28,16 @@ use register::register_bitfields;
 #[repr(C)]
 
 pub struct RegisterBlock {
-    crystal: ReadWrite<u32, Crystal::Register>,    /* offset 0x00 */
-    core: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x04 */
-    _reserved08: u32,                              /* offset 0x08 */
-    ddr0: ReadWrite<u32, PLLCfg0::Register>,       /* offset 0x0c */
-    ddr1: ReadWrite<u32, PLLCfg1::Register>,       /* offset 0x10 */
-    _reserved14: u32,                              /* offset 0x14 */
-    _reserved18: u32,                              /* offset 0x18 */
-    ge0: ReadWrite<u32, PLLCfg0::Register>,        /* offset 0x1c */
-    ge1: ReadWrite<u32, PLLCfg1::Register>,        /* offset 0x20 */
-    clk_sel: ReadWrite<u32, ClkSel::Register>,     /* offset 0x24 */
+    crystal: ReadWrite<u32, Crystal::Register>, /* offset 0x00 */
+    core: ReadWrite<u32, PLLCfg0::Register>,    /* offset 0x04 */
+    _reserved08: u32,                           /* offset 0x08 */
+    ddr0: ReadWrite<u32, PLLCfg0::Register>,    /* offset 0x0c */
+    ddr1: ReadWrite<u32, PLLCfg1::Register>,    /* offset 0x10 */
+    _reserved14: u32,                           /* offset 0x14 */
+    _reserved18: u32,                           /* offset 0x18 */
+    ge0: ReadWrite<u32, PLLCfg0::Register>,     /* offset 0x1c */
+    ge1: ReadWrite<u32, PLLCfg1::Register>,     /* offset 0x20 */
+    clk_sel: ReadWrite<u32, ClkSel::Register>,  /* offset 0x24 */
     dev_reset: ReadWrite<u32, ResetCtl::Register>, /* offset 0x28 */
 }
 
@@ -216,7 +216,10 @@ impl<'a> Driver for Clock<'a> {
 
 impl<'a> Clock<'a> {
     pub fn new(clks: &'a mut [&'a mut dyn ClockNode]) -> Clock<'a> {
-        Clock::<'a> { base: reg::PRCI as usize, clks }
+        Clock::<'a> {
+            base: reg::PRCI as usize,
+            clks,
+        }
     }
 
     /// Returns a pointer to the register block
@@ -283,12 +286,14 @@ impl<'a> Clock<'a> {
 
         // get DDR out of reset
         // TODO: clean this up later
-        self.dev_reset.set(reset_mask(false, true, true, true, true));
+        self.dev_reset
+            .set(reset_mask(false, true, true, true, true));
 
         // Required to get the '1 full controller clock cycle'.
         arch::fence();
 
-        self.dev_reset.set(reset_mask(false, false, false, false, true));
+        self.dev_reset
+            .set(reset_mask(false, false, false, false, true));
 
         // Required to get the '1 full controller clock cycle'.
         arch::fence();
@@ -301,7 +306,8 @@ impl<'a> Clock<'a> {
             arch::nop();
         }
         self.init_pll_ge();
-        self.dev_reset.set(reset_mask(false, false, false, false, false));
+        self.dev_reset
+            .set(reset_mask(false, false, false, false, false));
 
         arch::fence();
     }

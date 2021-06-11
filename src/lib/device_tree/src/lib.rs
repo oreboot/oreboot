@@ -136,14 +136,30 @@ impl<'a, D: Driver> FdtReader<'a, D> {
         let header = read_fdt_header(drv)?;
 
         Ok(FdtReader {
-            _mem_reservation_block: SectionReader::new(drv, header.off_mem_rsvmap as usize, (header.total_size - header.off_dt_struct) as usize),
-            struct_block: SectionReader::new(drv, header.off_dt_struct as usize, header.size_dt_struct as usize),
-            strings_block: SectionReader::new(drv, header.off_dt_strings as usize, header.size_dt_strings as usize),
+            _mem_reservation_block: SectionReader::new(
+                drv,
+                header.off_mem_rsvmap as usize,
+                (header.total_size - header.off_dt_struct) as usize,
+            ),
+            struct_block: SectionReader::new(
+                drv,
+                header.off_dt_struct as usize,
+                header.size_dt_struct as usize,
+            ),
+            strings_block: SectionReader::new(
+                drv,
+                header.off_dt_strings as usize,
+                header.size_dt_strings as usize,
+            ),
         })
     }
 
     pub fn walk(&'a self) -> FdtIterator<'a, D> {
-        FdtIterator { dt: self, cursor: 0, name_buf: [0; MAX_NAME_SIZE] }
+        FdtIterator {
+            dt: self,
+            cursor: 0,
+            name_buf: [0; MAX_NAME_SIZE],
+        }
     }
 }
 
@@ -155,12 +171,19 @@ pub struct FdtIterator<'a, D: Driver> {
 
 impl<'a, D: Driver> FdtIterator<'a, D> {
     #[allow(clippy::should_implement_trait)]
-    pub fn next<'b>(&'b mut self) -> Result<Option<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
+    pub fn next<'b>(
+        &'b mut self,
+    ) -> Result<Option<Entry<'b, SectionReader<'a, SectionReader<'a, D>>>>> {
         loop {
-            let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(&self.dt.struct_block, &mut self.cursor)?);
+            let op = num_traits::cast::FromPrimitive::from_u32(cursor_u32(
+                &self.dt.struct_block,
+                &mut self.cursor,
+            )?);
             match op {
                 Some(Token::BeginNode) => {
-                    let len = cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf)? as usize;
+                    let len =
+                        cursor_string(&self.dt.struct_block, &mut self.cursor, &mut self.name_buf)?
+                            as usize;
                     self.cursor = align4(self.cursor);
                     match core::str::from_utf8(&self.name_buf[..len]) {
                         Ok(name) => return Ok(Some(Entry::StartNode { name })),
@@ -170,8 +193,13 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
                 Some(Token::EndNode) => return Ok(Some(Entry::EndNode)),
                 Some(Token::Prop) => {
                     let len = cursor_u32(&self.dt.struct_block, &mut self.cursor)? as usize;
-                    let mut name_off = cursor_u32(&self.dt.struct_block, &mut self.cursor)? as usize;
-                    let name_len = cursor_string(&self.dt.strings_block, &mut name_off, &mut self.name_buf[..])? as usize;
+                    let mut name_off =
+                        cursor_u32(&self.dt.struct_block, &mut self.cursor)? as usize;
+                    let name_len = cursor_string(
+                        &self.dt.strings_block,
+                        &mut name_off,
+                        &mut self.name_buf[..],
+                    )? as usize;
                     let value = SectionReader::new(&self.dt.struct_block, self.cursor, len);
                     self.cursor = align4(self.cursor + len);
                     match core::str::from_utf8(&self.name_buf[..name_len]) {
@@ -217,7 +245,8 @@ pub fn print_fdt(fdt: &impl Driver, w: &mut impl core::fmt::Write) -> Result<()>
         match entry {
             Entry::StartNode { name } => {
                 depth += 1;
-                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2).map_err(|_e| "failed to write")?;
+                write!(w, "{:depth$}{}\r\n", "", name, depth = depth * 2)
+                    .map_err(|_e| "failed to write")?;
             }
             Entry::EndNode {} => {
                 depth -= 1;
@@ -230,7 +259,8 @@ pub fn print_fdt(fdt: &impl Driver, w: &mut impl core::fmt::Write) -> Result<()>
                     Err(y) => return Err(y),
                 };
                 let val = infer_type(&buf[..len]);
-                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,).map_err(|_e| "failed to write")?;
+                write!(w, "{:depth$}{} = {}\r\n", "", name, val, depth = depth * 2,)
+                    .map_err(|_e| "failed to write")?;
             }
         }
     }

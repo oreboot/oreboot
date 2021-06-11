@@ -8,14 +8,24 @@ fn dfhack(w: &mut impl core::fmt::Write, generating: bool, id: u8, off: u16, val
     // When not generating, we write and hope.
     if generating {
         if v != val {
-            write!(w, "\tdfhack(w, false, 0x{:x}, 0x{:x}, 0x{:x});\r\n", id, off, val).unwrap();
+            write!(
+                w,
+                "\tdfhack(w, false, 0x{:x}, 0x{:x}, 0x{:x});\r\n",
+                id, off, val
+            )
+            .unwrap();
         }
     } else {
         df_write_indirect(0, id, fun, off, val);
         // we always verify ...
         let v = df_read_indirect(0, id, 0, off);
         if v != val {
-            write!(w, "DF after set:id {:x}: OFFSET {:x} GOT {:x}, WANT {:x}\r\n", id, off, v, val).unwrap();
+            write!(
+                w,
+                "DF after set:id {:x}: OFFSET {:x} GOT {:x}, WANT {:x}\r\n",
+                id, off, v, val
+            )
+            .unwrap();
         }
     }
 }

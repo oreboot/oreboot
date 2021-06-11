@@ -100,7 +100,11 @@ pub struct MainBoard {
 
 impl MainBoard {
     pub fn new() -> MainBoard {
-        Self { com1: I8250::new(0x3f8, 0, IOPort {}), debug: DebugPort::new(0x80, IOPort {}), uart0: UART::uart0() }
+        Self {
+            com1: I8250::new(0x3f8, 0, IOPort {}),
+            debug: DebugPort::new(0x80, IOPort {}),
+            uart0: UART::uart0(),
+        }
     }
     pub fn text_output_drivers(&mut self) -> [&mut dyn Driver; 2] {
         [&mut self.com1, &mut self.uart0]
@@ -110,7 +114,11 @@ impl MainBoard {
 fn d3_control_power_on(n: u8) -> () {
     if n < 32 {
         unsafe {
-            pokers(&(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)], 0, AOAC_PWR_ON_DEV);
+            pokers(
+                &(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)],
+                0,
+                AOAC_PWR_ON_DEV,
+            );
         }
     }
 }
@@ -134,7 +142,11 @@ impl Driver for MainBoard {
             //uart_ctrl |= 1 << (SMB_UART_1_8M_SHIFT + idx);
             //sm_pci_write32(SMB_UART_CONFIG, uart_ctrl);
             // we want 1.8m. They made oddball 48m default. Stupid.
-            pokers(SMB_UART_CONFIG, 0, SMB_UART_CONFIG_UART0_1_8M | SMB_UART_CONFIG_UART1_1_8M);
+            pokers(
+                SMB_UART_CONFIG,
+                0,
+                SMB_UART_CONFIG_UART0_1_8M | SMB_UART_CONFIG_UART1_1_8M,
+            );
 
             d3_control_power_on(FCH_AOAC_DEV_AMBA); // Note: It's on by default
             d3_control_power_on(FCH_AOAC_DEV_UART0); // Note: It's on by default

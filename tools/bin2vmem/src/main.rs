@@ -58,10 +58,18 @@ fn parse_args() -> Args {
         }
     }
 
-    Args { offset: parsed_offset, width: parsed_width }
+    Args {
+        offset: parsed_offset,
+        width: parsed_width,
+    }
 }
 
-fn do_bin2vmem<R: Read, W: Write>(offset: u32, width: u32, input: &mut R, output: &mut W) -> io::Result<u32> {
+fn do_bin2vmem<R: Read, W: Write>(
+    offset: u32,
+    width: u32,
+    input: &mut R,
+    output: &mut W,
+) -> io::Result<u32> {
     let mut pos = offset;
 
     output.write_all("/* http://srecord.sourceforge.net/ */\n".as_bytes())?;

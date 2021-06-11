@@ -162,11 +162,11 @@ impl Default for BootParams {
             _pad6: [0u8; 1],                       // 0x1f0
             hdr: SetupHeader::default(),           // 0x1f1
             _pad7: [0u8; 0x290 - 0x1f1 - size_of::<SetupHeader>()],
-            edd_mbr_sig_buffer: [0u32; 16],                         // 0x290
+            edd_mbr_sig_buffer: [0u32; 16], // 0x290
             e820_table: [E820Entry::default(); E820::MAX as usize], // 0x2d0
-            _pad8: [0u8; 48],                                       // 0xcd0
-            eddbuf: [0u8; 0xeec - 0xd00],                           // 0xd00
-            _pad9: [0u8; 276],                                      // 0xeec
+            _pad8: [0u8; 48],               // 0xcd0
+            eddbuf: [0u8; 0xeec - 0xd00],   // 0xd00
+            _pad9: [0u8; 276],              // 0xeec
         }
     }
 }
@@ -194,7 +194,12 @@ impl BzImage {
         if header.boot_flag != MAGIC_AA55 {
             let i = header.boot_flag;
             let p = unsafe { &header.boot_flag };
-            writeln!(w, "boot flag is {:x}, not {:x}, at {:x}, \r\n", i, MAGIC_AA55, p).unwrap();
+            writeln!(
+                w,
+                "boot flag is {:x}, not {:x}, at {:x}, \r\n",
+                i, MAGIC_AA55, p
+            )
+            .unwrap();
             return Err("magic number missing: header.boot_flag != 0xaa55");
         }
         if header.header != HDRS {
@@ -222,7 +227,14 @@ impl BzImage {
         // Copy from driver into segment.
         let mut buf = [0u8; SECTOR_SIZE];
         let mut amt: usize = 0;
-        writeln!(w, "Copy {:x} to {:x} for {:x}", kernel_offset + self.rom_base, self.load, 0x300000).unwrap();
+        writeln!(
+            w,
+            "Copy {:x} to {:x} for {:x}",
+            kernel_offset + self.rom_base,
+            self.load,
+            0x300000
+        )
+        .unwrap();
         let mut load = self.load;
         // Read payload from rom into memory
         loop {
@@ -251,16 +263,36 @@ impl BzImage {
     pub fn setup_e820_tables(&self, bp: &mut BootParams) {
         let mut bp = bp;
         // The first page is always reserved.
-        let entry_first_page = E820Entry { addr: 0, size: PAGE_SIZE as u64, r#type: E820::RESERVED as u32 };
+        let entry_first_page = E820Entry {
+            addr: 0,
+            size: PAGE_SIZE as u64,
+            r#type: E820::RESERVED as u32,
+        };
         // a tiny bit of low memory for trampoline
-        let entry_low = E820Entry { addr: PAGE_SIZE as u64, size: (LOW_MEM_64K - PAGE_SIZE) as u64, r#type: E820::RAM as u32 };
+        let entry_low = E820Entry {
+            addr: PAGE_SIZE as u64,
+            size: (LOW_MEM_64K - PAGE_SIZE) as u64,
+            r#type: E820::RAM as u32,
+        };
         // memory from 64K to LOW_MEM_1M is reserved
-        let entry_reserved = E820Entry { addr: LOW_MEM_64K as u64, size: (LOW_MEM_1M - LOW_MEM_64K) as u64, r#type: E820::RESERVED as u32 };
+        let entry_reserved = E820Entry {
+            addr: LOW_MEM_64K as u64,
+            size: (LOW_MEM_1M - LOW_MEM_64K) as u64,
+            r#type: E820::RESERVED as u32,
+        };
         // LOW_MEM_1M to low_mem_size for ramdisk and multiboot
-        let entry_low_main = E820Entry { addr: LOW_MEM_1M as u64, size: (self.low_mem_size - LOW_MEM_1M as u64), r#type: E820::RAM as u32 };
+        let entry_low_main = E820Entry {
+            addr: LOW_MEM_1M as u64,
+            size: (self.low_mem_size - LOW_MEM_1M as u64),
+            r#type: E820::RAM as u32,
+        };
         // Memory between low_mem_size and high_mem is used for PCI address space
         // main memory above 4GB
-        let entry_main = E820Entry { addr: self.high_mem_start as u64, size: self.high_mem_size as u64, r#type: E820::RAM as u32 };
+        let entry_main = E820Entry {
+            addr: self.high_mem_start as u64,
+            size: self.high_mem_size as u64,
+            r#type: E820::RAM as u32,
+        };
         bp.e820_table[0] = entry_first_page;
         bp.e820_table[1] = entry_low;
         bp.e820_table[2] = entry_reserved;
@@ -288,18 +320,46 @@ mod tests {
 
     #[test]
     fn setup_e820_tables_correctly_sets_table() {
-        let test_image = BzImage { low_mem_size: 0xFFFFFF, high_mem_start: 0xFFFF, high_mem_size: 0, rom_base: 0xFF_000_000, rom_size: 0xAAAA, load: 0xAAAA, entry: 0xAAAA };
+        let test_image = BzImage {
+            low_mem_size: 0xFFFFFF,
+            high_mem_start: 0xFFFF,
+            high_mem_size: 0,
+            rom_base: 0xFF_000_000,
+            rom_size: 0xAAAA,
+            load: 0xAAAA,
+            entry: 0xAAAA,
+        };
         let mut test_bp = BootParams::default();
         let test_hdr = SetupHeader::default();
         test_bp.hdr = test_hdr;
         test_image.setup_e820_tables(&mut test_bp);
 
         //Set up E820Entries for test
-        let entry_first_page = E820Entry { addr: 0, size: PAGE_SIZE as u64, r#type: E820::RESERVED as u32 };
-        let entry_low = E820Entry { addr: PAGE_SIZE as u64, size: (LOW_MEM_64K - PAGE_SIZE) as u64, r#type: E820::RAM as u32 };
-        let entry_reserved = E820Entry { addr: LOW_MEM_64K as u64, size: (LOW_MEM_1M - LOW_MEM_64K) as u64, r#type: E820::RESERVED as u32 };
-        let entry_low_main = E820Entry { addr: LOW_MEM_1M as u64, size: (test_image.low_mem_size - LOW_MEM_1M as u64), r#type: E820::RAM as u32 };
-        let entry_main = E820Entry { addr: test_image.high_mem_start as u64, size: test_image.high_mem_size as u64, r#type: E820::RAM as u32 };
+        let entry_first_page = E820Entry {
+            addr: 0,
+            size: PAGE_SIZE as u64,
+            r#type: E820::RESERVED as u32,
+        };
+        let entry_low = E820Entry {
+            addr: PAGE_SIZE as u64,
+            size: (LOW_MEM_64K - PAGE_SIZE) as u64,
+            r#type: E820::RAM as u32,
+        };
+        let entry_reserved = E820Entry {
+            addr: LOW_MEM_64K as u64,
+            size: (LOW_MEM_1M - LOW_MEM_64K) as u64,
+            r#type: E820::RESERVED as u32,
+        };
+        let entry_low_main = E820Entry {
+            addr: LOW_MEM_1M as u64,
+            size: (test_image.low_mem_size - LOW_MEM_1M as u64),
+            r#type: E820::RAM as u32,
+        };
+        let entry_main = E820Entry {
+            addr: test_image.high_mem_start as u64,
+            size: test_image.high_mem_size as u64,
+            r#type: E820::RAM as u32,
+        };
 
         assert_eq!(test_bp.e820_table[0], entry_first_page);
         assert_eq!(test_bp.e820_table[1], entry_low);

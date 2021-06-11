@@ -15,7 +15,9 @@ use uart::i8250::I8250;
 // introduces the symbols containing the FSP binary which get picked up by the linker.
 extern crate fsp_qemu_sys;
 
-global_asm!(include_str!("../../../../arch/x86/x86_64/src/bootblock_nomem.S"));
+global_asm!(include_str!(
+    "../../../../arch/x86/x86_64/src/bootblock_nomem.S"
+));
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
@@ -29,7 +31,15 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     let w = &mut print::WriteTo::new(uart0);
 
     // TODO: Get these values from the fdt
-    let payload = &mut BzImage { low_mem_size: 0x80_000_000, high_mem_start: 0x1_000_000_000, high_mem_size: 0, rom_base: 0xff_000_000, rom_size: 0x1_000_000, load: 0x1_000_000, entry: 0x1_000_200 };
+    let payload = &mut BzImage {
+        low_mem_size: 0x80_000_000,
+        high_mem_start: 0x1_000_000_000,
+        high_mem_size: 0,
+        rom_base: 0xff_000_000,
+        rom_size: 0x1_000_000,
+        load: 0x1_000_000,
+        entry: 0x1_000_200,
+    };
 
     write!(w, "Running payload\r\n").unwrap();
     payload.run(w);
