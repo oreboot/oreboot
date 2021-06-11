@@ -241,9 +241,9 @@ __protected_start_no_load_segs:
 	outb %al, $0x80
 	// Set a pointer to the page table pages in %cr3.
 	// We can use cr3 as a scratch register here;
-	// its value won't matter until we set PG in CR0 below.
-	movl $pml4, %esp
-	movl %esp, %cr3
+	// its value won't matter until we set PG in CR0 below
+	movl $pml4, %eax # don't use esp here? :)
+	movl %eax, %cr3
 
 	// Now for the big fun: Long Mode.
 	// Once again we put the data structures inline in this
@@ -374,7 +374,7 @@ Back32:
 	movw	%ax, %fs
 	movw	%ax, %gs
 
-	mov $0x2000, %esp
+	mov $0x10000, %esp # needz moar stack
 				// ; Disable Paging to get out of Long Mode
 	movb $0xb2, %al
 	outb %al, $0x80

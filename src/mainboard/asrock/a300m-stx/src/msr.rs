@@ -209,6 +209,8 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
 
     read_write_msr(w, 0xc001_0073, 0x813); // CStateBaseAddr - C-state Base Address
     read_write_msr(w, 0xc001_0074, 0x289); // CpuWdtCfg - CPU Watchdog Timer
+
+    // read_write_msr(w, 0xC001_0074, 0x7 << 3 | 0x1); // enable watchdog
     read_write_msr(w, 0xc001_0111, 0xafba2000); // SMM_BASE - SMM Base Address
     read_write_msr(w, 0xc001_0112, 0xac000000); // SMMAddr - SMM TSeg Base Address
     read_write_msr(w, 0xc001_0113, 0xfffffc006003); // SMMMask - SMM TSeg Mask

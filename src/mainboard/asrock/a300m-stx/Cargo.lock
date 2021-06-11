@@ -5,12 +5,15 @@ name = "a300m-stx"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "boot",
  "clock",
  "console",
  "cpu",
  "heapless 0.4.4",
+ "lazy_static",
  "model",
  "payloads",
+ "pci",
  "postcard",
  "print",
  "raw-cpuid",
@@ -59,6 +62,25 @@ name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
+
+[[package]]
+name = "boot"
+version = "0.1.0"
+dependencies = [
+ "arch",
+ "clock",
+ "console",
+ "cpu",
+ "heapless 0.4.4",
+ "model",
+ "payloads",
+ "print",
+ "raw-cpuid",
+ "smn",
+ "uart",
+ "util",
+ "wrappers",
+]
 
 [[package]]
 name = "byteorder"
@@ -172,6 +194,15 @@ dependencies = [
  "generic-array 0.14.4",
  "hash32",
  "stable_deref_trait",
+]
+
+[[package]]
+name = "lazy_static"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+dependencies = [
+ "spin",
 ]
 
 [[package]]
@@ -305,6 +336,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "spin"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -390,9 +427,9 @@ dependencies = [
 
 [[package]]
 name = "x86_64"
-version = "0.12.2"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5b4b42dbabe13b69023e1a1407d395f1a1a33df76e9a9efdbe303acc907e292"
+checksum = "021b49a4cb0a0d9490265cc169ca816014cbf61d3f3b75424815912977b81871"
 dependencies = [
  "bit_field",
  "bitflags",
