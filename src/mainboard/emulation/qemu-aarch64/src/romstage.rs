@@ -26,12 +26,28 @@ fn boot_to_kernel(kernel_entry: usize, dtb_addr: usize) -> ! {
 }
 
 pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
-    let kernel_segs = &[payload::Segment { typ: payload::stype::PAYLOAD_SEGMENT_ENTRY, base: KERNEL_LOAD_ADDR, data: &mut SectionReader::new(&Memory {}, KERNEL_ROM_ADDR, KERNEL_ROM_SIZE) }, payload::Segment {
-        typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-        base: DTB_LOAD_ADDR,
-        data: &mut SectionReader::new(&Memory {}, DTB_ROM_ADDR, DTB_ROM_SIZE),
-    }];
-    let mut payload = payload::Payload { typ: payload::ftype::CBFS_TYPE_RAW, compression: payload::ctype::CBFS_COMPRESS_NONE, offset: 0, entry: KERNEL_LOAD_ADDR as usize, rom_len: 0 as usize, mem_len: 0 as usize, segs: kernel_segs, dtb: DTB_LOAD_ADDR };
+    let kernel_segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: KERNEL_LOAD_ADDR,
+            data: &mut SectionReader::new(&Memory {}, KERNEL_ROM_ADDR, KERNEL_ROM_SIZE),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
+            base: DTB_LOAD_ADDR,
+            data: &mut SectionReader::new(&Memory {}, DTB_ROM_ADDR, DTB_ROM_SIZE),
+        },
+    ];
+    let mut payload = payload::Payload {
+        typ: payload::ftype::CBFS_TYPE_RAW,
+        compression: payload::ctype::CBFS_COMPRESS_NONE,
+        offset: 0,
+        entry: KERNEL_LOAD_ADDR as usize,
+        rom_len: 0 as usize,
+        mem_len: 0 as usize,
+        segs: kernel_segs,
+        dtb: DTB_LOAD_ADDR,
+    };
 
     payload.load();
 

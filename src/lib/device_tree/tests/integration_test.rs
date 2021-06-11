@@ -23,7 +23,11 @@ fn assert_end_node<D: Driver>(entry: Result<Option<Entry<D>>>) {
     }
 }
 
-fn assert_property<D: Driver>(entry: Result<Option<Entry<D>>>, expected_name: &str, expected_value: &[u8]) {
+fn assert_property<D: Driver>(
+    entry: Result<Option<Entry<D>>>,
+    expected_name: &str,
+    expected_value: &[u8],
+) {
     let entry = entry.unwrap().unwrap();
     if let Entry::Property { name, value } = entry {
         assert_eq!(name, expected_name);
@@ -34,13 +38,27 @@ fn assert_property<D: Driver>(entry: Result<Option<Entry<D>>>, expected_name: &s
 }
 
 fn dts_to_dtb(dts: &str) -> std::vec::Vec<u8> {
-    let mut dtc = Command::new("dtc").arg("-O").arg("dtb").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().unwrap();
-    dtc.stdin.as_mut().unwrap().write_all(dts.as_bytes()).unwrap();
+    let mut dtc = Command::new("dtc")
+        .arg("-O")
+        .arg("dtb")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    dtc.stdin
+        .as_mut()
+        .unwrap()
+        .write_all(dts.as_bytes())
+        .unwrap();
     let output = dtc.wait_with_output().unwrap();
     if output.status.success() {
         return output.stdout;
     }
-    panic!("dtc command failed: {:?}", String::from_utf8_lossy(&output.stderr))
+    panic!(
+        "dtc command failed: {:?}",
+        String::from_utf8_lossy(&output.stderr)
+    )
 }
 
 fn read_all(d: &impl Driver) -> std::vec::Vec<u8> {
@@ -149,7 +167,10 @@ fn test_returns_error_when_magic_is_invalid() {
     // Magic is a first number
     data[0] = 1;
     let slice_reader = &SliceReader::new(&data);
-    assert_eq!(FdtReader::new(slice_reader).err(), Some("invalid magic in device tree header"));
+    assert_eq!(
+        FdtReader::new(slice_reader).err(),
+        Some("invalid magic in device tree header")
+    );
 }
 
 #[test]

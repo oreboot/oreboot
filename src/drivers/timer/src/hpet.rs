@@ -85,7 +85,11 @@ impl HPET {
     // Note: That means that DELAY cannot be much longer than 4 us.
     pub fn sleep(&self, delay: u32) {
         let clk_period = self.clk_period.get() as u64; // in fs
-        let counter_mask = if self.hpet_id.is_set(HPETID::COUNTERSIZECAP) { !0u64 } else { 0xffff_ffffu64 };
+        let counter_mask = if self.hpet_id.is_set(HPETID::COUNTERSIZECAP) {
+            !0u64
+        } else {
+            0xffff_ffffu64
+        };
         let ticks = (delay as u64 + clk_period - 1) / clk_period;
         let starting_value = self.main_ctr.get() & counter_mask;
         loop {

@@ -22,7 +22,16 @@ pub fn romstage() -> ! {
             data: &mut SliceReader::new(DTB),
         },
     ];
-    let mut p = payload::Payload { typ: payload::ftype::CBFS_TYPE_RAW, compression: payload::ctype::CBFS_COMPRESS_NONE, offset: 0, entry: 0, dtb: DTB_BASE, rom_len: KERNEL.len() as usize, mem_len: KERNEL.len() as usize, segs: kernel_segs };
+    let mut p = payload::Payload {
+        typ: payload::ftype::CBFS_TYPE_RAW,
+        compression: payload::ctype::CBFS_COMPRESS_NONE,
+        offset: 0,
+        entry: 0,
+        dtb: DTB_BASE,
+        rom_len: KERNEL.len() as usize,
+        mem_len: KERNEL.len() as usize,
+        segs: kernel_segs,
+    };
     p.load();
     p.run();
 

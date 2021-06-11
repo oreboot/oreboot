@@ -12,7 +12,11 @@ fn main() -> std::io::Result<()> {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     // Build FSP binaries and generate header files.
-    let status = Command::new("python3").args(&["BuildFsp.py", "build", "-p", "qemu", "-a", "x64"]).current_dir(oreboot_root.join("3rdparty/fspsdk")).status().expect("failed to build FSP");
+    let status = Command::new("python3")
+        .args(&["BuildFsp.py", "build", "-p", "qemu", "-a", "x64"])
+        .current_dir(oreboot_root.join("3rdparty/fspsdk"))
+        .status()
+        .expect("failed to build FSP");
     if !status.success() {
         println!("Failed to build FSP");
         exit(1);
@@ -42,7 +46,11 @@ fn main() -> std::io::Result<()> {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate bindings for.
         .header("src/wrapper.h")
-        .clang_args(include_paths.iter().map(|include| format!("{}{}", "-I", include.display())))
+        .clang_args(
+            include_paths
+                .iter()
+                .map(|include| format!("{}{}", "-I", include.display())),
+        )
         .clang_args(&["-DEFIAPI=__attribute__((ms_abi))"])
         // Tell cargo to invalidate the built crate whenever any of the included header files
         // change.
@@ -82,7 +90,9 @@ fn main() -> std::io::Result<()> {
         .expect("Unable to generate bindings");
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
-    bindings.write_to_file(out_dir.join("bindings.rs")).expect("Couldn't write bindings!");
+    bindings
+        .write_to_file(out_dir.join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 
     Ok(())
 }

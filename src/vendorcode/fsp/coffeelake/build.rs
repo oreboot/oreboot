@@ -26,7 +26,11 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate bindings for.
         .header("src/wrapper.h")
-        .clang_args(include_paths.iter().map(|include| format!("{}{}", "-I", include.display())))
+        .clang_args(
+            include_paths
+                .iter()
+                .map(|include| format!("{}{}", "-I", include.display())),
+        )
         // Tell cargo to invalidate the built crate whenever any of the included header files
         // changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
@@ -139,5 +143,7 @@ fn main() {
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings.write_to_file(out_path.join("bindings.rs")).expect("Couldn't write bindings!");
+    bindings
+        .write_to_file(out_path.join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 }

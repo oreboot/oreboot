@@ -22,12 +22,28 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    let kernel_segs = &[payload::Segment { typ: payload::stype::PAYLOAD_SEGMENT_ENTRY, base: 0x80000000, data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024) }, payload::Segment {
-        typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-        base: fdt_address,
-        data: &mut SliceReader::new(&[0u8; 0]),
-    }];
-    let payload = payload::Payload { typ: payload::ftype::CBFS_TYPE_RAW, compression: payload::ctype::CBFS_COMPRESS_NONE, offset: 0, entry: 0x80000000 as usize, rom_len: 0 as usize, mem_len: 0 as usize, segs: kernel_segs, dtb: 0 };
+    let kernel_segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: 0x80000000,
+            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
+            base: fdt_address,
+            data: &mut SliceReader::new(&[0u8; 0]),
+        },
+    ];
+    let payload = payload::Payload {
+        typ: payload::ftype::CBFS_TYPE_RAW,
+        compression: payload::ctype::CBFS_COMPRESS_NONE,
+        offset: 0,
+        entry: 0x80000000 as usize,
+        rom_len: 0 as usize,
+        mem_len: 0 as usize,
+        segs: kernel_segs,
+        dtb: 0,
+    };
 
     write!(w, "Running payload\r\n").unwrap();
     payload.run();

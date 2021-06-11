@@ -9,7 +9,11 @@ pub struct DebugPort<D: Driver> {
 
 impl<D: Driver> DebugPort<D> {
     pub fn new(address: usize, d: D) -> DebugPort<D> {
-        DebugPort { address, d, timer: HPET::hpet() }
+        DebugPort {
+            address,
+            d,
+            timer: HPET::hpet(),
+        }
     }
 }
 

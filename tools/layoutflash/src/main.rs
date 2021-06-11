@@ -33,7 +33,9 @@ fn read_all(d: &dyn Driver) -> Vec<u8> {
 }
 
 fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
-    let mut area = Area { ..Default::default() };
+    let mut area = Area {
+        ..Default::default()
+    };
     while let Some(item) = iter.next()? {
         match item {
             Entry::StartNode { name: _ } => {
@@ -59,7 +61,12 @@ fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
 // TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
-        Err(e) => return Err(io::Error::new(e.kind(), format!("{}{}", "Could not open: ", path.display()))),
+        Err(e) => {
+            return Err(io::Error::new(
+                e.kind(),
+                format!("{}{}", "Could not open: ", path.display()),
+            ))
+        }
         Ok(data) => data,
     };
     let driver = SliceReader::new(data.as_slice());
@@ -118,7 +125,12 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
 
             f.seek(SeekFrom::Start(offset as u64))?;
             let data = match fs::read(&path) {
-                Err(e) => return Err(io::Error::new(e.kind(), format!("Could not open: {}", path))),
+                Err(e) => {
+                    return Err(io::Error::new(
+                        e.kind(),
+                        format!("Could not open: {}", path),
+                    ))
+                }
                 Ok(data) => data,
             };
             if data.len() > a.size as usize {
@@ -143,8 +155,10 @@ struct Opts {
 fn main() {
     let args = Opts::parse();
 
-    read_fixed_fdt(&args.in_fdt).and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas)).unwrap_or_else(|err| {
-        eprintln!("failed: {}", err);
-        exit(1);
-    });
+    read_fixed_fdt(&args.in_fdt)
+        .and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas))
+        .unwrap_or_else(|err| {
+            eprintln!("failed: {}", err);
+            exit(1);
+        });
 }

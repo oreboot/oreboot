@@ -9,7 +9,9 @@ pub struct MP1 {
 
 impl MP1 {
     pub fn new() -> Self {
-        Self { mailbox: MPMailbox::<6>::new(0x3B1_0528, 0x3B1_0564, 0x3B1_0998) }
+        Self {
+            mailbox: MPMailbox::<6>::new(0x3B1_0528, 0x3B1_0564, 0x3B1_0998),
+        }
     }
     pub fn test(&self, v: u32) -> Result<u32> {
         self.mailbox.test(v)

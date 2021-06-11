@@ -130,7 +130,11 @@ pub fn ux00ddr_mask_outofrange_interrupts() {
     // Mask off Bit 8, Bit 2 and Bit 1 of Interrupt Status
     // Bit [2] Multiple accesses outside the defined PHYSICAL memory space have occured
     // Bit [1] A memory access outside the defined PHYSICAL memory space has occured
-    set(reg::DDR_CTRL, 136, (1 << OUT_OF_RANGE_OFFSET) | (1 << MULTIPLE_OUT_OF_RANGE_OFFSET));
+    set(
+        reg::DDR_CTRL,
+        136,
+        (1 << OUT_OF_RANGE_OFFSET) | (1 << MULTIPLE_OUT_OF_RANGE_OFFSET),
+    );
 }
 
 pub fn ux00ddr_mask_port_command_error_interrupt() {
@@ -167,7 +171,11 @@ pub fn ux00ddr_disableoptimalrmodw() {
 }
 
 pub fn ux00ddr_enablewriteleveling() {
-    set(reg::DDR_CTRL, 170, (1 << WRLVL_EN_OFFSET) | (1 << DFI_PHY_WRLELV_MODE_OFFSET));
+    set(
+        reg::DDR_CTRL,
+        170,
+        (1 << WRLVL_EN_OFFSET) | (1 << DFI_PHY_WRLELV_MODE_OFFSET),
+    );
 }
 
 pub fn ux00ddr_enablereadleveling() {
@@ -204,7 +212,11 @@ pub fn ux00ddr_phy_fixup() -> u64 {
             // what the hell?
             let updownreg: u32 = peek(ddrphyreg, regbase + reg);
             for bit in 0..2 {
-                let phy_rx_cal_dqn_0_offset = if bit == 0 { PHY_RX_CAL_DQ0_0_OFFSET } else { PHY_RX_CAL_DQ1_0_OFFSET };
+                let phy_rx_cal_dqn_0_offset = if bit == 0 {
+                    PHY_RX_CAL_DQ0_0_OFFSET
+                } else {
+                    PHY_RX_CAL_DQ1_0_OFFSET
+                };
                 let down: u32 = (updownreg >> phy_rx_cal_dqn_0_offset) & 0x3F;
                 let up: u32 = (updownreg >> (phy_rx_cal_dqn_0_offset + 6)) & 0x3F;
                 let failc0: bool = (down == 0) && (up == 0x3F);

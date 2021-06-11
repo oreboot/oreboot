@@ -44,7 +44,16 @@ pub const ACPI_TABLE_HEADER_CHECKSUM_OFFSET: usize = 9;
 
 impl AcpiTableHeader {
     pub fn new() -> Self {
-        AcpiTableHeader { revision: 2, checksum: 0, oem_id: *b"OREORE", oem_table_id: *b"xOREBOOT", oem_revision: 0, asl_compiler_id: *b"RUST", asl_compiler_revision: 0, ..Default::default() }
+        AcpiTableHeader {
+            revision: 2,
+            checksum: 0,
+            oem_id: *b"OREORE",
+            oem_table_id: *b"xOREBOOT",
+            oem_revision: 0,
+            asl_compiler_id: *b"RUST",
+            asl_compiler_revision: 0,
+            ..Default::default()
+        }
     }
 }
 
@@ -67,62 +76,62 @@ pub struct AcpiGenericAddress {
 #[repr(packed)]
 #[derive(Default)]
 pub struct AcpiTableFadt {
-    pub header: AcpiTableHeader,                 /* Common ACPI table header */
-    pub facs: u32,                               /* 32-bit physical address of FACS */
-    pub dsdt: u32,                               /* 32-bit physical address of DSDT */
-    pub model: u8,                               /* System Interrupt Model (ACPI 1.0) - not used in ACPI 2.0+ */
-    pub preferred_profile: u8,                   /* Conveys preferred power management profile to OSPM. */
-    pub sci_interrupt: u16,                      /* System vector of SCI interrupt */
-    pub smi_command: u32,                        /* 32-bit Port address of SMI command port */
-    pub acpi_enable: u8,                         /* Value to write to SMI_CMD to enable ACPI */
-    pub acpi_disable: u8,                        /* Value to write to SMI_CMD to disable ACPI */
-    pub s4_bios_request: u8,                     /* Value to write to SMI_CMD to enter S4BIOS state */
-    pub pstate_control: u8,                      /* Processor performance state control */
-    pub pm1a_event_block: u32,                   /* 32-bit port address of Power Mgt 1a Event Reg Blk */
-    pub pm1b_event_block: u32,                   /* 32-bit port address of Power Mgt 1b Event Reg Blk */
-    pub pm1a_control_block: u32,                 /* 32-bit port address of Power Mgt 1a Control Reg Blk */
-    pub pm1b_control_block: u32,                 /* 32-bit port address of Power Mgt 1b Control Reg Blk */
-    pub pm2_control_block: u32,                  /* 32-bit port address of Power Mgt 2 Control Reg Blk */
-    pub pm_timer_block: u32,                     /* 32-bit port address of Power Mgt Timer Ctrl Reg Blk */
-    pub gpe0_block: u32,                         /* 32-bit port address of General Purpose Event 0 Reg Blk */
-    pub gpe1_block: u32,                         /* 32-bit port address of General Purpose Event 1 Reg Blk */
-    pub pm1_event_length: u8,                    /* Byte Length of ports at pm1x_event_block */
-    pub pm1_control_length: u8,                  /* Byte Length of ports at pm1x_control_block */
-    pub pm2_control_length: u8,                  /* Byte Length of ports at pm2_control_block */
-    pub pm_timer_length: u8,                     /* Byte Length of ports at pm_timer_block */
-    pub gpe0_block_length: u8,                   /* Byte Length of ports at gpe0_block */
-    pub gpe1_block_length: u8,                   /* Byte Length of ports at gpe1_block */
-    pub gpe1_base: u8,                           /* Offset in GPE number space where GPE1 events start */
-    pub cst_control: u8,                         /* Support for the _CST object and C-States change notification */
-    pub c2_latency: u16,                         /* Worst case HW latency to enter/exit C2 state */
-    pub c3_latency: u16,                         /* Worst case HW latency to enter/exit C3 state */
-    pub flush_size: u16,                         /* Processor memory cache line width, in bytes */
-    pub flush_stride: u16,                       /* Number of flush strides that need to be read */
-    pub duty_offset: u8,                         /* Processor duty cycle index in processor P_CNT reg */
-    pub duty_width: u8,                          /* Processor duty cycle value bit width in P_CNT register */
-    pub day_alarm: u8,                           /* Index to day-of-month alarm in RTC CMOS RAM */
-    pub month_alarm: u8,                         /* Index to month-of-year alarm in RTC CMOS RAM */
-    pub century: u8,                             /* Index to century in RTC CMOS RAM */
-    pub boot_flags: u16,                         /* IA-PC Boot Architecture Flags (see below for individual flags) */
-    pub reserved: u8,                            /* Reserved, must be zero */
-    pub flags: u32,                              /* Miscellaneous flag bits (see below for individual flags) */
-    pub reset_register: AcpiGenericAddress,      /* 64-bit address of the Reset register */
-    pub reset_value: u8,                         /* Value to write to the reset_register port to reset the system */
-    pub arm_boot_flags: u16,                     /* ARM-Specific Boot Flags (see below for individual flags) (ACPI 5.1) */
-    pub minor_revision: u8,                      /* FADT Minor Revision (ACPI 5.1) */
-    pub xfacs: u64,                              /* 64-bit physical address of FACS */
-    pub xdsdt: u64,                              /* 64-bit physical address of DSDT */
-    pub xpm1a_event_block: AcpiGenericAddress,   /* 64-bit Extended Power Mgt 1a Event Reg Blk address */
-    pub xpm1b_event_block: AcpiGenericAddress,   /* 64-bit Extended Power Mgt 1b Event Reg Blk address */
+    pub header: AcpiTableHeader,               /* Common ACPI table header */
+    pub facs: u32,                             /* 32-bit physical address of FACS */
+    pub dsdt: u32,                             /* 32-bit physical address of DSDT */
+    pub model: u8, /* System Interrupt Model (ACPI 1.0) - not used in ACPI 2.0+ */
+    pub preferred_profile: u8, /* Conveys preferred power management profile to OSPM. */
+    pub sci_interrupt: u16, /* System vector of SCI interrupt */
+    pub smi_command: u32, /* 32-bit Port address of SMI command port */
+    pub acpi_enable: u8, /* Value to write to SMI_CMD to enable ACPI */
+    pub acpi_disable: u8, /* Value to write to SMI_CMD to disable ACPI */
+    pub s4_bios_request: u8, /* Value to write to SMI_CMD to enter S4BIOS state */
+    pub pstate_control: u8, /* Processor performance state control */
+    pub pm1a_event_block: u32, /* 32-bit port address of Power Mgt 1a Event Reg Blk */
+    pub pm1b_event_block: u32, /* 32-bit port address of Power Mgt 1b Event Reg Blk */
+    pub pm1a_control_block: u32, /* 32-bit port address of Power Mgt 1a Control Reg Blk */
+    pub pm1b_control_block: u32, /* 32-bit port address of Power Mgt 1b Control Reg Blk */
+    pub pm2_control_block: u32, /* 32-bit port address of Power Mgt 2 Control Reg Blk */
+    pub pm_timer_block: u32, /* 32-bit port address of Power Mgt Timer Ctrl Reg Blk */
+    pub gpe0_block: u32, /* 32-bit port address of General Purpose Event 0 Reg Blk */
+    pub gpe1_block: u32, /* 32-bit port address of General Purpose Event 1 Reg Blk */
+    pub pm1_event_length: u8, /* Byte Length of ports at pm1x_event_block */
+    pub pm1_control_length: u8, /* Byte Length of ports at pm1x_control_block */
+    pub pm2_control_length: u8, /* Byte Length of ports at pm2_control_block */
+    pub pm_timer_length: u8, /* Byte Length of ports at pm_timer_block */
+    pub gpe0_block_length: u8, /* Byte Length of ports at gpe0_block */
+    pub gpe1_block_length: u8, /* Byte Length of ports at gpe1_block */
+    pub gpe1_base: u8, /* Offset in GPE number space where GPE1 events start */
+    pub cst_control: u8, /* Support for the _CST object and C-States change notification */
+    pub c2_latency: u16, /* Worst case HW latency to enter/exit C2 state */
+    pub c3_latency: u16, /* Worst case HW latency to enter/exit C3 state */
+    pub flush_size: u16, /* Processor memory cache line width, in bytes */
+    pub flush_stride: u16, /* Number of flush strides that need to be read */
+    pub duty_offset: u8, /* Processor duty cycle index in processor P_CNT reg */
+    pub duty_width: u8, /* Processor duty cycle value bit width in P_CNT register */
+    pub day_alarm: u8, /* Index to day-of-month alarm in RTC CMOS RAM */
+    pub month_alarm: u8, /* Index to month-of-year alarm in RTC CMOS RAM */
+    pub century: u8, /* Index to century in RTC CMOS RAM */
+    pub boot_flags: u16, /* IA-PC Boot Architecture Flags (see below for individual flags) */
+    pub reserved: u8, /* Reserved, must be zero */
+    pub flags: u32, /* Miscellaneous flag bits (see below for individual flags) */
+    pub reset_register: AcpiGenericAddress, /* 64-bit address of the Reset register */
+    pub reset_value: u8, /* Value to write to the reset_register port to reset the system */
+    pub arm_boot_flags: u16, /* ARM-Specific Boot Flags (see below for individual flags) (ACPI 5.1) */
+    pub minor_revision: u8,  /* FADT Minor Revision (ACPI 5.1) */
+    pub xfacs: u64,          /* 64-bit physical address of FACS */
+    pub xdsdt: u64,          /* 64-bit physical address of DSDT */
+    pub xpm1a_event_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt 1a Event Reg Blk address */
+    pub xpm1b_event_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt 1b Event Reg Blk address */
     pub xpm1a_control_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt 1a Control Reg Blk address */
     pub xpm1b_control_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt 1b Control Reg Blk address */
-    pub xpm2_control_block: AcpiGenericAddress,  /* 64-bit Extended Power Mgt 2 Control Reg Blk address */
-    pub xpm_timer_block: AcpiGenericAddress,     /* 64-bit Extended Power Mgt Timer Ctrl Reg Blk address */
-    pub xgpe0_block: AcpiGenericAddress,         /* 64-bit Extended General Purpose Event 0 Reg Blk address */
-    pub xgpe1_block: AcpiGenericAddress,         /* 64-bit Extended General Purpose Event 1 Reg Blk address */
-    pub sleep_control: AcpiGenericAddress,       /* 64-bit Sleep Control register (ACPI 5.0) */
-    pub sleep_status: AcpiGenericAddress,        /* 64-bit Sleep Status register (ACPI 5.0) */
-    pub hypervisor_id: u64,                      /* Hypervisor Vendor ID (ACPI 6.0) */
+    pub xpm2_control_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt 2 Control Reg Blk address */
+    pub xpm_timer_block: AcpiGenericAddress, /* 64-bit Extended Power Mgt Timer Ctrl Reg Blk address */
+    pub xgpe0_block: AcpiGenericAddress, /* 64-bit Extended General Purpose Event 0 Reg Blk address */
+    pub xgpe1_block: AcpiGenericAddress, /* 64-bit Extended General Purpose Event 1 Reg Blk address */
+    pub sleep_control: AcpiGenericAddress, /* 64-bit Sleep Control register (ACPI 5.0) */
+    pub sleep_status: AcpiGenericAddress, /* 64-bit Sleep Status register (ACPI 5.0) */
+    pub hypervisor_id: u64,              /* Hypervisor Vendor ID (ACPI 6.0) */
 }
 
 #[repr(packed)]

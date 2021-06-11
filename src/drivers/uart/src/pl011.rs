@@ -32,7 +32,10 @@ pub struct PL011 {
 
 impl PL011 {
     pub fn new(base: usize, baudrate: u32) -> PL011 {
-        PL011 { regs: base as *const RegisterBlock, baudrate }
+        PL011 {
+            regs: base as *const RegisterBlock,
+            baudrate,
+        }
     }
 
     /// Poll the status register until the specified field is set to the given value.

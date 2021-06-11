@@ -20,7 +20,12 @@ impl PciAddress {
         assert!(self.device < 32);
         assert!(self.function < 8);
         assert!(self.offset < 4096);
-        MMIO_CFG_BASE | ((self.segment as u32) << 28) | ((self.bus as u32) << 20) | ((self.device as u32) << 15) | ((self.function as u32) << 12) | (self.offset as u32)
+        MMIO_CFG_BASE
+            | ((self.segment as u32) << 28)
+            | ((self.bus as u32) << 20)
+            | ((self.device as u32) << 15)
+            | ((self.function as u32) << 12)
+            | (self.offset as u32)
     }
 }
 

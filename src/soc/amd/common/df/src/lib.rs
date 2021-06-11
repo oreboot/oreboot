@@ -15,12 +15,23 @@ const DF_FICAD_LO: u16 = 0x98;
 // const DF_FICAD_HI: u32 = 0x9C;
 
 // Precondition: FCAC needs to be in broadcast mode.
-fn df_access_indirect(node_id: u8, target_instance_id: Option<u8>, target_function: u8, target_offset: u16) {
+fn df_access_indirect(
+    node_id: u8,
+    target_instance_id: Option<u8>,
+    target_function: u8,
+    target_offset: u16,
+) {
     assert!(node_id < 2);
     assert!(target_function < 8);
     assert!(target_offset & 3 == 0);
     assert!(target_offset < 2048);
-    let ficaa3 = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAA_BIOS });
+    let ficaa3 = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x4,
+        offset: DF_FICAA_BIOS,
+    });
     let mut target: u32 = match target_instance_id {
         Some(target_instance_id) => 1 | ((target_instance_id as u32) << 16),
         None => 0,
@@ -31,27 +42,72 @@ fn df_access_indirect(node_id: u8, target_instance_id: Option<u8>, target_functi
     ficaa3.set(target);
 }
 
-pub fn df_read_indirect(node_id: u8, target_instance_id: u8, target_function: u8, target_offset: u16) -> u32 {
-    df_access_indirect(node_id, Some(target_instance_id), target_function, target_offset);
-    let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
+pub fn df_read_indirect(
+    node_id: u8,
+    target_instance_id: u8,
+    target_function: u8,
+    target_offset: u16,
+) -> u32 {
+    df_access_indirect(
+        node_id,
+        Some(target_instance_id),
+        target_function,
+        target_offset,
+    );
+    let ficad3_lo = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x4,
+        offset: DF_FICAD_LO,
+    });
     ficad3_lo.get()
 }
 
 pub fn df_read_broadcast_indirect(node_id: u8, target_function: u8, target_offset: u16) -> u32 {
     df_access_indirect(node_id, None, target_function, target_offset);
-    let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
+    let ficad3_lo = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x4,
+        offset: DF_FICAD_LO,
+    });
     ficad3_lo.get()
 }
 
-pub fn df_write_indirect(node_id: u8, target_instance_id: u8, target_function: u8, target_offset: u16, value: u32) {
-    df_access_indirect(node_id, Some(target_instance_id), target_function, target_offset);
-    let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
+pub fn df_write_indirect(
+    node_id: u8,
+    target_instance_id: u8,
+    target_function: u8,
+    target_offset: u16,
+    value: u32,
+) {
+    df_access_indirect(
+        node_id,
+        Some(target_instance_id),
+        target_function,
+        target_offset,
+    );
+    let ficad3_lo = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x4,
+        offset: DF_FICAD_LO,
+    });
     ficad3_lo.set(value)
 }
 
 pub fn df_broadcast_indirect(node_id: u8, target_function: u8, target_offset: u16, value: u32) {
     df_access_indirect(node_id, None, target_function, target_offset);
-    let ficad3_lo = config32(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x4, offset: DF_FICAD_LO });
+    let ficad3_lo = config32(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x4,
+        offset: DF_FICAD_LO,
+    });
     ficad3_lo.set(value)
 }
 
@@ -99,7 +155,14 @@ pub struct FabricTopology {
 const AMD_VENDOR_ID: u16 = 0x1022;
 
 pub fn is_socket_populated(node_id: u8) -> bool {
-    let vendor_id = config16(PciAddress { segment: 0, bus: 0, device: 0x18 + node_id, function: 0x0, offset: 0 }).get();
+    let vendor_id = config16(PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 0x18 + node_id,
+        function: 0x0,
+        offset: 0,
+    })
+    .get();
     vendor_id == AMD_VENDOR_ID
 }
 
@@ -110,7 +173,14 @@ impl FabricTopology {
             0 => 1,
             _ => 2,
         };
-        let mut result = Self { processor_count, pie_count: 0, ioms_count: 0, dies_per_socket: 1, ccm0_instance_id: None, components: Vec::new() };
+        let mut result = Self {
+            processor_count,
+            pie_count: 0,
+            ioms_count: 0,
+            dies_per_socket: 1,
+            ccm0_instance_id: None,
+            components: Vec::new(),
+        };
         let total_count: usize = (df_read_broadcast_indirect(0, 0, 0x40) & 0xFF) as usize;
         for x_instance_id in 0..=255 {
             if result.components.len() >= total_count {
@@ -174,8 +244,19 @@ impl FabricTopology {
                         instance_id,
                         instance_type,
                         enabled,
-                        fabric_id: if fabric_id != 0 || result.components.len() == 0 { Some(fabric_id) } else { None },
-                        socket_specifics: [FabricComponentOnSocket { ios_secondary_bus: ios_secondary_bus_0 }, FabricComponentOnSocket { ios_secondary_bus: ios_secondary_bus_1 }],
+                        fabric_id: if fabric_id != 0 || result.components.len() == 0 {
+                            Some(fabric_id)
+                        } else {
+                            None
+                        },
+                        socket_specifics: [
+                            FabricComponentOnSocket {
+                                ios_secondary_bus: ios_secondary_bus_0,
+                            },
+                            FabricComponentOnSocket {
+                                ios_secondary_bus: ios_secondary_bus_1,
+                            },
+                        ],
                     })
                     .unwrap();
             }

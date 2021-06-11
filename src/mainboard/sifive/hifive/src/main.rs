@@ -20,8 +20,12 @@ use spi::SiFiveSpi;
 use uart::sifive::SiFive;
 use wrappers::{Memory, SectionReader, SliceReader};
 
-global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/bootblock.S"));
-global_asm!(include_str!("../../../../../src/soc/sifive/fu540/src/init.S"));
+global_asm!(include_str!(
+    "../../../../../src/soc/sifive/fu540/src/bootblock.S"
+));
+global_asm!(include_str!(
+    "../../../../../src/soc/sifive/fu540/src/init.S"
+));
 
 // TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
 // tree here. TODO: The kernel ebreaks when given this device tree.
@@ -63,7 +67,12 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
 
     uart0.pwrite(b"Initializing clocks...\r\n", 0).unwrap();
     // Peripheral clocks get their dividers updated when the PLL initializes.
-    let mut clks = [spi0 as &mut dyn ClockNode, spi1 as &mut dyn ClockNode, spi2 as &mut dyn ClockNode, uart0 as &mut dyn ClockNode];
+    let mut clks = [
+        spi0 as &mut dyn ClockNode,
+        spi1 as &mut dyn ClockNode,
+        spi2 as &mut dyn ClockNode,
+        uart0 as &mut dyn ClockNode,
+    ];
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
@@ -78,7 +87,9 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
         spi1.mmap(soc::spi::FU540_SPI_MMAP_CONFIG).unwrap();
         uart0.pwrite(b"Done\r\n", 0).unwrap();
 
-        uart0.pwrite(b"Testing read from SPI1 mapped memory...", 0).unwrap();
+        uart0
+            .pwrite(b"Testing read from SPI1 mapped memory...", 0)
+            .unwrap();
         unsafe {
             // Perform a read at the base address of the SPI1 memory mapped space
             let mut _val: u32 = *(0x30000000 as *const u32);
@@ -114,7 +125,9 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     writeln!(w, "Initializing DDR...\r").unwrap();
     let mut ddr = DDR::new();
 
-    let m = ddr.pwrite(b"on", 0).unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
+    let m = ddr
+        .pwrite(b"on", 0)
+        .unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
 
     writeln!(w, "Done\r").unwrap();
 
@@ -123,16 +136,28 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     writeln!(w, "Testing DDR...\r").unwrap();
     let mem = 0x80000000;
     match test_ddr(mem as *mut u32, m / 1024, w) {
-        Err((a, v)) => writeln!(w, "Unexpected read 0x{:x} at address 0x{:x}\r", v, a as usize,).unwrap(),
+        Err((a, v)) => writeln!(
+            w,
+            "Unexpected read 0x{:x} at address 0x{:x}\r",
+            v, a as usize,
+        )
+        .unwrap(),
         _ => writeln!(w, "Passed\r").unwrap(),
     }
 
     // TODO; This payload structure should be loaded from SPI rather than hardcoded.
-    let kernel_segs = &[payload::Segment { typ: payload::stype::PAYLOAD_SEGMENT_ENTRY, base: mem, data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000) }, payload::Segment {
-        typ: payload::stype::PAYLOAD_SEGMENT_DATA,
-        base: fdt_address, /*mem + 10*1024*1024*/
-        data: &mut SliceReader::new(&[0u8; 0]),
-    }];
+    let kernel_segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: mem,
+            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x100000, 0x600000),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_DATA,
+            base: fdt_address, /*mem + 10*1024*1024*/
+            data: &mut SliceReader::new(&[0u8; 0]),
+        },
+    ];
     let mut payload: payload::Payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
@@ -146,7 +171,12 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     };
     writeln!(w, "Loading payload\r").unwrap();
     payload.load();
-    writeln!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r", payload.entry, payload.dtb).unwrap();
+    writeln!(
+        w,
+        "Running payload entry 0x{:x} dtb 0x{:x}\r",
+        payload.entry, payload.dtb
+    )
+    .unwrap();
     SPIN_LOCK.store(payload.entry, Ordering::Relaxed);
     payload.run();
 
@@ -155,7 +185,11 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
 }
 
 // Returns Err((address, got)) or OK(()).
-fn test_ddr(addr: *mut u32, size: usize, w: &mut impl core::fmt::Write) -> Result<(), (*const u32, u32)> {
+fn test_ddr(
+    addr: *mut u32,
+    size: usize,
+    w: &mut impl core::fmt::Write,
+) -> Result<(), (*const u32, u32)> {
     writeln!(w, "Starting to fill with data\r").unwrap();
     // Fill with data.
     for i in 0..(size / 4) {

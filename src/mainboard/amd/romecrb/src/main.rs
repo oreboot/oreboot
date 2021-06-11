@@ -73,14 +73,17 @@ fn cpu_init<'a>(w: &mut impl core::fmt::Write, soc: &'a mut soc::SOC) -> Result<
     let amd_family_id = cpuid.get_feature_info().map(|info| amd_family_id(&info));
     let amd_model_id = cpuid.get_feature_info().map(|info| amd_model_id(&info));
     match amd_family_id {
-        Some(family_id) => {
-            match amd_model_id {
-                Some(model_id) => {
-                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id).unwrap();
-                }
-                None => (),
+        Some(family_id) => match amd_model_id {
+            Some(model_id) => {
+                write!(
+                    w,
+                    "AMD CPU: family {:X}h, model {:X}h\r\n",
+                    family_id, model_id
+                )
+                .unwrap();
             }
-        }
+            None => (),
+        },
         None => (),
     }
     match amd_family_id {

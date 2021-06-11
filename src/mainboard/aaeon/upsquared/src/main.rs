@@ -23,12 +23,22 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     debug.init().unwrap();
-    debug.pwrite(b"Welcome to oreboot - debug port E9\r\n", 0).unwrap();
+    debug
+        .pwrite(b"Welcome to oreboot - debug port E9\r\n", 0)
+        .unwrap();
 
     let w = &mut print::WriteTo::new(uart0);
 
     // TODO: Get these values from the fdt
-    let payload = &mut BzImage { low_mem_size: 0x80_000_000, high_mem_start: 0x1_000_000_000, high_mem_size: 0, rom_base: 0xff_000_000, rom_size: 0x1_000_000, load: 0x1_000_000, entry: 0x1_000_200 };
+    let payload = &mut BzImage {
+        low_mem_size: 0x80_000_000,
+        high_mem_start: 0x1_000_000_000,
+        high_mem_size: 0,
+        rom_base: 0xff_000_000,
+        rom_size: 0x1_000_000,
+        load: 0x1_000_000,
+        entry: 0x1_000_200,
+    };
 
     payload.load(w).unwrap();
 

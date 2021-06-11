@@ -295,7 +295,8 @@ impl SiFiveSpi {
             SiFiveSpiEndianness::BigEndian => self.fmt.modify(Format::Endianness::MSB),
         }
         self.fmt.modify(Format::Direction::Tx);
-        self.fmt.modify(Format::Length.val(config.bits_per_frame.into()));
+        self.fmt
+            .modify(Format::Length.val(config.bits_per_frame.into()));
 
         Ok(())
     }
@@ -307,9 +308,12 @@ impl SiFiveSpi {
         // Reset SPI Flash chip
         self.pwrite(&[0x66, 0x99], 0).unwrap();
 
-        self.ffmt.modify(FlashFormat::CMD_EN.val(config.command_enable.into()));
-        self.ffmt.modify(FlashFormat::ADDR_LEN.val(config.address_len.into()));
-        self.ffmt.modify(FlashFormat::PAD_CNT.val(config.pad_count.into()));
+        self.ffmt
+            .modify(FlashFormat::CMD_EN.val(config.command_enable.into()));
+        self.ffmt
+            .modify(FlashFormat::ADDR_LEN.val(config.address_len.into()));
+        self.ffmt
+            .modify(FlashFormat::PAD_CNT.val(config.pad_count.into()));
         match config.command_protocol {
             SiFiveSpiProtocol::Single => self.ffmt.modify(FlashFormat::CMD_PROTO::Single),
             SiFiveSpiProtocol::Dual => self.ffmt.modify(FlashFormat::CMD_PROTO::Dual),
@@ -325,8 +329,10 @@ impl SiFiveSpi {
             SiFiveSpiProtocol::Dual => self.ffmt.modify(FlashFormat::DATA_PROTO::Dual),
             SiFiveSpiProtocol::Quad => self.ffmt.modify(FlashFormat::DATA_PROTO::Quad),
         }
-        self.ffmt.modify(FlashFormat::CMD_CODE.val(config.command_code.into()));
-        self.ffmt.modify(FlashFormat::PAD_CODE.val(config.pad_code.into()));
+        self.ffmt
+            .modify(FlashFormat::CMD_CODE.val(config.command_code.into()));
+        self.ffmt
+            .modify(FlashFormat::PAD_CODE.val(config.pad_code.into()));
 
         // Re-enable memory mapped mode
         self.fctrl.modify(FlashControl::MMAPEN.val(1));

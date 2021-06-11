@@ -71,7 +71,11 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     };
     let _ = write!(w, "Loading payload\r\n");
     payload.load();
-    let _ = write!(w, "Running payload entry 0x{:x} dtb 0x{:x}\r\n", payload.entry, payload.dtb);
+    let _ = write!(
+        w,
+        "Running payload entry 0x{:x} dtb 0x{:x}\r\n",
+        payload.entry, payload.dtb
+    );
     soc::halt()
     //payload.run();
 

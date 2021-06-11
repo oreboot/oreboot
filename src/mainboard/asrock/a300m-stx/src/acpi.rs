@@ -25,8 +25,10 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     // let madt_offset = dsdt_offset + 69887;
     let madt_offset = dsdt_offset + DSDT_DSDTTBL_HEADER.len();
     let madt_local_apic_offset = madt_offset + size_of::<AcpiTableMadt>();
-    let madt_local_x2apic_offset = madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
-    let madt_local_x2apic_nmi_offset = madt_local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2Apic>();
+    let madt_local_x2apic_offset =
+        madt_local_apic_offset + cores as usize * size_of::<AcpiMadtLocalApic>();
+    let madt_local_x2apic_nmi_offset =
+        madt_local_x2apic_offset + cores as usize * size_of::<AcpiMadtLocalX2Apic>();
     let madt_io_apic_offset = madt_local_x2apic_nmi_offset + size_of::<AcpiMadtLocalX2ApicNMI>();
     let madt_local_isor_offset = madt_io_apic_offset + size_of::<AcpiMadtIoApic>();
 
@@ -35,15 +37,37 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize, cores: u32
     let total_size = hpet_offset + size_of::<AcpiTableHpet>() - start;
 
     // setup rsdp - Root System Description Pointer
-    let rsdp = AcpiTableRsdp { signature: SIG_RSDP, revision: 2, length: 36, xsdt_physical_address: xsdt_offset as u64, ..Default::default() };
+    let rsdp = AcpiTableRsdp {
+        signature: SIG_RSDP,
+        revision: 2,
+        length: 36,
+        xsdt_physical_address: xsdt_offset as u64,
+        ..Default::default()
+    };
 
     write!(w, "Write rsdp  at {:x?} \r\n", rsdp_offset).unwrap();
     write(w, rsdp, rsdp_offset, 0);
-    write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_CHECKSUM_OFFSET); // XXX
-    debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH), 0);
+    write(
+        w,
+        gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH),
+        rsdp_offset,
+        ACPI_RSDP_CHECKSUM_OFFSET,
+    ); // XXX
+    debug_assert_eq!(
+        acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_CHECKSUM_LENGTH),
+        0
+    );
 
-    write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_XCHECKSUM_OFFSET); // XXX
-    debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), 0);
+    write(
+        w,
+        gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH),
+        rsdp_offset,
+        ACPI_RSDP_XCHECKSUM_OFFSET,
+    ); // XXX
+    debug_assert_eq!(
+        acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH),
+        0
+    );
     /*
     // xsdt - Extended System Description Table
     let xsdt_total_length = size_of::<AcpiTableHeader>() + size_of::<u64>() * NUM_XSDT_ENTRIES;

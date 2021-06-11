@@ -48,7 +48,9 @@ impl ops::Deref for DDR {
 
 impl DDR {
     pub fn new() -> DDR {
-        DDR { base: reg::DDR_CTRL as usize }
+        DDR {
+            base: reg::DDR_CTRL as usize,
+        }
     }
 
     /// Returns a pointer to the register block

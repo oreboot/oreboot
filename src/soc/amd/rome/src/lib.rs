@@ -22,11 +22,23 @@ impl SOC {
         let mp1 = MPMailbox::<8>::new(0x3B1_0524, 0x3B1_0570, 0x3B1_0A40);
         let mp2 = MPMailbox::<8>::new(0x3B1_0528, 0x3B1_0574, 0x3B1_0960);
         let mp3 = MPMailbox::<8>::new(0x3B1_0530, 0x3B1_057C, 0x3B1_09C4);
-        Self { hsmp, mp0, mp1, mp2, mp3 }
+        Self {
+            hsmp,
+            mp0,
+            mp1,
+            mp2,
+            mp3,
+        }
     }
 
     pub fn init(&mut self, w: &mut impl core::fmt::Write) -> Result<(), &'static str> {
-        let mps = [&self.mp0, &self.mp1, &self.mp2, &self.mp3, &self.hsmp.mailbox];
+        let mps = [
+            &self.mp0,
+            &self.mp1,
+            &self.mp2,
+            &self.mp3,
+            &self.hsmp.mailbox,
+        ];
         for mp in mps.iter() {
             match mp.test(42) {
                 Ok(v) => {
