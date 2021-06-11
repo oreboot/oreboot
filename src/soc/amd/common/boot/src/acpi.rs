@@ -48,8 +48,9 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
     write(w, gencsum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), rsdp_offset, ACPI_RSDP_XCHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(rsdp_offset, rsdp_offset + ACPI_RSDP_XCHECKSUM_LENGTH), 0);
 
-    panic!("HEEEEEEEELP");
+    // panic!("HEEEEEEEELP");
 
+    /*
     // xsdt - Extended System Description Table
     let xsdt_total_length = size_of::<AcpiTableHeader>() + size_of::<u64>() * NUM_XSDT_ENTRIES;
     let xsdt = AcpiTableHeader { signature: SIG_XSDT, length: xsdt_total_length as u32, revision: 1, ..AcpiTableHeader::new() };
@@ -58,7 +59,6 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
     let xsdt_entries: [u64; NUM_XSDT_ENTRIES] = [fadt_offset as u64, madt_offset as u64, mcfg_offset as u64, hpet_offset as u64];
 
     write(w, xsdt_entries, xsdt_entry_offset, 0);
-    /*
     write(w, gencsum(xsdt_offset, xsdt_offset + xsdt_total_length), xsdt_offset, ACPI_TABLE_HEADER_CHECKSUM_OFFSET); // XXX
     debug_assert_eq!(acpi_tb_checksum(xsdt_offset, xsdt_offset + xsdt_total_length), 0);
 
