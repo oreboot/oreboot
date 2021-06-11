@@ -129,10 +129,6 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         write!(w, "Didn't explode :(\r\n").unwrap();
     }
 
-    // disable legacy interrupts
-    // smnhack(w, 0x13F0_0004, 0x0010_0400u32);
-    // smnhack(w, 0x13F0_0064, 0x0010_0400u32); // 847405
-
     // It is hard to say if we need to do this.
     if true {
         let v = unsafe { Msr::new(0xc001_1004).read() };
@@ -157,6 +153,10 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     if true {
         msrs(w);
     }
+
+    // disable legacy interrupts
+    smnhack(w, 0x13F0_0004, 0x0010_0400u32);
+    smnhack(w, 0x13F0_0064, 0x0010_0400u32); // 847405
 
     // see src/soc/amd/common/df/src/lib.rs
     let io_port_decode_enable = config32(PciAddress {
