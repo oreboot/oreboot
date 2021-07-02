@@ -1,0 +1,20 @@
+#!/bin/bash
+set -x
+set -e
+
+echo empty sudo so we do not need another password prompt
+sudo date
+
+make
+
+echo "power on, hold down reset, once jh7100 starts"
+
+dd if=target/riscv64imac-unknown-none-elf/release/image.bin  of=image.bin bs=80K count=1
+
+ls -l image.bin
+sudo strace -o shit -f -s 1024 -v \
+     /home/rminnich/bin/jh7100-recover \
+     -D /dev/ttyUSB0 \
+     -r /home/rminnich/riscv/vic_second_boot.bin \
+     -b  image.bin \
+     -d /home/rminnich/riscv/ddrinit-2133-210302.bin.out

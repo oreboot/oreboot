@@ -1,0 +1,30 @@
+[package]
+name = "beaglev"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2018"
+build = "build.rs"
+
+[dependencies]
+arch = { path = "../../../arch/riscv/rv64"}
+clock = { path = "../../../drivers/clock" }
+console = { path = "../../../console" }
+device_tree = { path = "../../../lib/device_tree" }
+print = { path = "../../../lib/print" }
+model = { path = "../../../drivers/model" }
+payloads = { path = "../../../../payloads"}
+soc = { path = "../../../soc/starfive/jh7100" }
+spi = { path = "../../../drivers/sifive/spi" }
+wrappers = { path = "../../../drivers/wrappers"}
+
+heapless = "0.4.x"
+register = "0.3.2"
+static-ref = "0.1.1"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["sifive", "log", "heapless"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
