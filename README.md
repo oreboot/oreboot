@@ -7,7 +7,6 @@ https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&
 
 oreboot is a downstream fork of coreboot, i.e. oreboot is coreboot without 'c'.
 
-oreboot will only target truly open systems requiring no binary blobs. For now, that means no x86.
 oreboot is mostly written in Rust, with assembly where needed.
 
 oreboot currently only plans to support LinuxBoot payloads.
