@@ -1,0 +1,44 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "HiFive Unleashed";
+        category = "SiFive";
+        board-url = "https://www.sifive.com/boards/hifive-unleashed";
+        areas {
+            area@0 {
+                description = "Boot Blob and Romstage";
+                size = <0x80000>; // 512KiB
+                file = "$(TARGET_DIR)/bootblob.bin";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                size = <0x80000>; // 512KiB
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+            };
+            area@2 {
+                description = "Payload A";
+                size = <0x600000>; // 6MiB
+                file = "$(PAYLOAD_A)";
+            };
+            area@3 {
+                description = "Payload B";
+                size = <0x600000>; // 6MiB
+                file = "$(PAYLOAD_B)";
+            };
+            area@4 {
+                description = "Payload C";
+                size = <0x300000>; // 3MiB
+                file = "$(PAYLOAD_C)";
+            };
+            area@5 {
+                description = "Empty Space";
+                size = <0x1000000>; // 16MiB
+            };
+        };
+    };
+};
