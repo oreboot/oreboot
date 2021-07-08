@@ -8,6 +8,8 @@
 //use core::fmt::Write;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
+use core::ptr;
+use core::ptr::slice_from_raw_parts;
 use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use model::Driver;
 use payloads::payload;
@@ -18,6 +20,7 @@ use soc::iopadctl::IOpadctl;
 use soc::rstgen::RSTgen;
 //use uart::sifive::SiFive;
 pub mod uart;
+use crate::uart::UART;
 
 global_asm!(include_str!(
     "../../../../../src/soc/starfive/jh7100/src/start.S"
@@ -78,14 +81,57 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
 
     //    syscon.finish();
     //      iopad.finish();
-    uart::uart_init();
-    for _ in 0..0x5afebabe {
-    uart::putc('H');
+    let mut uart = UART::new();
+    uart.init().unwrap();
+    uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    uart.pwrite(b"\r\n0x2000_0000", 0).unwrap();
+    let slice = slice_from_raw_parts(0x2000_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
+    uart.pwrite(b"\r\n0x2004_0000", 0).unwrap();
+    let slice = slice_from_raw_parts(0x2004_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
+    uart.pwrite(b"\r\n0x2001_0000", 0).unwrap();
+    let slice = slice_from_raw_parts(0x2001_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
+    uart.pwrite(b"\r\n0x1808_0000", 0).unwrap();
+    let slice = slice_from_raw_parts(0x1808_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
+    let sz = peek32(0x2001_0000) as u32;
+    //	let ddr = slice_from_raw_parts(0x2001_0000 as *const u8, sz as usize);
+
+    for addr in (0usize..sz as usize).step_by(4) {
+        uart.pwrite(b".", 0).unwrap();
+        let d = peek32(0x2001_0004 + addr as u32);
+        poke32(0x1808_0000 + addr as u32, d);
     }
+    uart.pwrite(b"\r\n0x1808_0000", 0).unwrap();
+    let slice = slice_from_raw_parts(0x1808_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
 
     // Let's try some serial out now.
 
+    // call ddr
+    pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
+
+    unsafe {
+        let f = transmute::<usize, EntryPoint>(0x1808_0000);
+        uart.pwrite(b"Jump to 1808_0000", 0).unwrap();
+        f(1, 0x1804_0000);
+    }
+    uart.pwrite(b"That escalated quickly", 0).unwrap();
     arch::halt();
+}
+
+fn poke32(a: u32, v: u32) {
+    let y = a as *mut u32;
+    unsafe {
+        ptr::write_volatile(y, v);
+    }
+}
+
+fn peek32(a: u32) -> u32 {
+    let y = a as *const u32;
+    unsafe { ptr::read_volatile(y) }
 }
 
 // Returns Err((address, got)) or OK(()).

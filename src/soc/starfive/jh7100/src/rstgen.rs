@@ -39,9 +39,9 @@
  */
 use model::*;
 //use crate::reg;
-use core::ptr;
 use crate::clock::_ENABLE_CLOCK_clk_msi_apb_;
 use crate::clock::_ENABLE_CLOCK_clk_x2c_axi_;
+use core::ptr;
 //pub mod clock;
 
 pub const RSTGEN_BASE_ADDR: u32 = 0x1184_0000;
@@ -3884,13 +3884,13 @@ impl RSTgen {
         _CLEAR_RESET_rstgen_rstn_usbnoc_axi_();
         _CLEAR_RESET_rstgen_rstn_hifi4noc_axi_();
 
-	_ENABLE_CLOCK_clk_x2c_axi_();
+        _ENABLE_CLOCK_clk_x2c_axi_();
         _CLEAR_RESET_rstgen_rstn_x2c_axi_();
 
         _CLEAR_RESET_rstgen_rstn_dspx2c_axi_();
         _CLEAR_RESET_rstgen_rstn_dma1p_axi_();
 
-	_ENABLE_CLOCK_clk_msi_apb_();
+        _ENABLE_CLOCK_clk_msi_apb_();
         _CLEAR_RESET_rstgen_rstn_msi_apb_();
 
         _ASSERT_RESET_rstgen_rstn_x2c_axi_();

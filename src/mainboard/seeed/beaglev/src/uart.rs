@@ -2,12 +2,14 @@
 #![allow(unused_parens)]
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
-use core::ptr;
 
+use core::ptr;
+use model::Driver;
+use model::Result;
 // This is a temporary hack until the board works, at which point we'll use
 // the real drivers.
 
-const uart: u32 = 0x12440000;
+const uartbase: u32 = 0x12440000;
 
 // It's really not hex.
 const UART_CLK: u32 = 100000000;
@@ -130,11 +132,11 @@ fn peek32(a: u32) -> u32 {
 }
 
 fn serial_in(reg: u32) -> u32 {
-    peek32(uart + (reg << 2))
+    peek32(uartbase + (reg << 2))
 }
 
 fn serial_out(reg: u32, v: u32) -> () {
-    poke32(uart + (reg << 2), v);
+    poke32(uartbase + (reg << 2), v);
 }
 
 pub fn uart_init() -> () {
@@ -166,6 +168,31 @@ pub fn uart_init() -> () {
     serial_out(REG_IER, 0); //dis the ser interrupt
 }
 
+fn x4(data: u8) {
+    match data {
+        0 => putc('0'),
+        1 => putc('1'),
+        2 => putc('2'),
+        3 => putc('3'),
+        4 => putc('4'),
+        5 => putc('5'),
+        6 => putc('6'),
+        7 => putc('7'),
+        8 => putc('8'),
+        9 => putc('9'),
+        0xa => putc('a'),
+        0xb => putc('b'),
+        0xc => putc('c'),
+        0xd => putc('d'),
+        0xe => putc('e'),
+        _ => putc('f'),
+    }
+}
+fn x8(data: u8) {
+    x4(data >> 4);
+    x4(data & 0xf);
+}
+
 pub fn putc(c: char) -> () {
     loop {
         let lsr = serial_in(REG_LSR) & LSR_THRE;
@@ -174,4 +201,57 @@ pub fn putc(c: char) -> () {
         }
     }
     serial_out(REG_THR, c as u32);
+}
+
+pub struct UART {
+    base: u32,
+}
+
+impl UART {
+    pub fn new() -> UART {
+        UART { base: 0 }
+    }
+
+    /// Returns a pointer to the register block
+    pub fn ptr(&self) -> usize {
+        self.base as usize
+    }
+}
+
+impl Driver for UART {
+    // TODO: properly use the register crate.
+    fn init(&mut self) -> Result<()> {
+        self.base = uartbase;
+        uart_init();
+        Ok(())
+    }
+
+    fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
+        Ok(0)
+        // if false {
+        //     for c in data.iter_mut() {
+        //         let mut s = [0u8; 1];
+        //         while !self.poll_status(1, 1) {}
+        //         self.d.pread(&mut s, self.base).unwrap();
+        //         *c = s[0];
+        //     }
+        //     Ok(data.len())
+        // 	}
+    }
+
+    fn pwrite(&mut self, data: &[u8], offset: usize) -> Result<usize> {
+        for &c in data {
+            // Poll the status for long enough to let a char out; then push it out anyway.
+            // while !self.poll_status(0x20, 0x20) && !self.poll_status(0x40, 0x40) {}
+            // let mut s = [0u8; 1];
+            // s[0] = c;
+            match offset {
+                1 => x8(c),
+                _ => putc(c as char),
+            }
+        }
+        Ok(data.len())
+    }
+
+    fn shutdown(&mut self) {}
 }
