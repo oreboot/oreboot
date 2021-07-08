@@ -1,0 +1,58 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "UP Xtreme";
+        category = "aaeon";
+        board-url = "https://up-board.org/up-xtreme/";
+        areas {
+            area@0 {
+                description = "RamPayload DTFS A";
+                compatible = "ore-rampayload";
+                half = <0>;
+                offset = <0x0>;
+                size = <0xc00000>;
+                file = "$(PAYLOAD_A)";
+            };
+            area@1 {
+                description = "RamPayload DTFS B";
+                compatible = "ore-rampayload";
+                half = <1>;
+                offset = <0xc00000>;
+                size = <0x100000>;
+            };
+            area@2 {
+                description = "NVRAM B";
+                compatible = "ore-nvram";
+                half = <1>;
+                offset = <0xfd0000>;
+                size = <0x8000>;
+            };
+            area@3 {
+                description = "NVRAM A";
+                compatible = "ore-nvram";
+                half = <0>;
+                offset = <0xfe0000>;
+                size = <0x8000>;
+            };
+            area@4 {
+                description = "Fixed DTFS";
+                compatible = "ore-dtfs";
+                offset = <0xfe8000>;
+                size = <0x8000>;
+                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+            };
+            area@5 {
+                description = "Boot Blob";
+                compatible = "ore-bootblob";
+                offset = <0xff0000>;
+                size = <0x10000>;
+                file = "$(TARGET_DIR)/bootblob.bin";
+            };
+        };
+    };
+};
