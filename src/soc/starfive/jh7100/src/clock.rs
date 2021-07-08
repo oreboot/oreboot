@@ -4530,7 +4530,9 @@ impl<'a> Clock<'a> {
         // values as we can't put them in reset before changing frequency.
         let hfclk = 1_000_000_000; // 1GHz
         for clk in self.clks.iter_mut() {
-	if false {            clk.set_clock_rate(hfclk);}
+            if false {
+                clk.set_clock_rate(hfclk);
+            }
         }
 
         self.init_coreclk();

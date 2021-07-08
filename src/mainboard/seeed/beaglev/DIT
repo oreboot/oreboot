@@ -45,4 +45,6 @@ sudo strace -o shit -f -s 1024 -v \
      -D /dev/ttyUSB0 \
      -r /home/rminnich/riscv/vic_second_boot.bin \
      -b  bootblob.bin.out \
+
+     exit 0
      -d /home/rminnich/riscv/ddrinit-2133-210302.bin.out
