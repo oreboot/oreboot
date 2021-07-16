@@ -98,6 +98,46 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         write!(w, "Could not find FspMemoryInit\r\n").unwrap();
     }
 
+    if let Some(fsps_entry) = fsp_silicon_init_entry(&infos) {
+        write!(
+            w,
+            "Calling FspSiliconInit at {:#x}+{:#x}\r\n",
+            fsp_base, fsps_entry
+        )
+        .unwrap();
+
+        // TODO: This struct has to be aligned to 4.
+        // mut because we can't make the assumption FSP won't modify it.
+        let mut fsps_upd = efi::FSPS_UPD {
+            FspUpdHeader: efi::FSP_UPD_HEADER {
+                Signature: efi::FSPS_UPD_SIGNATURE,
+                Revision: 2, // FSP 2.2
+                Reserved: [0u8; 23],
+            },
+            UnusedUpdSpace0: [0u8; 32],
+            FspsConfig: efi::FSP_S_CONFIG {
+                LogoSize: 0,
+                LogoPtr: 0,
+                GraphicsConfigPtr: 0,
+                PciTempResourceBase: 0,
+                UnusedUpdSpace1: [0; 32],
+                ReservedFspsUpd: 0,
+            },
+            UnusedUpdSpace2: [0u8; 13],
+            UpdTerminator: 0x55AA, // ???
+        };
+
+        let status = unsafe {
+            type FspSiliconInit =
+                unsafe extern "win64" fn(FspsUpdDataPtr: *mut core::ffi::c_void) -> efi::EFI_STATUS;
+            let fsps = core::mem::transmute::<usize, FspSiliconInit>(fsp_base + fsps_entry);
+            fsps(core::mem::transmute(&mut fsps_upd))
+        };
+        write!(w, "Returned {}\r\n", status).unwrap();
+    } else {
+        write!(w, "Could not find FspSiliconInit\r\n").unwrap();
+    }
+
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
         low_mem_size: 0x80_000_000,
@@ -141,6 +181,15 @@ fn fsp_memory_init_entry(infos: &FspInfos) -> Option<usize> {
     for entry in infos.iter() {
         if entry.info.ComponentAttribute & 0xf000 == 0x2000 {
             return Some(entry.addr + entry.info.FspMemoryInitEntryOffset as usize);
+        }
+    }
+    None
+}
+
+fn fsp_silicon_init_entry(infos: &FspInfos) -> Option<usize> {
+    for entry in infos.iter() {
+        if entry.info.ComponentAttribute & 0xf000 == 0x3000 {
+            return Some(entry.addr + entry.info.FspSiliconInitEntryOffset as usize);
         }
     }
     None
