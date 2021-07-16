@@ -11,6 +11,7 @@ model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
 wrappers = { path = "../../../drivers/wrappers"}
+rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
 heapless = "0.4.x"
 register = "0.3.2"

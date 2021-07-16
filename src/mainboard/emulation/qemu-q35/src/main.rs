@@ -13,9 +13,11 @@ use print;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 
-global_asm!(include_str!(
-    "../../../../arch/x86/x86_64/src/bootblock_nomem.S"
+global_asm!(preprocess_asm!(
+    "../../../arch/x86/x86_64/src/bootblock_nomem.S"
 ));
+
+use rpp_procedural::preprocess_asm;
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {

@@ -22,11 +22,14 @@
  */
 
 
-	// The non-memory bootblock.
-	// THERE IS NO MEMORY.
-	// Everything comes from ROM.
-	// A/D bits MUST BE SET so that the hardware doesn't
-	// get upset trying to set them.
+// The non-memory bootblock.
+// THERE IS NO MEMORY.
+// Everything comes from ROM.
+// A/D bits MUST BE SET so that the hardware doesn't
+// get upset trying to set them.
+
+#include "asm_defs.h"
+
 .section .bootblock.boot
 .code32
 .globl setup64
@@ -87,21 +90,6 @@ gdt64:
 gdt64_end:
 3:
 	// These pages tables are wired into ROM.
-	/* PML4E/PDPE/PDE/PTE */
-#define PteP		0x0000000000000001	/* Present */
-#define PteRW		0x0000000000000002	/* Read/Write */
-#define PteU		0x0000000000000004	/* User/Supervisor */
-#define PtePWT		0x0000000000000008	/* Page-Level Write Through */
-#define PtePCD		0x0000000000000010	/* Page Level Cache Disable */
-#define PteA		0x0000000000000020	/* Accessed */
-#define PteD		0x0000000000000040	/* Dirty */
-#define PtePS		0x0000000000000080	/* Page Size */
-#define Pte4KPAT	PtePS			/* PTE PAT */
-#define PteG		0x0000000000000100	/* Global */
-#define Pte2MPAT	0x0000000000001000	/* PDE PAT */
-#define Pte1GPAT	Pte2MPAT		/* PDPE PAT */
-#define PteNX		0x8000000000000000	/* No Execute */
-
 	.align 0x1000
 pml4:
 	// the .+ format makes things easier at link time.
@@ -128,41 +116,22 @@ pml3:
 	*	make an inter-segment jump to the Long Mode code.
 	* It`s all in 32-bit mode until the jump is made.
 	*/
-	#define Pse 0x10
-	#define Pge 0x40
-	#define Pae 0x20
-	// This assembler has no comprehensible way of or'ing stuff. I give up.
-	#define PgePae 0x60
 lme:
 	movl	%cr4, %eax
-	andl	/*~$Pse*/$0xffffffef, %eax			/* Page Size */
-	orl	$0x60, %eax		/* Page Global, Phys. Address */
+	andl	$(~Pse), %eax			/* Page Size */
+	orl		$(Pge | Pae), %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
-	#define Efer  0xC0000080
-	#define Lme (1<<8)
-	movl	$0xc0000080, %ecx			/* Extended Feature Enable */
+	movl	$(Efer), %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$(1<<8), %eax			/* Long Mode Enable */
+	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
 
 	movl	%cr0, %edx
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// If only the rust assembler acted more like gas.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
-	#define PE 1       	//Protected Mode Enable         If 1, system is in protected mode, else system is in real mode
-	#define MP 2       	//Monitor co-processor  Controls interaction of WAIT/FWAIT instructions with TS flag in CR0
-	#define EM 4       	//Emulation     If set, no x87 floating-point unit present, if clear, x87 FPU present
-	#define TS 8       	//Task switched         Allows saving x87 task context upon a task switch only after x87 instruction used
-	#define ET 0x10       	//Extension type        On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
-	#define NE 0x20       	//Numeric error         Enable internal x87 floating point error reporting when set, else enables PC style x87 error detection
-	#define WP 0x10000      //Write protect         When set, the CPU can't write to read-only pages when privilege level is 0
-	#define AM 0x40000      //Alignment mask        Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
-	#define NW 0x20000000   //Not-write through     Globally enables/disable write-through caching
-	#define CD 0x40000000   //Cache disable         Globally enables/disable the memory cache
-	#define PG 0x80000000   //Paging        If 1, enable paging and use the § CR3 register, else disable paging.
-	#define CDNWTSMP 0x6000000a
-	ANDL	/*$~(CD|NW|TS|MP)*/$~0x6000000a, %edx
-	ORL	/*$(PG|WP)*/$0x80010000, %edx			/* Paging Enable */
+	ANDL	$~(CD|NW|TS|MP), %edx
+	ORL	$(PG|WP), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 	ljmp $0x28, $_identity
 
@@ -286,7 +255,7 @@ outb	%al, $0x80
 	.byte 0x66, 0x2E, 0x0F, 0x01, 0x17
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$0x60000001, %eax /* CD, NW, PE = 1 */
+	orl	$(CD|NW|PE), %eax
 	movl	%eax, %cr0
 
 	/* Restore BIST to %eax */
