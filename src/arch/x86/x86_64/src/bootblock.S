@@ -19,30 +19,32 @@
  *
  */
 
-	//
-	// Include the old code for reset vector and protected mode entry. That code has
-	// withstood the test of time. Some of the comments may help Those Who Come Later
-	// avoid mistakes.
+//
+// Include the old code for reset vector and protected mode entry. That code has
+// withstood the test of time. Some of the comments may help Those Who Come Later
+// avoid mistakes.
 
-	// N.B. c99-style comment blocks should cover differences between coreboot and oreboot.
-	// Unlike coreboot, we are going to arrange the sections in bootblock
-	// in roughly the order they appear in memory. This first part is
-	// x86 entry point. Then we have assembly prolog. The protected mode enable,
-	// then long mode enable. The code should be written to be position-independent.
-	// It should not count on linker magic -- relative branches please.
-	
-	//
-	// This code has to be 4k aligned because secondary CPUs run it
-	// too and the Startup IPI requires it.
+// N.B. c99-style comment blocks should cover differences between coreboot and oreboot.
+// Unlike coreboot, we are going to arrange the sections in bootblock
+// in roughly the order they appear in memory. This first part is
+// x86 entry point. Then we have assembly prolog. The protected mode enable,
+// then long mode enable. The code should be written to be position-independent.
+// It should not count on linker magic -- relative branches please.
 
-	// RAM is used as follows:
-	// 16-bit code: the stack is set to 0x2000, and a word at 0xfffe is used to
-	// contain an address.
-	// 32-bit/64-bit code:
-	// 0x7f000 Page Table Page Level 3 (PML3)
-	// 0x7e000 Page Table Page Level 4 (PML4)
-	// 0x7e000 Initial top of stack; x86 is pre-decrement so this location is not written.
-	
+//
+// This code has to be 4k aligned because secondary CPUs run it
+// too and the Startup IPI requires it.
+
+// RAM is used as follows:
+// 16-bit code: the stack is set to 0x2000, and a word at 0xfffe is used to
+// contain an address.
+// 32-bit/64-bit code:
+// 0x7f000 Page Table Page Level 3 (PML3)
+// 0x7e000 Page Table Page Level 4 (PML4)
+// 0x7e000 Initial top of stack; x86 is pre-decrement so this location is not written.
+
+#include "asm_defs.h"
+
 .align 4096
 .code16
 .globl _start16bit
@@ -182,7 +184,7 @@ gdtptr16:
 
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$0x60000001, %eax /* CD, NW, PE = 1 */
+	orl	$(CD | NW | PE), %eax
 	movl	%eax, %cr0
 
 	/* Restore BIST to %eax */
@@ -256,14 +258,7 @@ clear_fixed_mtrr:
 
 	/* Figure out how many MTRRs we have, and clear them out */
 	// This is a standard definition.
-#define MTRR_CAP_MSR			0x0fe	
-#define MTRR_PHYS_BASE(reg)		(0x200 + 2 * (reg))
-#define MTRR_PHYS_MASK(reg)		(MTRR_PHYS_BASE(reg) + 1)
-#define MTRR_DEF_TYPE_MSR		0x2ff
-#define MTRR_DEF_TYPE_MASK		0xff
-#define MTRR_DEF_TYPE_EN		(1 << 11)
-#define MTRR_DEF_TYPE_FIX_EN		(1 << 10)
-	mov	$/*MTRR_CAP_MSR*/0xfe, %ecx
+	mov	$MTRR_CAP_MSR, %ecx
 	rdmsr
 	movzb	%al, %ebx		/* Number of variable MTRRs */
 	mov	/*$MTRR_PHYS_BASE(0)*/0x200, %ecx
@@ -349,17 +344,7 @@ addrsize_set_high:
 	movl	%ebx, %ecx
 	xorl	%eax, %eax
 	rep	stosl
-#define CR0_PE          (1 <<  0)
-#define CR0_MP          (1 <<  1)
-#define CR0_EM          (1 <<  2)
-#define CR0_TS          (1 <<  3)
-#define CR0_ET          (1 <<  4)
-#define CR0_NE          (1 <<  5)
-#define CR0_WP          (1 << 16)
-#define CR0_AM          (1 << 18)
-#define CR0_NW          (1 << 29)
-#define CR0_CD          (1 << 30)
-#define CR0_PG          (1 << 31)
+
 	//post_code_be_careful_about_al(0x2d)
 	/* Enable Cache-as-RAM mode by disabling cache. */
 	movl	%cr0, %eax
@@ -412,19 +397,6 @@ before_c_entry:
 	hlt
 	jmp	.Lhlt
 
-#define NUM_FIXED_RANGES                88
-#define RANGES_PER_FIXED_MTRR           8
-#define MTRR_FIX_64K_00000              0x250
-#define MTRR_FIX_16K_80000              0x258
-#define MTRR_FIX_16K_A0000              0x259
-#define MTRR_FIX_4K_C0000               0x268
-#define MTRR_FIX_4K_C8000               0x269
-#define MTRR_FIX_4K_D0000               0x26a
-#define MTRR_FIX_4K_D8000               0x26b
-#define MTRR_FIX_4K_E0000               0x26c
-#define MTRR_FIX_4K_E8000               0x26d
-#define MTRR_FIX_4K_F0000               0x26e
-#define MTRR_FIX_4K_F8000               0x26f
 fixed_mtrr_list:
 /*	.word	MTRR_FIX_64K_00000
 	.word	MTRR_FIX_16K_80000
@@ -485,20 +457,6 @@ _gdtptr64p:
 	// we can fix this later, but it will at most be the
 	// low 4G.
 	// bits
-	/* PML4E/PDPE/PDE/PTE */
-#define PteP		0x0000000000000001	/* Present */
-#define PteRW		0x0000000000000002	/* Read/Write */
-#define PteU		0x0000000000000004	/* User/Supervisor */
-#define PtePWT		0x0000000000000008	/* Page-Level Write Through */
-#define PtePCD		0x0000000000000010	/* Page Level Cache Disable */
-#define PteA		0x0000000000000020	/* Accessed */
-#define PteD		0x0000000000000040	/* Dirty */
-#define PtePS		0x0000000000000080	/* Page Size */
-#define Pte4KPAT	PtePS			/* PTE PAT */
-#define PteG		0x0000000000000100	/* Global */
-#define Pte2MPAT	0x0000000000001000	/* PDE PAT */
-#define Pte1GPAT	Pte2MPAT		/* PDPE PAT */
-#define PteNX		0x8000000000000000	/* No Execute */
 	// Save %ecx for later mov to cr3
 	// PML4 is at %ecx.
 	// PML3 is at 4096(%ecx)
@@ -506,11 +464,10 @@ _gdtptr64p:
 	movl %cr3, %ecx
 	movl %ecx, %edx
 	//$(PteRW|PteP)
-	orl $(2|1), %edx	
-	addl $(0x1000), %edx
+	orl $(PteRW | PteP), %edx	
+	addl $(Pte2MPAT), %edx
 	movl %edx, 0(%ecx) // identity map entry to point to pml3
-	//$(PTePS|PteRW|PteP)	
-	movl $(0x80|2|1), %edx
+	movl $(PtePS|PteRW|PteP), %edx
 	movl %edx, 0x1000(%ecx)
 	addl $(0x40000000), %edx
 	movl %edx, 0x1008(%ecx)
@@ -530,40 +487,21 @@ _gdtptr64p:
 	*	make an inter-segment jump to the Long Mode code.
 	* It`s all in 32-bit mode until the jump is made.
 	*/
-	#define Pse 0x10
-	#define Pge 0x40
-	#define Pae 0x20
-	// This assembler has no comprehensible way of or'ing stuff. I give up.
-	#define PgePae 0x60
 lme:
 	movl	%cr4, %eax
-	andl	/*~$Pse*/$0xffffffef, %eax			/* Page Size */
+	andl	$(~Pse), %eax			/* Page Size */
 	orl	$0x60, %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
-	#define Efer  0xC0000080
-	#define Lme (1<<8)
-	movl	$0xc0000080, %ecx			/* Extended Feature Enable */
+	movl	$(Efer | Lme), %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$(1<<8), %eax			/* Long Mode Enable */
+	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
 
 	movl	%cr0, %edx
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
-	#define PE 1       //Protected Mode Enable         If 1, system is in protected mode, else system is in real mode
-	#define MP 2       //Monitor co-processor  Controls interaction of WAIT/FWAIT instructions with TS flag in CR0
-	#define EM 4       //Emulation     If set, no x87 floating-point unit present, if clear, x87 FPU present
-	#define TS 8       //Task switched         Allows saving x87 task context upon a task switch only after x87 instruction used
-	#define ET 0x10       //Extension type        On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
-	#define NE 0x20       //Numeric error         Enable internal x87 floating point error reporting when set, else enables PC style x87 error detection
-	#define WP 0x10000      //Write protect         When set, the CPU can't write to read-only pages when privilege level is 0
-	#define AM 0x40000      //Alignment mask        Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
-	#define NW 0x20000000     //Not-write through     Globally enables/disable write-through caching
-	#define CD 0x40000000      //Cache disable         Globally enables/disable the memory cache
-	#define PG 0x80000000      //Paging        If 1, enable paging and use the § CR3 register, else disable paging.
-	#define CDNWTSMP 0x6000000a
-	ANDL	/*$~(CD|NW|TS|MP)*/$~0x6000000a, %edx
-	ORL	/*$(PG|WP)*/$0x80010000, %edx			/* Paging Enable */
+	ANDL	$~(CD|NW|TS|MP), %edx
+	ORL	$(PG|WP), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 	ljmp $0x18, $_identity
 

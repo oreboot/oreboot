@@ -30,6 +30,7 @@ struct Keyword {
 pub struct Context {
     macros: HashMap<String, String>,
     line_num: u32,
+    pub processed_files: Vec<String>,
 
     // Compiling regex is slow. Only do it once per context
     word_re: Regex,
@@ -42,6 +43,7 @@ impl Context {
         Context {
             macros: HashMap::new(),
             line_num: 0,
+            processed_files: Vec::new(),
 
             word_re: Regex::new(r"\b\w+\b").unwrap(),
             block_comment_re: Regex::new(r"(?s)/\*.*?\*/").unwrap(),
@@ -166,6 +168,8 @@ pub fn process_str(s: &str, ctx: &mut Context) -> Result<String, ParsingError> {
 }
 
 pub fn process_file(filename: &str, ctx: &mut Context) -> Result<String, ParsingError> {
+    ctx.processed_files.push(filename.to_string());
+
     match fs::read_to_string(filename) {
         Ok(s) => process_str(&s, ctx),
         Err(e) => Err(ParsingError::new(

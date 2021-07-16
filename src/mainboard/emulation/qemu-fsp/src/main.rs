@@ -15,6 +15,8 @@ use uefi::{fv_traverse, SectionData};
 use heapless::consts::U4;
 use heapless::Vec;
 
+use rpp_procedural::preprocess_asm;
+
 use efi::EFI_GUID as GUID;
 use fsp_qemu_sys as efi;
 
@@ -22,8 +24,8 @@ use fsp_qemu_sys as efi;
 // introduces the symbols containing the FSP binary which get picked up by the linker.
 extern crate fsp_qemu_sys;
 
-global_asm!(include_str!(
-    "../../../../arch/x86/x86_64/src/bootblock_nomem.S"
+global_asm!(preprocess_asm!(
+    "../../../arch/x86/x86_64/src/bootblock_nomem.S"
 ));
 
 #[no_mangle]
