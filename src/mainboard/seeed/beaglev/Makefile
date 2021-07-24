@@ -5,4 +5,7 @@ include ../../../../Makefile.inc
 include ../../../../Makefile.qemu.inc
 
 openocd:
-	$(shell which openocd) -f openocd.cfg -c "flash write_image erase unlock $(IMAGE) 0x20000000; shutdown"
+	echo run openocd -f openocd.cfg -c "flash write_image erase unlock $(IMAGE) 0x20000000; shutdown"
+
+cibuild: 
+	echo Skipping cibuild for beaglev

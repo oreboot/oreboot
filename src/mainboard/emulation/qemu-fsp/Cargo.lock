@@ -24,6 +24,7 @@ version = "0.1.0"
 dependencies = [
  "model",
  "print",
+ "rpp_procedural",
  "util",
  "vcell",
  "wrappers",

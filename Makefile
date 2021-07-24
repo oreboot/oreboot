@@ -32,7 +32,7 @@ firsttime:
 	cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 
 firsttime_fsp:
-	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils
+	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
 	git submodule update --init --recursive
 	(cd 3rdparty/fspsdk && patch -p1 < ../0001-Change-FLASH_BASE-to-0xFFF80000.patch)
 
@@ -88,6 +88,7 @@ BROKEN_CRATES_TO_TEST := \
 	src/mainboard/google/trembyle/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/opentitan/crb/Cargo.toml \
+	src/mainboard/seeed/beaglev/Cargo.toml \
 	src/mainboard/sifive/hifive/Cargo.toml \
 	src/soc/aspeed/ast2500/Cargo.toml \
 	src/soc/opentitan/earlgrey/Cargo.toml \
@@ -111,6 +112,7 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/emulation/qemu-q35/Cargo.toml \
 	src/mainboard/google/trembyle/Cargo.toml \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
+	src/mainboard/seeed/beaglev/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
 
 # TODO: Remove write_with_newline
