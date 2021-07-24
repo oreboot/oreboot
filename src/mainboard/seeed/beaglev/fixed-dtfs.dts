@@ -6,9 +6,9 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "HiFive Unleashed";
-        category = "SiFive";
-        board-url = "https://www.sifive.com/boards/hifive-unleashed";
+        board-name = "Seeed Beagle-V";
+        category = "Seeed";
+        board-url = "google beaglev";
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";

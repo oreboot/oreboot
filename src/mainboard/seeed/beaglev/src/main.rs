@@ -14,7 +14,7 @@ use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
 use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
-//use soc::syscon::Syscon;
+use soc::syscon::Syscon;
 //use soc::iopad::IOpad;
 use soc::iopadctl::IOpadctl;
 use soc::rstgen::RSTgen;
@@ -65,6 +65,9 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
         //spi2 as &mut dyn ClockNode,
 	//        uart0 as &mut dyn ClockNode,
     ];
+
+    // Note that in future, we will make a DoD of all the parts in .. the mainboard?
+    // and then call write with appropriate strings to enable stuff.
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
     let mut iopadctl = IOpadctl::new();
@@ -84,6 +87,11 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     let mut uart = UART::new();
     uart.init().unwrap();
     uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
+    let mut syscon = Syscon::new();
+    syscon.pwrite(b"on", 0).unwrap();
+    uart.pwrite(b"\r\nsyscon done\r\n", 0).unwrap();
+
     uart.pwrite(b"\r\n0x2000_0000", 0).unwrap();
     let slice = slice_from_raw_parts(0x2000_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();

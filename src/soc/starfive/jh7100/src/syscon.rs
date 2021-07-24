@@ -41,7 +41,9 @@
 //use core::ops;
 use model::*;
 
-//use crate::reg;
+use crate::clock::*;
+use crate::iopadctl::*;
+use crate::rstgen::*;
 use core::ptr;
 //use register::mmio::ReadWrite;
 //use register::register_bitfields;
@@ -1827,5 +1829,32 @@ impl Syscon {
         arch::fence();
     }
 
-    fn syscon_init(&mut self) {}
+    fn syscon_init(&mut self) {
+        /*phy must use gpio to hardware reset*/
+        _ENABLE_CLOCK_clk_gmac_ahb_();
+        _ENABLE_CLOCK_clk_gmac_ptp_refclk_();
+        _ENABLE_CLOCK_clk_gmac_gtxclk_();
+        _ASSERT_RESET_rstgen_rstn_gmac_ahb_();
+
+        _SET_SYSCON_REG_register89_SCFG_funcshare_pad_ctrl_57(0x00030080);
+        _SET_SYSCON_REG_register90_SCFG_funcshare_pad_ctrl_58(0x00030080);
+
+        _SET_SYSCON_REG_register91_SCFG_funcshare_pad_ctrl_59(0x00030003);
+        _SET_SYSCON_REG_register92_SCFG_funcshare_pad_ctrl_60(0x00030003);
+        _SET_SYSCON_REG_register93_SCFG_funcshare_pad_ctrl_61(0x00030003);
+        _SET_SYSCON_REG_register94_SCFG_funcshare_pad_ctrl_62(0x00030003);
+
+        _SET_SYSCON_REG_register95_SCFG_funcshare_pad_ctrl_63(0x00800003);
+
+        _SET_SYSCON_REG_register96_SCFG_funcshare_pad_ctrl_64(0x00800080);
+        _SET_SYSCON_REG_register97_SCFG_funcshare_pad_ctrl_65(0x00800080);
+        _SET_SYSCON_REG_register98_SCFG_funcshare_pad_ctrl_66(0x00800080);
+        _SET_SYSCON_REG_register99_SCFG_funcshare_pad_ctrl_67(0x00800080);
+        _SET_SYSCON_REG_register100_SCFG_funcshare_pad_ctrl_68(0x00800080);
+        _SET_SYSCON_REG_register101_SCFG_funcshare_pad_ctrl_69(0x00800080);
+        _SET_SYSCON_REG_register102_SCFG_funcshare_pad_ctrl_70(0x00800080);
+
+        _CLEAR_RESET_rstgen_rstn_gmac_ahb_();
+        _SET_SYSCON_REG_register28_SCFG_gmac_phy_intf_sel(0x1); //rgmii
+    }
 }
