@@ -23,7 +23,7 @@ extern crate num_derive;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
-use model::{Driver, Result};
+use model::{pread_exact, Driver, Result};
 use wrappers::SectionReader;
 
 /// Special value that every device tree in FDT format starts with.
@@ -79,7 +79,7 @@ pub struct FdtReader<'a, D: Driver> {
 
 fn cursor_u32(drv: &impl Driver, cursor: &mut usize) -> Result<u32> {
     let mut data = [0; 4];
-    drv.pread_exact(&mut data, *cursor)?;
+    pread_exact(drv, &mut data, *cursor)?;
     *cursor += 4;
     Ok(BigEndian::read_u32(&data))
 }
@@ -105,7 +105,7 @@ fn read_fdt_header(drv: &impl Driver) -> Result<FdtHeader> {
     const HEADER_SIZE: usize = 10 * 4;
 
     let mut data = [0; HEADER_SIZE];
-    drv.pread_exact(&mut data, 0)?;
+    pread_exact(drv, &mut data, 0)?;
     let mut cursor = 0;
     let mut read_u32 = || {
         cursor += 4;

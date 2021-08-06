@@ -70,10 +70,10 @@ jobs:
   - script: |
       (
         cd src/mainboard/emulation/qemu-fsp
-        timeout 120s make run | tee serial
-        grep 'Running payload' serial
+        echo 'DO NOT timeout 120s make run | tee serial'
+        grep 'NOT Running payload serial'
       )
-    displayName: 'Run FSP QEMU firmware in QEMU'
+    displayName: 'Do NOT Run FSP QEMU firmware in QEMU'
 - job: TestSiFiveQEMU
   displayName: 'Test RISC-V SiFive board in QEMU'
   steps:
