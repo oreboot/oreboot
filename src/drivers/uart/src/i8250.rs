@@ -1,3 +1,4 @@
+use consts::DeviceCtl;
 use model::*;
 
 pub struct I8250<D: Driver> {
@@ -90,6 +91,14 @@ impl<D: Driver> Driver for I8250<D> {
         Ok(data.len())
     }
 
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
     fn shutdown(&mut self) {}
 }
 
@@ -135,6 +144,14 @@ mod tests {
             }
 
             Ok(data.len())
+        }
+
+        fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+            NOT_IMPLEMENTED
+        }
+
+        fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+            NOT_IMPLEMENTED
         }
 
         fn shutdown(&mut self) {}

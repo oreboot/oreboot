@@ -1,6 +1,7 @@
 #![no_std]
 #![deny(warnings)]
 
+use consts::DeviceCtl;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use model::*;
 
@@ -40,6 +41,14 @@ impl<'a> Driver for DoD<'a> {
             })
     }
 
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
     fn shutdown(&mut self) {
         self.drivers.iter_mut().for_each(|d| d.shutdown())
     }
@@ -59,6 +68,14 @@ impl Driver for Memory {
         let dst = unsafe { from_raw_parts_mut(pos as *mut u8, data.len()) };
         dst.copy_from_slice(data);
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}
@@ -86,6 +103,14 @@ impl<'a> Driver for SliceReader<'a> {
     }
 
     fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
         NOT_IMPLEMENTED
     }
 
@@ -119,6 +144,14 @@ impl<'a, D: Driver> Driver for SectionReader<'a, D> {
     }
 
     fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn ctl(&mut self, _d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
         NOT_IMPLEMENTED
     }
 

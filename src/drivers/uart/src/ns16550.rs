@@ -1,4 +1,5 @@
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
+use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
@@ -81,6 +82,14 @@ impl Driver for NS16550 {
             self.d.set(c as u8);
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}

@@ -13,6 +13,7 @@ dependencies = [
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
  "print",
  "rpp_procedural",
@@ -44,6 +45,10 @@ version = "0.1.0"
 
 [[package]]
 name = "console"
+version = "0.1.0"
+
+[[package]]
+name = "consts"
 version = "0.1.0"
 
 [[package]]
@@ -115,6 +120,9 @@ checksum = "b16bd47d9e329435e309c58469fe0791c2d0d1ba96ec0954152a5ae2b04387dc"
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "payloads"
@@ -296,6 +304,7 @@ name = "uart"
 version = "0.1.0"
 dependencies = [
  "clock",
+ "consts",
  "heapless 0.4.4",
  "model",
  "register",
@@ -322,5 +331,6 @@ checksum = "77439c1b53d2303b20d9459b1ade71a83c716e3f9c34f3228c00e6f185d6c002"
 name = "wrappers"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
 ]

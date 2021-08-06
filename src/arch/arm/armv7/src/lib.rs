@@ -4,6 +4,7 @@
 
 pub fn init() {}
 
+use consts::DeviceCtl;
 use model::{Driver, Result, NOT_IMPLEMENTED};
 
 pub struct MMU {}
@@ -48,6 +49,13 @@ impl Driver for MMU {
             _ => r = 0,
         }
         Ok(r)
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     // Shutdown. Hmm.

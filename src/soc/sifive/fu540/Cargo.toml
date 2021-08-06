@@ -8,6 +8,7 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
+consts = { path="../../../lib/consts"}
 arch = { path = "../../../arch/riscv/rv64"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }

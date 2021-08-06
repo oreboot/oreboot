@@ -13,6 +13,7 @@ dependencies = [
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
  "print",
  "rpp_procedural",
@@ -38,6 +39,10 @@ name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
+
+[[package]]
+name = "consts"
+version = "0.1.0"
 
 [[package]]
 name = "df"
@@ -107,6 +112,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "mp"
@@ -213,5 +221,6 @@ checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 name = "wrappers"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
 ]

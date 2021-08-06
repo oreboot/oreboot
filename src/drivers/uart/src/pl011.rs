@@ -2,6 +2,7 @@
 
 use model::*;
 
+use consts::DeviceCtl;
 use register::mmio::{ReadOnly, ReadWrite};
 use register::{register_bitfields, Field};
 
@@ -94,6 +95,14 @@ impl Driver for PL011 {
             unsafe { (*self.regs).UARTDR.set(c as u32) };
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {

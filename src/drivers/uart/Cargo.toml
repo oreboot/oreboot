@@ -8,6 +8,7 @@ edition = "2018"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
+consts = { path = "../../lib/consts"}
 model = { path = "../model"}
 clock = { path = "../clock"}
 timer = { path = "../timer"}

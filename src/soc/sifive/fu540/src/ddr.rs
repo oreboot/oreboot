@@ -1,3 +1,4 @@
+use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
@@ -75,14 +76,22 @@ impl Driver for DDR {
         NOT_IMPLEMENTED
     }
 
-    fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
-        match data {
-            b"on" => {
+    fn pwrite(&mut self, _data: &[u8], _offset: usize) -> Result<usize> {
+        Ok(0)
+    }
+
+    fn ctl(&mut self, d: DeviceCtl) -> Result<usize> {
+        match d {
+            DeviceCtl::On => {
                 sdram_init();
                 Ok(mem_size().try_into().unwrap())
             }
             _ => Ok(0),
         }
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}

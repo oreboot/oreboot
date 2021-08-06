@@ -14,6 +14,7 @@
  * UART that just pushes into a vec.
  */
 
+use consts::DeviceCtl;
 use model::*;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -44,6 +45,14 @@ impl<'a> Driver for Log<'a> {
             self.dat.push(c).unwrap();
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}

@@ -8,6 +8,7 @@ edition = "2018"
 arch = { path = "../../../arch/x86/x86_64"}
 clock = { path = "../../../drivers/clock"}
 console = { path = "../../../console" }
+consts = { path="../../../lib/consts"}
 cpu = { path = "../../../cpu/amd" }
 model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }

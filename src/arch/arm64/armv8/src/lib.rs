@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(global_asm)]
 #![deny(warnings)]
+use consts::DeviceCtl;
 
 pub fn init() {}
 
@@ -30,6 +31,13 @@ impl Driver for MMU {
     }
 
     fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
         NOT_IMPLEMENTED
     }
 

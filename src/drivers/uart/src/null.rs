@@ -17,5 +17,13 @@ impl Driver for Null {
         Ok(data.len())
     }
 
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
     fn shutdown(&mut self) {}
 }
