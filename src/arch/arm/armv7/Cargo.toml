@@ -5,6 +5,7 @@ authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
+consts = { path="../../../lib/consts"}
 model = { path = "../../../drivers/model" }
 
 [profile.release]

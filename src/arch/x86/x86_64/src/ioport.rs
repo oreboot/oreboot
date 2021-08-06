@@ -1,5 +1,6 @@
 // ioports reads and writes bytes to ioports, using the offset.
 // TODO: use the type system to guide whether to use outw, outl, etc.
+use consts::DeviceCtl;
 use model::*;
 
 // enough already.
@@ -61,6 +62,14 @@ impl Driver for IOPort {
             }
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}

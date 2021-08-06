@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 console = { path = "../../../console" }
+consts = { path="../../../lib/consts"}
 cpu = { path = "../../../cpu/armltd/cortex-a53"}
 device_tree = { path = "../../../lib/device_tree" }
 model = { path = "../../../drivers/model" }

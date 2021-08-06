@@ -1,3 +1,5 @@
+use consts::DeviceCtl;
+use model::NOT_IMPLEMENTED;
 use model::{Driver, Result};
 use timer::hpet::HPET;
 
@@ -41,6 +43,14 @@ impl<D: Driver> Driver for DebugPort<D> {
             self.d.pwrite(&s, self.address).unwrap();
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     // Nothing to shut down here

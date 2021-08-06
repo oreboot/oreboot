@@ -13,6 +13,7 @@ dependencies = [
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
  "print",
  "rpp_procedural",
@@ -76,6 +77,10 @@ version = "0.1.0"
 
 [[package]]
 name = "console"
+version = "0.1.0"
+
+[[package]]
+name = "consts"
 version = "0.1.0"
 
 [[package]]
@@ -187,6 +192,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "mp"
@@ -299,6 +307,7 @@ dependencies = [
  "boot",
  "clock",
  "console",
+ "consts",
  "cpu",
  "df",
  "heapless 0.4.4",
@@ -420,6 +429,7 @@ name = "uart"
 version = "0.1.0"
 dependencies = [
  "clock",
+ "consts",
  "heapless 0.4.4",
  "model",
  "register",
@@ -452,6 +462,7 @@ checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
 name = "wrappers"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
 ]
 

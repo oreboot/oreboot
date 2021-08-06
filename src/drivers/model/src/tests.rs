@@ -18,6 +18,12 @@ impl<'a> Driver for OneByteRead<'a> {
     fn pwrite(&mut self, _data: &[u8], _pos: usize) -> Result<usize> {
         Err("not implemented")
     }
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
     fn shutdown(&mut self) {}
 }
 

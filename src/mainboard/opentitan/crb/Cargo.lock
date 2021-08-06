@@ -30,6 +30,10 @@ name = "console"
 version = "0.1.0"
 
 [[package]]
+name = "consts"
+version = "0.1.0"
+
+[[package]]
 name = "cpu"
 version = "0.1.0"
 dependencies = [
@@ -94,6 +98,9 @@ dependencies = [
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "payloads"
@@ -236,6 +243,7 @@ name = "uart"
 version = "0.1.0"
 dependencies = [
  "clock",
+ "consts",
  "model",
  "register",
  "timer",
@@ -257,5 +265,6 @@ checksum = "77439c1b53d2303b20d9459b1ade71a83c716e3f9c34f3228c00e6f185d6c002"
 name = "wrappers"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
 ]

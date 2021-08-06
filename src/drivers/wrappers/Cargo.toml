@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 model = { path = "../model"}
+consts = { path = "../../lib/consts"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

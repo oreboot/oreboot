@@ -5,31 +5,37 @@ name = "clock"
 version = "0.1.0"
 
 [[package]]
+name = "consts"
+version = "0.1.0"
+
+[[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "register"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "469bb5ddde81d67fb8bba4e14d77689b8166cfd077abe7530591cefe29d05823"
 dependencies = [
- "tock-registers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tock-registers",
 ]
 
 [[package]]
 name = "spi"
 version = "0.1.0"
 dependencies = [
- "clock 0.1.0",
- "model 0.1.0",
- "register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clock",
+ "consts",
+ "model",
+ "register",
 ]
 
 [[package]]
 name = "tock-registers"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[metadata]
-"checksum register 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "469bb5ddde81d67fb8bba4e14d77689b8166cfd077abe7530591cefe29d05823"
-"checksum tock-registers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c758f5195a2e0df9d9fecf6f506506b2766ff74cf64db1e995c87e2761a5c3e2"
+checksum = "c758f5195a2e0df9d9fecf6f506506b2766ff74cf64db1e995c87e2761a5c3e2"

@@ -9,6 +9,7 @@ build = "build.rs"
 arch = { path = "../../../arch/riscv/rv64"}
 clock = { path = "../../../drivers/clock" }
 console = { path = "../../../console" }
+consts = { path="../../../lib/consts"}
 device_tree = { path = "../../../lib/device_tree" }
 print = { path = "../../../lib/print" }
 model = { path = "../../../drivers/model" }

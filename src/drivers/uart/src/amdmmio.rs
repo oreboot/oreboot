@@ -11,6 +11,7 @@
  * GNU General Public License for more details.
  */
 
+use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
@@ -133,6 +134,14 @@ impl Driver for UART {
             return Ok(sent_count);
         }
         Ok(data.len())
+    }
+
+    fn ctl(&mut self, __d: DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn shutdown(&mut self) {}

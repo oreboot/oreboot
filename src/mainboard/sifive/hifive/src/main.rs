@@ -6,6 +6,7 @@
 #![deny(warnings)]
 
 use clock::ClockNode;
+use consts::DeviceCtl;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
 use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
@@ -74,7 +75,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
         uart0 as &mut dyn ClockNode,
     ];
     let mut clk = Clock::new(&mut clks);
-    clk.pwrite(b"on", 0).unwrap();
+    clk.ctl(DeviceCtl::On).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
 
     // QEMU doesn't emulate the SPI controller interface
@@ -126,7 +127,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     let mut ddr = DDR::new();
 
     let m = ddr
-        .pwrite(b"on", 0)
+        .ctl(DeviceCtl::On)
         .unwrap_or_else(|error| panic!("problem initalizing DDR: {:?}", error));
 
     writeln!(w, "Done\r").unwrap();

@@ -4,8 +4,13 @@
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "consts",
  "model",
 ]
+
+[[package]]
+name = "consts"
+version = "0.1.0"
 
 [[package]]
 name = "cpu"
@@ -17,3 +22,6 @@ dependencies = [
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]

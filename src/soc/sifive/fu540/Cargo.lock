@@ -9,8 +9,15 @@ name = "clock"
 version = "0.1.0"
 
 [[package]]
+name = "consts"
+version = "0.1.0"
+
+[[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "consts",
+]
 
 [[package]]
 name = "register"
@@ -27,6 +34,7 @@ version = "0.1.0"
 dependencies = [
  "arch",
  "clock",
+ "consts",
  "model",
  "register",
  "spi",
@@ -37,6 +45,7 @@ name = "spi"
 version = "0.1.0"
 dependencies = [
  "clock",
+ "consts",
  "model",
  "register",
 ]
