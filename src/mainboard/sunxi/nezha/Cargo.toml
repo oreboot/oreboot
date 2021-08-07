@@ -1,0 +1,27 @@
+[package]
+name = "nezha"
+version = "0.1.0"
+authors = ["Daniel Maslowski <info@orangecms.org>"]
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+arch = { path = "../../../arch/riscv/rv64"}
+console = { path = "../../../console" }
+device_tree = { path = "../../../lib/device_tree" }
+model = { path = "../../../drivers/model" }
+payloads = { path = "../../../../payloads"}
+print = { path = "../../../lib/print" }
+soc = { path = "../../../soc/sunxi/d1" }
+
+heapless = "0.4.x"
+
+[dependencies.uart]
+path = "../../../drivers/uart"
+features = ["sunxi", "log", "heapless"]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true

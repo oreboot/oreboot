@@ -19,6 +19,8 @@ pub mod opentitan;
 pub mod pl011;
 #[cfg(feature = "sifive")]
 pub mod sifive;
+#[cfg(feature = "sunxi")]
+pub mod sunxi;
 
 /* Calculate divisor. Do not floor but round to nearest integer. */
 pub fn uart_baudrate_divisor(baudrate: usize, refclk: usize, oversample: usize) -> usize {
