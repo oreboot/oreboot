@@ -1,0 +1,15 @@
+[package]
+name = "soc"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+
+[dependencies]
+consts = { path="../../../lib/consts"}
+arch = { path = "../../../arch/riscv/rv64"}
+model = { path = "../../../drivers/model"}
+tock-registers = "0.7.0"
+
