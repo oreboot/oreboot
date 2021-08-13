@@ -132,7 +132,11 @@ impl MainBoard {
 fn d3_control_power_on(n: u8) -> () {
     if n < 32 {
         unsafe {
-            pokers(&(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)], 0, AOAC_PWR_ON_DEV);
+            pokers(
+                &(*FCH_AOACx40_D3_CONTROL)[usize::from(n * 2)],
+                0,
+                AOAC_PWR_ON_DEV,
+            );
         }
     }
 }
