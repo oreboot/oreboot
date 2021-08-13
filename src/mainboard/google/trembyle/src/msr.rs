@@ -4,7 +4,11 @@ use x86_64::registers::model_specific::Msr;
 fn read_msr(w: &mut impl core::fmt::Write, address: u32, expected_value: u64) {
     write!(w, "{:x} ", address).expect("Failed to write!");
     let read_value = unsafe { Msr::new(address).read() };
-    let d = if read_value != expected_value { "DIFF:" } else { "SAME:" };
+    let d = if read_value != expected_value {
+        "DIFF:"
+    } else {
+        "SAME:"
+    };
     writeln!(w, "{}{:x} got {:x}\r", d, expected_value, read_value,).expect("Failed to write!");
 }
 

@@ -167,8 +167,7 @@ fn consdebug(w: &mut impl core::fmt::Write) -> () {
     let mut done: bool = false;
     let newline: [u8; 2] = [10, 13];
     while done == false {
-        let io = &mut IOPort;
-        let uart0 = &mut I8250::new(0x3f8, 0, io);
+        let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
         let mut line: Vec<u8, U16> = Vec::new();
         loop {
             let mut c: [u8; 1] = [12; 1];
@@ -221,14 +220,17 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
     let amd_family_id = cpuid.get_feature_info().map(|info| amd_family_id(&info));
     let amd_model_id = cpuid.get_feature_info().map(|info| amd_model_id(&info));
     match amd_family_id {
-        Some(family_id) => {
-            match amd_model_id {
-                Some(model_id) => {
-                    write!(w, "AMD CPU: family {:X}h, model {:X}h\r\n", family_id, model_id).unwrap();
-                }
-                None => (),
+        Some(family_id) => match amd_model_id {
+            Some(model_id) => {
+                write!(
+                    w,
+                    "AMD CPU: family {:X}h, model {:X}h\r\n",
+                    family_id, model_id
+                )
+                .unwrap();
             }
-        }
+            None => (),
+        },
         None => (),
     }
     match amd_family_id {
@@ -255,15 +257,15 @@ fn cpu_init(w: &mut impl core::fmt::Write) -> Result<(), &str> {
 pub extern "C" fn _start(fdt_address: usize) -> ! {
     let m = &mut MainBoard::new();
     m.init().unwrap();
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     uart0.init().unwrap();
-    let debug_io = &mut IOPort;
-    let debug = &mut DebugPort::new(0x80, debug_io);
+    let debug = &mut DebugPort::new(0x80, IOPort {});
     uart0.init().unwrap();
     uart0.pwrite(b"Welcome to oreboot - UART0\r\n", 0).unwrap();
     debug.init().unwrap();
-    debug.pwrite(b"Welcome to oreboot - debug port 80\r\n", 0).unwrap();
+    debug
+        .pwrite(b"Welcome to oreboot - debug port 80\r\n", 0)
+        .unwrap();
     let s = &mut [debug as &mut dyn Driver, uart0 as &mut dyn Driver];
     let console = &mut DoD::new(s);
 
@@ -341,8 +343,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let io = &mut IOPort;
-    let uart0 = &mut I8250::new(0x3f8, 0, io);
+    let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
