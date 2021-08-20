@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 regex = "1.5.4"
+
+[dev-dependencies]
+uuid = { version = "0.8.2", features = ["serde", "v4"] }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 
+use regex::Captures;
 use regex::Regex;
 
 #[derive(Debug, Clone)]
@@ -24,7 +25,7 @@ impl ParsingError {
 
 struct Keyword {
     name: &'static str,
-    process: fn(&str, &mut Context) -> Result<String, ParsingError>,
+    process: fn(&str, &str, &mut Context) -> Result<String, ParsingError>,
 }
 
 pub struct Context {
@@ -50,6 +51,10 @@ impl Context {
             eol_comment_re: Regex::new(r"//.*$").unwrap(),
         }
     }
+
+    pub fn add_macro(&mut self, key: &str, val: &str) {
+        self.macros.insert(key.to_string(), val.to_string());
+    }
 }
 
 impl Default for Context {
@@ -69,7 +74,7 @@ const KEYWORDS: &[Keyword] = &[
     },
 ];
 
-fn process_define(value: &str, ctx: &mut Context) -> Result<String, ParsingError> {
+fn process_define(_: &str, value: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     let mut parts = value.split_whitespace();
     let key = parts
         .next()
@@ -78,11 +83,11 @@ fn process_define(value: &str, ctx: &mut Context) -> Result<String, ParsingError
     // Count everything after the key as the value
     let val = parts.fold(String::new(), |a, b| a + b + " ");
 
-    ctx.macros.insert(key.to_string(), val.trim().to_string());
+    ctx.add_macro(key, val.trim());
     Ok(String::new())
 }
 
-fn process_include(value: &str, ctx: &mut Context) -> Result<String, ParsingError> {
+fn process_include(_: &str, value: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     let chars: &[_] = &['"', '<', '>'];
     let filename = value.trim_matches(chars);
     let tmp_line = ctx.line_num;
@@ -134,9 +139,10 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
             .next()
             .ok_or_else(|| ParsingError::new(String::from("Found no directive"), ctx.line_num))?;
 
-        let value = parts.next().ok_or_else(|| {
-            ParsingError::new(String::from("Unknown value for directive"), ctx.line_num)
-        })?;
+        let value = match parts.next() {
+            Some(part) => part,
+            None => "",
+        };
 
         let kw = KEYWORDS
             .iter()
@@ -144,7 +150,8 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
             .ok_or_else(|| {
                 ParsingError::new(format!("Unknown keyword: {}", keyword_name), ctx.line_num)
             })?;
-        (kw.process)(value, ctx)
+
+        (kw.process)(kw.name, value, ctx)
     } else {
         // For normal lines, do macro replacements. This finds all whole words
         // in the line and then checks the macro dictionary for a replacement.
@@ -154,8 +161,18 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
 
 pub fn process_str(s: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     // Remove all block comments, we won't need those where we're going.
-    // TODO: This messes up the line numbers for error reporting. Sad day.
-    let no_comments = ctx.block_comment_re.replace_all(&s, "");
+    let no_comments = ctx.block_comment_re.replace_all(&s, |caps: &Captures| {
+        // For each block comment preserve newlines. This ensures the line
+        // numbers in parsing error messages are correct.
+        let line_count = caps[0].matches('\n').count();
+        let mut out = String::new();
+
+        for _ in 0..line_count {
+            out += "\n";
+        }
+
+        out
+    });
 
     let mut out = String::new();
     for line in no_comments.lines() {

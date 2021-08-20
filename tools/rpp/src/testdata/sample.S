@@ -10,7 +10,7 @@ comment
 #define C (1 << 10) // EOL comment
 
 test:
-    mov $MACRO, %rsp
+    mov $MACRO, %rsp /* test */
     mov $A, %rsp
     mov $B, %rsp
     mov $C, %rsp
