@@ -15,7 +15,7 @@ version = "0.1.0"
 dependencies = [
  "model",
  "print",
- "rpp",
+ "rpp_procedural",
  "util",
  "vcell",
  "wrappers",
@@ -60,6 +60,13 @@ name = "rpp"
 version = "0.1.0"
 dependencies = [
  "regex",
+]
+
+[[package]]
+name = "rpp_procedural"
+version = "0.1.0"
+dependencies = [
+ "rpp",
 ]
 
 [[package]]

@@ -18,6 +18,16 @@ pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Res
 
     // Build FSP binaries and generate header files.
     let status = Command::new("python3")
+        .args(&["BuildFsp.py", "clean"])
+        .current_dir(root_path.join("3rdparty/fspsdk"))
+        .status()
+        .expect("failed to clean FSP build");
+    if !status.success() {
+        println!("Failed to build FSP");
+        exit(1);
+    }
+
+    let status = Command::new("python3")
         .args(&["BuildFsp.py", "build", "-p", "qemu", "-a", &arch_name])
         .current_dir(root_path.join("3rdparty/fspsdk"))
         .status()
