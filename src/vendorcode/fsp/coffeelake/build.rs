@@ -3,10 +3,10 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-// Convert FSP structs from C to Rust.
-// See https://rust-lang.github.io/rust-bindgen/tutorial-2.html for a bindgen tutorial.
-fn main() {
-    let oreboot_root = PathBuf::from("../../../../");
+fn generate_bindings(oreboot_root: &str) {
+    let root_path = PathBuf::from(oreboot_root);
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+
     let include_paths: Vec<PathBuf> = [
         "3rdparty/fsp/CoffeeLakeFspBinPkg/Include",
         // FSP structs have a number of dependencies on edk2 structs.
@@ -15,7 +15,7 @@ fn main() {
         "3rdparty/edk2/MdePkg/Include/X64",
     ]
     .iter()
-    .map(|include| oreboot_root.join(include))
+    .map(|include| root_path.join(include))
     .collect();
 
     // Tell cargo to invalidate the built crate whenever wrapper.h changes.
@@ -142,8 +142,11 @@ fn main() {
         .expect("Unable to generate bindings");
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     bindings
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
+fn main() {
+    generate_bindings("../../../../");
 }

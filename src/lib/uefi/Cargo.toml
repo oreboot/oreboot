@@ -5,7 +5,10 @@ authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-fsp-qemu-sys = { path = "../../vendorcode/fsp/qemu"}
+cty = "0.2.1"
+
+[build-dependencies]
+bindgen = "0.58.1"
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

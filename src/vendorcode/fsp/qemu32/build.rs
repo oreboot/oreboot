@@ -6,20 +6,20 @@ use std::path::PathBuf;
 
 fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
     let root_path = PathBuf::from(oreboot_root);
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    // Convert FSP include files from C to Rust.
     let include_paths: Vec<PathBuf> = [
         "3rdparty/fspsdk/Build/QemuFspPkg/DEBUG_GCC5/FV",
         // FSP structs have a number of dependencies on edk2 structs.
         "3rdparty/fspsdk/IntelFsp2Pkg/Include",
         "3rdparty/fspsdk/MdePkg/Include",
-        "3rdparty/fspsdk/MdePkg/Include/X64",
+        "3rdparty/fspsdk/MdePkg/Include/Ia32",
     ]
     .iter()
     .map(|include| root_path.join(include))
     .collect();
 
+    // TODO: The QEMU and Coffeelake bindgen commands are fairly different,
+    // is there any good way to refactor this?
     // The bindgen::Builder is the main entry point to bindgen, and lets you build up options for
     // the resulting bindings.
     let bindings = bindgen::Builder::default()
@@ -43,7 +43,7 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
         .allowlist_type("FSP[MST]_UPD")
         .allowlist_type("FSP_MULTI_PHASE_SI_INIT")
         .allowlist_type("FSP_NOTIFY_PHASE")
-        .allowlist_type("FSP_[ST]_CONFIG")
+        .allowlist_type("FSP_[MST]_CONFIG")
         .allowlist_var("FSP[MST]_UPD_SIGNATURE")
         .allowlist_var("BOOT_.*") // BOOT_MODE consts
         // Blacklist types implemented in Rust.
@@ -55,6 +55,7 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
         .expect("Unable to generate bindings");
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     bindings
         .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
@@ -69,7 +70,7 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=src/wrapper.h");
 
     let oreboot_root = "../../../../";
-    build_qemu_fsp(&oreboot_root, FspArchitecture::X64)?;
+    build_qemu_fsp(&oreboot_root, FspArchitecture::Ia32)?;
     generate_bindings(&oreboot_root)?;
 
     Ok(())

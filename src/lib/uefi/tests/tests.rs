@@ -21,7 +21,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -37,7 +37,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -53,7 +53,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1198,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -69,7 +69,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1198,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -85,7 +85,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1198,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -101,7 +101,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1198,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -117,7 +117,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x31a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd144e214,
                             0xc547,
                             0x4bc7,
@@ -133,7 +133,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x31a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd144e214,
                             0xc547,
                             0x4bc7,
@@ -149,7 +149,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x17cc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -165,7 +165,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x17cc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -181,7 +181,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x19b20,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -197,7 +197,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x19b20,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -213,7 +213,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x19ef8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -229,7 +229,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20e38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -245,7 +245,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20e38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -261,7 +261,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24670,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -277,7 +277,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24670,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -293,7 +293,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x249a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -309,7 +309,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x249a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -325,7 +325,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x255b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -341,7 +341,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x255b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -357,7 +357,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26968,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -373,7 +373,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26968,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -389,7 +389,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -405,7 +405,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -421,7 +421,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -437,7 +437,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x26e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -453,7 +453,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27238,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -469,7 +469,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27238,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -485,7 +485,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27410,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x7e26f49b,
                             0xd7c4,
                             0x4693,
@@ -501,7 +501,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27410,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x7e26f49b,
                             0xd7c4,
                             0x4693,
@@ -517,7 +517,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa6ff9fec,
                             0xcf,
                             0x4577,
@@ -533,7 +533,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa6ff9fec,
                             0xcf,
                             0x4577,
@@ -549,7 +549,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xef216a7e,
                             0x73bc,
                             0x4cb6,
@@ -565,7 +565,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xef216a7e,
                             0x73bc,
                             0x4cb6,
@@ -581,7 +581,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -597,7 +597,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -613,7 +613,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2eaa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -629,7 +629,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2eaa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -645,7 +645,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2eaa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -661,7 +661,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34140,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -677,7 +677,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34140,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -693,7 +693,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34140,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -709,7 +709,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34140,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -725,7 +725,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34140,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -741,7 +741,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x35a28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -757,7 +757,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x35a28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -773,7 +773,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x35a28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -789,7 +789,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x35a28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -805,7 +805,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36000,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -821,7 +821,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36000,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -837,7 +837,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36000,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -853,7 +853,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36000,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -869,7 +869,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -885,7 +885,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -901,7 +901,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -917,7 +917,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x36310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -933,7 +933,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x8d598,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -949,7 +949,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x8d598,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -965,7 +965,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x8d598,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -981,7 +981,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x8d598,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -997,7 +997,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x94000,
                         ffs_base: 0x94100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -1013,7 +1013,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x94000,
                         ffs_base: 0x94100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -1034,7 +1034,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x4d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -1050,7 +1050,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x4d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -1066,7 +1066,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x768,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -1082,7 +1082,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x768,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -1098,7 +1098,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x768,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -1114,7 +1114,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x768,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -1130,7 +1130,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2148,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -1146,7 +1146,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2148,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -1162,7 +1162,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5098,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -1178,7 +1178,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5098,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -1194,7 +1194,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0xfb68,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xba37f2c5,
                             0xb0f3,
                             0x4a95,
@@ -1210,7 +1210,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x174f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -1226,7 +1226,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x174f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -1242,7 +1242,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x18880,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -1258,7 +1258,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x18880,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -1274,7 +1274,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x2b328,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -1290,7 +1290,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x2b328,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -1306,7 +1306,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x2ba50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -1322,7 +1322,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x2ba50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -1338,7 +1338,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x2ba50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -1354,7 +1354,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x305e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -1370,7 +1370,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x305e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -1386,7 +1386,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x305e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -1402,7 +1402,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x305e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -1418,7 +1418,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x305e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -1434,7 +1434,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x31bc0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -1450,7 +1450,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x31bc0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -1466,7 +1466,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x31bc0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -1482,7 +1482,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x31bc0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -1498,7 +1498,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x38b00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -1514,7 +1514,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x38b00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -1530,7 +1530,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x38b00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -1546,7 +1546,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x38b00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -1562,7 +1562,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x3add0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x3381fc3f,
                             0x8791,
                             0x41e5,
@@ -1578,7 +1578,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x3add0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x3381fc3f,
                             0x8791,
                             0x41e5,
@@ -1594,7 +1594,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x3add0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x3381fc3f,
                             0x8791,
                             0x41e5,
@@ -1610,7 +1610,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2b000,
                         ffs_base: 0x3add0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x3381fc3f,
                             0x8791,
                             0x41e5,
@@ -1626,7 +1626,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x84000,
                         ffs_base: 0x84180,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -1642,7 +1642,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x84000,
                         ffs_base: 0x84180,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -1663,7 +1663,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x110,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6803c250,
                             0x6222,
                             0x4eaa,
@@ -1679,7 +1679,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x110,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6803c250,
                             0x6222,
                             0x4eaa,
@@ -1695,7 +1695,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x110,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6803c250,
                             0x6222,
                             0x4eaa,
@@ -1711,7 +1711,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x110,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6803c250,
                             0x6222,
                             0x4eaa,
@@ -1727,7 +1727,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x7d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb494df39,
                             0xa5f8,
                             0x48a1,
@@ -1743,7 +1743,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x7d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb494df39,
                             0xa5f8,
                             0x48a1,
@@ -1759,7 +1759,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x7d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb494df39,
                             0xa5f8,
                             0x48a1,
@@ -1775,7 +1775,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x7d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb494df39,
                             0xa5f8,
                             0x48a1,
@@ -1791,7 +1791,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfd236ae7,
                             0x791,
                             0x48c4,
@@ -1807,7 +1807,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfd236ae7,
                             0x791,
                             0x48c4,
@@ -1823,7 +1823,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfd236ae7,
                             0x791,
                             0x48c4,
@@ -1839,7 +1839,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfd236ae7,
                             0x791,
                             0x48c4,
@@ -1855,7 +1855,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11cb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1359d99,
                             0x9446,
                             0x456d,
@@ -1871,7 +1871,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11cb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1359d99,
                             0x9446,
                             0x456d,
@@ -1887,7 +1887,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11cb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1359d99,
                             0x9446,
                             0x456d,
@@ -1903,7 +1903,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x11cb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1359d99,
                             0x9446,
                             0x456d,
@@ -1919,7 +1919,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x13510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x24169e35,
                             0x2454,
                             0x4940,
@@ -1935,7 +1935,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x13510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x24169e35,
                             0x2454,
                             0x4940,
@@ -1951,7 +1951,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x13510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x24169e35,
                             0x2454,
                             0x4940,
@@ -1967,7 +1967,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x13510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x24169e35,
                             0x2454,
                             0x4940,
@@ -1983,7 +1983,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x14fb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -1999,7 +1999,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x14fb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -2015,7 +2015,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x14fb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -2031,7 +2031,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x14fb0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -2047,7 +2047,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x157e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -2063,7 +2063,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x157e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -2079,7 +2079,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20d10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8aeeb956,
                             0x93c0,
                             0x49d9,
@@ -2095,7 +2095,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20d10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8aeeb956,
                             0x93c0,
                             0x49d9,
@@ -2111,7 +2111,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20d10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8aeeb956,
                             0x93c0,
                             0x49d9,
@@ -2127,7 +2127,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20d10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8aeeb956,
                             0x93c0,
                             0x49d9,
@@ -2143,7 +2143,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x227f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x93c81a74,
                             0xb648,
                             0x4f7f,
@@ -2159,7 +2159,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x227f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x93c81a74,
                             0xb648,
                             0x4f7f,
@@ -2175,7 +2175,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x227f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x93c81a74,
                             0xb648,
                             0x4f7f,
@@ -2191,7 +2191,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x227f8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x93c81a74,
                             0xb648,
                             0x4f7f,
@@ -2207,7 +2207,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24a98,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -2223,7 +2223,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24a98,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -2239,7 +2239,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24a98,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -2255,7 +2255,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24a98,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -2271,7 +2271,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25c68,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4d1f48d8,
                             0x498,
                             0x4c09,
@@ -2287,7 +2287,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25c68,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4d1f48d8,
                             0x498,
                             0x4c09,
@@ -2303,7 +2303,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x267f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -2319,7 +2319,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x267f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -2335,7 +2335,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x267f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -2351,7 +2351,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x267f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -2367,7 +2367,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x272e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -2383,7 +2383,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x272e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -2399,7 +2399,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x272e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -2415,7 +2415,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x272e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xde23acee,
                             0xcf55,
                             0x4fb6,
@@ -2431,7 +2431,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x30078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -2447,7 +2447,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x30078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -2463,7 +2463,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x30078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -2479,7 +2479,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x34ac8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -2495,7 +2495,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x34ac8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -2511,7 +2511,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x34ac8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -2527,7 +2527,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x34ac8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -2543,7 +2543,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x34ac8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -2559,7 +2559,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x35f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x2aaf88f6,
                             0x4ab0,
                             0x415d,
@@ -2575,7 +2575,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x35f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x2aaf88f6,
                             0x4ab0,
                             0x415d,
@@ -2591,7 +2591,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x35f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x2aaf88f6,
                             0x4ab0,
                             0x415d,
@@ -2607,7 +2607,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x35f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x2aaf88f6,
                             0x4ab0,
                             0x415d,
@@ -2623,7 +2623,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x36388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -2639,7 +2639,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x36388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -2655,7 +2655,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x36388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -2671,7 +2671,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x36388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -2687,7 +2687,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37a80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xf9c17cdf,
                             0xc8a6,
                             0x488f,
@@ -2703,7 +2703,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37a80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xf9c17cdf,
                             0xc8a6,
                             0x488f,
@@ -2719,7 +2719,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37a80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xf9c17cdf,
                             0xc8a6,
                             0x488f,
@@ -2735,7 +2735,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37a80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xf9c17cdf,
                             0xc8a6,
                             0x488f,
@@ -2751,7 +2751,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd4ee25ea,
                             0xb48,
                             0x43ae,
@@ -2767,7 +2767,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd4ee25ea,
                             0xb48,
                             0x43ae,
@@ -2783,7 +2783,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd4ee25ea,
                             0xb48,
                             0x43ae,
@@ -2799,7 +2799,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x37e10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd4ee25ea,
                             0xb48,
                             0x43ae,
@@ -2815,7 +2815,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x49848,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -2831,7 +2831,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x49848,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -2847,7 +2847,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x49848,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -2863,7 +2863,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x30000,
                         ffs_base: 0x49848,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -2884,7 +2884,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -2900,7 +2900,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -2916,7 +2916,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x578,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -2932,7 +2932,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x578,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -2948,7 +2948,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x578,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -2964,7 +2964,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x578,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -2980,7 +2980,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -2996,7 +2996,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -3012,7 +3012,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5088,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -3028,7 +3028,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5088,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -3044,7 +3044,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x8388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -3060,7 +3060,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x8388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -3076,7 +3076,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22798,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -3092,7 +3092,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22798,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -3108,7 +3108,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22af0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -3124,7 +3124,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22af0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -3140,7 +3140,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x234b8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -3156,7 +3156,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x234b8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -3172,7 +3172,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24868,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -3188,7 +3188,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24868,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -3204,7 +3204,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25780,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -3220,7 +3220,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25780,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -3236,7 +3236,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25c38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -3252,7 +3252,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x35118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -3268,7 +3268,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x35118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -3284,7 +3284,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x35a78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -3300,7 +3300,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x35a78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -3316,7 +3316,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x35a78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -3332,7 +3332,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3a7d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -3348,7 +3348,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3a7d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -3364,7 +3364,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3a7d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -3380,7 +3380,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3a7d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -3396,7 +3396,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3a7d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -3412,7 +3412,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3bfb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -3428,7 +3428,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3bfb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -3444,7 +3444,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3bfb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -3460,7 +3460,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3bfb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -3476,7 +3476,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3c2c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -3492,7 +3492,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3c2c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -3508,7 +3508,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3c2c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -3524,7 +3524,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x3c2c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -3540,7 +3540,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x91038,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -3556,7 +3556,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x91038,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -3572,7 +3572,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x91038,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -3588,7 +3588,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x35000,
                         ffs_base: 0x91038,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -3604,7 +3604,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xbd000,
                         ffs_base: 0xbd118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -3620,7 +3620,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xbd000,
                         ffs_base: 0xbd118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -3641,7 +3641,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -3657,7 +3657,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -3673,7 +3673,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -3689,7 +3689,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -3705,7 +3705,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -3721,7 +3721,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -3737,7 +3737,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -3753,7 +3753,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -3769,7 +3769,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -3785,7 +3785,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -3801,7 +3801,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -3817,7 +3817,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -3833,7 +3833,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -3849,7 +3849,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -3865,7 +3865,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -3881,7 +3881,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -3897,7 +3897,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -3913,7 +3913,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -3929,7 +3929,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -3945,7 +3945,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -3961,7 +3961,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -3977,7 +3977,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -3993,7 +3993,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -4009,7 +4009,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -4025,7 +4025,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -4041,7 +4041,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -4057,7 +4057,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24ae0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -4073,7 +4073,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -4089,7 +4089,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -4105,7 +4105,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -4121,7 +4121,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -4137,7 +4137,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -4153,7 +4153,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -4169,7 +4169,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -4185,7 +4185,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -4201,7 +4201,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -4217,7 +4217,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -4233,7 +4233,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -4249,7 +4249,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -4265,7 +4265,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -4281,7 +4281,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -4297,7 +4297,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -4313,7 +4313,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -4329,7 +4329,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -4345,7 +4345,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -4361,7 +4361,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -4377,7 +4377,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -4393,7 +4393,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -4409,7 +4409,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -4425,7 +4425,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -4441,7 +4441,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -4457,7 +4457,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -4473,7 +4473,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -4489,7 +4489,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -4505,7 +4505,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -4521,7 +4521,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -4537,7 +4537,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -4553,7 +4553,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -4569,7 +4569,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -4585,7 +4585,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -4601,7 +4601,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -4617,7 +4617,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -4633,7 +4633,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -4649,7 +4649,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -4665,7 +4665,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -4681,7 +4681,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -4697,7 +4697,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -4718,7 +4718,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -4734,7 +4734,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -4750,7 +4750,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -4766,7 +4766,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -4782,7 +4782,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -4798,7 +4798,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -4814,7 +4814,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -4830,7 +4830,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -4846,7 +4846,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -4862,7 +4862,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -4878,7 +4878,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -4894,7 +4894,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -4910,7 +4910,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -4926,7 +4926,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -4942,7 +4942,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -4958,7 +4958,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -4974,7 +4974,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -4990,7 +4990,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -5006,7 +5006,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -5022,7 +5022,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -5038,7 +5038,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -5054,7 +5054,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -5070,7 +5070,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -5086,7 +5086,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -5102,7 +5102,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -5118,7 +5118,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -5134,7 +5134,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24ae0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -5150,7 +5150,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -5166,7 +5166,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -5182,7 +5182,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -5198,7 +5198,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -5214,7 +5214,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -5230,7 +5230,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -5246,7 +5246,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -5262,7 +5262,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -5278,7 +5278,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -5294,7 +5294,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -5310,7 +5310,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -5326,7 +5326,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -5342,7 +5342,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -5358,7 +5358,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -5374,7 +5374,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -5390,7 +5390,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -5406,7 +5406,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -5422,7 +5422,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -5438,7 +5438,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -5454,7 +5454,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -5470,7 +5470,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -5486,7 +5486,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -5502,7 +5502,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -5518,7 +5518,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -5534,7 +5534,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -5550,7 +5550,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -5566,7 +5566,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -5582,7 +5582,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -5598,7 +5598,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -5614,7 +5614,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -5630,7 +5630,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -5646,7 +5646,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -5662,7 +5662,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -5678,7 +5678,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -5694,7 +5694,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x92228,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -5710,7 +5710,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x92228,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -5726,7 +5726,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x92228,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -5742,7 +5742,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x92228,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -5758,7 +5758,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -5774,7 +5774,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -5795,7 +5795,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -5811,7 +5811,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -5827,7 +5827,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -5843,7 +5843,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -5859,7 +5859,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -5875,7 +5875,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -5891,7 +5891,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -5907,7 +5907,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x3300,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -5923,7 +5923,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -5939,7 +5939,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c018,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -5955,7 +5955,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -5971,7 +5971,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1e378,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -5987,7 +5987,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -6003,7 +6003,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -6019,7 +6019,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -6035,7 +6035,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -6051,7 +6051,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -6067,7 +6067,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a00,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -6083,7 +6083,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -6099,7 +6099,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23ce8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -6115,7 +6115,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -6131,7 +6131,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -6147,7 +6147,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -6163,7 +6163,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24200,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -6179,7 +6179,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -6195,7 +6195,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24630,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -6211,7 +6211,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x24ae0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -6227,7 +6227,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -6243,7 +6243,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bba0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -6259,7 +6259,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -6275,7 +6275,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -6291,7 +6291,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -6307,7 +6307,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2d1b0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -6323,7 +6323,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -6339,7 +6339,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f2c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -6355,7 +6355,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -6371,7 +6371,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -6387,7 +6387,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -6403,7 +6403,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -6419,7 +6419,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -6435,7 +6435,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -6451,7 +6451,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -6467,7 +6467,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -6483,7 +6483,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -6499,7 +6499,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -6515,7 +6515,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -6531,7 +6531,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -6547,7 +6547,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -6563,7 +6563,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -6579,7 +6579,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -6595,7 +6595,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -6611,7 +6611,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -6627,7 +6627,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3cf38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -6643,7 +6643,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -6659,7 +6659,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -6675,7 +6675,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -6691,7 +6691,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d8e0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -6707,7 +6707,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -6723,7 +6723,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -6739,7 +6739,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -6755,7 +6755,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dbf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -6771,7 +6771,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bf8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -6787,7 +6787,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bf8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -6803,7 +6803,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bf8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -6819,7 +6819,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x97bf8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -6835,7 +6835,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -6851,7 +6851,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -6872,7 +6872,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -6888,7 +6888,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -6904,7 +6904,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1030,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -6920,7 +6920,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1030,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -6936,7 +6936,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1030,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -6952,7 +6952,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1030,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -6968,7 +6968,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x32c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -6984,7 +6984,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x32c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -7000,7 +7000,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1a5c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -7016,7 +7016,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1a5c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -7032,7 +7032,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c6c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -7048,7 +7048,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1c6c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -7064,7 +7064,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -7080,7 +7080,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x20058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -7096,7 +7096,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x203a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -7112,7 +7112,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x203a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -7128,7 +7128,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21008,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -7144,7 +7144,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21008,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -7160,7 +7160,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22430,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -7176,7 +7176,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22430,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -7192,7 +7192,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22948,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -7208,7 +7208,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22948,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -7224,7 +7224,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22948,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -7240,7 +7240,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22948,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -7256,7 +7256,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22d78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -7272,7 +7272,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22d78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -7288,7 +7288,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23228,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -7304,7 +7304,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2a2e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -7320,7 +7320,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2a2e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -7336,7 +7336,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2a4c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -7352,7 +7352,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2a4c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -7368,7 +7368,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bb60,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -7384,7 +7384,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2bb60,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -7400,7 +7400,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2e318,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -7416,7 +7416,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2e318,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -7432,7 +7432,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -7448,7 +7448,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -7464,7 +7464,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -7480,7 +7480,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -7496,7 +7496,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x34ab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -7512,7 +7512,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -7528,7 +7528,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -7544,7 +7544,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -7560,7 +7560,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -7576,7 +7576,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3a358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -7592,7 +7592,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -7608,7 +7608,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -7624,7 +7624,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -7640,7 +7640,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3bd80,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -7656,7 +7656,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d138,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -7672,7 +7672,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d138,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -7688,7 +7688,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d138,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -7704,7 +7704,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d138,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -7720,7 +7720,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d960,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -7736,7 +7736,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d960,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -7752,7 +7752,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d960,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -7768,7 +7768,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3d960,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -7784,7 +7784,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dc70,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -7800,7 +7800,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dc70,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -7816,7 +7816,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dc70,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -7832,7 +7832,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x3dc70,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -7848,7 +7848,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x98d50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -7864,7 +7864,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x98d50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -7880,7 +7880,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x98d50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -7896,7 +7896,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x34000,
                         ffs_base: 0x98d50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -7912,7 +7912,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -7928,7 +7928,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xc2000,
                         ffs_base: 0xc2118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -7949,7 +7949,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x210,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -7965,7 +7965,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x210,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -7981,7 +7981,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x2390,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -7997,7 +7997,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x2390,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -8013,7 +8013,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x4a40,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -8029,7 +8029,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x4a40,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -8045,7 +8045,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x4a40,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -8061,7 +8061,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0xe4f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -8077,7 +8077,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0xe4f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -8093,7 +8093,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0xe4f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -8109,7 +8109,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0xe4f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -8125,7 +8125,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0xe4f0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -8141,7 +8141,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x12620,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfde29a56,
                             0xc197,
                             0x4ae1,
@@ -8157,7 +8157,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x12620,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfde29a56,
                             0xc197,
                             0x4ae1,
@@ -8173,7 +8173,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x12620,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfde29a56,
                             0xc197,
                             0x4ae1,
@@ -8189,7 +8189,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x12620,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xfde29a56,
                             0xc197,
                             0x4ae1,
@@ -8205,7 +8205,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x15d90,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4862aff3,
                             0x667c,
                             0x5458,
@@ -8221,7 +8221,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x15d90,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4862aff3,
                             0x667c,
                             0x5458,
@@ -8237,7 +8237,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x15d90,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4862aff3,
                             0x667c,
                             0x5458,
@@ -8253,7 +8253,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x15d90,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4862aff3,
                             0x667c,
                             0x5458,
@@ -8269,7 +8269,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x19450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -8285,7 +8285,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x19450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -8301,7 +8301,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x19450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -8317,7 +8317,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x19450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9618c0dc,
                             0x50a4,
                             0x496c,
@@ -8333,7 +8333,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x26c18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -8349,7 +8349,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x26c18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -8365,7 +8365,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x26c18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -8381,7 +8381,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x26c18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -8397,7 +8397,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x35aa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb6a2aff3,
                             0x767c,
                             0x5658,
@@ -8413,7 +8413,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x35aa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb6a2aff3,
                             0x767c,
                             0x5658,
@@ -8429,7 +8429,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x35aa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb6a2aff3,
                             0x767c,
                             0x5658,
@@ -8445,7 +8445,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x35aa0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb6a2aff3,
                             0x767c,
                             0x5658,
@@ -8461,7 +8461,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x395a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x12c67be1,
                             0xad2e,
                             0x4f13,
@@ -8477,7 +8477,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x395a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x12c67be1,
                             0xad2e,
                             0x4f13,
@@ -8493,7 +8493,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x395a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x12c67be1,
                             0xad2e,
                             0x4f13,
@@ -8509,7 +8509,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x395a8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x12c67be1,
                             0xad2e,
                             0x4f13,
@@ -8525,7 +8525,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x3c048,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc162b6e9,
                             0x923b,
                             0x4c82,
@@ -8541,7 +8541,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x3c048,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc162b6e9,
                             0x923b,
                             0x4c82,
@@ -8557,7 +8557,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x3c048,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc162b6e9,
                             0x923b,
                             0x4c82,
@@ -8573,7 +8573,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x3c048,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc162b6e9,
                             0x923b,
                             0x4c82,
@@ -8589,7 +8589,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x41358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x61820d8f,
                             0x3506,
                             0x4071,
@@ -8605,7 +8605,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x41358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x61820d8f,
                             0x3506,
                             0x4071,
@@ -8621,7 +8621,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x41358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x61820d8f,
                             0x3506,
                             0x4071,
@@ -8637,7 +8637,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2000,
                         ffs_base: 0x41358,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x61820d8f,
                             0x3506,
                             0x4071,
@@ -8653,7 +8653,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x93290,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -8669,7 +8669,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x93290,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -8685,7 +8685,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x94f10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -8701,7 +8701,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x94f10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -8717,7 +8717,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x94f10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -8733,7 +8733,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x94f10,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -8749,7 +8749,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x99728,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -8765,7 +8765,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x99728,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x47ea2673,
                             0x2533,
                             0x4c07,
@@ -8781,7 +8781,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x9b0e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -8797,7 +8797,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0x9b0e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -8813,7 +8813,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa3690,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1b6d919d,
                             0xde6a,
                             0x4242,
@@ -8829,7 +8829,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa3690,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1b6d919d,
                             0xde6a,
                             0x4242,
@@ -8845,7 +8845,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa4d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea74e953,
                             0x19a,
                             0x44ec,
@@ -8861,7 +8861,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa4d08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea74e953,
                             0x19a,
                             0x44ec,
@@ -8877,7 +8877,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa71d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4d1f48d8,
                             0x498,
                             0x4c09,
@@ -8893,7 +8893,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa71d8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4d1f48d8,
                             0x498,
                             0x4c09,
@@ -8909,7 +8909,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa9170,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -8925,7 +8925,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x93000,
                         ffs_base: 0xa9170,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -8946,7 +8946,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -8962,7 +8962,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -8978,7 +8978,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -8994,7 +8994,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -9010,7 +9010,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -9026,7 +9026,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1070,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -9042,7 +9042,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f40,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -9058,7 +9058,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2f40,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -9074,7 +9074,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -9090,7 +9090,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -9106,7 +9106,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -9122,7 +9122,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xea7f0916,
                             0xb5c8,
                             0x493f,
@@ -9138,7 +9138,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5eb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -9154,7 +9154,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5eb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -9170,7 +9170,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x9558,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -9186,7 +9186,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x9558,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -9202,7 +9202,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23b38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -9218,7 +9218,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23b38,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -9234,7 +9234,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23eb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -9250,7 +9250,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23eb8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xd3686f72,
                             0xb3dc,
                             0x4bb1,
@@ -9266,7 +9266,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x248d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -9282,7 +9282,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x248d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -9298,7 +9298,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25860,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -9314,7 +9314,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25860,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -9330,7 +9330,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25cf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -9346,7 +9346,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x25cf0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xb8ba8298,
                             0xaf29,
                             0x4fa3,
@@ -9362,7 +9362,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27158,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -9378,7 +9378,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x27158,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc92652e3,
                             0xc7de,
                             0x4c78,
@@ -9394,7 +9394,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -9410,7 +9410,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29058,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1c652ec8,
                             0x2347,
                             0x44c1,
@@ -9426,7 +9426,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -9442,7 +9442,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x29510,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -9458,7 +9458,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x299c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc0d99356,
                             0x63ae,
                             0x4034,
@@ -9474,7 +9474,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x36370,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -9490,7 +9490,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x42d20,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -9506,7 +9506,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x42d20,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x8b555ae2,
                             0x4254,
                             0x43a2,
@@ -9522,7 +9522,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x4c118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -9538,7 +9538,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x4c118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -9554,7 +9554,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x4cab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -9570,7 +9570,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x4cab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -9586,7 +9586,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x4cab8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -9602,7 +9602,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x51f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -9618,7 +9618,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x51f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -9634,7 +9634,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x51f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -9650,7 +9650,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x51f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -9666,7 +9666,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x51f78,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -9682,7 +9682,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53830,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -9698,7 +9698,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53830,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -9714,7 +9714,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53830,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -9730,7 +9730,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53830,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x6141e486,
                             0x7543,
                             0x4f1a,
@@ -9746,7 +9746,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53fc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -9762,7 +9762,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53fc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -9778,7 +9778,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53fc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -9794,7 +9794,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x53fc8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xbaeb5bee,
                             0x5b33,
                             0x480a,
@@ -9810,7 +9810,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -9826,7 +9826,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -9842,7 +9842,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -9858,7 +9858,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -9874,7 +9874,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -9890,7 +9890,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -9906,7 +9906,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -9922,7 +9922,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0x55450,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -9938,7 +9938,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0xb2420,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -9954,7 +9954,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0xb2420,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -9970,7 +9970,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0xb2420,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -9986,7 +9986,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x4c000,
                         ffs_base: 0xb2420,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -10002,7 +10002,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xd5000,
                         ffs_base: 0xd5118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -10018,7 +10018,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0xd5000,
                         ffs_base: 0xd5118,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -10039,7 +10039,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -10055,7 +10055,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x53ab1acd,
                             0xedb1,
                             0x4e3a,
@@ -10071,7 +10071,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x560,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -10087,7 +10087,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x560,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -10103,7 +10103,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x560,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -10119,7 +10119,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x560,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x86d70125,
                             0xbaa3,
                             0x4296,
@@ -10135,7 +10135,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1fd0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -10151,7 +10151,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x1fd0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -10167,7 +10167,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x4fa8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -10183,7 +10183,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x4fa8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -10199,7 +10199,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x5458,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -10215,7 +10215,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0xc390,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -10231,7 +10231,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0xc390,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xedadeb9d,
                             0xddba,
                             0x48bd,
@@ -10247,7 +10247,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0xdd48,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -10263,7 +10263,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0xdd48,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -10279,7 +10279,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21ad0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -10295,7 +10295,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21ad0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -10311,7 +10311,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -10327,7 +10327,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x21e08,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -10343,7 +10343,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -10359,7 +10359,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x22a50,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -10375,7 +10375,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23e30,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -10391,7 +10391,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x23e30,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x29cbb005,
                             0xc972,
                             0x49f3,
@@ -10407,7 +10407,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -10423,7 +10423,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xc2f9ae46,
                             0x3437,
                             0x4fef,
@@ -10439,7 +10439,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e9e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -10455,7 +10455,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e9e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -10471,7 +10471,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x2e9e8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -10487,7 +10487,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x33668,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -10503,7 +10503,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x33668,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -10519,7 +10519,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x33668,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -10535,7 +10535,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x33668,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -10551,7 +10551,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x33668,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -10567,7 +10567,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34c28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -10583,7 +10583,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34c28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -10599,7 +10599,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34c28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -10615,7 +10615,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34c28,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x88c17e54,
                             0xebfe,
                             0x4531,
@@ -10631,7 +10631,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -10647,7 +10647,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -10663,7 +10663,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -10679,7 +10679,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x34f18,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -10695,7 +10695,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x87248,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -10711,7 +10711,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x87248,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -10727,7 +10727,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x87248,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -10743,7 +10743,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x2e000,
                         ffs_base: 0x87248,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -10759,7 +10759,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x91000,
                         ffs_base: 0x91100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -10775,7 +10775,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x91000,
                         ffs_base: 0x91100,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5b94e419,
                             0xc795,
                             0x414d,
@@ -10796,7 +10796,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x108,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -10812,7 +10812,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x108,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -10828,7 +10828,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x108,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -10844,7 +10844,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x108,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x98c8588c,
                             0x640a,
                             0x4bb4,
@@ -10860,7 +10860,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x12d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -10876,7 +10876,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x12d0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x131b73ac,
                             0xc033,
                             0x4de1,
@@ -10892,7 +10892,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -10908,7 +10908,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2388,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4f1f379f,
                             0x2a62,
                             0x48bb,
@@ -10924,7 +10924,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -10940,7 +10940,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x2828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x76ed893a,
                             0xb2f9,
                             0x4c7d,
@@ -10956,7 +10956,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x8670,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -10972,7 +10972,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x8670,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x299d6f8b,
                             0x2ec9,
                             0x4e40,
@@ -10988,7 +10988,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x176c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -11004,7 +11004,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x176c0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x4e22bf36,
                             0xc59d,
                             0x47c4,
@@ -11020,7 +11020,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x17958,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -11036,7 +11036,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x17958,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x5aa5031e,
                             0x4cb6,
                             0x43d4,
@@ -11052,7 +11052,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x18df0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -11068,7 +11068,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x0,
                         ffs_base: 0x18df0,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xeee8d8ec,
                             0x40c2,
                             0x159b,
@@ -11084,7 +11084,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x1c078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -11100,7 +11100,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x1c078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -11116,7 +11116,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x1c078,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x52c05b14,
                             0xb98,
                             0x496c,
@@ -11132,7 +11132,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x20a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -11148,7 +11148,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x20a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -11164,7 +11164,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x20a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -11180,7 +11180,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x20a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -11196,7 +11196,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x20a88,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9b3ada4f,
                             0xae56,
                             0x4c24,
@@ -11212,7 +11212,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x22310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -11228,7 +11228,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x22310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -11244,7 +11244,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x22310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -11260,7 +11260,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x22310,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0xa8499e65,
                             0xa6f6,
                             0x48b0,
@@ -11276,7 +11276,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x647c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -11292,7 +11292,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x647c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -11308,7 +11308,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x647c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -11324,7 +11324,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x647c8,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x9e1cc850,
                             0x6731,
                             0x4848,
@@ -11340,7 +11340,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x73828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -11356,7 +11356,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x73828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -11372,7 +11372,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x73828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
@@ -11388,7 +11388,7 @@ fn parse_fsp() -> io::Result<()> {
                     SectionInfo {
                         fv_base: 0x1c000,
                         ffs_base: 0x73828,
-                        ffs_guid: GUID(
+                        ffs_guid: EFI_GUID(
                             0x1ba0062e,
                             0xc779,
                             0x4582,
