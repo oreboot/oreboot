@@ -1,11 +1,19 @@
 #![no_std]
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
 
 use core::fmt;
 use core::mem::size_of;
 use core::num::Wrapping;
 
-pub use efi::EFI_GUID as GUID;
-use fsp_qemu_sys as efi;
+// Rust types are used instead of generated ones.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EFI_GUID(pub UINT32, pub UINT16, pub UINT16, pub [UINT8; 8]);
+pub type GUID = EFI_GUID;
+
+include!(concat!(env!("OUT_DIR"), "/", "efi_bindings.rs"));
 
 #[derive(PartialEq, Eq)]
 pub enum FvTraverseError {
@@ -67,13 +75,13 @@ impl fmt::Display for FvTraverseError {
     }
 }
 
-const EFI_FIRMWARE_FILE_SYSTEM2_GUID: GUID = GUID(
+const EFI_FIRMWARE_FILE_SYSTEM2_GUID: GUID = EFI_GUID(
     0x8c8ce578,
     0x8a3d,
     0x4f1c,
     [0x99, 0x35, 0x89, 0x61, 0x85, 0xc3, 0x2d, 0xd3],
 );
-const EFI_FIRMWARE_FILE_SYSTEM3_GUID: GUID = GUID(
+const EFI_FIRMWARE_FILE_SYSTEM3_GUID: GUID = EFI_GUID(
     0x5473c07a,
     0x3dcb,
     0x4dca,
@@ -97,20 +105,20 @@ pub type SectionData<'a> = &'a [u8];
 
 // File types which are guaranteed to contain sections.
 pub const FILE_TYPES_WITH_SECTIONS: &[u32] = &[
-    efi::EFI_FV_FILETYPE_APPLICATION,
-    efi::EFI_FV_FILETYPE_COMBINED_MM_DXE,
-    efi::EFI_FV_FILETYPE_COMBINED_PEIM_DRIVER,
-    efi::EFI_FV_FILETYPE_DRIVER,
-    efi::EFI_FV_FILETYPE_DXE_CORE,
-    efi::EFI_FV_FILETYPE_FIRMWARE_VOLUME_IMAGE,
-    efi::EFI_FV_FILETYPE_FREEFORM,
-    efi::EFI_FV_FILETYPE_MM,
-    efi::EFI_FV_FILETYPE_MM_CORE,
-    efi::EFI_FV_FILETYPE_MM_CORE_STANDALONE,
-    efi::EFI_FV_FILETYPE_MM_STANDALONE,
-    efi::EFI_FV_FILETYPE_PEIM,
-    efi::EFI_FV_FILETYPE_PEI_CORE,
-    efi::EFI_FV_FILETYPE_SECURITY_CORE,
+    EFI_FV_FILETYPE_APPLICATION,
+    EFI_FV_FILETYPE_COMBINED_MM_DXE,
+    EFI_FV_FILETYPE_COMBINED_PEIM_DRIVER,
+    EFI_FV_FILETYPE_DRIVER,
+    EFI_FV_FILETYPE_DXE_CORE,
+    EFI_FV_FILETYPE_FIRMWARE_VOLUME_IMAGE,
+    EFI_FV_FILETYPE_FREEFORM,
+    EFI_FV_FILETYPE_MM,
+    EFI_FV_FILETYPE_MM_CORE,
+    EFI_FV_FILETYPE_MM_CORE_STANDALONE,
+    EFI_FV_FILETYPE_MM_STANDALONE,
+    EFI_FV_FILETYPE_PEIM,
+    EFI_FV_FILETYPE_PEI_CORE,
+    EFI_FV_FILETYPE_SECURITY_CORE,
 ];
 
 // Supports ffs2 and ffs3. All other firmware volumes are skipped.
@@ -155,10 +163,10 @@ where
         let fv_base = index;
         let fv_bytes = slice_data(
             fv_base,
-            fv_base + size_of::<efi::EFI_FIRMWARE_VOLUME_HEADER>(),
+            fv_base + size_of::<EFI_FIRMWARE_VOLUME_HEADER>(),
             data.len(),
         )?;
-        let fv: efi::EFI_FIRMWARE_VOLUME_HEADER =
+        let fv: EFI_FIRMWARE_VOLUME_HEADER =
             unsafe { core::ptr::read(fv_bytes.as_ptr() as *const _) };
 
         // Check FV header signature.
@@ -183,10 +191,10 @@ where
             index += fv.ExtHeaderOffset as usize;
             let fveh_bytes = slice_data(
                 index,
-                index + size_of::<efi::EFI_FIRMWARE_VOLUME_EXT_HEADER>(),
+                index + size_of::<EFI_FIRMWARE_VOLUME_EXT_HEADER>(),
                 fv_end,
             )?;
-            let fveh: efi::EFI_FIRMWARE_VOLUME_EXT_HEADER =
+            let fveh: EFI_FIRMWARE_VOLUME_EXT_HEADER =
                 unsafe { core::ptr::read(fveh_bytes.as_ptr() as *const _) };
             index += fveh.ExtHeaderSize as usize;
         }
@@ -208,14 +216,14 @@ where
             let ffs_base = index;
 
             // Check if the header is empty.
-            let erase_polarity = if fv.Attributes & efi::EFI_FVB2_ERASE_POLARITY == 0 {
+            let erase_polarity = if fv.Attributes & EFI_FVB2_ERASE_POLARITY == 0 {
                 0x00
             } else {
                 0xff
             };
             let ffs_bytes = slice_data(
                 ffs_base,
-                ffs_base + size_of::<efi::EFI_FFS_FILE_HEADER>(),
+                ffs_base + size_of::<EFI_FFS_FILE_HEADER>(),
                 fv_end,
             )?;
             if ffs_bytes.iter().all(|&x| x == erase_polarity) {
@@ -223,31 +231,26 @@ where
             }
 
             // Determine the file sizes.
-            let ffs: efi::EFI_FFS_FILE_HEADER =
+            let ffs: EFI_FFS_FILE_HEADER =
                 unsafe { core::ptr::read(ffs_bytes.as_ptr() as *const _) };
-            let (ffs_header_size, ffs_size) =
-                if ffs.Attributes & (efi::FFS_ATTRIB_LARGE_FILE as u8) == 0 {
-                    (
-                        size_of::<efi::EFI_FFS_FILE_HEADER>(),
-                        little_endian3(ffs.Size),
-                    )
-                } else {
-                    if little_endian3(ffs.Size) != 0 {
-                        return Err(InvalidFfsSize { ffs_base });
-                    }
-                    let ffs2_bytes = slice_data(
-                        ffs_base,
-                        ffs_base + size_of::<efi::EFI_FFS_FILE_HEADER2>(),
-                        fv_end,
-                    )?;
-                    (
-                        ffs2_bytes.len(),
-                        unsafe {
-                            core::ptr::read(ffs2_bytes.as_ptr() as *const efi::EFI_FFS_FILE_HEADER2)
-                        }
+            let (ffs_header_size, ffs_size) = if ffs.Attributes & (FFS_ATTRIB_LARGE_FILE as u8) == 0
+            {
+                (size_of::<EFI_FFS_FILE_HEADER>(), little_endian3(ffs.Size))
+            } else {
+                if little_endian3(ffs.Size) != 0 {
+                    return Err(InvalidFfsSize { ffs_base });
+                }
+                let ffs2_bytes = slice_data(
+                    ffs_base,
+                    ffs_base + size_of::<EFI_FFS_FILE_HEADER2>(),
+                    fv_end,
+                )?;
+                (
+                    ffs2_bytes.len(),
+                    unsafe { core::ptr::read(ffs2_bytes.as_ptr() as *const EFI_FFS_FILE_HEADER2) }
                         .ExtendedSize as usize,
-                    )
-                };
+                )
+            };
             let ffs_end = ffs_base + ffs_size;
 
             // Check the FFS header checksum.
@@ -264,7 +267,7 @@ where
             }
 
             // Check the FFS file checksum.
-            if ffs.Attributes & (efi::FFS_ATTRIB_CHECKSUM as u8) == 0 {
+            if ffs.Attributes & (FFS_ATTRIB_CHECKSUM as u8) == 0 {
                 if file_checksum != 0xaa {
                     return Err(InvalidFfsDataChecksum {
                         ffs_base,
@@ -302,21 +305,21 @@ where
                 index < ffs_end
             } {
                 let sec_base = index;
-                let sec_common: efi::EFI_COMMON_SECTION_HEADER =
+                let sec_common: EFI_COMMON_SECTION_HEADER =
                     unsafe { core::ptr::read(data[sec_base..].as_ptr() as *const _) };
 
                 // Determine section sizes.
                 let (sec_header_size, sec_size) = match little_endian3(sec_common.Size) {
                     0xffffff => (
-                        size_of::<efi::EFI_COMMON_SECTION_HEADER2>(),
+                        size_of::<EFI_COMMON_SECTION_HEADER2>(),
                         unsafe {
                             core::ptr::read(
-                                data[sec_base..].as_ptr() as *const efi::EFI_COMMON_SECTION_HEADER2
+                                data[sec_base..].as_ptr() as *const EFI_COMMON_SECTION_HEADER2
                             )
                         }
                         .ExtendedSize as usize,
                     ),
-                    x => (size_of::<efi::EFI_COMMON_SECTION_HEADER>(), x),
+                    x => (size_of::<EFI_COMMON_SECTION_HEADER>(), x),
                 };
                 let sec_end = sec_base + sec_size;
 

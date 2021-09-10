@@ -8,6 +8,7 @@ edition = "2018"
 arch = { path = "../../../arch/x86/x86_64"}
 console = { path = "../../../console" }
 fsp-qemu-sys = { path = "../../../vendorcode/fsp/qemu"}
+fsp-common = { path = "../../../vendorcode/fsp/common"}
 model = { path = "../../../drivers/model" }
 payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
@@ -15,7 +16,6 @@ uefi = { path = "../../../lib/uefi"}
 wrappers = { path = "../../../drivers/wrappers"}
 rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
-heapless = "0.4.x"
 register = "0.3.2"
 static-ref = "0.1.1"
 postcard = "0.4.3"
