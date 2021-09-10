@@ -21,3 +21,4 @@ run: $(IMAGE).vmem
 
 trace: $(IMAGE).vmem
 	Vtop_earlgrey_verilator -t --rominit=rom.vmem --flashinit=$<
+cibuild: $(IMAGE)

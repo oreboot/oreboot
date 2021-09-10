@@ -14,13 +14,8 @@ help:
 	@echo '  # Build debug mode'
 	@echo '  MODE=debug make mainboards'
 
-BROKEN := \
-	src/mainboard/ast/ast25x0/Makefile \
-	src/mainboard/aaeon/upsquared/Makefile \
-	src/mainboard/emulation/qemu-fsp/Makefile \
-
 # Turn them all off. We'll turn them back on to try to get to working tests.
-MAINBOARDS := $(filter-out $(BROKEN), $(wildcard src/mainboard/*/*/Makefile))
+MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
@@ -30,7 +25,7 @@ STACK_SIZES_VER := 0.4.0
 mainboards: $(MAINBOARDS)
 
 $(MAINBOARDS):
-	cd $(dir $@) && make
+	cd $(dir $@) && make cibuild
 
 firsttime:
 	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
