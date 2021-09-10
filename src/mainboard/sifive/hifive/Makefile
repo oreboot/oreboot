@@ -6,3 +6,4 @@ include ../../../../Makefile.qemu.inc
 
 openocd:
 	$(shell which openocd) -f openocd.cfg -c "flash write_image erase unlock $(IMAGE) 0x20000000; shutdown"
+cibuild: $(IMAGE)
