@@ -3,7 +3,7 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-fn generate_bindings(oreboot_root: &str) {
+fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
     let root_path = PathBuf::from(oreboot_root);
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
@@ -31,11 +31,13 @@ fn generate_bindings(oreboot_root: &str) {
                 .iter()
                 .map(|include| format!("{}{}", "-I", include.display())),
         )
+        .clang_args(&["-DEFIAPI=__attribute__((ms_abi))"])
         // Tell cargo to invalidate the built crate whenever any of the included header files
         // changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Use core:: instead of std::
         .use_core()
+        .ctypes_prefix("cty")
         // Only generate types and constants.
         .with_codegen_config(bindgen::CodegenConfig::TYPES | bindgen::CodegenConfig::VARS)
         // Allowlist of types and constants to import.
@@ -122,18 +124,6 @@ fn generate_bindings(oreboot_root: &str) {
         .allowlist_var("bmS3")
         .allowlist_var("bmWarm")
         // Blacklist types implemented in Rust.
-        .blocklist_type("INT8")
-        .blocklist_type("INT16")
-        .blocklist_type("INT32")
-        .blocklist_type("INT64")
-        .blocklist_type("UINT8")
-        .blocklist_type("UINT16")
-        .blocklist_type("UINT32")
-        .blocklist_type("UINT64")
-        .blocklist_type("UINTN")
-        .blocklist_type("BOOLEAN")
-        .blocklist_type("CHAR8")
-        .blocklist_type("CHAR16")
         .blocklist_type("GUID")
         .blocklist_type("EFI_GUID")
         // Finish the builder and generate the bindings.
@@ -145,8 +135,11 @@ fn generate_bindings(oreboot_root: &str) {
     bindings
         .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+
+    Ok(())
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     generate_bindings("../../../../");
+    Ok(())
 }
