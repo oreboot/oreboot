@@ -1,0 +1,30 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  CheckQuality:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: 'Install Dependencies'
+      run: sudo apt-get update && make ciprepare
+    - name: 'Check formatting'
+      run: make --keep-going format check=true
+    - name: 'Run rust tests'
+      run: make --keep-going test
+    - name: 'Run clippy linter'
+      run: make --keep-going clippy
+    - name: 'Build all mainboards'
+      run: make --keep-going mainboards
+    - name: 'Generate report of binary sizes'
+      run: ./scripts/generate-size-report.sh
