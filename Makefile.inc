@@ -1,12 +1,8 @@
-# This Makefile is included by src/mainboards/VENDOR/BOARD/Makefile
-TOP         = $(abspath $(CURDIR)/../../../..)
-VENDOR      = $(notdir $(shell dirname $(CURDIR)))
-BOARD       = $(notdir $(CURDIR))
+# This file is included by all Makefiles. The user is required to set
+# the path to OREBOOT.
+TOP         = $(OREBOOT)
 MODE       ?= release
-FIXED_DTFS  = fixed-dtfs.dtb
 TOOLS_DIR   = $(TOP)/tools
-FLASHROM_PROGRAMMER ?= dediprog
-OBJCOPY    ?= rust-objcopy
 # Cargo will build the tools using the target from the .cargo directory which
 # does not work so well if you are cross-compiling. This shell one-liner gets
 # the target of the current system which can be passed via --target for
@@ -17,16 +13,8 @@ CARGO_FLAGS = --verbose
 # Override variables depending on the build.
 include $(TOP)/Makefile.mode.$(MODE).inc
 
-# ELF and BOOTBLOB are intermediate files while IMAGE is the final firmware
-# image ready to be flashed onto the machine.
-ELF      = $(TARGET_DIR)/$(BOARD)
-BOOTBLOB = $(TARGET_DIR)/bootblob.bin
-IMAGE    = $(TARGET_DIR)/image.bin
-
 $(shell echo "***** Oreboot Build Config *****" 1>&2)
 $(shell echo "TOP          = $(TOP)" 1>&2)
-$(shell echo "VENDOR       = $(VENDOR)" 1>&2)
-$(shell echo "BOARD        = $(BOARD)" 1>&2)
 $(shell echo "MODE         = $(MODE)" 1>&2)
 $(shell echo "TARGET       = $(TARGET)" 1>&2)
 $(shell echo "TARGET_DIR   = $(TARGET_DIR)" 1>&2)
@@ -36,31 +24,33 @@ $(shell echo "rustc --version  = $(shell rustc --version)" 1>&2)
 $(shell echo "rustup --version = $(shell rustup --version)" 1>&2)
 $(shell echo "**********" 1>&2)
 
-$(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
-	TARGET_DIR=$(TARGET_DIR) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(TARGET_DIR)/$(FIXED_DTFS) $@
-	@printf "**\n** Output: $@\n**\n"
+# format things
+format:
+	cargo fmt
 
-$(TARGET_DIR)/bootblob.bin: $(ELF)
-	$(OBJCOPY) -O binary -R .bss $< $@
+checkformat:
+	cargo fmt -- --check
 
-$(TARGET_DIR)/fixed-dtfs.dtb: fixed-dtfs.dts
-	mkdir -p $(TARGET_DIR)
-	dtc -W no-unit_address_vs_reg $< -O dtb -o $@
-
-# Re-run cargo every time.
-.PHONY: $(ELF)
-$(ELF):
-	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo build --target "$(TARGET)" -Z build-std=core,alloc $(CARGO_FLAGS)
+# The default target.
+# There can be several of these; a mainboard might specify
+# "build something" with a default:: target
+default::
 
 clean:
 	rm -rf target/
 
-# The rest of this file are conveniences for debugging.
-objdump: $(ELF)
-	rust-objdump -d $(ELF)
+# Clippy is the standard rule
+clippy:
+	cargo clippy -- -D warnings -A clippy::write_with_newline
 
-stack-sizes: $(ELF)
-	stack-sizes $(ELF)
+# This is a temporary bandaid until clippy is fixed, for the
+# few boards that need it. To figure out which ones use it,
+# just git grep skipclippy
+skipclippy:
+	echo Not doing clippy for this target
 
-flash: $(IMAGE)
-	sudo $(which flashrom) -V -w $(IMAGE) -p $(FLASHROM_PROGRAMMER)
+# Testing. A lot of directories can't test either, yet.
+test:
+
+skiptest:
+	echo Not doing test for this target

@@ -1,3 +1,4 @@
+OREBOOT=$(abspath $(CURDIR)/../../../../)
 TARGET = riscv32imc-unknown-none-elf
 ROM    = $(TARGET_DIR)/rom.bin
 FLASH  = $(TARGET_DIR)/flash.bin
@@ -21,5 +22,8 @@ run: $(IMAGE).vmem
 
 trace: $(IMAGE).vmem
 	Vtop_earlgrey_verilator -t --rominit=rom.vmem --flashinit=$<
+include ../../../../Makefile.mainboard.inc
 cibuild:
 	echo Skipping $(BOARD)
+ciclippy: clippy
+citest: skiptest

@@ -19,7 +19,7 @@ jobs:
     - name: 'clippy linter'
       run: make --keep-going clippy
     - name: 'Check formatting'
-      run: make --keep-going format check=true
+      run: make --keep-going checkformat
 
   Test:
     runs-on: ubuntu-latest
