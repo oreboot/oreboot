@@ -1,3 +1,6 @@
+OREBOOT=$(abspath $(CURDIR)/../../../../)
+include ../../../../Makefile.inc
+
 CFLAGS=-nostdinc -nostdlib -ffreestanding --static -fPIC
 
 serialdebug.elf: serialdebug.S

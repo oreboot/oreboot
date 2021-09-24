@@ -3,6 +3,7 @@ help:
 	@echo 'firsttime -- for the first time you run make'
 	@echo 'update -- to update the install'
 	@echo 'format -- to format all files'
+	@echo 'checkformat -- to format all files with checking enabled'
 	@echo '  # Build a single board'
 	@echo '  make VENDOR/BOARD'
 	@echo '  # This is equivalent to'
@@ -22,8 +23,7 @@ BINUTILS_VER := 0.3.2
 STACK_SIZES_VER := 0.4.0
 
 .PHONY: mainboards $(MAINBOARDS)
-mainboards: $(MAINBOARDS)
-
+mainboard: $(MAINBOARDS)
 $(MAINBOARDS):
 	cd $(dir $@) && make cibuild
 
@@ -52,74 +52,53 @@ update:
 # formatting is correct (without actually changing the formatting).
 # Returns 0 only if all files are properly formatted.
 # Usage:
-# 	$ make --keep-going format check=true
+# 	$ make --keep-going format
+# 	$ make --keep-going checkformat
 check ?=
 
-# Makefile does not support recursive wildcard, so we have to handle all depths manually.
-CRATES := \
-	$(wildcard */Cargo.toml) \
-	$(wildcard */*/Cargo.toml) \
-	$(wildcard */*/*/Cargo.toml) \
-	$(wildcard */*/*/*/Cargo.toml) \
-	$(wildcard */*/*/*/*/Cargo.toml)
+ALLMAKEFILE := \
+	$(wildcard payloads/Makefile) \
+	$(wildcard payloads/*/Makefile) \
+	$(wildcard payloads/*/*/Makefile) \
+	$(wildcard payloads/*/*/*/Makefile) \
+	$(wildcard payloads/*/*/*/*/Makefile) \
+	$(wildcard src/Makefile) \
+	$(wildcard src/*/Makefile) \
+	$(wildcard src/*/*/Makefile) \
+	$(wildcard src/*/*/*/Makefile) \
+	$(wildcard src/*/*/*/*/Makefile)
 
-CRATES_TO_FORMAT := $(patsubst %/Cargo.toml,%/Cargo.toml.format,$(CRATES))
+# Ron still doesn't understand this
+TEST_ALL_MAKE_DEFAULT := $(patsubst %/Makefile,%/Makefile.default,$(ALLMAKEFILE))
+$(TEST_ALL_MAKE_DEFAULT):
+	cd $(dir $@) && make default
+.PHONY: testdefault $(TEST_ALL_MAKE_DEFAULT)
+testdefault: $(TEST_ALL_MAKE_DEFAULT)
+
+CRATES_TO_FORMAT := $(patsubst %/Makefile,%/Makefile.format,$(ALLMAKEFILE))
 $(CRATES_TO_FORMAT):
-	cd $(dir $@) && cargo fmt -- $(if $(check),--check,)
+	cd $(dir $@) && make format -- $(if $(check),--check,)
 .PHONY: format $(CRATES_TO_FORMAT)
 format: $(CRATES_TO_FORMAT)
 
-BROKEN_CRATES_TO_TEST := \
-	src/arch/arm/armv7/Cargo.toml \
-	src/arch/riscv/rv32/Cargo.toml \
-	src/arch/riscv/rv64/Cargo.toml \
-	src/cpu/armltd/cortex-a9/Cargo.toml \
-	src/cpu/lowrisc/ibex/Cargo.toml \
-	src/mainboard/aaeon/upsquared/Cargo.toml \
-	src/mainboard/amd/romecrb/Cargo.toml \
-	src/mainboard/asrock/a300m-stx/Cargo.toml \
-	src/mainboard/ast/ast25x0/Cargo.toml \
-	src/mainboard/emulation/qemu-aarch64/Cargo.toml \
-	src/mainboard/emulation/qemu-armv7/Cargo.toml \
-	src/mainboard/emulation/qemu-fsp/Cargo.toml \
-	src/mainboard/emulation/qemu-fsp32/Cargo.toml \
-	src/mainboard/emulation/qemu-q35/Cargo.toml \
-	src/mainboard/emulation/qemu-riscv/Cargo.toml \
-	src/mainboard/google/trembyle/Cargo.toml \
-	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
-	src/mainboard/opentitan/crb/Cargo.toml \
-	src/mainboard/seeed/beaglev/Cargo.toml \
-	src/mainboard/sifive/hifive/Cargo.toml \
-	src/soc/aspeed/ast2500/Cargo.toml \
-	src/soc/opentitan/earlgrey/Cargo.toml \
-	src/soc/sifive/fu540/Cargo.toml \
-	src/soc/starfive/jh7100/Cargo.toml \
+CRATES_TO_CHECKFORMAT := $(patsubst %/Makefile,%/Makefile.checkformat,$(ALLMAKEFILE))
+$(CRATES_TO_CHECKFORMAT):
+	cd $(dir $@) && make checkformat
+.PHONY: checkformat $(CRATES_TO_CHECKFORMAT)
+checkformat: $(CRATES_TO_CHECKFORMAT)
 
-CRATES_TO_TEST := $(patsubst %/Cargo.toml,%/Cargo.toml.test,$(filter-out $(BROKEN_CRATES_TO_TEST),$(CRATES)))
+# There are a number of targets which can not test.
+# Once those are fixed, we can just use a test target.
+CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
 $(CRATES_TO_TEST):
-	cd $(dir $@) && cargo test
+	cd $(dir $@) && cargo citest
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
 
-BROKEN_CRATES_TO_CLIPPY := \
-	src/mainboard/aaeon/upsquared/Cargo.toml \
-	src/mainboard/amd/romecrb/Cargo.toml \
-	src/mainboard/asrock/a300m-stx/Cargo.toml \
-	src/mainboard/ast/ast25x0/Cargo.toml \
-	src/mainboard/emulation/qemu-armv7/Cargo.toml \
-	src/mainboard/emulation/qemu-fsp/Cargo.toml \
-	src/mainboard/emulation/qemu-fsp32/Cargo.toml \
-	src/mainboard/emulation/qemu-q35/Cargo.toml \
-	src/mainboard/google/trembyle/Cargo.toml \
-	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
-	src/mainboard/seeed/beaglev/Cargo.toml \
-	src/vendorcode/fsp/coffeelake/Cargo.toml \
-	src/soc/starfive/jh7100/Cargo.toml \
-
 # TODO: Remove write_with_newline
-CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_CLIPPY),$(CRATES)))
+CRATES_TO_CLIPPY := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
 $(CRATES_TO_CLIPPY):
-	cd $(dir $@) && cargo clippy -- -D warnings -A clippy::write_with_newline
+	cd $(dir $@) && make ciclippy
 .PHONY: clippy $(CRATES_TO_CLIPPY)
 clippy: $(CRATES_TO_CLIPPY)
 

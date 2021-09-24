@@ -19,7 +19,7 @@ jobs:
     - name: 'Build QEMU q35 board for x86'
       run: |
         cd src/mainboard/emulation/qemu-q35
-        make
+        make mainboard
     - name: 'Check QEMU q35 stack size'
       run: |
         cd src/mainboard/emulation/qemu-q35
@@ -38,7 +38,7 @@ jobs:
     - name: 'Build FSP QEMU firmware'
       run: |
         cd src/mainboard/emulation/qemu-fsp
-        make
+        make mainboard
     - name: 'Check FSP QEMU stack size'
       run: |
         cd src/mainboard/emulation/qemu-fsp
@@ -98,7 +98,7 @@ jobs:
       run: |
         (
           cd src/mainboard/emulation/qemu-riscv
-          make
+          make mainboard
           STACK_SIZES=$(make stack-sizes | tee /dev/stdout)
           if ! echo "$STACK_SIZES" | grep '0x[0-9a-f]\+\s\+[0-9]\+\s\+_start' > /dev/null; then
             echo "Error: Didn't see stack size of _start. make stack-sizes might be broken."
