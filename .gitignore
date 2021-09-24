@@ -18,9 +18,10 @@ oreboot.asm
 # Ignore Kdevelop project file
 *.kdev4
 
+#
 #Added by cargo
 #
-#already existing elements are commented out
+Cargo.lock
 
 target
 **/*.rs.bk
