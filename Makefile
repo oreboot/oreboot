@@ -114,6 +114,7 @@ BROKEN_CRATES_TO_CLIPPY := \
 	src/mainboard/nuvoton/npcm7xx/Cargo.toml \
 	src/mainboard/seeed/beaglev/Cargo.toml \
 	src/vendorcode/fsp/coffeelake/Cargo.toml \
+	src/soc/starfive/jh7100/Cargo.toml \
 
 # TODO: Remove write_with_newline
 CRATES_TO_CLIPPY := $(patsubst %/Cargo.toml,%/Cargo.toml.clippy,$(filter-out $(BROKEN_CRATES_TO_CLIPPY),$(CRATES)))
