@@ -382,14 +382,14 @@ pub fn _ENABLE_CLOCK_clk_perh0_root_() {}
 pub fn _SWITCH_CLOCK_clk_perh0_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_perh0_root_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_perh0_root_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_perh0_root_SOURCE_clk_pll0_out_() {
     let mut v = peek32(clk_perh0_root_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_perh0_root_ctrl_REG_ADDR, v);
 }
 
@@ -403,14 +403,14 @@ pub fn _ENABLE_CLOCK_clk_perh1_root_() {}
 pub fn _SWITCH_CLOCK_clk_perh1_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_perh1_root_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_perh1_root_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_perh1_root_SOURCE_clk_pll2_out_() {
     let mut v = peek32(clk_perh1_root_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_perh1_root_ctrl_REG_ADDR, v);
 }
 
@@ -478,14 +478,14 @@ pub fn _GET_CLOCK_SOURCE_STATUS_clk_vout_root_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_audio_root_() {
     let mut v = peek32(clk_audio_root_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_audio_root_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_audio_root_() {
     let mut v = peek32(clk_audio_root_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_audio_root_ctrl_REG_ADDR, v);
 }
 
@@ -649,14 +649,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_perh1_src_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_pll0_testout_() {
     let mut v = peek32(clk_pll0_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_pll0_testout_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_pll0_testout_() {
     let mut v = peek32(clk_pll0_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_pll0_testout_ctrl_REG_ADDR, v);
 }
 
@@ -680,14 +680,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_pll0_testout_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_pll1_testout_() {
     let mut v = peek32(clk_pll1_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_pll1_testout_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_pll1_testout_() {
     let mut v = peek32(clk_pll1_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_pll1_testout_ctrl_REG_ADDR, v);
 }
 
@@ -711,14 +711,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_pll1_testout_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_pll2_testout_() {
     let mut v = peek32(clk_pll2_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_pll2_testout_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_pll2_testout_() {
     let mut v = peek32(clk_pll2_testout_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_pll2_testout_ctrl_REG_ADDR, v);
 }
 
@@ -744,14 +744,14 @@ pub fn _ENABLE_CLOCK_clk_pll2_refclk_() {}
 pub fn _SWITCH_CLOCK_clk_pll2_refclk_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_pll2_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_pll2_refclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_pll2_refclk_SOURCE_clk_osc_aud_() {
     let mut v = peek32(clk_pll2_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_pll2_refclk_ctrl_REG_ADDR, v);
 }
 
@@ -833,14 +833,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_apb2_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dom3ahb_bus_() {
     let mut v = peek32(clk_dom3ahb_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dom3ahb_bus_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dom3ahb_bus_() {
     let mut v = peek32(clk_dom3ahb_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dom3ahb_bus_ctrl_REG_ADDR, v);
 }
 
@@ -852,14 +852,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dom3ahb_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dom7ahb_bus_() {
     let mut v = peek32(clk_dom7ahb_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dom7ahb_bus_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dom7ahb_bus_() {
     let mut v = peek32(clk_dom7ahb_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dom7ahb_bus_ctrl_REG_ADDR, v);
 }
 
@@ -871,14 +871,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dom7ahb_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_u74_core0_() {
     let mut v = peek32(clk_u74_core0_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_u74_core0_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_u74_core0_() {
     let mut v = peek32(clk_u74_core0_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_u74_core0_ctrl_REG_ADDR, v);
 }
 
@@ -890,14 +890,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_u74_core0_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_u74_core1_() {
     let mut v = peek32(clk_u74_core1_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_u74_core1_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_u74_core1_() {
     let mut v = peek32(clk_u74_core1_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_u74_core1_ctrl_REG_ADDR, v);
 }
 
@@ -921,14 +921,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_u74_core1_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_u74_axi_() {
     let mut v = peek32(clk_u74_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_u74_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_u74_axi_() {
     let mut v = peek32(clk_u74_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_u74_axi_ctrl_REG_ADDR, v);
 }
 
@@ -940,14 +940,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_u74_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_u74rtc_toggle_() {
     let mut v = peek32(clk_u74rtc_toggle_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_u74rtc_toggle_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_u74rtc_toggle_() {
     let mut v = peek32(clk_u74rtc_toggle_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_u74rtc_toggle_ctrl_REG_ADDR, v);
 }
 
@@ -959,14 +959,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_u74rtc_toggle_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sgdma2p_axi_() {
     let mut v = peek32(clk_sgdma2p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sgdma2p_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sgdma2p_axi_() {
     let mut v = peek32(clk_sgdma2p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sgdma2p_axi_ctrl_REG_ADDR, v);
 }
 
@@ -978,14 +978,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sgdma2p_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dma2pnoc_axi_() {
     let mut v = peek32(clk_dma2pnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dma2pnoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dma2pnoc_axi_() {
     let mut v = peek32(clk_dma2pnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dma2pnoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -997,14 +997,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dma2pnoc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sgdma2p_ahb_() {
     let mut v = peek32(clk_sgdma2p_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sgdma2p_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sgdma2p_ahb_() {
     let mut v = peek32(clk_sgdma2p_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sgdma2p_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -1030,14 +1030,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_dla_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dla_axi_() {
     let mut v = peek32(clk_dla_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dla_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dla_axi_() {
     let mut v = peek32(clk_dla_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dla_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1049,14 +1049,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dla_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dlanoc_axi_() {
     let mut v = peek32(clk_dlanoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dlanoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dlanoc_axi_() {
     let mut v = peek32(clk_dlanoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dlanoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1068,14 +1068,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dlanoc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dla_apb_() {
     let mut v = peek32(clk_dla_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dla_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dla_apb_() {
     let mut v = peek32(clk_dla_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dla_apb_ctrl_REG_ADDR, v);
 }
 
@@ -1087,14 +1087,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dla_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vp6_core_() {
     let mut v = peek32(clk_vp6_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vp6_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vp6_core_() {
     let mut v = peek32(clk_vp6_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vp6_core_ctrl_REG_ADDR, v);
 }
 
@@ -1132,14 +1132,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_vp6bus_src_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vp6_axi_() {
     let mut v = peek32(clk_vp6_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vp6_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vp6_axi_() {
     let mut v = peek32(clk_vp6_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vp6_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1191,14 +1191,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_vdec_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vdec_axi_() {
     let mut v = peek32(clk_vdec_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vdec_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vdec_axi_() {
     let mut v = peek32(clk_vdec_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vdec_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1210,14 +1210,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vdec_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vdecbrg_mainclk_() {
     let mut v = peek32(clk_vdecbrg_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vdecbrg_mainclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vdecbrg_mainclk_() {
     let mut v = peek32(clk_vdecbrg_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vdecbrg_mainclk_ctrl_REG_ADDR, v);
 }
 
@@ -1229,14 +1229,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vdecbrg_mainclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vdec_bclk_() {
     let mut v = peek32(clk_vdec_bclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vdec_bclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vdec_bclk_() {
     let mut v = peek32(clk_vdec_bclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vdec_bclk_ctrl_REG_ADDR, v);
 }
 
@@ -1260,14 +1260,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_vdec_bclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vdec_cclk_() {
     let mut v = peek32(clk_vdec_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vdec_cclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vdec_cclk_() {
     let mut v = peek32(clk_vdec_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vdec_cclk_ctrl_REG_ADDR, v);
 }
 
@@ -1291,14 +1291,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_vdec_cclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vdec_apb_() {
     let mut v = peek32(clk_vdec_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vdec_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vdec_apb_() {
     let mut v = peek32(clk_vdec_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vdec_apb_ctrl_REG_ADDR, v);
 }
 
@@ -1310,14 +1310,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vdec_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_jpeg_axi_() {
     let mut v = peek32(clk_jpeg_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_jpeg_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_jpeg_axi_() {
     let mut v = peek32(clk_jpeg_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_jpeg_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1341,14 +1341,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_jpeg_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_jpeg_cclk_() {
     let mut v = peek32(clk_jpeg_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_jpeg_cclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_jpeg_cclk_() {
     let mut v = peek32(clk_jpeg_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_jpeg_cclk_ctrl_REG_ADDR, v);
 }
 
@@ -1372,14 +1372,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_jpeg_cclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_jpeg_apb_() {
     let mut v = peek32(clk_jpeg_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_jpeg_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_jpeg_apb_() {
     let mut v = peek32(clk_jpeg_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_jpeg_apb_ctrl_REG_ADDR, v);
 }
 
@@ -1391,14 +1391,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_jpeg_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gc300_2x_() {
     let mut v = peek32(clk_gc300_2x_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gc300_2x_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gc300_2x_() {
     let mut v = peek32(clk_gc300_2x_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gc300_2x_ctrl_REG_ADDR, v);
 }
 
@@ -1422,14 +1422,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gc300_2x_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gc300_ahb_() {
     let mut v = peek32(clk_gc300_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gc300_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gc300_ahb_() {
     let mut v = peek32(clk_gc300_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gc300_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -1455,14 +1455,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_jpcgc300_axibus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gc300_axi_() {
     let mut v = peek32(clk_gc300_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gc300_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gc300_axi_() {
     let mut v = peek32(clk_gc300_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gc300_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1474,14 +1474,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_gc300_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_jpcgc300_mainclk_() {
     let mut v = peek32(clk_jpcgc300_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_jpcgc300_mainclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_jpcgc300_mainclk_() {
     let mut v = peek32(clk_jpcgc300_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_jpcgc300_mainclk_ctrl_REG_ADDR, v);
 }
 
@@ -1507,14 +1507,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_venc_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_venc_axi_() {
     let mut v = peek32(clk_venc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_venc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_venc_axi_() {
     let mut v = peek32(clk_venc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_venc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1526,14 +1526,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_venc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vencbrg_mainclk_() {
     let mut v = peek32(clk_vencbrg_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vencbrg_mainclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vencbrg_mainclk_() {
     let mut v = peek32(clk_vencbrg_mainclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vencbrg_mainclk_ctrl_REG_ADDR, v);
 }
 
@@ -1545,14 +1545,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vencbrg_mainclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_venc_bclk_() {
     let mut v = peek32(clk_venc_bclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_venc_bclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_venc_bclk_() {
     let mut v = peek32(clk_venc_bclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_venc_bclk_ctrl_REG_ADDR, v);
 }
 
@@ -1576,14 +1576,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_venc_bclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_venc_cclk_() {
     let mut v = peek32(clk_venc_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_venc_cclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_venc_cclk_() {
     let mut v = peek32(clk_venc_cclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_venc_cclk_ctrl_REG_ADDR, v);
 }
 
@@ -1607,14 +1607,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_venc_cclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_venc_apb_() {
     let mut v = peek32(clk_venc_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_venc_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_venc_apb_() {
     let mut v = peek32(clk_venc_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_venc_apb_ctrl_REG_ADDR, v);
 }
 
@@ -1626,14 +1626,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_venc_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrpll_div2_() {
     let mut v = peek32(clk_ddrpll_div2_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrpll_div2_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrpll_div2_() {
     let mut v = peek32(clk_ddrpll_div2_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrpll_div2_ctrl_REG_ADDR, v);
 }
 
@@ -1657,14 +1657,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_ddrpll_div2_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrpll_div4_() {
     let mut v = peek32(clk_ddrpll_div4_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrpll_div4_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrpll_div4_() {
     let mut v = peek32(clk_ddrpll_div4_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrpll_div4_ctrl_REG_ADDR, v);
 }
 
@@ -1688,14 +1688,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_ddrpll_div4_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrpll_div8_() {
     let mut v = peek32(clk_ddrpll_div8_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrpll_div8_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrpll_div8_() {
     let mut v = peek32(clk_ddrpll_div8_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrpll_div8_ctrl_REG_ADDR, v);
 }
 
@@ -1719,14 +1719,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_ddrpll_div8_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrosc_div2_() {
     let mut v = peek32(clk_ddrosc_div2_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrosc_div2_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrosc_div2_() {
     let mut v = peek32(clk_ddrosc_div2_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrosc_div2_ctrl_REG_ADDR, v);
 }
 
@@ -1750,14 +1750,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_ddrosc_div2_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrc0_() {
     let mut v = peek32(clk_ddrc0_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrc0_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrc0_() {
     let mut v = peek32(clk_ddrc0_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrc0_ctrl_REG_ADDR, v);
 }
 
@@ -1802,14 +1802,14 @@ pub fn _GET_CLOCK_SOURCE_STATUS_clk_ddrc0_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrc1_() {
     let mut v = peek32(clk_ddrc1_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrc1_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrc1_() {
     let mut v = peek32(clk_ddrc1_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrc1_ctrl_REG_ADDR, v);
 }
 
@@ -1854,14 +1854,14 @@ pub fn _GET_CLOCK_SOURCE_STATUS_clk_ddrc1_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ddrphy_apb_() {
     let mut v = peek32(clk_ddrphy_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ddrphy_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ddrphy_apb_() {
     let mut v = peek32(clk_ddrphy_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ddrphy_apb_ctrl_REG_ADDR, v);
 }
 
@@ -1901,14 +1901,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_noc_cog_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_nne_ahb_() {
     let mut v = peek32(clk_nne_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_nne_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_nne_ahb_() {
     let mut v = peek32(clk_nne_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_nne_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -1936,14 +1936,14 @@ pub fn _ENABLE_CLOCK_clk_nne_bus_() {}
 pub fn _SWITCH_CLOCK_clk_nne_bus_SOURCE_clk_cpu_axi_() {
     let mut v = peek32(clk_nne_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_nne_bus_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_nne_bus_SOURCE_clk_nnebus_src1_() {
     let mut v = peek32(clk_nne_bus_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_nne_bus_ctrl_REG_ADDR, v);
 }
 
@@ -1955,14 +1955,14 @@ pub fn _GET_CLOCK_SOURCE_STATUS_clk_nne_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_nne_axi_() {
     let mut v = peek32(clk_nne_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_nne_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_nne_axi_() {
     let mut v = peek32(clk_nne_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_nne_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1974,14 +1974,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_nne_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_nnenoc_axi_() {
     let mut v = peek32(clk_nnenoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_nnenoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_nnenoc_axi_() {
     let mut v = peek32(clk_nnenoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_nnenoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -1993,14 +1993,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_nnenoc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dlaslv_axi_() {
     let mut v = peek32(clk_dlaslv_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dlaslv_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dlaslv_axi_() {
     let mut v = peek32(clk_dlaslv_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dlaslv_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2012,14 +2012,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dlaslv_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dspx2c_axi_() {
     let mut v = peek32(clk_dspx2c_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dspx2c_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dspx2c_axi_() {
     let mut v = peek32(clk_dspx2c_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dspx2c_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2059,14 +2059,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_hifi4_corefree_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_hifi4_core_() {
     let mut v = peek32(clk_hifi4_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_hifi4_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_hifi4_core_() {
     let mut v = peek32(clk_hifi4_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_hifi4_core_ctrl_REG_ADDR, v);
 }
 
@@ -2092,14 +2092,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_hifi4_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_hifi4_axi_() {
     let mut v = peek32(clk_hifi4_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_hifi4_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_hifi4_axi_() {
     let mut v = peek32(clk_hifi4_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_hifi4_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2111,14 +2111,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_hifi4_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_hifi4noc_axi_() {
     let mut v = peek32(clk_hifi4noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_hifi4noc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_hifi4noc_axi_() {
     let mut v = peek32(clk_hifi4noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_hifi4noc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2144,14 +2144,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_sgdma1p_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sgdma1p_axi_() {
     let mut v = peek32(clk_sgdma1p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sgdma1p_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sgdma1p_axi_() {
     let mut v = peek32(clk_sgdma1p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sgdma1p_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2163,14 +2163,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sgdma1p_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dma1p_axi_() {
     let mut v = peek32(clk_dma1p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dma1p_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dma1p_axi_() {
     let mut v = peek32(clk_dma1p_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dma1p_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2182,14 +2182,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dma1p_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_x2c_axi_() {
     let mut v = peek32(clk_x2c_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_x2c_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_x2c_axi_() {
     let mut v = peek32(clk_x2c_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_x2c_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2227,14 +2227,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_usb_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_usb_axi_() {
     let mut v = peek32(clk_usb_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_usb_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_usb_axi_() {
     let mut v = peek32(clk_usb_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_usb_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2246,14 +2246,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_usb_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_usbnoc_axi_() {
     let mut v = peek32(clk_usbnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_usbnoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_usbnoc_axi_() {
     let mut v = peek32(clk_usbnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_usbnoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2279,14 +2279,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_usbphy_rootdiv_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_usbphy_125m_() {
     let mut v = peek32(clk_usbphy_125m_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_usbphy_125m_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_usbphy_125m_() {
     let mut v = peek32(clk_usbphy_125m_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_usbphy_125m_ctrl_REG_ADDR, v);
 }
 
@@ -2310,14 +2310,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_usbphy_125m_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_usbphy_plldiv25m_() {
     let mut v = peek32(clk_usbphy_plldiv25m_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_usbphy_plldiv25m_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_usbphy_plldiv25m_() {
     let mut v = peek32(clk_usbphy_plldiv25m_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_usbphy_plldiv25m_ctrl_REG_ADDR, v);
 }
 
@@ -2343,14 +2343,14 @@ pub fn _ENABLE_CLOCK_clk_usbphy_25m_() {}
 pub fn _SWITCH_CLOCK_clk_usbphy_25m_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_usbphy_25m_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_usbphy_25m_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_usbphy_25m_SOURCE_clk_usbphy_plldiv25m_() {
     let mut v = peek32(clk_usbphy_25m_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_usbphy_25m_ctrl_REG_ADDR, v);
 }
 
@@ -2376,14 +2376,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_audio_div_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_audio_src_() {
     let mut v = peek32(clk_audio_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_audio_src_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_audio_src_() {
     let mut v = peek32(clk_audio_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_audio_src_ctrl_REG_ADDR, v);
 }
 
@@ -2395,14 +2395,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_audio_src_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_audio_12288_() {
     let mut v = peek32(clk_audio_12288_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_audio_12288_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_audio_12288_() {
     let mut v = peek32(clk_audio_12288_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_audio_12288_ctrl_REG_ADDR, v);
 }
 
@@ -2414,14 +2414,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_audio_12288_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vin_src_() {
     let mut v = peek32(clk_vin_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vin_src_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vin_src_() {
     let mut v = peek32(clk_vin_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vin_src_ctrl_REG_ADDR, v);
 }
 
@@ -2459,14 +2459,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_isp0_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_isp0_axi_() {
     let mut v = peek32(clk_isp0_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_isp0_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_isp0_axi_() {
     let mut v = peek32(clk_isp0_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_isp0_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2478,14 +2478,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_isp0_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_isp0noc_axi_() {
     let mut v = peek32(clk_isp0noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_isp0noc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_isp0noc_axi_() {
     let mut v = peek32(clk_isp0noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_isp0noc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2497,14 +2497,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_isp0noc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ispslv_axi_() {
     let mut v = peek32(clk_ispslv_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ispslv_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ispslv_axi_() {
     let mut v = peek32(clk_ispslv_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ispslv_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2530,14 +2530,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_isp1_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_isp1_axi_() {
     let mut v = peek32(clk_isp1_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_isp1_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_isp1_axi_() {
     let mut v = peek32(clk_isp1_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_isp1_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2549,14 +2549,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_isp1_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_isp1noc_axi_() {
     let mut v = peek32(clk_isp1noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_isp1noc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_isp1noc_axi_() {
     let mut v = peek32(clk_isp1noc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_isp1noc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2582,14 +2582,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_vin_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vin_axi_() {
     let mut v = peek32(clk_vin_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vin_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vin_axi_() {
     let mut v = peek32(clk_vin_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vin_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2601,14 +2601,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vin_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vinnoc_axi_() {
     let mut v = peek32(clk_vinnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vinnoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vinnoc_axi_() {
     let mut v = peek32(clk_vinnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vinnoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2620,14 +2620,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vinnoc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vout_src_() {
     let mut v = peek32(clk_vout_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vout_src_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vout_src_() {
     let mut v = peek32(clk_vout_src_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vout_src_ctrl_REG_ADDR, v);
 }
 
@@ -2679,14 +2679,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_disp_bus_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_disp_axi_() {
     let mut v = peek32(clk_disp_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_disp_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_disp_axi_() {
     let mut v = peek32(clk_disp_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_disp_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2698,14 +2698,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_disp_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_dispnoc_axi_() {
     let mut v = peek32(clk_dispnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_dispnoc_axi_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_dispnoc_axi_() {
     let mut v = peek32(clk_dispnoc_axi_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_dispnoc_axi_ctrl_REG_ADDR, v);
 }
 
@@ -2717,14 +2717,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_dispnoc_axi_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sdio0_ahb_() {
     let mut v = peek32(clk_sdio0_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sdio0_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sdio0_ahb_() {
     let mut v = peek32(clk_sdio0_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sdio0_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -2736,14 +2736,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sdio0_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sdio0_cclkint_() {
     let mut v = peek32(clk_sdio0_cclkint_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sdio0_cclkint_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sdio0_cclkint_() {
     let mut v = peek32(clk_sdio0_cclkint_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sdio0_cclkint_ctrl_REG_ADDR, v);
 }
 
@@ -2769,14 +2769,14 @@ pub fn _ENABLE_CLOCK_clk_sdio0_cclkint_inv_() {}
 pub fn _SET_CLOCK_clk_sdio0_cclkint_inv_POLARITY_() {
     let mut v = peek32(clk_sdio0_cclkint_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x1 & 0x1) << 30;
+    v |= 1 << 30;
     poke32(clk_sdio0_cclkint_inv_ctrl_REG_ADDR, v);
 }
 
 pub fn _UNSET_CLOCK_clk_sdio0_cclkint_inv_POLARITY_() {
     let mut v = peek32(clk_sdio0_cclkint_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x0 & 0x1) << 30;
+    v |= 0 << 30;
     poke32(clk_sdio0_cclkint_inv_ctrl_REG_ADDR, v);
 }
 
@@ -2788,14 +2788,14 @@ pub fn _GET_CLOCK_POLARITY_STATUS_clk_sdio0_cclkint_inv_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sdio1_ahb_() {
     let mut v = peek32(clk_sdio1_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sdio1_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sdio1_ahb_() {
     let mut v = peek32(clk_sdio1_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sdio1_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -2807,14 +2807,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sdio1_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sdio1_cclkint_() {
     let mut v = peek32(clk_sdio1_cclkint_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sdio1_cclkint_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sdio1_cclkint_() {
     let mut v = peek32(clk_sdio1_cclkint_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sdio1_cclkint_ctrl_REG_ADDR, v);
 }
 
@@ -2840,14 +2840,14 @@ pub fn _ENABLE_CLOCK_clk_sdio1_cclkint_inv_() {}
 pub fn _SET_CLOCK_clk_sdio1_cclkint_inv_POLARITY_() {
     let mut v = peek32(clk_sdio1_cclkint_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x1 & 0x1) << 30;
+    v |= 1 << 30;
     poke32(clk_sdio1_cclkint_inv_ctrl_REG_ADDR, v);
 }
 
 pub fn _UNSET_CLOCK_clk_sdio1_cclkint_inv_POLARITY_() {
     let mut v = peek32(clk_sdio1_cclkint_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x0 & 0x1) << 30;
+    v |= 0 << 30;
     poke32(clk_sdio1_cclkint_inv_ctrl_REG_ADDR, v);
 }
 
@@ -2859,14 +2859,14 @@ pub fn _GET_CLOCK_POLARITY_STATUS_clk_sdio1_cclkint_inv_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_ahb_() {
     let mut v = peek32(clk_gmac_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_ahb_() {
     let mut v = peek32(clk_gmac_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -2892,14 +2892,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gmac_root_div_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_ptp_refclk_() {
     let mut v = peek32(clk_gmac_ptp_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_ptp_refclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_ptp_refclk_() {
     let mut v = peek32(clk_gmac_ptp_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_ptp_refclk_ctrl_REG_ADDR, v);
 }
 
@@ -2923,14 +2923,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gmac_ptp_refclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_gtxclk_() {
     let mut v = peek32(clk_gmac_gtxclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_gtxclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_gtxclk_() {
     let mut v = peek32(clk_gmac_gtxclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_gtxclk_ctrl_REG_ADDR, v);
 }
 
@@ -2954,14 +2954,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gmac_gtxclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_rmii_txclk_() {
     let mut v = peek32(clk_gmac_rmii_txclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_rmii_txclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_rmii_txclk_() {
     let mut v = peek32(clk_gmac_rmii_txclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_rmii_txclk_ctrl_REG_ADDR, v);
 }
 
@@ -2985,14 +2985,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gmac_rmii_txclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_rmii_rxclk_() {
     let mut v = peek32(clk_gmac_rmii_rxclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_rmii_rxclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_rmii_rxclk_() {
     let mut v = peek32(clk_gmac_rmii_rxclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_rmii_rxclk_ctrl_REG_ADDR, v);
 }
 
@@ -3046,14 +3046,14 @@ pub fn _ENABLE_CLOCK_clk_gmac_tx_inv_() {}
 pub fn _SET_CLOCK_clk_gmac_tx_inv_POLARITY_() {
     let mut v = peek32(clk_gmac_tx_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x1 & 0x1) << 30;
+    v |= 1 << 30;
     poke32(clk_gmac_tx_inv_ctrl_REG_ADDR, v);
 }
 
 pub fn _UNSET_CLOCK_clk_gmac_tx_inv_POLARITY_() {
     let mut v = peek32(clk_gmac_tx_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x0 & 0x1) << 30;
+    v |= 0 << 30;
     poke32(clk_gmac_tx_inv_ctrl_REG_ADDR, v);
 }
 
@@ -3067,14 +3067,14 @@ pub fn _ENABLE_CLOCK_clk_gmac_rx_pre_() {}
 pub fn _SWITCH_CLOCK_clk_gmac_rx_pre_SOURCE_clk_gmac_gr_mii_rxclk_() {
     let mut v = peek32(clk_gmac_rx_pre_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x0 & 0x1) << 24;
+    v |= 0 << 24;
     poke32(clk_gmac_rx_pre_ctrl_REG_ADDR, v);
 }
 
 pub fn _SWITCH_CLOCK_clk_gmac_rx_pre_SOURCE_clk_gmac_rmii_rxclk_() {
     let mut v = peek32(clk_gmac_rx_pre_ctrl_REG_ADDR);
     v &= !(0x1 << 24);
-    v |= (0x1 & 0x1) << 24;
+    v |= 1 << 24;
     poke32(clk_gmac_rx_pre_ctrl_REG_ADDR, v);
 }
 
@@ -3088,14 +3088,14 @@ pub fn _ENABLE_CLOCK_clk_gmac_rx_inv_() {}
 pub fn _SET_CLOCK_clk_gmac_rx_inv_POLARITY_() {
     let mut v = peek32(clk_gmac_rx_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x1 & 0x1) << 30;
+    v |= 1 << 30;
     poke32(clk_gmac_rx_inv_ctrl_REG_ADDR, v);
 }
 
 pub fn _UNSET_CLOCK_clk_gmac_rx_inv_POLARITY_() {
     let mut v = peek32(clk_gmac_rx_inv_ctrl_REG_ADDR);
     v &= !(0x1 << 30);
-    v |= (0x0 & 0x1) << 30;
+    v |= 0 << 30;
     poke32(clk_gmac_rx_inv_ctrl_REG_ADDR, v);
 }
 
@@ -3107,14 +3107,14 @@ pub fn _GET_CLOCK_POLARITY_STATUS_clk_gmac_rx_inv_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_rmii_() {
     let mut v = peek32(clk_gmac_rmii_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_rmii_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_rmii_() {
     let mut v = peek32(clk_gmac_rmii_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_rmii_ctrl_REG_ADDR, v);
 }
 
@@ -3126,14 +3126,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_gmac_rmii_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gmac_tophyref_() {
     let mut v = peek32(clk_gmac_tophyref_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gmac_tophyref_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gmac_tophyref_() {
     let mut v = peek32(clk_gmac_tophyref_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gmac_tophyref_ctrl_REG_ADDR, v);
 }
 
@@ -3157,14 +3157,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_gmac_tophyref_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi2ahb_ahb_() {
     let mut v = peek32(clk_spi2ahb_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi2ahb_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi2ahb_ahb_() {
     let mut v = peek32(clk_spi2ahb_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi2ahb_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -3176,14 +3176,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_spi2ahb_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi2ahb_core_() {
     let mut v = peek32(clk_spi2ahb_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi2ahb_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi2ahb_core_() {
     let mut v = peek32(clk_spi2ahb_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi2ahb_core_ctrl_REG_ADDR, v);
 }
 
@@ -3207,14 +3207,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_spi2ahb_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_ezmaster_ahb_() {
     let mut v = peek32(clk_ezmaster_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_ezmaster_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_ezmaster_ahb_() {
     let mut v = peek32(clk_ezmaster_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_ezmaster_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -3226,14 +3226,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_ezmaster_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_e24_ahb_() {
     let mut v = peek32(clk_e24_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_e24_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_e24_ahb_() {
     let mut v = peek32(clk_e24_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_e24_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -3245,14 +3245,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_e24_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_e24rtc_toggle_() {
     let mut v = peek32(clk_e24rtc_toggle_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_e24rtc_toggle_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_e24rtc_toggle_() {
     let mut v = peek32(clk_e24rtc_toggle_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_e24rtc_toggle_ctrl_REG_ADDR, v);
 }
 
@@ -3264,14 +3264,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_e24rtc_toggle_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_qspi_ahb_() {
     let mut v = peek32(clk_qspi_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_qspi_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_qspi_ahb_() {
     let mut v = peek32(clk_qspi_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_qspi_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -3283,14 +3283,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_qspi_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_qspi_apb_() {
     let mut v = peek32(clk_qspi_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_qspi_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_qspi_apb_() {
     let mut v = peek32(clk_qspi_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_qspi_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3302,14 +3302,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_qspi_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_qspi_refclk_() {
     let mut v = peek32(clk_qspi_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_qspi_refclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_qspi_refclk_() {
     let mut v = peek32(clk_qspi_refclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_qspi_refclk_ctrl_REG_ADDR, v);
 }
 
@@ -3333,14 +3333,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_qspi_refclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sec_ahb_() {
     let mut v = peek32(clk_sec_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sec_ahb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sec_ahb_() {
     let mut v = peek32(clk_sec_ahb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sec_ahb_ctrl_REG_ADDR, v);
 }
 
@@ -3352,14 +3352,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sec_ahb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_aes_clk_() {
     let mut v = peek32(clk_aes_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_aes_clk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_aes_clk_() {
     let mut v = peek32(clk_aes_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_aes_clk_ctrl_REG_ADDR, v);
 }
 
@@ -3371,14 +3371,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_aes_clk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_sha_clk_() {
     let mut v = peek32(clk_sha_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_sha_clk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_sha_clk_() {
     let mut v = peek32(clk_sha_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_sha_clk_ctrl_REG_ADDR, v);
 }
 
@@ -3390,14 +3390,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_sha_clk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_pka_clk_() {
     let mut v = peek32(clk_pka_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_pka_clk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_pka_clk_() {
     let mut v = peek32(clk_pka_clk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_pka_clk_ctrl_REG_ADDR, v);
 }
 
@@ -3409,14 +3409,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_pka_clk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_trng_apb_() {
     let mut v = peek32(clk_trng_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_trng_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_trng_apb_() {
     let mut v = peek32(clk_trng_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_trng_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3428,14 +3428,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_trng_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_otp_apb_() {
     let mut v = peek32(clk_otp_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_otp_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_otp_apb_() {
     let mut v = peek32(clk_otp_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_otp_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3447,14 +3447,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_otp_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart0_apb_() {
     let mut v = peek32(clk_uart0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart0_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart0_apb_() {
     let mut v = peek32(clk_uart0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart0_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3466,14 +3466,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_uart0_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart0_core_() {
     let mut v = peek32(clk_uart0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart0_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart0_core_() {
     let mut v = peek32(clk_uart0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart0_core_ctrl_REG_ADDR, v);
 }
 
@@ -3497,14 +3497,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_uart0_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart1_apb_() {
     let mut v = peek32(clk_uart1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart1_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart1_apb_() {
     let mut v = peek32(clk_uart1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart1_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3516,14 +3516,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_uart1_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart1_core_() {
     let mut v = peek32(clk_uart1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart1_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart1_core_() {
     let mut v = peek32(clk_uart1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart1_core_ctrl_REG_ADDR, v);
 }
 
@@ -3547,14 +3547,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_uart1_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi0_apb_() {
     let mut v = peek32(clk_spi0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi0_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi0_apb_() {
     let mut v = peek32(clk_spi0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi0_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3566,14 +3566,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_spi0_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi0_core_() {
     let mut v = peek32(clk_spi0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi0_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi0_core_() {
     let mut v = peek32(clk_spi0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi0_core_ctrl_REG_ADDR, v);
 }
 
@@ -3597,14 +3597,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_spi0_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi1_apb_() {
     let mut v = peek32(clk_spi1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi1_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi1_apb_() {
     let mut v = peek32(clk_spi1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi1_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3616,14 +3616,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_spi1_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi1_core_() {
     let mut v = peek32(clk_spi1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi1_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi1_core_() {
     let mut v = peek32(clk_spi1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi1_core_ctrl_REG_ADDR, v);
 }
 
@@ -3647,14 +3647,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_spi1_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c0_apb_() {
     let mut v = peek32(clk_i2c0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c0_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c0_apb_() {
     let mut v = peek32(clk_i2c0_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c0_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3666,14 +3666,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_i2c0_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c0_core_() {
     let mut v = peek32(clk_i2c0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c0_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c0_core_() {
     let mut v = peek32(clk_i2c0_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c0_core_ctrl_REG_ADDR, v);
 }
 
@@ -3697,14 +3697,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_i2c0_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c1_apb_() {
     let mut v = peek32(clk_i2c1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c1_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c1_apb_() {
     let mut v = peek32(clk_i2c1_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c1_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3716,14 +3716,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_i2c1_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c1_core_() {
     let mut v = peek32(clk_i2c1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c1_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c1_core_() {
     let mut v = peek32(clk_i2c1_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c1_core_ctrl_REG_ADDR, v);
 }
 
@@ -3747,14 +3747,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_i2c1_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_gpio_apb_() {
     let mut v = peek32(clk_gpio_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_gpio_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_gpio_apb_() {
     let mut v = peek32(clk_gpio_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_gpio_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3766,14 +3766,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_gpio_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart2_apb_() {
     let mut v = peek32(clk_uart2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart2_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart2_apb_() {
     let mut v = peek32(clk_uart2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart2_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3785,14 +3785,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_uart2_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart2_core_() {
     let mut v = peek32(clk_uart2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart2_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart2_core_() {
     let mut v = peek32(clk_uart2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart2_core_ctrl_REG_ADDR, v);
 }
 
@@ -3816,14 +3816,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_uart2_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart3_apb_() {
     let mut v = peek32(clk_uart3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart3_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart3_apb_() {
     let mut v = peek32(clk_uart3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart3_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3835,14 +3835,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_uart3_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_uart3_core_() {
     let mut v = peek32(clk_uart3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_uart3_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_uart3_core_() {
     let mut v = peek32(clk_uart3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_uart3_core_ctrl_REG_ADDR, v);
 }
 
@@ -3866,14 +3866,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_uart3_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi2_apb_() {
     let mut v = peek32(clk_spi2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi2_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi2_apb_() {
     let mut v = peek32(clk_spi2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi2_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3885,14 +3885,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_spi2_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi2_core_() {
     let mut v = peek32(clk_spi2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi2_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi2_core_() {
     let mut v = peek32(clk_spi2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi2_core_ctrl_REG_ADDR, v);
 }
 
@@ -3916,14 +3916,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_spi2_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi3_apb_() {
     let mut v = peek32(clk_spi3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi3_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi3_apb_() {
     let mut v = peek32(clk_spi3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi3_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3935,14 +3935,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_spi3_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_spi3_core_() {
     let mut v = peek32(clk_spi3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_spi3_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_spi3_core_() {
     let mut v = peek32(clk_spi3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_spi3_core_ctrl_REG_ADDR, v);
 }
 
@@ -3966,14 +3966,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_spi3_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c2_apb_() {
     let mut v = peek32(clk_i2c2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c2_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c2_apb_() {
     let mut v = peek32(clk_i2c2_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c2_apb_ctrl_REG_ADDR, v);
 }
 
@@ -3985,14 +3985,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_i2c2_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c2_core_() {
     let mut v = peek32(clk_i2c2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c2_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c2_core_() {
     let mut v = peek32(clk_i2c2_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c2_core_ctrl_REG_ADDR, v);
 }
 
@@ -4016,14 +4016,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_i2c2_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c3_apb_() {
     let mut v = peek32(clk_i2c3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c3_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c3_apb_() {
     let mut v = peek32(clk_i2c3_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c3_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4035,14 +4035,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_i2c3_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_i2c3_core_() {
     let mut v = peek32(clk_i2c3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_i2c3_core_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_i2c3_core_() {
     let mut v = peek32(clk_i2c3_core_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_i2c3_core_ctrl_REG_ADDR, v);
 }
 
@@ -4066,14 +4066,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_i2c3_core_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_wdtimer_apb_() {
     let mut v = peek32(clk_wdtimer_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_wdtimer_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_wdtimer_apb_() {
     let mut v = peek32(clk_wdtimer_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_wdtimer_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4085,14 +4085,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_wdtimer_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_wdt_coreclk_() {
     let mut v = peek32(clk_wdt_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_wdt_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_wdt_coreclk_() {
     let mut v = peek32(clk_wdt_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_wdt_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4116,14 +4116,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_wdt_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer0_coreclk_() {
     let mut v = peek32(clk_timer0_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer0_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer0_coreclk_() {
     let mut v = peek32(clk_timer0_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer0_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4147,14 +4147,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer0_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer1_coreclk_() {
     let mut v = peek32(clk_timer1_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer1_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer1_coreclk_() {
     let mut v = peek32(clk_timer1_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer1_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4178,14 +4178,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer1_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer2_coreclk_() {
     let mut v = peek32(clk_timer2_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer2_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer2_coreclk_() {
     let mut v = peek32(clk_timer2_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer2_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4209,14 +4209,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer2_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer3_coreclk_() {
     let mut v = peek32(clk_timer3_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer3_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer3_coreclk_() {
     let mut v = peek32(clk_timer3_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer3_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4240,14 +4240,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer3_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer4_coreclk_() {
     let mut v = peek32(clk_timer4_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer4_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer4_coreclk_() {
     let mut v = peek32(clk_timer4_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer4_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4271,14 +4271,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer4_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer5_coreclk_() {
     let mut v = peek32(clk_timer5_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer5_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer5_coreclk_() {
     let mut v = peek32(clk_timer5_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer5_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4302,14 +4302,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer5_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_timer6_coreclk_() {
     let mut v = peek32(clk_timer6_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_timer6_coreclk_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_timer6_coreclk_() {
     let mut v = peek32(clk_timer6_coreclk_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_timer6_coreclk_ctrl_REG_ADDR, v);
 }
 
@@ -4333,14 +4333,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_timer6_coreclk_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_vp6intc_apb_() {
     let mut v = peek32(clk_vp6intc_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_vp6intc_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_vp6intc_apb_() {
     let mut v = peek32(clk_vp6intc_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_vp6intc_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4352,14 +4352,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_vp6intc_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_pwm_apb_() {
     let mut v = peek32(clk_pwm_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_pwm_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_pwm_apb_() {
     let mut v = peek32(clk_pwm_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_pwm_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4371,14 +4371,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_pwm_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_msi_apb_() {
     let mut v = peek32(clk_msi_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_msi_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_msi_apb_() {
     let mut v = peek32(clk_msi_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_msi_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4390,14 +4390,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_msi_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_temp_apb_() {
     let mut v = peek32(clk_temp_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_temp_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_temp_apb_() {
     let mut v = peek32(clk_temp_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_temp_apb_ctrl_REG_ADDR, v);
 }
 
@@ -4409,14 +4409,14 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_temp_apb_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_temp_sense_() {
     let mut v = peek32(clk_temp_sense_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_temp_sense_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_temp_sense_() {
     let mut v = peek32(clk_temp_sense_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_temp_sense_ctrl_REG_ADDR, v);
 }
 
@@ -4440,14 +4440,14 @@ pub fn _GET_CLOCK_DIVIDE_STATUS_clk_temp_sense_() -> u32 {
 pub fn _ENABLE_CLOCK_clk_syserr_apb_() {
     let mut v = peek32(clk_syserr_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x1 & 0x1) << 31;
+    v |= 1 << 31;
     poke32(clk_syserr_apb_ctrl_REG_ADDR, v);
 }
 
 pub fn _DISABLE_CLOCK_clk_syserr_apb_() {
     let mut v = peek32(clk_syserr_apb_ctrl_REG_ADDR);
     v &= !(0x1 << 31);
-    v |= (0x0 & 0x1) << 31;
+    v |= 0 << 31;
     poke32(clk_syserr_apb_ctrl_REG_ADDR, v);
 }
 
