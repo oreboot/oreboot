@@ -7,7 +7,6 @@ pub mod reg;
 pub mod rstgen;
 pub mod syscon;
 
-use core::ptr;
 
 // TODO: There might be a better way to detect whether we are running in QEMU.
 pub fn is_qemu() -> bool {
