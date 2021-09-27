@@ -256,7 +256,7 @@ pub fn _ENABLE_CLOCK_clk_cpundbus_root_() {}
 pub fn _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_cpundbus_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_cpundbus_root_ctrl_REG_ADDR, v);
 }
 
@@ -277,7 +277,7 @@ pub fn _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_pll1_out_() {
 pub fn _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_pll2_out_() {
     let mut v = peek32(clk_cpundbus_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x3 & 0x3) << 24;
+    v |= 3 << 24;
     poke32(clk_cpundbus_root_ctrl_REG_ADDR, v);
 }
 
@@ -291,7 +291,7 @@ pub fn _ENABLE_CLOCK_clk_dla_root_() {}
 pub fn _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_dla_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_dla_root_ctrl_REG_ADDR, v);
 }
 
@@ -319,7 +319,7 @@ pub fn _ENABLE_CLOCK_clk_dsp_root_() {}
 pub fn _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_dsp_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_dsp_root_ctrl_REG_ADDR, v);
 }
 
@@ -340,7 +340,7 @@ pub fn _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll1_out_() {
 pub fn _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll2_out_() {
     let mut v = peek32(clk_dsp_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x3 & 0x3) << 24;
+    v |= 3 << 24;
     poke32(clk_dsp_root_ctrl_REG_ADDR, v);
 }
 
@@ -354,7 +354,7 @@ pub fn _ENABLE_CLOCK_clk_gmacusb_root_() {}
 pub fn _SWITCH_CLOCK_clk_gmacusb_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_gmacusb_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_gmacusb_root_ctrl_REG_ADDR, v);
 }
 
@@ -424,7 +424,7 @@ pub fn _ENABLE_CLOCK_clk_vin_root_() {}
 pub fn _SWITCH_CLOCK_clk_vin_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_vin_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_vin_root_ctrl_REG_ADDR, v);
 }
 
@@ -452,7 +452,7 @@ pub fn _ENABLE_CLOCK_clk_vout_root_() {}
 pub fn _SWITCH_CLOCK_clk_vout_root_SOURCE_clk_osc_aud_() {
     let mut v = peek32(clk_vout_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_vout_root_ctrl_REG_ADDR, v);
 }
 
@@ -511,7 +511,7 @@ pub fn _ENABLE_CLOCK_clk_cdechifi4_root_() {}
 pub fn _SWITCH_CLOCK_clk_cdechifi4_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_cdechifi4_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_cdechifi4_root_ctrl_REG_ADDR, v);
 }
 
@@ -539,7 +539,7 @@ pub fn _ENABLE_CLOCK_clk_cdec_root_() {}
 pub fn _SWITCH_CLOCK_clk_cdec_root_SOURCE_clk_osc_sys_() {
     let mut v = peek32(clk_cdec_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_cdec_root_ctrl_REG_ADDR, v);
 }
 
@@ -567,7 +567,7 @@ pub fn _ENABLE_CLOCK_clk_voutbus_root_() {}
 pub fn _SWITCH_CLOCK_clk_voutbus_root_SOURCE_clk_osc_aud_() {
     let mut v = peek32(clk_voutbus_root_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_voutbus_root_ctrl_REG_ADDR, v);
 }
 
@@ -1769,7 +1769,7 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_ddrc0_() -> u32 {
 pub fn _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrosc_div2_() {
     let mut v = peek32(clk_ddrc0_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_ddrc0_ctrl_REG_ADDR, v);
 }
 
@@ -1790,7 +1790,7 @@ pub fn _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrpll_div4_() {
 pub fn _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrpll_div8_() {
     let mut v = peek32(clk_ddrc0_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x3 & 0x3) << 24;
+    v |= 3 << 24;
     poke32(clk_ddrc0_ctrl_REG_ADDR, v);
 }
 
@@ -1821,7 +1821,7 @@ pub fn _GET_CLOCK_ENABLE_STATUS_clk_ddrc1_() -> u32 {
 pub fn _SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrosc_div2_() {
     let mut v = peek32(clk_ddrc1_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_ddrc1_ctrl_REG_ADDR, v);
 }
 
@@ -1842,7 +1842,7 @@ pub fn _SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrpll_div4_() {
 pub fn _SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrpll_div8_() {
     let mut v = peek32(clk_ddrc1_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x3 & 0x3) << 24;
+    v |= 3 << 24;
     poke32(clk_ddrc1_ctrl_REG_ADDR, v);
 }
 
@@ -3018,7 +3018,7 @@ pub fn _ENABLE_CLOCK_clk_gmac_tx_() {}
 pub fn _SWITCH_CLOCK_clk_gmac_tx_SOURCE_clk_gmac_gtxclk_() {
     let mut v = peek32(clk_gmac_tx_ctrl_REG_ADDR);
     v &= !(0x3 << 24);
-    v |= (0x0 & 0x3) << 24;
+    v |= 0 << 24;
     poke32(clk_gmac_tx_ctrl_REG_ADDR, v);
 }
 

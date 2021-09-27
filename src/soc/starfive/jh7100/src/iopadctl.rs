@@ -156,8 +156,7 @@ pub fn _SET_SYSCON_REG_register0_SCFG_gpio_pad_ctrl_0(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register0_SCFG_gpio_pad_ctrl_0() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register0_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register0_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register1_SCFG_gpio_pad_ctrl_1(v: u32)  {
@@ -168,8 +167,7 @@ pub fn _SET_SYSCON_REG_register1_SCFG_gpio_pad_ctrl_1(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register1_SCFG_gpio_pad_ctrl_1() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register1_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register1_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register2_SCFG_gpio_pad_ctrl_2(v: u32)  {
@@ -180,8 +178,7 @@ pub fn _SET_SYSCON_REG_register2_SCFG_gpio_pad_ctrl_2(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register2_SCFG_gpio_pad_ctrl_2() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register2_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register2_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register3_SCFG_gpio_pad_ctrl_3(v: u32)  {
@@ -192,8 +189,7 @@ pub fn _SET_SYSCON_REG_register3_SCFG_gpio_pad_ctrl_3(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register3_SCFG_gpio_pad_ctrl_3() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register3_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register3_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register4_SCFG_gpio_pad_ctrl_4(v: u32)  {
@@ -204,8 +200,7 @@ pub fn _SET_SYSCON_REG_register4_SCFG_gpio_pad_ctrl_4(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register4_SCFG_gpio_pad_ctrl_4() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register4_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register4_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register5_SCFG_gpio_pad_ctrl_5(v: u32)  {
@@ -216,8 +211,7 @@ pub fn _SET_SYSCON_REG_register5_SCFG_gpio_pad_ctrl_5(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register5_SCFG_gpio_pad_ctrl_5() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register5_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register5_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register6_SCFG_gpio_pad_ctrl_6(v: u32)  {
@@ -228,8 +222,7 @@ pub fn _SET_SYSCON_REG_register6_SCFG_gpio_pad_ctrl_6(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register6_SCFG_gpio_pad_ctrl_6() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register6_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register6_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register7_SCFG_gpio_pad_ctrl_7(v: u32)  {
@@ -240,8 +233,7 @@ pub fn _SET_SYSCON_REG_register7_SCFG_gpio_pad_ctrl_7(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register7_SCFG_gpio_pad_ctrl_7() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register7_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register7_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register8_SCFG_gpio_pad_ctrl_8(v: u32)  {
@@ -252,8 +244,7 @@ pub fn _SET_SYSCON_REG_register8_SCFG_gpio_pad_ctrl_8(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register8_SCFG_gpio_pad_ctrl_8() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register8_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register8_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register9_SCFG_gpio_pad_ctrl_9(v: u32)  {
@@ -264,8 +255,7 @@ pub fn _SET_SYSCON_REG_register9_SCFG_gpio_pad_ctrl_9(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register9_SCFG_gpio_pad_ctrl_9() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register9_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register9_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register10_SCFG_gpio_pad_ctrl_10(v: u32)  {
@@ -276,8 +266,7 @@ pub fn _SET_SYSCON_REG_register10_SCFG_gpio_pad_ctrl_10(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register10_SCFG_gpio_pad_ctrl_10() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register10_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register10_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register11_SCFG_gpio_pad_ctrl_11(v: u32)  {
@@ -288,8 +277,7 @@ pub fn _SET_SYSCON_REG_register11_SCFG_gpio_pad_ctrl_11(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register11_SCFG_gpio_pad_ctrl_11() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register11_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register11_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register12_SCFG_gpio_pad_ctrl_12(v: u32)  {
@@ -300,8 +288,7 @@ pub fn _SET_SYSCON_REG_register12_SCFG_gpio_pad_ctrl_12(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register12_SCFG_gpio_pad_ctrl_12() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register12_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register12_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register13_SCFG_gpio_pad_ctrl_13(v: u32)  {
@@ -312,8 +299,7 @@ pub fn _SET_SYSCON_REG_register13_SCFG_gpio_pad_ctrl_13(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register13_SCFG_gpio_pad_ctrl_13() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register13_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register13_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register14_SCFG_gpio_pad_ctrl_14(v: u32)  {
@@ -324,8 +310,7 @@ pub fn _SET_SYSCON_REG_register14_SCFG_gpio_pad_ctrl_14(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register14_SCFG_gpio_pad_ctrl_14() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register14_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register14_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register15_SCFG_gpio_pad_ctrl_15(v: u32)  {
@@ -336,8 +321,7 @@ pub fn _SET_SYSCON_REG_register15_SCFG_gpio_pad_ctrl_15(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register15_SCFG_gpio_pad_ctrl_15() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register15_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register15_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register16_SCFG_gpio_pad_ctrl_16(v: u32)  {
@@ -348,8 +332,7 @@ pub fn _SET_SYSCON_REG_register16_SCFG_gpio_pad_ctrl_16(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register16_SCFG_gpio_pad_ctrl_16() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register16_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register16_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register17_SCFG_gpio_pad_ctrl_17(v: u32)  {
@@ -360,8 +343,7 @@ pub fn _SET_SYSCON_REG_register17_SCFG_gpio_pad_ctrl_17(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register17_SCFG_gpio_pad_ctrl_17() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register17_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register17_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register18_SCFG_gpio_pad_ctrl_18(v: u32)  {
@@ -372,8 +354,7 @@ pub fn _SET_SYSCON_REG_register18_SCFG_gpio_pad_ctrl_18(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register18_SCFG_gpio_pad_ctrl_18() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register18_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register18_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register19_SCFG_gpio_pad_ctrl_19(v: u32)  {
@@ -384,8 +365,7 @@ pub fn _SET_SYSCON_REG_register19_SCFG_gpio_pad_ctrl_19(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register19_SCFG_gpio_pad_ctrl_19() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register19_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register19_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register20_SCFG_gpio_pad_ctrl_20(v: u32)  {
@@ -396,8 +376,7 @@ pub fn _SET_SYSCON_REG_register20_SCFG_gpio_pad_ctrl_20(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register20_SCFG_gpio_pad_ctrl_20() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register20_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register20_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register21_SCFG_gpio_pad_ctrl_21(v: u32)  {
@@ -408,8 +387,7 @@ pub fn _SET_SYSCON_REG_register21_SCFG_gpio_pad_ctrl_21(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register21_SCFG_gpio_pad_ctrl_21() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register21_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register21_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register22_SCFG_gpio_pad_ctrl_22(v: u32)  {
@@ -420,8 +398,7 @@ pub fn _SET_SYSCON_REG_register22_SCFG_gpio_pad_ctrl_22(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register22_SCFG_gpio_pad_ctrl_22() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register22_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register22_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register23_SCFG_gpio_pad_ctrl_23(v: u32)  {
@@ -432,8 +409,7 @@ pub fn _SET_SYSCON_REG_register23_SCFG_gpio_pad_ctrl_23(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register23_SCFG_gpio_pad_ctrl_23() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register23_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register23_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register24_SCFG_gpio_pad_ctrl_24(v: u32)  {
@@ -444,8 +420,7 @@ pub fn _SET_SYSCON_REG_register24_SCFG_gpio_pad_ctrl_24(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register24_SCFG_gpio_pad_ctrl_24() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register24_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register24_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register25_SCFG_gpio_pad_ctrl_25(v: u32)  {
@@ -456,8 +431,7 @@ pub fn _SET_SYSCON_REG_register25_SCFG_gpio_pad_ctrl_25(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register25_SCFG_gpio_pad_ctrl_25() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register25_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register25_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register26_SCFG_gpio_pad_ctrl_26(v: u32)  {
@@ -468,8 +442,7 @@ pub fn _SET_SYSCON_REG_register26_SCFG_gpio_pad_ctrl_26(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register26_SCFG_gpio_pad_ctrl_26() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register26_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register26_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register27_SCFG_gpio_pad_ctrl_27(v: u32)  {
@@ -480,8 +453,7 @@ pub fn _SET_SYSCON_REG_register27_SCFG_gpio_pad_ctrl_27(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register27_SCFG_gpio_pad_ctrl_27() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register27_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register27_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register28_SCFG_gpio_pad_ctrl_28(v: u32)  {
@@ -492,8 +464,7 @@ pub fn _SET_SYSCON_REG_register28_SCFG_gpio_pad_ctrl_28(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register28_SCFG_gpio_pad_ctrl_28() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register28_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register28_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register29_SCFG_gpio_pad_ctrl_29(v: u32)  {
@@ -504,8 +475,7 @@ pub fn _SET_SYSCON_REG_register29_SCFG_gpio_pad_ctrl_29(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register29_SCFG_gpio_pad_ctrl_29() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register29_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register29_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register30_SCFG_gpio_pad_ctrl_30(v: u32)  {
@@ -516,8 +486,7 @@ pub fn _SET_SYSCON_REG_register30_SCFG_gpio_pad_ctrl_30(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register30_SCFG_gpio_pad_ctrl_30() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register30_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register30_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register31_SCFG_gpio_pad_ctrl_31(v: u32)  {
@@ -528,8 +497,7 @@ pub fn _SET_SYSCON_REG_register31_SCFG_gpio_pad_ctrl_31(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register31_SCFG_gpio_pad_ctrl_31() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register31_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register31_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register32_SCFG_funcshare_pad_ctrl_0(v: u32)  {
@@ -540,8 +508,7 @@ pub fn _SET_SYSCON_REG_register32_SCFG_funcshare_pad_ctrl_0(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register32_SCFG_funcshare_pad_ctrl_0() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register32_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register32_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register33_SCFG_funcshare_pad_ctrl_1(v: u32)  {
@@ -552,8 +519,7 @@ pub fn _SET_SYSCON_REG_register33_SCFG_funcshare_pad_ctrl_1(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register33_SCFG_funcshare_pad_ctrl_1() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register33_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register33_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register34_SCFG_funcshare_pad_ctrl_2(v: u32)  {
@@ -564,8 +530,7 @@ pub fn _SET_SYSCON_REG_register34_SCFG_funcshare_pad_ctrl_2(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register34_SCFG_funcshare_pad_ctrl_2() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register34_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register34_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register35_SCFG_funcshare_pad_ctrl_3(v: u32)  {
@@ -576,8 +541,7 @@ pub fn _SET_SYSCON_REG_register35_SCFG_funcshare_pad_ctrl_3(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register35_SCFG_funcshare_pad_ctrl_3() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register35_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register35_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register36_SCFG_funcshare_pad_ctrl_4(v: u32)  {
@@ -588,8 +552,7 @@ pub fn _SET_SYSCON_REG_register36_SCFG_funcshare_pad_ctrl_4(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register36_SCFG_funcshare_pad_ctrl_4() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register36_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register36_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register37_SCFG_funcshare_pad_ctrl_5(v: u32)  {
@@ -600,8 +563,7 @@ pub fn _SET_SYSCON_REG_register37_SCFG_funcshare_pad_ctrl_5(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register37_SCFG_funcshare_pad_ctrl_5() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register37_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register37_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register38_SCFG_funcshare_pad_ctrl_6(v: u32)  {
@@ -612,8 +574,7 @@ pub fn _SET_SYSCON_REG_register38_SCFG_funcshare_pad_ctrl_6(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register38_SCFG_funcshare_pad_ctrl_6() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register38_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register38_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register39_SCFG_funcshare_pad_ctrl_7(v: u32)  {
@@ -624,8 +585,7 @@ pub fn _SET_SYSCON_REG_register39_SCFG_funcshare_pad_ctrl_7(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register39_SCFG_funcshare_pad_ctrl_7() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register39_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register39_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register40_SCFG_funcshare_pad_ctrl_8(v: u32)  {
@@ -636,8 +596,7 @@ pub fn _SET_SYSCON_REG_register40_SCFG_funcshare_pad_ctrl_8(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register40_SCFG_funcshare_pad_ctrl_8() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register40_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register40_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register41_SCFG_funcshare_pad_ctrl_9(v: u32)  {
@@ -648,8 +607,7 @@ pub fn _SET_SYSCON_REG_register41_SCFG_funcshare_pad_ctrl_9(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register41_SCFG_funcshare_pad_ctrl_9() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register41_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register41_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register42_SCFG_funcshare_pad_ctrl_10(v: u32)  {
@@ -660,8 +618,7 @@ pub fn _SET_SYSCON_REG_register42_SCFG_funcshare_pad_ctrl_10(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register42_SCFG_funcshare_pad_ctrl_10() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register42_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register42_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register43_SCFG_funcshare_pad_ctrl_11(v: u32)  {
@@ -672,8 +629,7 @@ pub fn _SET_SYSCON_REG_register43_SCFG_funcshare_pad_ctrl_11(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register43_SCFG_funcshare_pad_ctrl_11() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register43_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register43_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register44_SCFG_funcshare_pad_ctrl_12(v: u32)  {
@@ -684,8 +640,7 @@ pub fn _SET_SYSCON_REG_register44_SCFG_funcshare_pad_ctrl_12(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register44_SCFG_funcshare_pad_ctrl_12() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register44_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register44_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register45_SCFG_funcshare_pad_ctrl_13(v: u32)  {
@@ -696,8 +651,7 @@ pub fn _SET_SYSCON_REG_register45_SCFG_funcshare_pad_ctrl_13(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register45_SCFG_funcshare_pad_ctrl_13() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register45_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register45_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register46_SCFG_funcshare_pad_ctrl_14(v: u32)  {
@@ -708,8 +662,7 @@ pub fn _SET_SYSCON_REG_register46_SCFG_funcshare_pad_ctrl_14(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register46_SCFG_funcshare_pad_ctrl_14() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register46_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register46_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register47_SCFG_funcshare_pad_ctrl_15(v: u32)  {
@@ -720,8 +673,7 @@ pub fn _SET_SYSCON_REG_register47_SCFG_funcshare_pad_ctrl_15(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register47_SCFG_funcshare_pad_ctrl_15() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register47_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register47_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register48_SCFG_funcshare_pad_ctrl_16(v: u32)  {
@@ -732,8 +684,7 @@ pub fn _SET_SYSCON_REG_register48_SCFG_funcshare_pad_ctrl_16(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register48_SCFG_funcshare_pad_ctrl_16() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register48_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register48_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register49_SCFG_funcshare_pad_ctrl_17(v: u32)  {
@@ -744,8 +695,7 @@ pub fn _SET_SYSCON_REG_register49_SCFG_funcshare_pad_ctrl_17(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register49_SCFG_funcshare_pad_ctrl_17() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register49_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register49_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register50_SCFG_funcshare_pad_ctrl_18(v: u32)  {
@@ -756,8 +706,7 @@ pub fn _SET_SYSCON_REG_register50_SCFG_funcshare_pad_ctrl_18(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register50_SCFG_funcshare_pad_ctrl_18() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register50_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register50_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register51_SCFG_funcshare_pad_ctrl_19(v: u32)  {
@@ -768,8 +717,7 @@ pub fn _SET_SYSCON_REG_register51_SCFG_funcshare_pad_ctrl_19(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register51_SCFG_funcshare_pad_ctrl_19() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register51_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register51_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register52_SCFG_funcshare_pad_ctrl_20(v: u32)  {
@@ -780,8 +728,7 @@ pub fn _SET_SYSCON_REG_register52_SCFG_funcshare_pad_ctrl_20(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register52_SCFG_funcshare_pad_ctrl_20() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register52_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register52_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register53_SCFG_funcshare_pad_ctrl_21(v: u32)  {
@@ -792,8 +739,7 @@ pub fn _SET_SYSCON_REG_register53_SCFG_funcshare_pad_ctrl_21(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register53_SCFG_funcshare_pad_ctrl_21() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register53_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register53_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register54_SCFG_funcshare_pad_ctrl_22(v: u32)  {
@@ -804,8 +750,7 @@ pub fn _SET_SYSCON_REG_register54_SCFG_funcshare_pad_ctrl_22(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register54_SCFG_funcshare_pad_ctrl_22() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register54_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register54_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register55_SCFG_funcshare_pad_ctrl_23(v: u32)  {
@@ -816,8 +761,7 @@ pub fn _SET_SYSCON_REG_register55_SCFG_funcshare_pad_ctrl_23(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register55_SCFG_funcshare_pad_ctrl_23() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register55_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register55_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register56_SCFG_funcshare_pad_ctrl_24(v: u32)  {
@@ -828,8 +772,7 @@ pub fn _SET_SYSCON_REG_register56_SCFG_funcshare_pad_ctrl_24(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register56_SCFG_funcshare_pad_ctrl_24() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register56_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register56_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register57_SCFG_funcshare_pad_ctrl_25(v: u32)  {
@@ -840,8 +783,7 @@ pub fn _SET_SYSCON_REG_register57_SCFG_funcshare_pad_ctrl_25(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register57_SCFG_funcshare_pad_ctrl_25() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register57_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register57_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register58_SCFG_funcshare_pad_ctrl_26(v: u32)  {
@@ -852,8 +794,7 @@ pub fn _SET_SYSCON_REG_register58_SCFG_funcshare_pad_ctrl_26(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register58_SCFG_funcshare_pad_ctrl_26() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register58_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register58_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register59_SCFG_funcshare_pad_ctrl_27(v: u32)  {
@@ -864,8 +805,7 @@ pub fn _SET_SYSCON_REG_register59_SCFG_funcshare_pad_ctrl_27(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register59_SCFG_funcshare_pad_ctrl_27() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register59_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register59_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register60_SCFG_funcshare_pad_ctrl_28(v: u32)  {
@@ -876,8 +816,7 @@ pub fn _SET_SYSCON_REG_register60_SCFG_funcshare_pad_ctrl_28(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register60_SCFG_funcshare_pad_ctrl_28() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register60_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register60_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register61_SCFG_funcshare_pad_ctrl_29(v: u32)  {
@@ -888,8 +827,7 @@ pub fn _SET_SYSCON_REG_register61_SCFG_funcshare_pad_ctrl_29(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register61_SCFG_funcshare_pad_ctrl_29() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register61_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register61_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register62_SCFG_funcshare_pad_ctrl_30(v: u32)  {
@@ -900,8 +838,7 @@ pub fn _SET_SYSCON_REG_register62_SCFG_funcshare_pad_ctrl_30(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register62_SCFG_funcshare_pad_ctrl_30() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register62_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register62_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register63_SCFG_funcshare_pad_ctrl_31(v: u32)  {
@@ -912,8 +849,7 @@ pub fn _SET_SYSCON_REG_register63_SCFG_funcshare_pad_ctrl_31(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register63_SCFG_funcshare_pad_ctrl_31() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register63_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register63_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register64_SCFG_funcshare_pad_ctrl_32(v: u32)  {
@@ -924,8 +860,7 @@ pub fn _SET_SYSCON_REG_register64_SCFG_funcshare_pad_ctrl_32(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register64_SCFG_funcshare_pad_ctrl_32() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register64_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register64_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register65_SCFG_funcshare_pad_ctrl_33(v: u32)  {
@@ -936,8 +871,7 @@ pub fn _SET_SYSCON_REG_register65_SCFG_funcshare_pad_ctrl_33(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register65_SCFG_funcshare_pad_ctrl_33() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register65_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register65_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register66_SCFG_funcshare_pad_ctrl_34(v: u32)  {
@@ -948,8 +882,7 @@ pub fn _SET_SYSCON_REG_register66_SCFG_funcshare_pad_ctrl_34(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register66_SCFG_funcshare_pad_ctrl_34() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register66_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register66_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register67_SCFG_funcshare_pad_ctrl_35(v: u32)  {
@@ -960,8 +893,7 @@ pub fn _SET_SYSCON_REG_register67_SCFG_funcshare_pad_ctrl_35(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register67_SCFG_funcshare_pad_ctrl_35() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register67_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register67_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register68_SCFG_funcshare_pad_ctrl_36(v: u32)  {
@@ -972,8 +904,7 @@ pub fn _SET_SYSCON_REG_register68_SCFG_funcshare_pad_ctrl_36(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register68_SCFG_funcshare_pad_ctrl_36() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register68_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register68_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register69_SCFG_funcshare_pad_ctrl_37(v: u32)  {
@@ -984,8 +915,7 @@ pub fn _SET_SYSCON_REG_register69_SCFG_funcshare_pad_ctrl_37(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register69_SCFG_funcshare_pad_ctrl_37() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register69_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register69_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register70_SCFG_funcshare_pad_ctrl_38(v: u32)  {
@@ -996,8 +926,7 @@ pub fn _SET_SYSCON_REG_register70_SCFG_funcshare_pad_ctrl_38(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register70_SCFG_funcshare_pad_ctrl_38() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register70_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register70_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register71_SCFG_funcshare_pad_ctrl_39(v: u32)  {
@@ -1008,8 +937,7 @@ pub fn _SET_SYSCON_REG_register71_SCFG_funcshare_pad_ctrl_39(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register71_SCFG_funcshare_pad_ctrl_39() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register71_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register71_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register72_SCFG_funcshare_pad_ctrl_40(v: u32)  {
@@ -1020,8 +948,7 @@ pub fn _SET_SYSCON_REG_register72_SCFG_funcshare_pad_ctrl_40(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register72_SCFG_funcshare_pad_ctrl_40() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register72_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register72_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register73_SCFG_funcshare_pad_ctrl_41(v: u32)  {
@@ -1032,8 +959,7 @@ pub fn _SET_SYSCON_REG_register73_SCFG_funcshare_pad_ctrl_41(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register73_SCFG_funcshare_pad_ctrl_41() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register73_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register73_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register74_SCFG_funcshare_pad_ctrl_42(v: u32)  {
@@ -1044,8 +970,7 @@ pub fn _SET_SYSCON_REG_register74_SCFG_funcshare_pad_ctrl_42(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register74_SCFG_funcshare_pad_ctrl_42() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register74_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register74_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register75_SCFG_funcshare_pad_ctrl_43(v: u32)  {
@@ -1056,8 +981,7 @@ pub fn _SET_SYSCON_REG_register75_SCFG_funcshare_pad_ctrl_43(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register75_SCFG_funcshare_pad_ctrl_43() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register75_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register75_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register76_SCFG_funcshare_pad_ctrl_44(v: u32)  {
@@ -1068,8 +992,7 @@ pub fn _SET_SYSCON_REG_register76_SCFG_funcshare_pad_ctrl_44(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register76_SCFG_funcshare_pad_ctrl_44() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register76_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register76_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register77_SCFG_funcshare_pad_ctrl_45(v: u32)  {
@@ -1080,8 +1003,7 @@ pub fn _SET_SYSCON_REG_register77_SCFG_funcshare_pad_ctrl_45(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register77_SCFG_funcshare_pad_ctrl_45() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register77_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register77_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register78_SCFG_funcshare_pad_ctrl_46(v: u32)  {
@@ -1092,8 +1014,7 @@ pub fn _SET_SYSCON_REG_register78_SCFG_funcshare_pad_ctrl_46(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register78_SCFG_funcshare_pad_ctrl_46() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register78_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register78_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register79_SCFG_funcshare_pad_ctrl_47(v: u32)  {
@@ -1104,8 +1025,7 @@ pub fn _SET_SYSCON_REG_register79_SCFG_funcshare_pad_ctrl_47(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register79_SCFG_funcshare_pad_ctrl_47() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register79_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register79_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register80_SCFG_funcshare_pad_ctrl_48(v: u32)  {
@@ -1116,8 +1036,7 @@ pub fn _SET_SYSCON_REG_register80_SCFG_funcshare_pad_ctrl_48(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register80_SCFG_funcshare_pad_ctrl_48() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register80_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register80_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register81_SCFG_funcshare_pad_ctrl_49(v: u32)  {
@@ -1128,8 +1047,7 @@ pub fn _SET_SYSCON_REG_register81_SCFG_funcshare_pad_ctrl_49(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register81_SCFG_funcshare_pad_ctrl_49() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register81_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register81_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register82_SCFG_funcshare_pad_ctrl_50(v: u32)  {
@@ -1140,8 +1058,7 @@ pub fn _SET_SYSCON_REG_register82_SCFG_funcshare_pad_ctrl_50(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register82_SCFG_funcshare_pad_ctrl_50() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register82_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register82_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register83_SCFG_funcshare_pad_ctrl_51(v: u32)  {
@@ -1152,8 +1069,7 @@ pub fn _SET_SYSCON_REG_register83_SCFG_funcshare_pad_ctrl_51(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register83_SCFG_funcshare_pad_ctrl_51() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register83_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register83_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register84_SCFG_funcshare_pad_ctrl_52(v: u32)  {
@@ -1164,8 +1080,7 @@ pub fn _SET_SYSCON_REG_register84_SCFG_funcshare_pad_ctrl_52(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register84_SCFG_funcshare_pad_ctrl_52() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register84_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register84_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register85_SCFG_funcshare_pad_ctrl_53(v: u32)  {
@@ -1176,8 +1091,7 @@ pub fn _SET_SYSCON_REG_register85_SCFG_funcshare_pad_ctrl_53(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register85_SCFG_funcshare_pad_ctrl_53() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register85_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register85_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register86_SCFG_funcshare_pad_ctrl_54(v: u32)  {
@@ -1188,8 +1102,7 @@ pub fn _SET_SYSCON_REG_register86_SCFG_funcshare_pad_ctrl_54(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register86_SCFG_funcshare_pad_ctrl_54() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register86_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register86_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register87_SCFG_funcshare_pad_ctrl_55(v: u32)  {
@@ -1200,8 +1113,7 @@ pub fn _SET_SYSCON_REG_register87_SCFG_funcshare_pad_ctrl_55(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register87_SCFG_funcshare_pad_ctrl_55() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register87_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register87_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register88_SCFG_funcshare_pad_ctrl_56(v: u32)  {
@@ -1212,8 +1124,7 @@ pub fn _SET_SYSCON_REG_register88_SCFG_funcshare_pad_ctrl_56(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register88_SCFG_funcshare_pad_ctrl_56() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register88_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register88_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register89_SCFG_funcshare_pad_ctrl_57(v: u32)  {
@@ -1224,8 +1135,7 @@ pub fn _SET_SYSCON_REG_register89_SCFG_funcshare_pad_ctrl_57(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register89_SCFG_funcshare_pad_ctrl_57() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register89_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register89_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register90_SCFG_funcshare_pad_ctrl_58(v: u32)  {
@@ -1236,8 +1146,7 @@ pub fn _SET_SYSCON_REG_register90_SCFG_funcshare_pad_ctrl_58(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register90_SCFG_funcshare_pad_ctrl_58() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register90_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register90_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register91_SCFG_funcshare_pad_ctrl_59(v: u32)  {
@@ -1248,8 +1157,7 @@ pub fn _SET_SYSCON_REG_register91_SCFG_funcshare_pad_ctrl_59(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register91_SCFG_funcshare_pad_ctrl_59() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register91_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register91_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register92_SCFG_funcshare_pad_ctrl_60(v: u32)  {
@@ -1260,8 +1168,7 @@ pub fn _SET_SYSCON_REG_register92_SCFG_funcshare_pad_ctrl_60(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register92_SCFG_funcshare_pad_ctrl_60() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register92_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register92_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register93_SCFG_funcshare_pad_ctrl_61(v: u32)  {
@@ -1272,8 +1179,7 @@ pub fn _SET_SYSCON_REG_register93_SCFG_funcshare_pad_ctrl_61(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register93_SCFG_funcshare_pad_ctrl_61() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register93_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register93_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register94_SCFG_funcshare_pad_ctrl_62(v: u32)  {
@@ -1284,8 +1190,7 @@ pub fn _SET_SYSCON_REG_register94_SCFG_funcshare_pad_ctrl_62(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register94_SCFG_funcshare_pad_ctrl_62() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register94_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register94_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register95_SCFG_funcshare_pad_ctrl_63(v: u32)  {
@@ -1296,8 +1201,7 @@ pub fn _SET_SYSCON_REG_register95_SCFG_funcshare_pad_ctrl_63(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register95_SCFG_funcshare_pad_ctrl_63() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register95_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register95_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register96_SCFG_funcshare_pad_ctrl_64(v: u32)  {
@@ -1308,8 +1212,7 @@ pub fn _SET_SYSCON_REG_register96_SCFG_funcshare_pad_ctrl_64(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register96_SCFG_funcshare_pad_ctrl_64() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register96_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register96_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register97_SCFG_funcshare_pad_ctrl_65(v: u32)  {
@@ -1320,8 +1223,7 @@ pub fn _SET_SYSCON_REG_register97_SCFG_funcshare_pad_ctrl_65(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register97_SCFG_funcshare_pad_ctrl_65() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register97_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register97_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register98_SCFG_funcshare_pad_ctrl_66(v: u32)  {
@@ -1332,8 +1234,7 @@ pub fn _SET_SYSCON_REG_register98_SCFG_funcshare_pad_ctrl_66(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register98_SCFG_funcshare_pad_ctrl_66() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register98_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register98_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register99_SCFG_funcshare_pad_ctrl_67(v: u32)  {
@@ -1344,8 +1245,7 @@ pub fn _SET_SYSCON_REG_register99_SCFG_funcshare_pad_ctrl_67(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register99_SCFG_funcshare_pad_ctrl_67() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register99_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register99_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register100_SCFG_funcshare_pad_ctrl_68(v: u32)  {
@@ -1356,8 +1256,7 @@ pub fn _SET_SYSCON_REG_register100_SCFG_funcshare_pad_ctrl_68(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register100_SCFG_funcshare_pad_ctrl_68() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register100_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register100_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register101_SCFG_funcshare_pad_ctrl_69(v: u32)  {
@@ -1368,8 +1267,7 @@ pub fn _SET_SYSCON_REG_register101_SCFG_funcshare_pad_ctrl_69(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register101_SCFG_funcshare_pad_ctrl_69() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register101_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register101_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register102_SCFG_funcshare_pad_ctrl_70(v: u32)  {
@@ -1380,8 +1278,7 @@ pub fn _SET_SYSCON_REG_register102_SCFG_funcshare_pad_ctrl_70(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register102_SCFG_funcshare_pad_ctrl_70() -> u32 {
-    let v = peek32(syscon_iopad_ctrl_register102_REG_ADDR);
-    v
+     peek32(syscon_iopad_ctrl_register102_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register103_SCFG_qspi_ioctrl(v: u32)  {

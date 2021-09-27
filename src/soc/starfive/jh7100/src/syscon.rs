@@ -546,8 +546,7 @@ pub fn _SET_SYSCON_REG_SCFG_u74_boot_vect0_low_b32(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_SCFG_u74_boot_vect0_low_b32() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_SCFG_u74_boot_vect0_low_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_SCFG_u74_boot_vect0_low_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_SCFG_u74_boot_vect0_hi_b6(v: u32)  {
@@ -570,8 +569,7 @@ pub fn _SET_SYSCON_REG_SCFG_u74_boot_vect1_low_b32(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_SCFG_u74_boot_vect1_low_b32() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_SCFG_u74_boot_vect1_low_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_SCFG_u74_boot_vect1_low_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_SCFG_u74_boot_vect1_hi_b6(v: u32)  {
@@ -621,8 +619,7 @@ pub fn _SET_SYSCON_REG_register11_SCFG_nbdla_pwrbus_ram_a_pd(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register11_SCFG_nbdla_pwrbus_ram_a_pd() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register11_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register11_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register12_SCFG_nbdla_pwrbus_ram_c_pd(v: u32)  {
@@ -633,8 +630,7 @@ pub fn _SET_SYSCON_REG_register12_SCFG_nbdla_pwrbus_ram_c_pd(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register12_SCFG_nbdla_pwrbus_ram_c_pd() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register12_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register12_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register13_SCFG_nbdla_pwrbus_ram_o_pd(v: u32)  {
@@ -645,8 +641,7 @@ pub fn _SET_SYSCON_REG_register13_SCFG_nbdla_pwrbus_ram_o_pd(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register13_SCFG_nbdla_pwrbus_ram_o_pd() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register13_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register13_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register14_SCFG_nbdla_pwrbus_ram_p_pd(v: u32)  {
@@ -657,8 +652,7 @@ pub fn _SET_SYSCON_REG_register14_SCFG_nbdla_pwrbus_ram_p_pd(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register14_SCFG_nbdla_pwrbus_ram_p_pd() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register14_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register14_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register15_SCFG_nbdla_pwrbus_ram_x_pd(v: u32)  {
@@ -669,8 +663,7 @@ pub fn _SET_SYSCON_REG_register15_SCFG_nbdla_pwrbus_ram_x_pd(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register15_SCFG_nbdla_pwrbus_ram_x_pd() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register15_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register15_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register16_SCFG_nbdla_globclk_ovr_on(v: u32)  {
@@ -831,8 +824,7 @@ pub fn _SET_SYSCON_REG_register26_SCFG_dma1p2p_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register26_SCFG_dma1p2p_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register26_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register26_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register27_SCFG_dmaezMst_sel(v: u32)  {
@@ -843,8 +835,7 @@ pub fn _SET_SYSCON_REG_register27_SCFG_dmaezMst_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register27_SCFG_dmaezMst_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register27_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register27_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register28_SCFG_gmac_phy_intf_sel(v: u32)  {
@@ -887,13 +878,11 @@ pub fn _GET_SYSCON_REG_register29_gmac_tx_ckg_ctrl() -> u32 {
 }
 
 pub fn _GET_SYSCON_REG_SCFG_gmac_timestamp0_ptp() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_SCFG_gmac_timestamp0_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_SCFG_gmac_timestamp0_REG_ADDR)
 }
 
 pub fn _GET_SYSCON_REG_SCFG_gmac_timestamp1_ptp() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_SCFG_gmac_timestamp1_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_SCFG_gmac_timestamp1_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register32_SCFG_gmac_phy_rstn(v: u32)  {
@@ -1111,8 +1100,7 @@ pub fn _SET_SYSCON_REG_register47_e24_reset_vector(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register47_e24_reset_vector() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register47_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register47_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register48_SCFG_qspi_sclk_dlychain_sel(v: u32)  {
@@ -1123,8 +1111,7 @@ pub fn _SET_SYSCON_REG_register48_SCFG_qspi_sclk_dlychain_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register48_SCFG_qspi_sclk_dlychain_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register48_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register48_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register52_SCFG_gmac_rxclk_dlychain_sel(v: u32)  {
@@ -1135,8 +1122,7 @@ pub fn _SET_SYSCON_REG_register52_SCFG_gmac_rxclk_dlychain_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register52_SCFG_gmac_rxclk_dlychain_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register52_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register52_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register49_SCFG_gmac_gtxclk_dlychain_sel(v: u32)  {
@@ -1147,8 +1133,7 @@ pub fn _SET_SYSCON_REG_register49_SCFG_gmac_gtxclk_dlychain_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register49_SCFG_gmac_gtxclk_dlychain_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register49_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register49_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register50_SCFG_sdio0_cclk_dlychain_sel(v: u32)  {
@@ -1159,8 +1144,7 @@ pub fn _SET_SYSCON_REG_register50_SCFG_sdio0_cclk_dlychain_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register50_SCFG_sdio0_cclk_dlychain_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register50_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register50_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register51_SCFG_sdio1_cclk_dlychain_sel(v: u32)  {
@@ -1171,8 +1155,7 @@ pub fn _SET_SYSCON_REG_register51_SCFG_sdio1_cclk_dlychain_sel(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register51_SCFG_sdio1_cclk_dlychain_sel() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register51_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register51_REG_ADDR)
 }
 
 pub fn _SET_SYSCON_REG_register66_SCFG_axi_cache_sel(v: u32)  {
@@ -1764,8 +1747,7 @@ pub fn _SET_SYSCON_REG_register71_SCFG_u74_reset_vector(v: u32)  {
 }
 
 pub fn _GET_SYSCON_REG_register71_SCFG_u74_reset_vector() -> u32 {
-    let v = peek32(syscon_sysmain_ctrl_register71_REG_ADDR);
-    v
+     peek32(syscon_sysmain_ctrl_register71_REG_ADDR)
 }
 
 pub fn _GET_SYSCON_REG_register72_u74_boot_device_sel() -> u32 {
