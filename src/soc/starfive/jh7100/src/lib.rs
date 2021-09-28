@@ -7,7 +7,6 @@ pub mod reg;
 pub mod rstgen;
 pub mod syscon;
 
-
 // TODO: There might be a better way to detect whether we are running in QEMU.
 pub fn is_qemu() -> bool {
     // On hardware, the instruction at 0x1008 is 'lw t1, -4(t0)'.

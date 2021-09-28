@@ -60,7 +60,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dom3ahb_bus_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dom3ahb_bus_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dom3ahb_bus_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1);
     v |= 1;
@@ -74,7 +74,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dom3ahb_bus_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dom3ahb_bus_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dom3ahb_bus_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1);
     v |= 0;
@@ -93,7 +93,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dom7ahb_bus_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dom7ahb_bus_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dom7ahb_bus_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 1 << 1;
@@ -107,7 +107,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dom7ahb_bus_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dom7ahb_bus_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dom7ahb_bus_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 0 << 1;
@@ -126,7 +126,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_u74_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_u74_()  {
+pub fn _ASSERT_RESET_rstgen_rst_u74_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 1 << 2;
@@ -140,7 +140,7 @@ pub fn _ASSERT_RESET_rstgen_rst_u74_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_u74_()  {
+pub fn _CLEAR_RESET_rstgen_rst_u74_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 0 << 2;
@@ -159,7 +159,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_u74_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_u74_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_u74_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 1 << 3;
@@ -173,7 +173,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_u74_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_u74_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_u74_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 0 << 3;
@@ -192,7 +192,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sgdma2p_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 1 << 4;
@@ -206,7 +206,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sgdma2p_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sgdma2p_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 0 << 4;
@@ -225,7 +225,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sgdma2p_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 1 << 5;
@@ -239,7 +239,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sgdma2p_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sgdma2p_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sgdma2p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 0 << 5;
@@ -258,7 +258,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dma2pnoc_aix_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dma2pnoc_aix_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dma2pnoc_aix_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 1 << 6;
@@ -272,7 +272,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dma2pnoc_aix_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dma2pnoc_aix_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dma2pnoc_aix_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 0 << 6;
@@ -291,7 +291,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dla_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dla_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dla_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 1 << 7;
@@ -305,7 +305,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dla_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dla_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dla_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 0 << 7;
@@ -324,7 +324,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dlanoc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dlanoc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dlanoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 1 << 8;
@@ -338,7 +338,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dlanoc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dlanoc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dlanoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 0 << 8;
@@ -357,7 +357,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dla_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dla_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dla_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 1 << 9;
@@ -371,7 +371,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dla_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dla_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dla_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 0 << 9;
@@ -390,7 +390,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_vp6_DReset_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_vp6_DReset_()  {
+pub fn _ASSERT_RESET_rstgen_rst_vp6_DReset_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 1 << 10;
@@ -404,7 +404,7 @@ pub fn _ASSERT_RESET_rstgen_rst_vp6_DReset_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_vp6_DReset_()  {
+pub fn _CLEAR_RESET_rstgen_rst_vp6_DReset_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 0 << 10;
@@ -423,7 +423,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_vp6_Breset_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_vp6_Breset_()  {
+pub fn _ASSERT_RESET_rstgen_rst_vp6_Breset_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 1 << 11;
@@ -437,7 +437,7 @@ pub fn _ASSERT_RESET_rstgen_rst_vp6_Breset_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_vp6_Breset_()  {
+pub fn _CLEAR_RESET_rstgen_rst_vp6_Breset_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 0 << 11;
@@ -456,7 +456,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vp6_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vp6_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vp6_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 1 << 12;
@@ -470,7 +470,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vp6_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vp6_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vp6_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 0 << 12;
@@ -489,7 +489,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vdecbrg_main_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vdecbrg_main_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vdecbrg_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 1 << 13;
@@ -503,7 +503,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vdecbrg_main_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vdecbrg_main_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vdecbrg_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 0 << 13;
@@ -522,7 +522,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vdec_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vdec_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vdec_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 1 << 14;
@@ -536,7 +536,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vdec_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vdec_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vdec_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 0 << 14;
@@ -555,7 +555,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vdec_bclk_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vdec_bclk_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vdec_bclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 1 << 15;
@@ -569,7 +569,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vdec_bclk_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vdec_bclk_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vdec_bclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 0 << 15;
@@ -588,7 +588,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vdec_cclk_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vdec_cclk_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vdec_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 1 << 16;
@@ -602,7 +602,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vdec_cclk_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vdec_cclk_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vdec_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 0 << 16;
@@ -621,7 +621,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vdec_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vdec_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vdec_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 1 << 17;
@@ -635,7 +635,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vdec_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vdec_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vdec_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 0 << 17;
@@ -654,7 +654,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_jpeg_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_jpeg_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_jpeg_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 1 << 18;
@@ -668,7 +668,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_jpeg_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_jpeg_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_jpeg_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 0 << 18;
@@ -687,7 +687,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_jpeg_cclk_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_jpeg_cclk_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_jpeg_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 1 << 19;
@@ -701,7 +701,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_jpeg_cclk_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_jpeg_cclk_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_jpeg_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 0 << 19;
@@ -720,7 +720,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_jpeg_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_jpeg_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_jpeg_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 1 << 20;
@@ -734,7 +734,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_jpeg_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_jpeg_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_jpeg_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 0 << 20;
@@ -753,7 +753,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_jpcgc300_main_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_jpcgc300_main_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_jpcgc300_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 1 << 21;
@@ -767,7 +767,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_jpcgc300_main_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_jpcgc300_main_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_jpcgc300_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 0 << 21;
@@ -786,7 +786,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_gc300_2x_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_gc300_2x_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_gc300_2x_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 1 << 22;
@@ -800,7 +800,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_gc300_2x_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_gc300_2x_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_gc300_2x_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 0 << 22;
@@ -819,7 +819,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_gc300_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_gc300_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_gc300_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 1 << 23;
@@ -833,7 +833,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_gc300_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_gc300_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_gc300_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 0 << 23;
@@ -852,7 +852,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_gc300_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_gc300_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_gc300_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 1 << 24;
@@ -866,7 +866,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_gc300_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_gc300_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_gc300_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 0 << 24;
@@ -885,7 +885,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_venc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_venc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_venc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 1 << 25;
@@ -899,7 +899,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_venc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_venc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_venc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 0 << 25;
@@ -918,7 +918,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vencbrg_main_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vencbrg_main_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vencbrg_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 1 << 26;
@@ -932,7 +932,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vencbrg_main_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vencbrg_main_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vencbrg_main_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 0 << 26;
@@ -951,7 +951,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_venc_bclk_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_venc_bclk_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_venc_bclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 1 << 27;
@@ -965,7 +965,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_venc_bclk_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_venc_bclk_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_venc_bclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 0 << 27;
@@ -984,7 +984,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_venc_cclk_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_venc_cclk_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_venc_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 1 << 28;
@@ -998,7 +998,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_venc_cclk_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_venc_cclk_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_venc_cclk_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 0 << 28;
@@ -1017,7 +1017,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_venc_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_venc_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_venc_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 1 << 29;
@@ -1031,7 +1031,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_venc_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_venc_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_venc_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 0 << 29;
@@ -1050,7 +1050,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_ddrphy_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_ddrphy_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_ddrphy_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 1 << 30;
@@ -1064,7 +1064,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_ddrphy_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_ddrphy_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_ddrphy_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 0 << 30;
@@ -1083,7 +1083,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_noc_rob_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_noc_rob_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_noc_rob_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 1 << 31;
@@ -1097,7 +1097,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_noc_rob_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_noc_rob_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_noc_rob_() {
     let mut v = peek32(rstgen_Software_RESET_assert0_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 0 << 31;
@@ -1116,7 +1116,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_noc_cog_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_noc_cog_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_noc_cog_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1);
     v |= 1;
@@ -1130,7 +1130,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_noc_cog_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_noc_cog_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_noc_cog_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1);
     v |= 0;
@@ -1149,7 +1149,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_hifi4_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_hifi4_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_hifi4_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 1 << 1;
@@ -1163,7 +1163,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_hifi4_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_hifi4_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_hifi4_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 0 << 1;
@@ -1182,7 +1182,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_hifi4noc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_hifi4noc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_hifi4noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 1 << 2;
@@ -1196,7 +1196,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_hifi4noc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_hifi4noc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_hifi4noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 0 << 2;
@@ -1215,7 +1215,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_hifi4_DReset_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_hifi4_DReset_()  {
+pub fn _ASSERT_RESET_rstgen_rst_hifi4_DReset_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 1 << 3;
@@ -1229,7 +1229,7 @@ pub fn _ASSERT_RESET_rstgen_rst_hifi4_DReset_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_hifi4_DReset_()  {
+pub fn _CLEAR_RESET_rstgen_rst_hifi4_DReset_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 0 << 3;
@@ -1248,7 +1248,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_hifi4_Breset_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_hifi4_Breset_()  {
+pub fn _ASSERT_RESET_rstgen_rst_hifi4_Breset_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 1 << 4;
@@ -1262,7 +1262,7 @@ pub fn _ASSERT_RESET_rstgen_rst_hifi4_Breset_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_hifi4_Breset_()  {
+pub fn _CLEAR_RESET_rstgen_rst_hifi4_Breset_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 0 << 4;
@@ -1281,7 +1281,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_usb_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_usb_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_usb_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 1 << 5;
@@ -1295,7 +1295,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_usb_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_usb_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_usb_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 0 << 5;
@@ -1314,7 +1314,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_usbnoc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_usbnoc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_usbnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 1 << 6;
@@ -1328,7 +1328,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_usbnoc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_usbnoc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_usbnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 0 << 6;
@@ -1347,7 +1347,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sgdma1p_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sgdma1p_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sgdma1p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 1 << 7;
@@ -1361,7 +1361,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sgdma1p_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sgdma1p_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sgdma1p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 0 << 7;
@@ -1380,7 +1380,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dma1p_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dma1p_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dma1p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 1 << 8;
@@ -1394,7 +1394,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dma1p_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dma1p_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dma1p_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 0 << 8;
@@ -1413,7 +1413,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_x2c_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_x2c_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_x2c_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 1 << 9;
@@ -1427,7 +1427,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_x2c_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_x2c_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_x2c_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 0 << 9;
@@ -1446,7 +1446,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_nne_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_nne_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_nne_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 1 << 10;
@@ -1460,7 +1460,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_nne_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_nne_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_nne_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 0 << 10;
@@ -1479,7 +1479,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_nne_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_nne_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_nne_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 1 << 11;
@@ -1493,7 +1493,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_nne_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_nne_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_nne_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 0 << 11;
@@ -1512,7 +1512,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_nnenoc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_nnenoc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_nnenoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 1 << 12;
@@ -1526,7 +1526,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_nnenoc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_nnenoc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_nnenoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 0 << 12;
@@ -1545,7 +1545,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dlaslv_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dlaslv_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dlaslv_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 1 << 13;
@@ -1559,7 +1559,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dlaslv_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dlaslv_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dlaslv_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 0 << 13;
@@ -1578,7 +1578,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dspx2c_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dspx2c_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dspx2c_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 1 << 14;
@@ -1592,7 +1592,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dspx2c_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dspx2c_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dspx2c_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 0 << 14;
@@ -1611,7 +1611,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vin_src_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vin_src_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vin_src_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 1 << 15;
@@ -1625,7 +1625,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vin_src_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vin_src_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vin_src_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 0 << 15;
@@ -1644,7 +1644,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_ispslv_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_ispslv_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_ispslv_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 1 << 16;
@@ -1658,7 +1658,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_ispslv_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_ispslv_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_ispslv_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 0 << 16;
@@ -1677,7 +1677,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vin_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vin_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vin_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 1 << 17;
@@ -1691,7 +1691,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vin_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vin_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vin_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 0 << 17;
@@ -1710,7 +1710,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vinnoc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vinnoc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vinnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 1 << 18;
@@ -1724,7 +1724,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vinnoc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vinnoc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vinnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 0 << 18;
@@ -1743,7 +1743,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_isp0_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_isp0_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_isp0_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 1 << 19;
@@ -1757,7 +1757,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_isp0_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_isp0_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_isp0_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 0 << 19;
@@ -1776,7 +1776,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_isp0noc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_isp0noc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_isp0noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 1 << 20;
@@ -1790,7 +1790,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_isp0noc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_isp0noc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_isp0noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 0 << 20;
@@ -1809,7 +1809,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_isp1_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_isp1_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_isp1_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 1 << 21;
@@ -1823,7 +1823,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_isp1_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_isp1_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_isp1_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 0 << 21;
@@ -1842,7 +1842,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_isp1noc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_isp1noc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_isp1noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 1 << 22;
@@ -1856,7 +1856,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_isp1noc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_isp1noc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_isp1noc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 0 << 22;
@@ -1875,7 +1875,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vout_src_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vout_src_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vout_src_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 1 << 23;
@@ -1889,7 +1889,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vout_src_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vout_src_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vout_src_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 0 << 23;
@@ -1908,7 +1908,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_disp_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_disp_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_disp_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 1 << 24;
@@ -1922,7 +1922,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_disp_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_disp_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_disp_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 0 << 24;
@@ -1941,7 +1941,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_dispnoc_axi_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_dispnoc_axi_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_dispnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 1 << 25;
@@ -1955,7 +1955,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_dispnoc_axi_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_dispnoc_axi_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_dispnoc_axi_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 0 << 25;
@@ -1974,7 +1974,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sdio0_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sdio0_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sdio0_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 1 << 26;
@@ -1988,7 +1988,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sdio0_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sdio0_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sdio0_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 0 << 26;
@@ -2007,7 +2007,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sdio1_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sdio1_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sdio1_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 1 << 27;
@@ -2021,7 +2021,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sdio1_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sdio1_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sdio1_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 0 << 27;
@@ -2040,7 +2040,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_gmac_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_gmac_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_gmac_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 1 << 28;
@@ -2054,7 +2054,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_gmac_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_gmac_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_gmac_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 0 << 28;
@@ -2073,7 +2073,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi2ahb_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 1 << 29;
@@ -2087,7 +2087,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi2ahb_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi2ahb_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 0 << 29;
@@ -2106,7 +2106,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi2ahb_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 1 << 30;
@@ -2120,7 +2120,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi2ahb_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi2ahb_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi2ahb_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 0 << 30;
@@ -2139,7 +2139,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_ezmaster_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_ezmaster_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_ezmaster_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 1 << 31;
@@ -2153,7 +2153,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_ezmaster_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_ezmaster_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_ezmaster_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert1_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 0 << 31;
@@ -2172,7 +2172,7 @@ pub fn _READ_RESET_STATUS_rstgen_rst_e24_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rst_e24_()  {
+pub fn _ASSERT_RESET_rstgen_rst_e24_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1);
     v |= 1;
@@ -2186,7 +2186,7 @@ pub fn _ASSERT_RESET_rstgen_rst_e24_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rst_e24_()  {
+pub fn _CLEAR_RESET_rstgen_rst_e24_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1);
     v |= 0;
@@ -2205,7 +2205,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_qspi_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_qspi_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_qspi_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 1 << 1;
@@ -2219,7 +2219,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_qspi_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_qspi_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_qspi_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 0 << 1;
@@ -2238,7 +2238,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_qspi_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_qspi_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_qspi_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 1 << 2;
@@ -2252,7 +2252,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_qspi_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_qspi_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_qspi_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 0 << 2;
@@ -2271,7 +2271,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_qspi_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_qspi_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_qspi_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 1 << 3;
@@ -2285,7 +2285,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_qspi_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_qspi_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_qspi_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 0 << 3;
@@ -2304,7 +2304,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sec_ahb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sec_ahb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sec_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 1 << 4;
@@ -2318,7 +2318,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sec_ahb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sec_ahb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sec_ahb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 0 << 4;
@@ -2337,7 +2337,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_aes_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_aes_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_aes_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 1 << 5;
@@ -2351,7 +2351,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_aes_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_aes_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_aes_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 0 << 5;
@@ -2370,7 +2370,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_pka_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_pka_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_pka_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 1 << 6;
@@ -2384,7 +2384,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_pka_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_pka_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_pka_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 0 << 6;
@@ -2403,7 +2403,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_sha_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_sha_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_sha_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 1 << 7;
@@ -2417,7 +2417,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_sha_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_sha_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_sha_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 0 << 7;
@@ -2436,7 +2436,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_trng_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_trng_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_trng_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 1 << 8;
@@ -2450,7 +2450,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_trng_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_trng_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_trng_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 0 << 8;
@@ -2469,7 +2469,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_otp_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_otp_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_otp_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 1 << 9;
@@ -2483,7 +2483,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_otp_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_otp_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_otp_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 0 << 9;
@@ -2502,7 +2502,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart0_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart0_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 1 << 10;
@@ -2516,7 +2516,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart0_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart0_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 0 << 10;
@@ -2535,7 +2535,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart0_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart0_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 1 << 11;
@@ -2549,7 +2549,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart0_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart0_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 0 << 11;
@@ -2568,7 +2568,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart1_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart1_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 1 << 12;
@@ -2582,7 +2582,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart1_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart1_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 0 << 12;
@@ -2601,7 +2601,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart1_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart1_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 1 << 13;
@@ -2615,7 +2615,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart1_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart1_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 0 << 13;
@@ -2634,7 +2634,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi0_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi0_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 1 << 14;
@@ -2648,7 +2648,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi0_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi0_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 0 << 14;
@@ -2667,7 +2667,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi0_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi0_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 1 << 15;
@@ -2681,7 +2681,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi0_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi0_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 0 << 15;
@@ -2700,7 +2700,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi1_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi1_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 1 << 16;
@@ -2714,7 +2714,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi1_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi1_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 0 << 16;
@@ -2733,7 +2733,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi1_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi1_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 1 << 17;
@@ -2747,7 +2747,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi1_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi1_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 0 << 17;
@@ -2766,7 +2766,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c0_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c0_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 1 << 18;
@@ -2780,7 +2780,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c0_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c0_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c0_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 18);
     v |= 0 << 18;
@@ -2799,7 +2799,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c0_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c0_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 1 << 19;
@@ -2813,7 +2813,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c0_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c0_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c0_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 19);
     v |= 0 << 19;
@@ -2832,7 +2832,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c1_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c1_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 1 << 20;
@@ -2846,7 +2846,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c1_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c1_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c1_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 20);
     v |= 0 << 20;
@@ -2865,7 +2865,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c1_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c1_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 1 << 21;
@@ -2879,7 +2879,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c1_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c1_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c1_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 21);
     v |= 0 << 21;
@@ -2898,7 +2898,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_gpio_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_gpio_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_gpio_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 1 << 22;
@@ -2912,7 +2912,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_gpio_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_gpio_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_gpio_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 22);
     v |= 0 << 22;
@@ -2931,7 +2931,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart2_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart2_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 1 << 23;
@@ -2945,7 +2945,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart2_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart2_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 23);
     v |= 0 << 23;
@@ -2964,7 +2964,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart2_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart2_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 1 << 24;
@@ -2978,7 +2978,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart2_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart2_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 24);
     v |= 0 << 24;
@@ -2997,7 +2997,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart3_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart3_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 1 << 25;
@@ -3011,7 +3011,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart3_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart3_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 25);
     v |= 0 << 25;
@@ -3030,7 +3030,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_uart3_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_uart3_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_uart3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 1 << 26;
@@ -3044,7 +3044,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_uart3_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_uart3_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_uart3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 26);
     v |= 0 << 26;
@@ -3063,7 +3063,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi2_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi2_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 1 << 27;
@@ -3077,7 +3077,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi2_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi2_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 27);
     v |= 0 << 27;
@@ -3096,7 +3096,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi2_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi2_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 1 << 28;
@@ -3110,7 +3110,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi2_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi2_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 28);
     v |= 0 << 28;
@@ -3129,7 +3129,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi3_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi3_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 1 << 29;
@@ -3143,7 +3143,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi3_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi3_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 29);
     v |= 0 << 29;
@@ -3162,7 +3162,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_spi3_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_spi3_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_spi3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 1 << 30;
@@ -3176,7 +3176,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_spi3_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_spi3_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_spi3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 30);
     v |= 0 << 30;
@@ -3195,7 +3195,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c2_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c2_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 1 << 31;
@@ -3209,7 +3209,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c2_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c2_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c2_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert2_REG_ADDR);
     v &= !(0x1 << 31);
     v |= 0 << 31;
@@ -3228,7 +3228,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c2_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c2_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1);
     v |= 1;
@@ -3242,7 +3242,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c2_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c2_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c2_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1);
     v |= 0;
@@ -3261,7 +3261,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c3_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c3_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 1 << 1;
@@ -3275,7 +3275,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c3_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c3_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c3_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 1);
     v |= 0 << 1;
@@ -3294,7 +3294,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_i2c3_core_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_i2c3_core_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_i2c3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 1 << 2;
@@ -3308,7 +3308,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_i2c3_core_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_i2c3_core_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_i2c3_core_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 2);
     v |= 0 << 2;
@@ -3327,7 +3327,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_wdtimer_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_wdtimer_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_wdtimer_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 1 << 3;
@@ -3341,7 +3341,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_wdtimer_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_wdtimer_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_wdtimer_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 3);
     v |= 0 << 3;
@@ -3360,7 +3360,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_wdt_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_wdt_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_wdt_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 1 << 4;
@@ -3374,7 +3374,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_wdt_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_wdt_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_wdt_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 4);
     v |= 0 << 4;
@@ -3393,7 +3393,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer0_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer0_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer0_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 1 << 5;
@@ -3407,7 +3407,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer0_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer0_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer0_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 5);
     v |= 0 << 5;
@@ -3426,7 +3426,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer1_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer1_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer1_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 1 << 6;
@@ -3440,7 +3440,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer1_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer1_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer1_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 6);
     v |= 0 << 6;
@@ -3459,7 +3459,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer2_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer2_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer2_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 1 << 7;
@@ -3473,7 +3473,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer2_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer2_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer2_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 7);
     v |= 0 << 7;
@@ -3492,7 +3492,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer3_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer3_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer3_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 1 << 8;
@@ -3506,7 +3506,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer3_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer3_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer3_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 8);
     v |= 0 << 8;
@@ -3525,7 +3525,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer4_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer4_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer4_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 1 << 9;
@@ -3539,7 +3539,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer4_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer4_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer4_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 9);
     v |= 0 << 9;
@@ -3558,7 +3558,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer5_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer5_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer5_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 1 << 10;
@@ -3572,7 +3572,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer5_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer5_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer5_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 10);
     v |= 0 << 10;
@@ -3591,7 +3591,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_timer6_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_timer6_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_timer6_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 1 << 11;
@@ -3605,7 +3605,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_timer6_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_timer6_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_timer6_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 11);
     v |= 0 << 11;
@@ -3624,7 +3624,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_vp6intc_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_vp6intc_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_vp6intc_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 1 << 12;
@@ -3638,7 +3638,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_vp6intc_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_vp6intc_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_vp6intc_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 12);
     v |= 0 << 12;
@@ -3657,7 +3657,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_pwm_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_pwm_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_pwm_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 1 << 13;
@@ -3671,7 +3671,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_pwm_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_pwm_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_pwm_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 13);
     v |= 0 << 13;
@@ -3690,7 +3690,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_msi_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_msi_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_msi_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 1 << 14;
@@ -3704,7 +3704,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_msi_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_msi_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_msi_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 14);
     v |= 0 << 14;
@@ -3723,7 +3723,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_temp_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_temp_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_temp_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 1 << 15;
@@ -3737,7 +3737,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_temp_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_temp_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_temp_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 15);
     v |= 0 << 15;
@@ -3756,7 +3756,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_temp_sense_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_temp_sense_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_temp_sense_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 1 << 16;
@@ -3770,7 +3770,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_temp_sense_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_temp_sense_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_temp_sense_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 16);
     v |= 0 << 16;
@@ -3789,7 +3789,7 @@ pub fn _READ_RESET_STATUS_rstgen_rstn_syserr_apb_() -> u32 {
     v & 0x1
 }
 
-pub fn _ASSERT_RESET_rstgen_rstn_syserr_apb_()  {
+pub fn _ASSERT_RESET_rstgen_rstn_syserr_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 1 << 17;
@@ -3803,7 +3803,7 @@ pub fn _ASSERT_RESET_rstgen_rstn_syserr_apb_()  {
     }
 }
 
-pub fn _CLEAR_RESET_rstgen_rstn_syserr_apb_()  {
+pub fn _CLEAR_RESET_rstgen_rstn_syserr_apb_() {
     let mut v = peek32(rstgen_Software_RESET_assert3_REG_ADDR);
     v &= !(0x1 << 17);
     v |= 0 << 17;
