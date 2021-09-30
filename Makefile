@@ -34,7 +34,6 @@ firsttime:
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
 	git submodule update --init --recursive
-	(cd 3rdparty/fspsdk && patch -p1 < ../0001-Change-FLASH_BASE-to-0xFFF80000.patch)
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
