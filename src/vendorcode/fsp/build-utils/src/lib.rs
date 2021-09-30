@@ -62,7 +62,7 @@ pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Res
             "-o",
             "Build/QemuFspPkg/DEBUG_GCC5/FV",
             "-n",
-            "QEMUFSP.fd"
+            "QEMUFSP.fd",
         ])
         .current_dir(root_path.join("3rdparty/fspsdk"))
         .status()
