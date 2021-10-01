@@ -3,11 +3,11 @@
 
 MONITOR ?= "/dev/null"
 
-run: mainboard $(IMAGE)
+run: mainboard
 	$(QEMU) $(QEMU_FLAGS)
 
-trace: mainboard $(IMAGE)
+trace: mainboard
 	$(QEMU) -d guest_errors,in_asm,int $(QEMU_FLAGS)
 
-gdb: mainboard $(IMAGE)
+gdb: mainboard
 	$(QEMU) -d guest_errors -s -S $(QEMU_FLAGS)
