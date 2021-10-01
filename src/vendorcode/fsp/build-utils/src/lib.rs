@@ -44,7 +44,10 @@ pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Res
     //   - FSP-M starts at 0xFFF95000 (gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase = 0x00015000)
     //   - FSP-T starts at 0xFFFB7000 (gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase = 0x00037000)
     //
-    // We may want to parse the file to derive these, or at the very least verify they match up...
+    // TODO: We may want to parse the file to derive these, or at the very least verify they match
+    // up. Also, there's a slight difference in the binary output between changing FLASH_BASE and
+    // building vs. building and rebasing. It appears not to be impactful, and we're assuming that
+    // using FSP tools unpatched is the safer of the two.
     let status = Command::new("python3")
         .args(&[
             "IntelFsp2Pkg/Tools/SplitFspBin.py",
