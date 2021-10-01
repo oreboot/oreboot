@@ -6,7 +6,7 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "UP Sqared";
+        board-name = "UP Squared";
         category = "aaeon";
         board-url = "https://up-board.org/upsquared/";
         areas {

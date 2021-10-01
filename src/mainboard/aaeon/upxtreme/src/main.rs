@@ -14,8 +14,8 @@ use uart::i8250::I8250;
 
 use rpp_procedural::preprocess_asm;
 
-use fsp_common as fsp;
 use fsp_cfl_sys as fsp64;
+use fsp_common as fsp;
 
 // Unless we mention the fsp_cfl_sys crate, the compiler will optimize it away. This crate
 // introduces the symbols containing the FSP binary which get picked up by the linker.
