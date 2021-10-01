@@ -4,6 +4,7 @@
 MONITOR ?= "/dev/null"
 
 run: $(IMAGE)
+	make mainboard
 	$(QEMU) $(QEMU_FLAGS)
 
 trace: $(IMAGE)
