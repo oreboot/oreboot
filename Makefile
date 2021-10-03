@@ -18,7 +18,7 @@ help:
 # Turn them all off. We'll turn them back on to try to get to working tests.
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
-TOOLCHAIN_VER := $(shell grep channel rust-toolchain | grep -e '".*"' -o)
+TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
 STACK_SIZES_VER := 0.4.0
 
