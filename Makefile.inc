@@ -7,7 +7,7 @@ TOOLS_DIR   = $(TOP)/tools
 # does not work so well if you are cross-compiling. This shell one-liner gets
 # the target of the current system which can be passed via --target for
 # building tools
-TOOLS_TARGET = $(shell rustc -Z unstable-options --print target-spec-json | sed -n -e 's/.*llvm-target": "\([^"]\+\).*/\1/p')
+TOOLS_TARGET = $(shell rustc -vV | sed -n -E 's/host: (.+)/\1/p')
 CARGO_FLAGS = --verbose
 
 # Override variables depending on the build.
