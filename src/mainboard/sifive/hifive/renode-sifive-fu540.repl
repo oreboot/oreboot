@@ -1,0 +1,3 @@
+// L2LIM is missing in upstream renode
+l2lim: Memory.MappedMemory @ sysbus 0x08000000
+    size: 0x02000000
