@@ -26,7 +26,10 @@ global_asm!(preprocess_asm!(
 ));
 
 // FIXME: Could/should this be Result<>?
-fn call_fspm(fsp_base: usize, fspm_entry: usize) -> (*mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE, fsp64::EFI_STATUS) {
+fn call_fspm(
+    fsp_base: usize,
+    fspm_entry: usize,
+) -> (*mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE, fsp64::EFI_STATUS) {
     // TODO: This struct has to be aligned to 4.
     // mut because we can't make the assumption FSP won't modify it.
     let mut fspm_upd = fsp64::FSPM_UPD {
@@ -67,8 +70,11 @@ fn call_fspm(fsp_base: usize, fspm_entry: usize) -> (*mut fsp64::EFI_HOB_HANDOFF
             HobListPtr: *mut *mut core::ffi::c_void,
         ) -> fsp64::EFI_STATUS;
         let fspm = core::mem::transmute::<usize, FspMemoryInit>(fsp_base + fspm_entry);
-        let status = fspm(core::mem::transmute(&mut fspm_upd), core::mem::transmute(&mut hob_list_ptr_ptr));
-        return (hob_list_ptr, status)
+        let status = fspm(
+            core::mem::transmute(&mut fspm_upd),
+            core::mem::transmute(&mut hob_list_ptr_ptr),
+        );
+        return (hob_list_ptr, status);
     };
 }
 
@@ -158,15 +164,29 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         write!(w, "Could not find FspSiliconInit\r\n").unwrap();
     }
 
-    write!(w, "Header.HobType = {}\r\n", unsafe { (*hob_list_ptr).Header.HobType });
-    write!(w, "Header.HobLength = {}\r\n", unsafe { (*hob_list_ptr).Header.HobLength });
+    write!(w, "Header.HobType = {}\r\n", unsafe {
+        (*hob_list_ptr).Header.HobType
+    });
+    write!(w, "Header.HobLength = {}\r\n", unsafe {
+        (*hob_list_ptr).Header.HobLength
+    });
     write!(w, "Version = {}\r\n", unsafe { (*hob_list_ptr).Version });
     write!(w, "BootMode = {}\r\n", unsafe { (*hob_list_ptr).BootMode });
-    write!(w, "EfiMemoryTop = {}\r\n", unsafe { (*hob_list_ptr).EfiMemoryTop });
-    write!(w, "EfiMemoryBottom = {}\r\n", unsafe { (*hob_list_ptr).EfiMemoryBottom });
-    write!(w, "EfiFreeMemoryTop = {}\r\n", unsafe { (*hob_list_ptr).EfiFreeMemoryTop });
-    write!(w, "EfiFreeMemoryBottom = {}\r\n", unsafe { (*hob_list_ptr).EfiFreeMemoryBottom });
-    write!(w, "EfiEndOfHobList = {}\r\n", unsafe { (*hob_list_ptr).EfiEndOfHobList });
+    write!(w, "EfiMemoryTop = {}\r\n", unsafe {
+        (*hob_list_ptr).EfiMemoryTop
+    });
+    write!(w, "EfiMemoryBottom = {}\r\n", unsafe {
+        (*hob_list_ptr).EfiMemoryBottom
+    });
+    write!(w, "EfiFreeMemoryTop = {}\r\n", unsafe {
+        (*hob_list_ptr).EfiFreeMemoryTop
+    });
+    write!(w, "EfiFreeMemoryBottom = {}\r\n", unsafe {
+        (*hob_list_ptr).EfiFreeMemoryBottom
+    });
+    write!(w, "EfiEndOfHobList = {}\r\n", unsafe {
+        (*hob_list_ptr).EfiEndOfHobList
+    });
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
