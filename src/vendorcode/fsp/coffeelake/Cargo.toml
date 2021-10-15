@@ -1,12 +1,12 @@
 [package]
-name = "fsp-coffeelake-sys"
+name = "fsp-cfl-sys"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2018"
 
 [dependencies]
-# TODO: Revert to `efi = "0.x.y"` once changes are published.
-efi = { git = "https://github.com/gurry/efi", default-features = false }
+cty = "0.2.1"
 
 [build-dependencies]
 bindgen = "0.58.1"
+build-utils = { path = "../build-utils" }

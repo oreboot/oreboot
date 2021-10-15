@@ -6,9 +6,9 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "UP Squared";
+        board-name = "UP Xtreme";
         category = "aaeon";
-        board-url = "https://up-board.org/upsquared/";
+        board-url = "https://up-board.org/up-xtreme/";
         areas {
             area@0 {
                 description = "RamPayload DTFS A";

@@ -1,12 +1,18 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
-
-// Types from the ffi crate are used instead of the generated ones.
-#[allow(unused_imports)]
-use efi::ffi::{
-    BOOLEAN, CHAR16, CHAR8, EFI_GUID, EFI_GUID as GUID, INT16, INT32, INT64, INT8, UINT16, UINT32,
-    UINT64, UINT8, UINTN,
-};
+#![no_std]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+// Don't mangle as this is referenced from a linker script to place in a specific location in
+// flash.
+macro_rules! blob_macro {
+    () => {
+        include_bytes!(concat!(env!("OUT_DIR"), "/", "FSP.fd"))
+    };
+}
+#[no_mangle]
+#[used]
+#[link_section = ".fspblob"]
+static FSP_BLOB: [u8; blob_macro!().len()] = *blob_macro!();
