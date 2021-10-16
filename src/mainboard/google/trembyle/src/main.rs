@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -34,7 +34,7 @@ use wrappers::DoD;
 use core::ptr;
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
-global_asm!(include_str!("bootblock.S"));
+global_asm!(include_str!("bootblock.S"), options(att_syntax));
 
 fn poke32(a: u32, v: u32) -> () {
     let y = a as *mut u32;
@@ -56,15 +56,16 @@ fn peek8(a: u32) -> u8 {
 
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {
-    llvm_asm!("outl %eax, %dx" :: "{dx}"(port), "{al}"(val));
+    asm!("outl %eax, %dx", in("eax") val, in("dx") port, options(att_syntax));
 }
 
 /// Read 32 bits from port
 unsafe fn inl(port: u16) -> u32 {
     let ret: u32;
-    llvm_asm!("inl %dx, %eax" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
-    return ret;
+    asm!("inl %dx, %eax", in("dx") port, out("eax") ret, options(att_syntax));
+    ret
 }
+
 fn peek32(a: u32) -> u32 {
     let y = a as *const u32;
     unsafe { ptr::read_volatile(y) }

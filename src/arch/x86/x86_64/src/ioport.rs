@@ -7,14 +7,16 @@ use model::*;
 
 /// Write 8 bits to port
 unsafe fn outb(port: u16, val: u8) {
-    llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
+    asm!("outb %al, %dx", in("al") val, in("dx") port, options(att_syntax));
+    // llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
 }
 
 // Read 8 bits from port
 fn inb(port: u16) -> u8 {
     let ret: u8;
     unsafe {
-        llvm_asm!("inb %dx, %al" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
+        asm!("inb %dx, %al", in("dx") port, out("al") ret, options(att_syntax));
+        // llvm_asm!("inb %dx, %al" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
     }
     ret
 }

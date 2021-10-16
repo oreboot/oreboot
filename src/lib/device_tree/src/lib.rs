@@ -308,19 +308,19 @@ pub fn infer_type(data: &[u8]) -> Type {
         if i == data.len() - 1 && data[i] == 0 {
             match core::str::from_utf8(&data[..data.len() - 1]) {
                 Ok(ret) => return Type::String(ret),
-                Err(_e) => {}
+                Err(_e) => (),
             }
         }
     }
     if data.len() == 4 {
-        return Type::U32(BigEndian::read_u32(&data));
+        return Type::U32(BigEndian::read_u32(data));
     }
     if data.len() == 8 {
-        return Type::U64(BigEndian::read_u64(&data));
+        return Type::U64(BigEndian::read_u64(data));
     }
     Type::PropEncodedArray(data)
 }
 
 fn is_print(c: u8) -> bool {
-    0x20 <= c && c < 0x7f
+    (0x20..0x7f).contains(&c)
 }

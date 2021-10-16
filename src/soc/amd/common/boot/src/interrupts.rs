@@ -1,6 +1,6 @@
 fn outb(port: u16, val: u8) {
     unsafe {
-        llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
+        asm!("outb %al, %dx", in("al") val, in("dx") port, options(att_syntax));
     }
 }
 

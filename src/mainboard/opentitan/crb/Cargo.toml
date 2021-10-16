@@ -13,7 +13,7 @@ payloads = { path = "../../../../payloads"}
 soc = { path = "../../../soc/opentitan/earlgrey" }
 wrappers = { path = "../../../drivers/wrappers"}
 
-register = "0.3.2"
+tock-registers = "0.7.0"
 static-ref = "0.1.1"
 
 [dependencies.uart]

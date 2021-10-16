@@ -32,7 +32,7 @@
 #define MTRR_FIX_4K_E8000               0x26d
 #define MTRR_FIX_4K_F0000               0x26e
 #define MTRR_FIX_4K_F8000               0x26f
-#define MTRR_CAP_MSR			0x0fe	
+#define MTRR_CAP_MSR			0x0fe
 //#define MTRR_PHYS_BASE(reg)		(0x200 + 2 * (reg))
 //#define MTRR_PHYS_MASK(reg)		(MTRR_PHYS_BASE(reg) + 1)
 #define MTRR_DEF_TYPE_MSR		0x2ff

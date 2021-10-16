@@ -866,7 +866,8 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e6e0008 as u32; /*"    ldr   r0, =0x1e6e0008"*/
-                r1 = 0x2003000F as u32; /*"    ldr   r1, =0x2003000F                        /* VGA */"*/
+                r1 = 0x2003000F as u32; /*"    ldr   r1, =0x2003000F                        /* VGA */
+"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e6e0038 as u32; /*"    ldr   r0, =0x1e6e0038                        @ disable all DRAM requests except CPU during PHY init"*/
@@ -2688,7 +2689,8 @@ pub fn ram(w: &mut print::WriteTo) -> () {
                     poke(r1, r0); /*"    str   r1, [r0]"*/
 
                     r0 = 0x1e6e0054 as u32; /*"    ldr   r0, =0x1e6e0054"*/
-                    r1 = CONFIG_DRAM_ECC_SIZE as u32; /*"    ldr   r1, =CONFIG_DRAM_ECC_SIZE              /* ECC protected memory size */"*/
+                    r1 = CONFIG_DRAM_ECC_SIZE as u32; /*"    ldr   r1, =CONFIG_DRAM_ECC_SIZE              /* ECC protected memory size */
+"*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
 
                     r0 = 0x1e6e007C as u32; /*"    ldr   r0, =0x1e6e007C"*/

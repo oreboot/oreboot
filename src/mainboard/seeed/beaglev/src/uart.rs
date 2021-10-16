@@ -4,8 +4,7 @@
 #![allow(dead_code)]
 
 use core::ptr;
-use model::Driver;
-use model::Result;
+use model::{Driver, Result, NOT_IMPLEMENTED};
 // This is a temporary hack until the board works, at which point we'll use
 // the real drivers.
 
@@ -135,11 +134,11 @@ fn serial_in(reg: u32) -> u32 {
     peek32(uartbase + (reg << 2))
 }
 
-fn serial_out(reg: u32, v: u32) -> () {
+fn serial_out(reg: u32, v: u32) {
     poke32(uartbase + (reg << 2), v);
 }
 
-pub fn uart_init() -> () {
+pub fn uart_init() {
     let divisor = (UART_CLK / UART_BUADRATE_32MCLK_115200) >> 4;
 
     let lcr_cache = serial_in(REG_LCR);
@@ -193,7 +192,7 @@ fn x8(data: u8) {
     x4(data & 0xf);
 }
 
-pub fn putc(c: char) -> () {
+pub fn putc(c: char) {
     loop {
         let lsr = serial_in(REG_LSR) & LSR_THRE;
         if lsr != 0 {
@@ -224,6 +223,14 @@ impl Driver for UART {
         self.base = uartbase;
         uart_init();
         Ok(())
+    }
+
+    fn ctl(&mut self, _: consts::DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, _data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {

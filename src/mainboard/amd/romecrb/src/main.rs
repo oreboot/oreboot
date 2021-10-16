@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -11,7 +11,6 @@ use core::panic::PanicInfo;
 use cpu::model::amd_family_id;
 use cpu::model::amd_model_id;
 use model::Driver;
-use print;
 use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
 use soc::SOC;
@@ -29,7 +28,7 @@ use x86_64::registers::model_specific::Msr;
 
 use core::ptr;
 
-fn poke32(a: u32, v: u32) -> () {
+fn poke32(a: u32, v: u32) {
     let y = a as *mut u32;
     unsafe {
         ptr::write_volatile(y, v);
@@ -41,7 +40,7 @@ fn peek32(a: u32) -> u32 {
     unsafe { ptr::read_volatile(y) }
 }
 
-fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
+fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) {
     let got = smn_read(reg);
     write!(w, "{:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
     if got == want {
@@ -52,7 +51,7 @@ fn smnhack(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
     write!(w, "Try 2: {:x}: got {:x}, want {:x}\r\n", reg, got, want).unwrap();
 }
 
-fn smngotwant(w: &mut impl core::fmt::Write, reg: u32, want: u32) -> () {
+fn smngotwant(w: &mut impl core::fmt::Write, reg: u32, want: u32) {
     let got = smn_read(reg);
     write!(w, "{:x}: GOT {:x}, WANT {:x}\r\n", reg, got, want).unwrap();
 }

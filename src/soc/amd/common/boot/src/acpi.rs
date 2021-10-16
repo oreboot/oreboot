@@ -258,12 +258,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
         local_interrupt: 1,
         ..Default::default()
     };
-    write(
-        w,
-        local_x2apic_nmi,
-        madt_local_x2apic_nmi_offset,
-        0 as usize,
-    );
+    write(w, local_x2apic_nmi, madt_local_x2apic_nmi_offset, 0);
 
     // I/O APICs
     let io_apic = AcpiMadtIoApic {
@@ -272,7 +267,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
             length: size_of::<AcpiMadtIoApic>() as u8,
         },
         id: 0xf0,
-        address: 0xFEC0_0000 as u32,
+        address: 0xFEC0_0000_u32,
         global_irq_base: 0,
         ..Default::default()
     };
@@ -290,7 +285,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
         globalirq: 2,
         flags: 0, /* polarity and trigger mode = 0 */
     };
-    write(w, isor, madt_local_isor_offset, 0 as usize);
+    write(w, isor, madt_local_isor_offset, 0);
 
     write!(w, "Second ISOR\r\n").unwrap();
     let isor = AcpiMadtInterruptOverride {
@@ -303,7 +298,7 @@ pub fn setup_acpi_tables(w: &mut impl core::fmt::Write, start: usize) -> usize {
         globalirq: 9,
         flags: 0xf, /* polarity and trigger mode = 3 */
     };
-    write(w, isor, madt_local_isor_offset, 1 as usize);
+    write(w, isor, madt_local_isor_offset, 1);
 
     write!(
         w,

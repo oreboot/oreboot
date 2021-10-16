@@ -1,8 +1,6 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
+#![feature(asm, lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
-#![deny(warnings)]
 
 const PAGE_SIZE: usize = 4096;
 use rpp_procedural::preprocess_asm;
@@ -68,41 +66,39 @@ impl X86Util {
     }
 }
 
-global_asm!(preprocess_asm!("src/mode_switch.S"));
+global_asm!(preprocess_asm!("src/mode_switch.S"), options(att_syntax));
 
 pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
         // See: https://github.com/rust-lang/rust/issues/28728
-        unsafe { llvm_asm!("hlt" :::: "volatile") }
+        unsafe { asm!("hlt") }
     }
 }
 
 pub fn fence() {
-    unsafe { llvm_asm!("nop" :::: "volatile") }
+    unsafe { asm!("nop") }
 }
 
 pub fn nop() {
-    unsafe { llvm_asm!("nop" :::: "volatile") }
+    unsafe { asm!("nop") }
 }
 
 pub fn enable_sse() {
+    let mut cr0: u64;
+    let mut cr4: u64;
     unsafe {
-        llvm_asm!(
-            r#"
-            movq %cr0, %rax
-            /* CR0.EM=0: disable emulation, otherwise SSE instruction cause #UD */
-            andw $$0xFFFB, %ax
-            /* CR0.MP=1: enable monitoring coprocessor */
-            orw $$0x0002, %ax
-            movq %rax, %cr0
+        asm!("movq %cr0, %rax", out("rax") cr0, options(att_syntax));
+        /* CR0.EM=0: disable emulation, otherwise SSE instruction cause #UD */
+        cr0 &= 0xFFFF_FFFB;
+        cr0 |= 0x2; /* CR0.MP=1: enable monitoring coprocessor */
+        asm!("movq %rax, %cr0", in("rax") cr0, options(att_syntax));
 
-            movq %cr4, %rax
-            /* CR4.OSFXSR=1: Operating System Support for FXSAVE and FXRSTOR instructions */
-            /* CR4.OSXMMEXCPT=1: Operating System Support for Unmasked SIMD Floating-Point Exceptions */
-            orw $$0x0600, %ax
-            movq %rax, %cr4"#
-            ::: "rax" : "volatile")
+        asm!("movq %cr4, %rax", out("rax") cr4, options(att_syntax));
+        /* CR4.OSFXSR=1: Operating System Support for FXSAVE and FXRSTOR instructions */
+        /* CR4.OSXMMEXCPT=1: Operating System Support for Unmasked SIMD Floating-Point Exceptions */
+        cr4 |= 0x0600;
+        asm!("movq %rax, %cr4", in("rax") cr4, options(att_syntax));
     }
 }
 

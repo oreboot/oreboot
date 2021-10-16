@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #![no_std]
-#![feature(const_in_array_repeat_expressions)]
+// #![feature(const_in_array_repeat_expressions)]
 
 use heapless::consts::U256;
 use heapless::Vec;

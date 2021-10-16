@@ -209,10 +209,11 @@ where
         }
 
         // Iterate through files.
-        while {
+        let res = {
             index = (index + 7) & !7; // align to 8 bytes
             index < fv_end
-        } {
+        };
+        if res {
             let ffs_base = index;
 
             // Check if the header is empty.
@@ -300,10 +301,11 @@ where
             index += ffs_header_size;
 
             // Iterate through sections.
-            while {
+            let res = {
                 index = (index + 3) & !3; // align to 4 bytes
                 index < ffs_end
-            } {
+            };
+            if res {
                 let sec_base = index;
                 let sec_common: EFI_COMMON_SECTION_HEADER =
                     unsafe { core::ptr::read(data[sec_base..].as_ptr() as *const _) };
@@ -335,13 +337,7 @@ where
                     },
                     slice_data(sec_base + sec_header_size, sec_end, sec_end)?,
                 );
-
-                // Skip to next section.
-                index = sec_end;
             }
-
-            // Skip to next file.
-            index = ffs_end;
         }
 
         // Skip to next FV.

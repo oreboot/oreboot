@@ -3,6 +3,7 @@
 use crate::PAGE_SIZE;
 use core::intrinsics::copy;
 use core::mem::{size_of, transmute};
+use core::ptr;
 use model::{Driver, Result};
 use wrappers::{Memory, SectionReader};
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
@@ -193,7 +194,7 @@ impl BzImage {
         // check magic numbers
         if header.boot_flag != MAGIC_AA55 {
             let i = header.boot_flag;
-            let p = unsafe { &header.boot_flag };
+            let p = ptr::addr_of!(header.boot_flag) as u16;
             writeln!(
                 w,
                 "boot flag is {:x}, not {:x}, at {:x}, \r\n",
@@ -204,7 +205,7 @@ impl BzImage {
         }
         if header.header != HDRS {
             let i = header.header;
-            let p = unsafe { &header.header };
+            let p = ptr::addr_of!(header.header) as u32;
             writeln!(w, "header.header is {:x}, not {:x} @ {:x} \r\n", i, HDRS, p).unwrap();
             return Err("magic number missing: header.header != 0x53726448");
         }
@@ -216,7 +217,7 @@ impl BzImage {
         }
 
         let mut bp = BootParams::default();
-        bp.hdr = header;
+        bp = BootParams { hdr: header, ..bp };
 
         const SECTOR_SIZE: usize = 512;
         // load kernel
@@ -254,7 +255,7 @@ impl BzImage {
         self.setup_e820_tables(&mut bp);
 
         unsafe {
-            copy(&bp, DTB_ADDR as *mut BootParams, size_of::<BootParams>());
+            copy(&bp, DTB_ADDR as *mut BootParams, 1);
         }
 
         Ok(0)
@@ -324,7 +325,7 @@ mod tests {
             low_mem_size: 0xFFFFFF,
             high_mem_start: 0xFFFF,
             high_mem_size: 0,
-            rom_base: 0xFF_000_000,
+            rom_base: 0xFF00_0000,
             rom_size: 0xAAAA,
             load: 0xAAAA,
             entry: 0xAAAA,

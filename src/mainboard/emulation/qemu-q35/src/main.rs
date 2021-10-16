@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -9,13 +9,13 @@ use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
-use print;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 
-global_asm!(preprocess_asm!(
-    "../../../arch/x86/x86_64/src/bootblock_nomem.S"
-));
+global_asm!(
+    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    options(att_syntax)
+);
 
 use rpp_procedural::preprocess_asm;
 
@@ -35,13 +35,13 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
-        low_mem_size: 0x80_000_000,
-        high_mem_start: 0x1_000_000_000,
+        low_mem_size: 0x8000_0000,
+        high_mem_start: 0x10_0000_0000,
         high_mem_size: 0,
-        rom_base: 0xff_000_000,
-        rom_size: 0x1_000_000,
-        load: 0x1_000_000,
-        entry: 0x1_000_200,
+        rom_base: 0xff00_0000,
+        rom_size: 0x100_0000,
+        load: 0x100_0000,
+        entry: 0x100_0200,
     };
 
     payload.load(w).unwrap();

@@ -1,7 +1,7 @@
 use core::fmt::Write;
 use df::*;
 
-fn dfhack(w: &mut impl core::fmt::Write, generating: bool, id: u8, off: u16, val: u32) -> () {
+fn dfhack(w: &mut impl core::fmt::Write, generating: bool, id: u8, off: u16, val: u32) {
     let fun = 0;
     let v = df_read_indirect(0, id, 0, off);
     // When generating, we generate only those that do not match.
@@ -30,7 +30,7 @@ fn dfhack(w: &mut impl core::fmt::Write, generating: bool, id: u8, off: u16, val
     }
 }
 
-pub fn fabric(w: &mut impl core::fmt::Write) -> () {
+pub fn fabric(w: &mut impl core::fmt::Write) {
     // Set generating to true to write rust code to set things.
     let generating = false;
     let v = df_read_indirect(0, 0, 0, 0x0);

@@ -9,7 +9,6 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 use core::ptr;
 use model::Driver;
-use print;
 use uart::i8250::I8250;
 
 use rpp_procedural::preprocess_asm;
@@ -21,9 +20,10 @@ use fsp_qemu_sys as fsp64;
 // introduces the symbols containing the FSP binary which get picked up by the linker.
 extern crate fsp_qemu_sys;
 
-global_asm!(preprocess_asm!(
-    "../../../arch/x86/x86_64/src/bootblock_nomem.S"
-));
+global_asm!(
+    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    options(att_syntax)
+);
 
 fn call_fspm(
     fsp_base: usize,
@@ -210,13 +210,13 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
-        low_mem_size: 0x80_000_000,
-        high_mem_start: 0x1_000_000_000,
+        low_mem_size: 0x8000_0000,
+        high_mem_start: 0x100000_0000,
         high_mem_size: 0,
-        rom_base: 0xff_000_000,
-        rom_size: 0x1_000_000,
-        load: 0x1_000_000,
-        entry: 0x1_000_200,
+        rom_base: 0xff00_0000,
+        rom_size: 0x100_0000,
+        load: 0x100_0000,
+        entry: 0x100_0200,
     };
 
     write!(w, "Running payload\r\n").unwrap();

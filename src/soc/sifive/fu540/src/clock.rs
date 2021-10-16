@@ -23,8 +23,9 @@ use model::*;
 
 use crate::is_qemu;
 use crate::reg;
-use register::mmio::ReadWrite;
-use register::register_bitfields;
+use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::ReadWrite;
 
 #[repr(C)]
 
@@ -90,7 +91,7 @@ register_bitfields! {
         GE OFFSET(5) NUMBITS(1) [
             Reset = 0
         ] // bit 5. Not a typo.
-        ]
+    ]
 }
 
 // There has to be a better way but ...
@@ -99,57 +100,26 @@ register_bitfields! {
 // then match on strings like
 // "ddr", "phy", whatever.
 // Or possibly a varargs of enums. Whatever.
-fn reset_mask(ddr: bool, axi: bool, ahb: bool, phy: bool, ge: bool) -> u32 {
-    // The default is to reset nothing.
-    let m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f);
-    if ddr {
-        m.modify(ResetCtl::DDRCtl.val(0));
-    }
-    if axi {
-        m.modify(ResetCtl::DDRAXI.val(0));
-    }
-    if ahb {
-        m.modify(ResetCtl::DDRAHB.val(0));
-    }
-    if phy {
-        m.modify(ResetCtl::DDRPHY.val(0));
-    }
-    if ge {
-        m.modify(ResetCtl::GE.val(0));
-    }
-    m.get()
-}
-
-fn default_core() -> u32 {
-    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
-    r.modify(PLLCfg0::DivR.val(0));
-    r.modify(PLLCfg0::DivF.val(59));
-    r.modify(PLLCfg0::DivQ.val(2));
-    r.modify(PLLCfg0::Range.val(4));
-    r.modify(PLLCfg0::ByPass.val(0));
-    r.modify(PLLCfg0::FSE.val(1));
-    r.get()
-}
-fn default_ddr() -> u32 {
-    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
-    r.modify(PLLCfg0::DivR.val(0));
-    r.modify(PLLCfg0::DivF.val(55));
-    r.modify(PLLCfg0::DivQ.val(2));
-    r.modify(PLLCfg0::Range.val(4));
-    r.modify(PLLCfg0::ByPass.val(0));
-    r.modify(PLLCfg0::FSE.val(1));
-    r.get()
-}
-fn default_ge() -> u32 {
-    let r = ReadWrite::<u32, PLLCfg0::Register>::new(0);
-    r.modify(PLLCfg0::DivR.val(0));
-    r.modify(PLLCfg0::DivF.val(59));
-    r.modify(PLLCfg0::DivQ.val(5));
-    r.modify(PLLCfg0::Range.val(4));
-    r.modify(PLLCfg0::ByPass.val(0));
-    r.modify(PLLCfg0::FSE.val(1));
-    r.get()
-}
+// fn reset_mask(ddr: bool, axi: bool, ahb: bool, phy: bool, ge: bool) -> u32 {
+//     // The default is to reset nothing.
+//     let m = ReadWrite::<u32, ResetCtl::Register>::new(0x2f); // Why at 0x2F??
+//     if ddr {
+//         m.modify(ResetCtl::DDRCtl.val(0));
+//     }
+//     if axi {
+//         m.modify(ResetCtl::DDRAXI.val(0));
+//     }
+//     if ahb {
+//         m.modify(ResetCtl::DDRAHB.val(0));
+//     }
+//     if phy {
+//         m.modify(ResetCtl::DDRPHY.val(0));
+//     }
+//     if ge {
+//         m.modify(ResetCtl::GE.val(0));
+//     }
+//     m.get()
+// }
 
 pub struct Clock<'a> {
     base: usize,
@@ -239,7 +209,12 @@ impl<'a> Clock<'a> {
     fn init_coreclk(&self) {
         self.clk_sel.write(ClkSel::Sel::HF);
 
-        self.core.set(default_core());
+        self.core.modify(PLLCfg0::DivR.val(0));
+        self.core.modify(PLLCfg0::DivF.val(59));
+        self.core.modify(PLLCfg0::DivQ.val(2));
+        self.core.modify(PLLCfg0::Range.val(4));
+        self.core.modify(PLLCfg0::ByPass.val(0));
+        self.core.modify(PLLCfg0::FSE.val(1));
 
         // Spin until PLL is locked.
         while !self.core.is_set(PLLCfg0::LockRO) {}
@@ -250,8 +225,12 @@ impl<'a> Clock<'a> {
     fn init_pll_ddr(&self) {
         self.ddr1.write(PLLCfg1::Ctrl::Disable);
 
-        self.ddr0.set(default_ddr());
-
+        self.ddr0.modify(PLLCfg0::DivR.val(0));
+        self.ddr0.modify(PLLCfg0::DivF.val(55));
+        self.ddr0.modify(PLLCfg0::DivQ.val(2));
+        self.ddr0.modify(PLLCfg0::Range.val(4));
+        self.ddr0.modify(PLLCfg0::ByPass.val(0));
+        self.ddr0.modify(PLLCfg0::FSE.val(1));
         // Spin until PLL is locked.
         while !self.ddr0.is_set(PLLCfg0::LockRO) {}
 
@@ -261,9 +240,12 @@ impl<'a> Clock<'a> {
 
     fn init_pll_ge(&self) {
         self.ge1.write(PLLCfg1::Ctrl::Disable);
-
-        self.ge0.set(default_ge());
-
+        self.ge0.modify(PLLCfg0::DivR.val(0));
+        self.ge0.modify(PLLCfg0::DivF.val(59));
+        self.ge0.modify(PLLCfg0::DivQ.val(5));
+        self.ge0.modify(PLLCfg0::Range.val(4));
+        self.ge0.modify(PLLCfg0::ByPass.val(0));
+        self.ge0.modify(PLLCfg0::FSE.val(1));
         // Spin until PLL is locked.
         while !self.ge0.is_set(PLLCfg0::LockRO) {}
 
@@ -285,7 +267,8 @@ impl<'a> Clock<'a> {
         self.init_coreclk();
         // put DDR and ethernet in reset
         // This jams them all.
-        self.dev_reset.set(reset_mask(true, true, true, true, true));
+        // self.dev_reset.set(reset_mask(true, true, true, true, true));
+        self.dev_reset.set(0);
 
         self.init_pll_ddr();
 
@@ -295,15 +278,14 @@ impl<'a> Clock<'a> {
 
         // get DDR out of reset
         // TODO: clean this up later
-        self.dev_reset
-            .set(reset_mask(false, true, true, true, true));
-
+        self.dev_reset.modify(ResetCtl::DDRAXI::CLEAR);
+        self.dev_reset.modify(ResetCtl::DDRAHB::CLEAR);
+        self.dev_reset.modify(ResetCtl::DDRPHY::CLEAR);
+        self.dev_reset.modify(ResetCtl::GE::CLEAR);
         // Required to get the '1 full controller clock cycle'.
         arch::fence();
 
-        self.dev_reset
-            .set(reset_mask(false, false, false, false, true));
-
+        self.dev_reset.modify(ResetCtl::GE::CLEAR);
         // Required to get the '1 full controller clock cycle'.
         arch::fence();
 
@@ -315,9 +297,6 @@ impl<'a> Clock<'a> {
             arch::nop();
         }
         self.init_pll_ge();
-        self.dev_reset
-            .set(reset_mask(false, false, false, false, false));
-
         arch::fence();
     }
 }

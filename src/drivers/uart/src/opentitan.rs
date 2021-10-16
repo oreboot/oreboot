@@ -24,8 +24,9 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::register_bitfields;
+use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 
 #[repr(C)]
 pub struct RegisterBlock {
@@ -252,7 +253,7 @@ impl Driver for OpenTitanUART {
             while self.status.is_set(STATUS::TXFULL) {
                 // TODO: This is an extra safety precaution to prevent LLVM from possibly removing
                 //       this loop. Remove if we deem it not necessary.
-                unsafe { llvm_asm!("" :::: "volatile") }
+                unsafe { asm!("nop") }
             }
             self.wdata.set(c.into());
         }

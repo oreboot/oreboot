@@ -14,7 +14,7 @@ soc = { path = "../../../soc/sifive/fu540" }
 wrappers = { path = "../../../drivers/wrappers"}
 
 heapless = "0.4.x"
-register = "0.3.2"
+tock-registers = "0.7.0"
 static-ref = "0.1.1"
 
 [dependencies.uart]

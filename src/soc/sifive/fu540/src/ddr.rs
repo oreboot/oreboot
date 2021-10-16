@@ -6,8 +6,8 @@ use crate::is_qemu;
 use crate::reg;
 use crate::ux00;
 use core::convert::TryInto;
-use register::mmio::ReadWrite;
-use register::register_bitfields;
+use tock_registers::register_bitfields;
+use tock_registers::registers::ReadWrite;
 
 #[repr(C)]
 

@@ -4475,6 +4475,14 @@ impl<'a> Driver for Clock<'a> {
         Ok(())
     }
 
+    fn ctl(&mut self, _: consts::DeviceCtl) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+
+    fn stat(&self, data: &mut [u8]) -> Result<usize> {
+        NOT_IMPLEMENTED
+    }
+    
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         NOT_IMPLEMENTED
     }

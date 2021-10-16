@@ -16,7 +16,8 @@ uefi = { path = "../../../lib/uefi"}
 wrappers = { path = "../../../drivers/wrappers"}
 rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
-register = "0.3.2"
+heapless = "0.4.x"
+tock-registers = "0.7.0"
 static-ref = "0.1.1"
 postcard = "0.4.3"
 
