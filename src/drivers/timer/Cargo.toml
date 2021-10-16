@@ -9,7 +9,7 @@ opt-level = 'z'  # Optimize for size.
 
 [dependencies]
 model = { path = "../model"}
-register = "0.3.2"
+tock-registers = "0.7.0"
 vcell = "0.1.2"
 
 #[features]

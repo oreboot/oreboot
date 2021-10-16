@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -7,9 +7,10 @@
 
 use clock::ClockNode;
 use consts::DeviceCtl;
+use core::hint::spin_loop;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
-use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
 use device_tree::print_fdt;
 use model::Driver;
@@ -37,7 +38,7 @@ static SPIN_LOCK: AtomicUsize = AtomicUsize::new(0);
 
 #[no_mangle]
 pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
-    spin_loop_hint();
+    spin_loop();
     loop {
         // NOPs prevent thrashing the bus.
         for _ in 0..128 {
@@ -96,7 +97,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
             let mut _val: u32 = *(0x30000000 as *const u32);
             // Volatile `and` operation of the value with itself to try and make
             // sure that we don't optimize the read out.
-            llvm_asm!("and $0, $1, $1" : "=r"(_val) : "r"(_val) :: "volatile");
+            asm!("and {0}, {1}, {1}", in(reg) _val, out(reg) _val);
         }
         uart0.pwrite(b"Done\r\n", 0).unwrap();
     }

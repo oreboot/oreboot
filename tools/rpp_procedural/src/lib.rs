@@ -86,7 +86,7 @@ pub fn preprocess_asm(input: TokenStream) -> TokenStream {
     let path_buf = path.to_path_buf();
     let filename = &path_buf.file_name().unwrap().to_str().unwrap();
 
-    let mut out: String = rpp::process_file(&filename, &mut rpp_ctx).unwrap();
+    let mut out: String = rpp::process_file(filename, &mut rpp_ctx).unwrap();
 
     // All files in rpp_ctx.processed_files are relative to `in_file`.
     // To ensure cargo can find the files, output their absolute filepaths.

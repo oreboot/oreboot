@@ -20,9 +20,10 @@ use fsp_qemu32_sys as fsp32;
 // introduces the symbols containing the FSP binary which get picked up by the linker.
 extern crate fsp_qemu32_sys;
 
-global_asm!(preprocess_asm!(
-    "../../../arch/x86/x86_64/src/bootblock_nomem.S"
-));
+global_asm!(
+    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    options(att_syntax)
+);
 
 fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
     // TODO: Is this going to be different for different boards, or

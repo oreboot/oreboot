@@ -14,7 +14,7 @@ impl<D: Driver> DebugPort<D> {
         DebugPort {
             address,
             d,
-            timer: HPET::hpet(),
+            timer: HPET::hpet0(),
         }
     }
 }

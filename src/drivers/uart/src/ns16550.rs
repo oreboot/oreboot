@@ -3,8 +3,10 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields, Field};
+use tock_registers::fields::Field;
+use tock_registers::interfaces::{Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 
 #[repr(C)]
 pub struct RegisterBlock {

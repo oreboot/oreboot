@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -38,9 +38,9 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        entry: 0x80000000 as usize,
-        rom_len: 0 as usize,
-        mem_len: 0 as usize,
+        entry: 0x8000_0000,
+        rom_len: 0,
+        mem_len: 0,
         segs: kernel_segs,
         dtb: 0,
     };

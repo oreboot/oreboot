@@ -76,16 +76,16 @@ const FCH_AOAC_DEV_UART0: u8 = 11;
 const FCH_AOAC_DEV_UART1: u8 = 12;
 const FCH_AOAC_DEV_AMBA: u8 = 17;
 
-unsafe fn poke<T>(a: *mut T, v: T) -> () {
+unsafe fn poke<T>(a: *mut T, v: T) {
     ptr::write_volatile(a, v);
 }
 
 // Read T from VolatileCell A, reset bits from RESET_MASK, set bits from SET_MASK, write result back to address A
-unsafe fn pokers32(a: *mut u32, reset_mask: u32, set_mask: u32) -> () {
+unsafe fn pokers32(a: *mut u32, reset_mask: u32, set_mask: u32) {
     ptr::write_volatile(a, (ptr::read_volatile(a) & !reset_mask) | set_mask);
 }
 
-unsafe fn pokers<T>(a: *const VolatileCell<T>, reset_mask: T, set_mask: T) -> ()
+unsafe fn pokers<T>(a: *const VolatileCell<T>, reset_mask: T, set_mask: T)
 where
     T: Copy + Not<Output = T> + BitAnd<Output = T> + BitOr<Output = T>,
 {
@@ -112,7 +112,7 @@ impl MainBoard {
     }
 }
 
-fn d3_control_power_on(n: u8) -> () {
+fn d3_control_power_on(n: u8) {
     if n < 32 {
         unsafe {
             pokers(
@@ -124,7 +124,7 @@ fn d3_control_power_on(n: u8) -> () {
     }
 }
 
-fn pinctrl(pin: u8, mode: u8) -> () {
+fn pinctrl(pin: u8, mode: u8) {
     // IOMUX (IOMUX total: 256 registers; one u8 per GPIO)
     unsafe {
         pokers(&(*IOMUX_BASE)[usize::from(pin)], 3, mode);
@@ -194,7 +194,7 @@ impl Driver for MainBoard {
     }
 
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
-        return Ok(0);
+        Ok(0)
     }
 
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {

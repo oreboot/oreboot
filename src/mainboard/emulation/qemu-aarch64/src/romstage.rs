@@ -43,8 +43,8 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
         entry: KERNEL_LOAD_ADDR as usize,
-        rom_len: 0 as usize,
-        mem_len: 0 as usize,
+        rom_len: 0,
+        mem_len: 0,
         segs: kernel_segs,
         dtb: DTB_LOAD_ADDR,
     };
@@ -53,14 +53,14 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
 
     let loader_fdt = SectionReader::new(&Memory {}, LOADER_DTB_ADDR, LOADER_DTB_SIZE);
     if let Err(err) = print_fdt(&loader_fdt, w) {
-        write!(w, "error: {}\n", err).expect(err);
+        writeln!(w, "error: {}", err).expect(err);
     }
 
     let kernel_fdt = SectionReader::new(&Memory {}, DTB_LOAD_ADDR, DTB_ROM_SIZE);
     if let Err(err) = print_fdt(&kernel_fdt, w) {
-        write!(w, "error: {}\n", err).expect(err);
+        writeln!(w, "error: {}", err).expect(err);
     }
 
-    write!(w, "Jumping to payload...\r\n\r\n").unwrap();
+    writeln!(w, "Jumping to payload...\r\n\r").unwrap();
     boot_to_kernel(payload.entry, payload.dtb)
 }

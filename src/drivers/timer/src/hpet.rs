@@ -13,8 +13,9 @@
 
 use core::ops;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::register_bitfields;
+use tock_registers::interfaces::Readable;
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 use vcell::VolatileCell;
 
 const HPET0: usize = 0xfed0_0000;
@@ -72,7 +73,7 @@ impl HPET {
     }
 
     // Note: Caller needs to ensure that PMx00000000[HpetEn]=1 (where PM=FED8_0300h)
-    pub fn hpet() -> HPET {
+    pub fn hpet0() -> HPET {
         HPET { base: HPET0 }
     }
 

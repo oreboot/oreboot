@@ -139,10 +139,7 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
             .next()
             .ok_or_else(|| ParsingError::new(String::from("Found no directive"), ctx.line_num))?;
 
-        let value = match parts.next() {
-            Some(part) => part,
-            None => "",
-        };
+        let value = parts.next().unwrap_or("");
 
         let kw = KEYWORDS
             .iter()
@@ -161,7 +158,7 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
 
 pub fn process_str(s: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     // Remove all block comments, we won't need those where we're going.
-    let no_comments = ctx.block_comment_re.replace_all(&s, |caps: &Captures| {
+    let no_comments = ctx.block_comment_re.replace_all(s, |caps: &Captures| {
         // For each block comment preserve newlines. This ensures the line
         // numbers in parsing error messages are correct.
         let line_count = caps[0].matches('\n').count();

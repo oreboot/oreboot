@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
@@ -15,7 +15,10 @@ use uart::i8250::I8250;
 
 use rpp_procedural::preprocess_asm;
 
-global_asm!(preprocess_asm!("../../../arch/x86/x86_64/src/bootblock.S"));
+global_asm!(
+    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock.S"),
+    options(att_syntax)
+);
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {

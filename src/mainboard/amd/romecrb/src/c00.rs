@@ -1,6 +1,6 @@
 /// Write 32 bits to port
 unsafe fn outb(port: u16, val: u8) {
-    llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(val));
+    asm!("outb %al, %dx", in("al") val, in("dx") port, options(att_syntax));
 }
 
 fn one(w: &mut impl core::fmt::Write, a: u8, v: u8) {

@@ -25,8 +25,9 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::register_bitfields;
+use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 
 const RETRY_COUNT: u32 = 100_000;
 
@@ -133,7 +134,7 @@ impl ops::Deref for SiFiveSpi {
     }
 }
 
-register_bitfields! {
+register_bitfields![
     u32,
     ClockDivider [
         DIV OFFSET(0) NUMBITS(12) []
@@ -263,7 +264,7 @@ register_bitfields! {
         CMD_CODE OFFSET(16) NUMBITS(8) [],
         PAD_CODE OFFSET(24) NUMBITS(8) []
     ]
-}
+];
 
 impl SiFiveSpi {
     pub fn new(base: usize, serial_rate: u32) -> SiFiveSpi {
@@ -345,7 +346,7 @@ impl SiFiveSpi {
 impl Driver for SiFiveSpi {
     fn init(&mut self) -> Result<()> {
         // Disable Interrupts
-        self.ie.set(0 as u32);
+        self.ie.set(0_u32);
         // Set rate to 33.33 MHz
         self.set_clock_rate(33_330_000);
 

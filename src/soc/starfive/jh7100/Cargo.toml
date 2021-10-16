@@ -11,5 +11,5 @@ opt-level = 'z'  # Optimize for size.
 arch = { path = "../../../arch/riscv/rv64"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }
-register = "0.3.2"
+consts = { path= "../../../lib/consts" }
 

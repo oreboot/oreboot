@@ -28,7 +28,7 @@ pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Res
     }
 
     let status = Command::new("python3")
-        .args(&["BuildFsp.py", "build", "-p", "qemu", "-a", &arch_name])
+        .args(&["BuildFsp.py", "build", "-p", "qemu", "-a", arch_name])
         .current_dir(root_path.join("3rdparty/fspsdk"))
         .status()
         .expect("failed to build FSP");

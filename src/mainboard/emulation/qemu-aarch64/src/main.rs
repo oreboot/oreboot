@@ -1,5 +1,4 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
+#![feature(asm, lang_items, start)]
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
@@ -67,7 +66,7 @@ use core::panic::PanicInfo;
 
 pub fn halt() -> ! {
     loop {
-        unsafe { llvm_asm!("wfe" :::: "volatile") }
+        unsafe { asm!("wfe") }
     }
 }
 

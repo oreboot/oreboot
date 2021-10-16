@@ -25,8 +25,9 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::register_bitfields;
+use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 
 const RETRY_COUNT: u32 = 100_000;
 

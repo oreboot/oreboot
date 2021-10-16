@@ -1,4 +1,4 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
@@ -15,7 +15,7 @@ use heapless::Vec;
 mod interrupts;
 
 use core::ptr;
-global_asm!(include_str!("bootblock.S"));
+global_asm!(include_str!("bootblock.S"), options(att_syntax));
 
 fn poke32(a: u32, v: u32) {
     let y = a as *mut u32;
@@ -26,15 +26,16 @@ fn poke32(a: u32, v: u32) {
 
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {
-    llvm_asm!("outl %eax, %dx" :: "{dx}"(port), "{al}"(val));
+    asm!("outl %eax, %dx", in("eax") val, in("dx") port, options(att_syntax));
 }
 
 /// Read 32 bits from port
 unsafe fn inl(port: u16) -> u32 {
     let ret: u32;
-    llvm_asm!("inl %dx, %eax" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
+    asm!("inl %dx, %eax", in("dx") port, out("eax") ret, options(att_syntax));
     ret
 }
+
 fn peek32(a: u32) -> u32 {
     let y = a as *const u32;
     unsafe { ptr::read_volatile(y) }
@@ -59,14 +60,14 @@ fn hex(a: &[u8], vals: &mut Vec<u64, U8>) {
     let mut val: u64 = 0u64;
     for c in a.iter() {
         let v = *c;
-        if v >= b'0' && v <= b'9' {
+        if (b'0'..=b'9').contains(&v) {
             started = true;
             val <<= 4;
             val += (*c - b'0') as u64;
-        } else if v >= b'a' && v <= b'f' {
+        } else if (b'a'..=b'f').contains(&v) {
             started = true;
             val = (val << 4) | (*c - b'a' + 10) as u64;
-        } else if v >= b'A' && v <= b'F' {
+        } else if (b'A'..=b'F').contains(&v) {
             started = true;
             val = (val << 4) | (*c - b'A' + 10) as u64;
         } else if started {

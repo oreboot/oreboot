@@ -11,4 +11,4 @@ opt-level = 'z'  # Optimize for size.
 cpu = { path = "../../../cpu/lowrisc/ibex"}
 model = { path = "../../../drivers/model"}
 clock = { path = "../../../drivers/clock" }
-register = "0.3.2"
+tock-registers = "0.7.0"

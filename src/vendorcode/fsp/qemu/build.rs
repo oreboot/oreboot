@@ -69,8 +69,8 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=src/wrapper.h");
 
     let oreboot_root = "../../../../";
-    build_qemu_fsp(&oreboot_root, FspArchitecture::X64)?;
-    generate_bindings(&oreboot_root)?;
+    build_qemu_fsp(oreboot_root, FspArchitecture::X64)?;
+    generate_bindings(oreboot_root)?;
 
     Ok(())
 }

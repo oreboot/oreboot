@@ -6,11 +6,12 @@
 #![deny(warnings)]
 
 //use core::fmt::Write;
+use core::hint::spin_loop;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::slice_from_raw_parts;
-use core::sync::atomic::{spin_loop_hint, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering};
 use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
@@ -35,7 +36,7 @@ static SPIN_LOCK: AtomicUsize = AtomicUsize::new(0);
 
 #[no_mangle]
 pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
-    spin_loop_hint();
+    spin_loop();
     loop {
         // NOPs prevent thrashing the bus.
         for _ in 0..128 {

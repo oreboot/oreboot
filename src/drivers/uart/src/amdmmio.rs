@@ -15,8 +15,9 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::register_bitfields;
+use tock_registers::interfaces::{Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 
 const RETRY_COUNT: u32 = 100_000;
 const UART0: usize = 0xfedc9000;
@@ -52,7 +53,7 @@ impl ops::Deref for UART {
     }
 }
 
-register_bitfields! {
+register_bitfields![
     u32,
     D [
         Data OFFSET(0) NUMBITS(8) []
@@ -74,7 +75,7 @@ register_bitfields! {
             BaudRate = 1
         ]
     ]
-}
+];
 
 impl UART {
     /// # Safety

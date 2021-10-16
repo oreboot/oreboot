@@ -1,15 +1,15 @@
-#![feature(llvm_asm)]
+#![feature(asm)]
 #![no_std]
 
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {
-    llvm_asm!("outl %eax, %dx" :: "{dx}"(port), "{al}"(val));
+    asm!("outl %eax, %dx", in("eax") val, in("dx") port, options(att_syntax));
 }
 
 /// Read 32 bits from port
 unsafe fn inl(port: u16) -> u32 {
     let ret: u32;
-    llvm_asm!("inl %dx, %eax" : "={ax}"(ret) : "{dx}"(port) :: "volatile");
+    asm!("inl %dx, %eax", in("dx") port, out("eax") ret, options(att_syntax));
     ret
 }
 
