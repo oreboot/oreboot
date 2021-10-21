@@ -28,8 +28,8 @@ $(MAINBOARDS):
 	cd $(dir $@) && make cibuild
 
 firsttime:
-	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	rustup run --install nightly cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	rustup run --install nightly cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
