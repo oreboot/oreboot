@@ -55,6 +55,9 @@ update:
 # 	$ make --keep-going checkformat
 check ?=
 
+# NOTE: do NOT use the cargo command in targets below.
+# ALWAYS USE MAKE!
+
 ALLMAKEFILE := \
 	$(wildcard payloads/Makefile) \
 	$(wildcard payloads/*/Makefile) \
@@ -88,9 +91,9 @@ checkformat: $(CRATES_TO_CHECKFORMAT)
 
 # There are a number of targets which can not test.
 # Once those are fixed, we can just use a test target.
-CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
+CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.test,$(ALLMAKEFILE))
 $(CRATES_TO_TEST):
-	cd $(dir $@) && cargo citest
+	cd $(dir $@) && make citest
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
 
