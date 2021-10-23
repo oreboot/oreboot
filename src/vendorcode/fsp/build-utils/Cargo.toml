@@ -2,6 +2,6 @@
 name = "build-utils"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
