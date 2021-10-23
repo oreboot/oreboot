@@ -2,7 +2,7 @@
 name = "device_tree"
 version = "0.1.0"
 authors = ["Oreboot Authors"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 byteorder = { version = "1", default-features = false }

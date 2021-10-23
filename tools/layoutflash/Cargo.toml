@@ -2,7 +2,7 @@
 name = "layoutflash"
 version = "0.1.0"
 authors = ["Ryan O'Leary <ryanoleary@google.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 device_tree = { path = "../../src/lib/device_tree" }
