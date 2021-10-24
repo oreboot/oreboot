@@ -28,8 +28,8 @@ $(MAINBOARDS):
 	cd $(dir $@) && make cibuild
 
 firsttime:
-	cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	rustup run --install nightly cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	rustup run --install nightly cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
@@ -54,6 +54,9 @@ update:
 # 	$ make --keep-going format
 # 	$ make --keep-going checkformat
 check ?=
+
+# NOTE: do NOT use the cargo command in targets below.
+# ALWAYS USE MAKE!
 
 ALLMAKEFILE := \
 	$(wildcard payloads/Makefile) \
@@ -88,9 +91,9 @@ checkformat: $(CRATES_TO_CHECKFORMAT)
 
 # There are a number of targets which can not test.
 # Once those are fixed, we can just use a test target.
-CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
+CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.test,$(ALLMAKEFILE))
 $(CRATES_TO_TEST):
-	cd $(dir $@) && cargo citest
+	cd $(dir $@) && make citest
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
 

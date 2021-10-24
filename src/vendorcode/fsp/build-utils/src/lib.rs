@@ -72,6 +72,30 @@ pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Res
         .expect("failed to rebase FSP");
     if !status.success() {
         println!("Failed to rebase FSP");
+        exit(1)
+    }
+
+    // The build command above creates each FSP component (S, M, and T) and combines them
+    // into one binary. The rebase then operates on that combined binary, so we split here
+    // to get back the components. This way, the whole and the parts alongside it will have
+    // the same base address.
+    let status = Command::new("python3")
+        .args(&[
+            "IntelFsp2Pkg/Tools/SplitFspBin.py",
+            "split",
+            "-f",
+            "Build/QemuFspPkg/DEBUG_GCC5/FV/QEMUFSP.fd",
+            "-o",
+            "Build/QemuFspPkg/DEBUG_GCC5/FV",
+            "-n",
+            "FSP.Fv",
+        ])
+        .current_dir(root_path.join("3rdparty/fspsdk"))
+        .status()
+        .expect("failed to split rebased FSP");
+    if !status.success() {
+        println!("Failed to split rebased FSP");
+        exit(1)
     }
 
     // Copy FSP binaries to output path.
