@@ -104,5 +104,10 @@ $(CRATES_TO_CLIPPY):
 .PHONY: clippy $(CRATES_TO_CLIPPY)
 clippy: $(CRATES_TO_CLIPPY)
 
+# convenience target: this should be the full ci flow
+
+checkandbuildall: ciprepare clippy checkformat test mainboards
+	echo "Done CI!"
+
 clean:
 	rm -rf $(wildcard src/mainboard/*/*/target)
