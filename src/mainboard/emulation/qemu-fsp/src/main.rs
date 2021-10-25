@@ -7,6 +7,7 @@ use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
+use core::ptr;
 use model::Driver;
 use uart::i8250::I8250;
 
@@ -24,7 +25,11 @@ global_asm!(
     options(att_syntax)
 );
 
-fn call_fspm(fsp_base: usize, fspm_entry: usize) -> fsp64::EFI_STATUS {
+fn call_fspm(
+    fsp_base: usize,
+    fspm_entry: usize,
+    hob_list_ptr_ptr: *mut *mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE,
+) -> fsp64::EFI_STATUS {
     // TODO: This struct has to be aligned to 4.
     // mut because we can't make the assumption FSP won't modify it.
     let mut fspm_upd = fsp64::FSPM_UPD {
@@ -62,7 +67,10 @@ fn call_fspm(fsp_base: usize, fspm_entry: usize) -> fsp64::EFI_STATUS {
             HobListPtr: *mut *mut core::ffi::c_void,
         ) -> fsp64::EFI_STATUS;
         let fspm = core::mem::transmute::<usize, FspMemoryInit>(fsp_base + fspm_entry);
-        fspm(core::mem::transmute(&mut fspm_upd), 0 as *mut _)
+        fspm(
+            core::mem::transmute(&mut fspm_upd),
+            core::mem::transmute(hob_list_ptr_ptr),
+        )
     };
 
     status
@@ -120,6 +128,9 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     };
     write!(w, "Found FSP_INFO: {:#x?}\r\n", infos).unwrap();
 
+    let mut hob_list_ptr: *mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE = ptr::null_mut();
+    let mut hob_list_ptr_ptr: *mut *mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE = &mut hob_list_ptr;
+
     if let Some(fspm_entry) = fsp::get_fspm_entry(&infos) {
         write!(
             w,
@@ -128,8 +139,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         )
         .unwrap();
 
-        let status = call_fspm(fsp_base, fspm_entry);
-
+        let status = call_fspm(fsp_base, fspm_entry, hob_list_ptr_ptr);
         write!(w, "Returned {}\r\n", status).unwrap();
     } else {
         write!(w, "Could not find FspMemoryInit\r\n").unwrap();
@@ -148,6 +158,54 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         write!(w, "Returned {}\r\n", status).unwrap();
     } else {
         write!(w, "Could not find FspSiliconInit\r\n").unwrap();
+    }
+
+    // "The bootloader should not expect a complete HOB list after the FSP returns
+    // from this API. It is recommended for the bootloader to save this HobListPtr
+    // returned from this API and parse the full HOB list after the FspSiliconInit() API."
+    unsafe {
+        write!(w, "EFI_HOB_HANDOFF_INFO_TABLE\r\n");
+        write!(w, "========================================\r\n");
+        write!(w, "Version = {}\r\n", (*hob_list_ptr).Version);
+        write!(w, "BootMode = {}\r\n", (*hob_list_ptr).BootMode);
+        write!(w, "EfiMemoryTop = {:#x?}\r\n", (*hob_list_ptr).EfiMemoryTop);
+        write!(
+            w,
+            "EfiMemoryBottom = {:#x?}\r\n",
+            (*hob_list_ptr).EfiMemoryBottom
+        );
+        write!(
+            w,
+            "EfiFreeMemoryTop = {:#x?}\r\n",
+            (*hob_list_ptr).EfiFreeMemoryTop
+        );
+        write!(
+            w,
+            "EfiFreeMemoryBottom = {:#x?}\r\n",
+            (*hob_list_ptr).EfiFreeMemoryBottom
+        );
+        write!(
+            w,
+            "EfiEndOfHobList = {:#x?}\r\n",
+            (*hob_list_ptr).EfiEndOfHobList
+        );
+
+        let end_address: u64 = (*hob_list_ptr).EfiEndOfHobList;
+
+        let mut hob_list_bytes_offset: isize = 0;
+        let mut hob_list_bytes_ptr: *const u8 = core::mem::transmute(hob_list_ptr);
+
+        while (hob_list_ptr as u64) < end_address {
+            write!(w, "Hob @ {:#x?}\r\n", hob_list_ptr);
+            write!(w, "Header.HobType = {}\r\n", (*hob_list_ptr).Header.HobType);
+            write!(
+                w,
+                "Header.HobLength = {}\r\n",
+                (*hob_list_ptr).Header.HobLength
+            );
+            hob_list_bytes_offset += (*hob_list_ptr).Header.HobLength as isize;
+            hob_list_ptr = core::mem::transmute(hob_list_bytes_ptr.offset(hob_list_bytes_offset));
+        }
     }
 
     // TODO: Get these values from the fdt

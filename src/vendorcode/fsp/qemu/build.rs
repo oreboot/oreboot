@@ -46,6 +46,7 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
         .allowlist_type("FSP_[ST]_CONFIG")
         .allowlist_var("FSP[MST]_UPD_SIGNATURE")
         .allowlist_var("BOOT_.*") // BOOT_MODE consts
+        .allowlist_type("EFI_HOB_HANDOFF_INFO_TABLE")
         // Blacklist types implemented in Rust.
         .blocklist_type("GUID")
         .blocklist_type("EFI_GUID")
