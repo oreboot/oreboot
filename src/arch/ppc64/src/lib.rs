@@ -3,5 +3,5 @@
 #![deny(warnings)]
 
 pub fn halt() -> ! {
-    loop {}
+    panic!("Implement halt");
 }
