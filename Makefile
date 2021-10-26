@@ -22,14 +22,22 @@ TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
 STACK_SIZES_VER := 0.4.0
 
+CARGOINST := rustup run --install nightly cargo install
+
 .PHONY: mainboards $(MAINBOARDS)
 mainboard: $(MAINBOARDS)
 $(MAINBOARDS):
 	cd $(dir $@) && make cibuild
 
 firsttime:
-	rustup run --install nightly cargo install $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	rustup run --install nightly cargo install $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+
+nexttime:
+	rustup toolchain install $(TOOLCHAIN_VER)
+	rustup component add llvm-tools-preview rust-src --toolchain $(TOOLCHAIN_VER)
+	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
+	$(CARGOINST) --force $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
