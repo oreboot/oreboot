@@ -16,7 +16,7 @@ global_asm!(include_str!("../start.S"));
 
 // hart = hardware thread (something like core)
 #[no_mangle]
-pub extern "C" fn _start_here() -> ! {
+pub extern "C" fn _start() -> ! {
     // clock
     let mut ccu = CCU::new();
     ccu.init().unwrap();

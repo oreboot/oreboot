@@ -24,7 +24,7 @@ _boot:
 
     # la sp, __stack_end
     jal clear_bss
-    jal _start_here
+    jal _start
     j .
 
 clear_bss:
