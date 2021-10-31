@@ -1,4 +1,4 @@
 OREBOOT=$(abspath $(CURDIR)/../../../../)
-include ../../../../Makefile.inc
+include $(OREBOOT)/Makefile.inc
 ciclippy: clippy
 citest: skiptest
