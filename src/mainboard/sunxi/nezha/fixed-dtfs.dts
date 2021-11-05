@@ -6,9 +6,9 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "HiFive Unleashed";
-        category = "SiFive";
-        board-url = "https://www.sifive.com/boards/hifive-unleashed";
+        board-name = "Nezha";
+        category = "Sunxi";
+        board-url = "https://d1.docs.aw-ol.com/en/d1_dev/";
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";
