@@ -40,22 +40,24 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
-    .data : {
+    .data :
+    {
         sdata = .;
         *(.sdata* .data .data.*)
         edata = .;
     }
 
-    .stack_sizes (INFO) :
+    .bss :
     {
-        KEEP(*(.stack_sizes));
-    }
-
-    .bss : {
         PROVIDE(__bss_start = .);
         KEEP(*(.bss .bss.* .sbss .sbss.*));
         . = ALIGN(4K);
         PROVIDE(__bss_end = .);
+    }
+
+    .stack_sizes (INFO) :
+    {
+        KEEP(*(.stack_sizes));
     }
 
     /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
