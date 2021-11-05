@@ -143,6 +143,7 @@ dependencies = [
  "print",
  "soc",
  "uart",
+ "wrappers",
 ]
 
 [[package]]

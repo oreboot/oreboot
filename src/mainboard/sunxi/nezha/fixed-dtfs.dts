@@ -6,9 +6,9 @@
 
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "HiFive Unleashed";
-        category = "SiFive";
-        board-url = "https://www.sifive.com/boards/hifive-unleashed";
+        board-name = "Nezha";
+        category = "Sunxi";
+        board-url = "https://d1.docs.aw-ol.com/en/d1_dev/";
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";
@@ -22,7 +22,7 @@
             };
             area@2 {
                 description = "Payload A";
-                size = <0x600000>; // 6MiB
+                size = <0x120000>; // 1MiB
                 file = "$(PAYLOAD_A)";
             };
             /*
@@ -36,11 +36,11 @@
                 size = <0x200000>; // 2MiB
                 file = "$(PAYLOAD_C)";
             };
-            */
             area@3 {
                 description = "Empty Space";
                 size = <0x100000>; // 1MiB
             };
+            */
         };
     };
 };

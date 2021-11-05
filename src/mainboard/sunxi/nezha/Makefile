@@ -7,9 +7,9 @@ XFEL       ?= xfel
 IMAGE      ?= target/$(TARGET)/release/image.bin
 # DRAM space starts at 0x40000000, see manual p34
 MEMADDR    ?= 0x40000000
-include ../../../../Makefile.inc
-include ../../../../Makefile.qemu.inc
-include ../../../../Makefile.mainboard.inc
+include $(OREBOOT)/Makefile.inc
+include $(OREBOOT)/Makefile.qemu.inc
+include $(OREBOOT)/Makefile.mainboard.inc
 cibuild: $(IMAGE)
 ciclippy: clippy
 citest: skiptest
