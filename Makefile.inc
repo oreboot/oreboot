@@ -43,6 +43,9 @@ clean:
 clippy:
 	cargo clippy -- -D warnings -A clippy::write_with_newline
 
+fix:
+	cargo clippy --fix -- -D warnings -A clippy::write_with_newline
+
 # This is a temporary bandaid until clippy is fixed, for the
 # few boards that need it. To figure out which ones use it,
 # just git grep skipclippy
