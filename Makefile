@@ -32,12 +32,17 @@ $(MAINBOARDS):
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	rustup target add riscv64imac-unknown-none-elf
+	rustup target add riscv64gc-unknown-none-elf
+
 
 nexttime:
 	rustup toolchain install $(TOOLCHAIN_VER)
 	rustup component add llvm-tools-preview rust-src --toolchain $(TOOLCHAIN_VER)
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) --force $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	rustup target add riscv64imac-unknown-none-elf
+	rustup target add riscv64gc-unknown-none-elf
 
 firsttime_fsp:
 	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
