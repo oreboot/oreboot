@@ -22,7 +22,7 @@ TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.2
 STACK_SIZES_VER := 0.4.0
 
-CARGOINST := rustup run --install nightly cargo install
+CARGOINST := rustup run --install stable cargo install
 
 .PHONY: mainboards $(MAINBOARDS)
 mainboard: $(MAINBOARDS)
