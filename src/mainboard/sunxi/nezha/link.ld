@@ -42,6 +42,7 @@ SECTIONS
 
     .data :
     {
+        sidata = LOADADDR(.data);
         sdata = .;
         *(.sdata* .data .data.*)
         edata = .;

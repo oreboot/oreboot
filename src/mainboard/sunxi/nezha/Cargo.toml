@@ -14,6 +14,7 @@ device_tree = { path = "../../../lib/device_tree" }
 model = { path = "../../../drivers/model" }
 payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
+sbi = { path = "./sbi" }
 soc = { path = "../../../soc/sunxi/d1" }
 wrappers = { path = "../../../drivers/wrappers"}
 heapless = "0.4.x"

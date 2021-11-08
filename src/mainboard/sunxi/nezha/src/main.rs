@@ -1,13 +1,15 @@
-#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
+#![feature(asm)]
 #![feature(global_asm)]
+#![feature(default_alloc_error_handler)]
 
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;
 use payloads::payload;
+use sbi::sbi_init;
 use soc::ccu::CCU;
 use soc::gpio::GPIO;
 use uart::sunxi::Sunxi;
@@ -26,7 +28,7 @@ pub extern "C" fn _start() -> ! {
     gpio.init().unwrap();
     let mut uart0 = Sunxi::new(UART0 as usize, 115200);
     uart0.init().unwrap();
-    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+    uart0.pwrite(b"UART0 initialized\r\n", 0).unwrap();
 
     let mut uarts = [&mut uart0 as &mut dyn Driver];
     let console = &mut DoD::new(&mut uarts[..]);
@@ -37,32 +39,64 @@ pub extern "C" fn _start() -> ! {
     writeln!(w, "## Loading payload\r").unwrap();
 
     // see ../fixed-dtfs.dts
-    let mem = 0x40000000;
-    let payload_offset = 0x100000;
-    let payload_size = 0x120000;
+    // TODO: adjust when DRAM driver is implemented / booting from SPI
+    let mem = 0x4000_0000;
+    let cached_mem = 0x8000_0000;
+    let payload_offset = 0x2_0000;
+    let payload_size = 0x1e_0000;
+    let linuxboot_offset = 0x20_0000;
+    let linuxboot_size = 0x120_0000;
+    let dtb_offset = 0x140_0000;
+    let dtb_size = 0xe000;
 
-    // TODO; This payload structure should be loaded from SPI rather than hardcoded.
-    let kernel_segs = &[payload::Segment {
-        typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-        base: mem,
-        data: &mut SectionReader::new(&Memory {}, mem + payload_offset, payload_size),
-    }];
-    let payload: payload::Payload = payload::Payload {
-        typ: payload::ftype::CBFS_TYPE_RAW,
-        compression: payload::ctype::CBFS_COMPRESS_NONE,
-        offset: 0,
-        entry: mem + payload_offset, // TODO: 0 when DRAM driver is implemented
-        dtb: 0,
-        // TODO: These two length fields are not used.
-        rom_len: 0,
-        mem_len: 0,
-        segs: kernel_segs,
-    };
-    // TODO: uncomment when driver is implemented
-    // payload.load();
-    writeln!(w, "Running payload entry 0x{:x}\r", payload.entry).unwrap();
-    payload.run();
-    writeln!(w, "Unexpected return from payload\r").unwrap();
+    // TODO; This payload structure should be loaded from boot medium rather
+    // than hardcoded.
+    let segs = &[
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: cached_mem,
+            data: &mut SectionReader::new(&Memory {}, mem + payload_offset, payload_size),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: cached_mem,
+            data: &mut SectionReader::new(&Memory {}, mem + linuxboot_offset, linuxboot_size),
+        },
+        payload::Segment {
+            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
+            base: cached_mem,
+            data: &mut SectionReader::new(&Memory {}, mem + dtb_offset, dtb_size),
+        },
+    ];
+    // TODO: Get this from configuration
+    let use_sbi = true;
+    if use_sbi {
+        writeln!(
+            w,
+            "Handing over to SBI, will continue at 0x{:x}\r",
+            mem + linuxboot_offset
+        )
+        .unwrap();
+        sbi_init(mem + linuxboot_offset, mem + dtb_offset);
+    } else {
+        let entry = mem + payload_offset;
+        let payload: payload::Payload = payload::Payload {
+            typ: payload::ftype::CBFS_TYPE_RAW,
+            compression: payload::ctype::CBFS_COMPRESS_NONE,
+            offset: 0,
+            entry,
+            dtb: 0,
+            // TODO: These two length fields are not used.
+            rom_len: 0,
+            mem_len: 0,
+            segs,
+        };
+        // payload.load();
+        // TODO: Write hart ID a0 and DTB phys address to a1 if using an SBI
+        writeln!(w, "Running payload entry 0x{:x}\r", entry).unwrap();
+        payload.run();
+        writeln!(w, "Unexpected return from payload\r").unwrap();
+    }
     arch::halt()
 }
 
