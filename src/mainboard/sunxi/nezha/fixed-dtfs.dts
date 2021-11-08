@@ -12,35 +12,30 @@
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";
-                size = <0x80000>; // 512KiB
+                size = <0x10000>; // 64KiB
                 file = "$(TARGET_DIR)/bootblob.bin";
             };
             area@1 {
                 description = "Fixed DTFS";
-                size = <0x80000>; // 512KiB
+                size = <0x10000>; // 64KiB
                 file = "$(TARGET_DIR)/fixed-dtfs.dtb";
             };
             area@2 {
                 description = "Payload A";
-                size = <0x120000>; // 1MiB
+                size = <0x1e0000>; // 1.875MiB for M-mode payloads such as xv6
                 file = "$(PAYLOAD_A)";
             };
-            /*
             area@3 {
                 description = "Payload B";
-                size = <0x600000>; // 6MiB
+                // TODO: reduce when support compressed payloads
+                size = <0x1200000>; // 18MiB, enough for Linux + initramfs
                 file = "$(PAYLOAD_B)";
             };
             area@4 {
                 description = "Payload C";
-                size = <0x200000>; // 2MiB
+                size = <0xe000>; // 56K
                 file = "$(PAYLOAD_C)";
             };
-            area@3 {
-                description = "Empty Space";
-                size = <0x100000>; // 1MiB
-            };
-            */
         };
     };
 };

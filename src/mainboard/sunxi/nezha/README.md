@@ -47,7 +47,9 @@ installing it, make sure to also have the accompanying binutils. Adjust the
 respective linker scripts and memory setups to start at the offset after oreboot
 in the flash layout file `fixed-dtfs.dts`.
 
-For the second approach, and implementation of SBI, the RISC-V Supervisor Binary
-Interface, is necessary. That may be its own payload or implemented within
-oreboot statically. Either way, the flash layout needs to be adjusted for it to
-fit and the code in order to load it and the next payload to memory.
+For the second approach, an implementation of SBI, the RISC-V Supervisor Binary
+Interface, is necessary. That may be its own payload, set as `PAYLOAD_A`, or
+using RustSBI, which is implemented here within oreboot statically.
+Set `PAYLOAD_B` for a Linux kernel and `PAYLOAD_C` for its corresponding DTB.
+The DTB (device tree blob) is built together with Linux for the respective board
+and to be found within Linux in the directory `arch/riscv/boot/dts/allwinner/`.
