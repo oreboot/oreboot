@@ -1,4 +1,4 @@
-#![feature(asm)]
+//#![feature(asm)]
 #![no_std]
 
 /// Write 32 bits to port

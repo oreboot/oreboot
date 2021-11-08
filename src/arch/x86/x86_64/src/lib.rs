@@ -1,6 +1,6 @@
-#![feature(asm, lang_items, start)]
+//#![feature(asm, lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
+//#![feature(global_asm)]
 
 const PAGE_SIZE: usize = 4096;
 use rpp_procedural::preprocess_asm;

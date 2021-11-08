@@ -1,4 +1,4 @@
 #![no_std]
-#![feature(asm)]
+//#![feature(asm)]
 
 pub mod hpet;

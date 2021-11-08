@@ -1,6 +1,6 @@
-#![feature(asm, lang_items, start)]
+//#![feature(asm, lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
+//#![feature(global_asm)]
 #![deny(warnings)]
 
 pub fn halt() -> ! {

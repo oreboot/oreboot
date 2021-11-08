@@ -1,7 +1,7 @@
-#![feature(lang_items, start)]
+//#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
+//#![feature(global_asm)]
 // Clippy stupidly suggests using functions from std even you we have declared
 // no_std. Shame on clippy.
 #![allow(clippy::zero_ptr)]

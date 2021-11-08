@@ -1,7 +1,7 @@
-#![feature(asm, lang_items, start)]
+//#![feature(asm, lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
+//#![feature(global_asm)]
 #![deny(warnings)]
 
 mod romstage;
