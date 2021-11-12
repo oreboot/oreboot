@@ -5,15 +5,13 @@
 #![feature(global_asm)]
 #![deny(warnings)]
 
-mod romstage;
-use crate::romstage::asmram;
-use crate::romstage::chain::chain;
+use soc::asmram;
 
-use core::fmt;
+use arch::nop;
+
 use core::fmt::Write;
 use model::Driver;
 use print;
-use uart::ns16550::NS16550;
 use wrappers::DoD;
 
 #[no_mangle]
@@ -27,10 +25,10 @@ pub extern "C" fn _start() -> ! {
         // TODO: PL011::new(0x1E78_D000, 115200),
         // TODO: PL011::new(0x1E78_E000, 115200),
         // TODO: PL011::new(0x1E78_F000, 115200),
-        &mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200) as &mut dyn Driver,
+        //&mut SiFive::new(/*soc::UART0*/ 0x10010000, 115200) as &mut dyn Driver,
     ];
     let console = &mut DoD::new(&mut uarts[..]);
-    console.init();
+    console.init().ok();
     console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(console);
@@ -46,7 +44,8 @@ pub extern "C" fn _start() -> ! {
     write!(w, "Completed RAM init\r\n").unwrap();
 
     write!(w, "Starting chain\r\n").unwrap();
-    chain(); // TODO: What is chain supposed to do? It doesn't return.
+    //chain(); // TODO: What is chain supposed to do? It doesn't return.
+    // TODO, chain also now doesn't compile.
     write!(w, "Completed chain\r\n").unwrap();
 
     write!(w, "Starting romstage\r\n").unwrap();
@@ -60,7 +59,7 @@ pub fn halt() -> ! {
     loop {
         // Bug with LLVM marks empty loops as undefined behaviour.
         // See: https://github.com/rust-lang/rust/issues/28728
-        unsafe { llvm_asm!("" :::: "volatile") }
+        nop();
     }
 }
 
@@ -70,4 +69,6 @@ fn panic(_info: &PanicInfo) -> ! {
     halt()
 }
 
-global_asm!(include_str!("vector_table.S"));
+global_asm!(include_str!(
+    "../../../../../src/soc/aspeed/ast25x0/src/vector_table.S"
+));

@@ -1,0 +1,17 @@
+[package]
+name = "soc"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+
+[dependencies]
+arch = { path = "../../../arch/arm/armv7"}
+model = { path = "../../../drivers/model"}
+clock = { path = "../../../drivers/clock" }
+consts = { path= "../../../lib/consts" }
+
+tock-registers = "0.7.0"
+
