@@ -3,7 +3,6 @@
 pub mod ramtable;
 #[macro_use]
 pub mod ram;
-use crate::print;
 use core::fmt;
 use core::ptr;
 
@@ -128,7 +127,7 @@ fn peek(a: u32) -> u32 {
     let y = a as *const u32;
     unsafe { ptr::read_volatile(y) }
 }
-pub fn ram(w: &mut print::WriteTo) -> () {
+pub fn ram(w: &mut impl core::fmt::Write) -> () {
     let mut tptr = ramtable::TIME_TABLE_DDR3_1333;
     let mut r0 = 0u32;
     let mut r1 = 0u32;

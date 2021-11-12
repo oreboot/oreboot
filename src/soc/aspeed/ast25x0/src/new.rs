@@ -1,8 +1,8 @@
 #![no_std]
 
-use register::mmio::{ReadOnly, ReadWrite};
-use register::{register_bitfields, Field};
-use static_ref::StaticRef;
+use tock_registers::interfaces::{Readable, Writeable};
+use tock_registers::register_bitfields;
+use tock_registers::registers::{ReadOnly, ReadWrite};
 /*
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -336,7 +336,7 @@ impl Timer {
 
     pub fn enable(&self, t: u32) {
         let r = 0x1e78_2030 as *const TimerEnable;
-        unsafe {(*r).RELOAD.set(t as u32)};
+        unsafe {(*r).ENABLE.set(t as u32)};
     }
 
     pub fn clear(&self) {
@@ -363,25 +363,6 @@ impl ISR {
     pub fn status(&self) -> u32 {
         let r = 0x1e6c_0090 as *const ISRStatus;
         unsafe {(*r).STATUS.get()}
-    }
-}
-
-// mystery meat device @ 0x1e62_0000
-struct SPICheck {
-    _m1: [ReadWrite<u32>; 2],
-    out: ReadWrite<u32>,
-    _m2: [ReadWrite<u32>; 0x74],
-    m2: ReadWrite<u32>,
-    m3: ReadWrite<u32>,
-    m4: ReadWrite<u32>,
-}
-    
-impl SPICheck {
-    pub fn new() -> SPICheck {
-        SPICheck{}
-    }
-    pub fn init() {
-
     }
 }
 
