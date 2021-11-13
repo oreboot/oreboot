@@ -24,17 +24,17 @@ $(shell echo "rustc --version  = $(shell rustc --version)" 1>&2)
 $(shell echo "rustup --version = $(shell rustup --version)" 1>&2)
 $(shell echo "**********" 1>&2)
 
+# The default target.
+# There can be several of these; a mainboard might specify
+# "build something" with a default:: target
+default::
+
 # format things
 format:
 	cargo fmt
 
 checkformat:
 	cargo fmt -- --check
-
-# The default target.
-# There can be several of these; a mainboard might specify
-# "build something" with a default:: target
-default::
 
 clean:
 	rm -rf target/

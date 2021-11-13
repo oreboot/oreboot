@@ -29,6 +29,7 @@ $(ELF):
 	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo build --target "$(TARGET)" -Z build-std=core,alloc $(CARGO_FLAGS)
 
 # The default target: build the board.
+default:: mainboard
 mainboard: $(IMAGE)
 
 # The rest of this file are conveniences for debugging.
