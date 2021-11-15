@@ -30,7 +30,7 @@ macro_rules! check_delay_timer {
 macro_rules! clear_delay_timer {
     ($r0:ident, $r1:ident, $r2:ident, $r3:ident, $r4:ident, $r5:ident, $r6: ident, $r7: ident, $z:ident, $gt:ident, $lt:ident) => {
         /*"    .macro clear_delay_timer"*/
-        $r0 = 0x1e78203Cu32; /*"    ldr   $r0, =0x1e78203C                        @ Disable Time$r3"*/
+        $r0 = 0x1e78203cu32; /*"    ldr   $r0, =0x1e78203C                        @ Disable Time$r3"*/
         $r2 = 0xFu32; /*"    mov   $r2, #0xF"*/
         $r1 = $r2 << 8u32; /*"    mov   $r1, $r2, lsl #8"*/
         poke($r1, $r0); /*"    str   $r1, [$r0]"*/
@@ -47,7 +47,7 @@ macro_rules! init_spi_checksum {
         $r0 = 0x1e620084u32; /*"    ldr   $r0, =0x1e620084"*/
         $r1 = 0x20010000u32; /*"    ldr   $r1, =0x20010000"*/
         poke($r1, $r0); /*"    str   $r1, [$r0]"*/
-        $r0 = 0x1e62008Cu32; /*"    ldr   $r0, =0x1e62008C"*/
+        $r0 = 0x1e62008cu32; /*"    ldr   $r0, =0x1e62008C"*/
         $r1 = 0x20000200u32; /*"    ldr   $r1, =0x20000200"*/
         poke($r1, $r0); /*"    str   $r1, [$r0]"*/
         $r0 = 0x1e620080u32; /*"    ldr   $r0, =0x1e620080"*/

@@ -1,5 +1,3 @@
-#![no_std]
-
 // u-bmc modified
 // Setting lifted from ast-g5-phy.h from OpenBMC u-boot
 const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;

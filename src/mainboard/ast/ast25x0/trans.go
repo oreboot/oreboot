@@ -109,7 +109,7 @@ use crate::print;
 
 // u-bmc modified
 // Setting lifted from ast-g5-phy.h from OpenBMC u-boot
-const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
+const ConfigDramEccSize: u32 = 0x10000000;
 
 /******************************************************************************
  r4 : return program counter
@@ -117,7 +117,7 @@ const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
  Free registers:
  r0, r1, r2, r3, r6, r7, r8, r9, r10, r11
 ******************************************************************************/
-const ASTMMC_INIT_VER: u32 = 0x12; //        @ 8bit verison
+const AstMmcInitVer: u32 = 0x12; //        @ 8bit verison
 const ASTMMC_INIT_DATE: u32 = 0x20171027; //     @ Release
 
 /******************************************************************************
@@ -214,7 +214,7 @@ fn poke(a: u32, v: u32) -> () {
 			let mut z= false;
 			let mut gt= false;
 			let mut lt= false;
-	let mut s = State::init_dram;
+	let mut s = State::InitDram;
 	loop {
 		s = match s {
 			State::Exit => {
@@ -365,7 +365,7 @@ fn poke(a: u32, v: u32) -> () {
 			code = fmt.Sprintf("macro_rules! %s{\t()=>{\n", l[2])
 		case ".endm":
 			code = "}}"
-		// hack hack -- none macros -- 
+		// hack hack -- none macros --
 		case "check_delay_timer", "clear_delay_timer", "init_delay_timer", "init_spi_checksum", "print_hex_char":
 			code = fmt.Sprintf("%s!(r0, r1, r2, r3,  r4, r5, r6, r7, z, gt, lt);", l[1])
 
