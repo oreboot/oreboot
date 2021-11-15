@@ -1,7 +1,4 @@
-#![no_std]
-
 use tock_registers::interfaces::{Readable, Writeable};
-
 use tock_registers::registers::ReadWrite;
 /*
  *  This program is distributed in the hope that it will be useful,
@@ -115,7 +112,7 @@ use tock_registers::registers::ReadWrite;
 
 // u-bmc modified
 // Setting lifted from ast-g5-phy.h from OpenBMC u-boot
-const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
+//const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
 
 /******************************************************************************
  r4 : return program counter
@@ -123,8 +120,8 @@ const CONFIG_DRAM_ECC_SIZE: u32 = 0x10000000;
  Free registers:
  r0, r1, r2, r3, r6, r7, r8, r9, r10, r11
 ******************************************************************************/
-const ASTMMC_INIT_VER: u32 = 0x12; //        @ 8bit verison
-const ASTMMC_INIT_DATE: u32 = 0x20171027; //     @ Release
+//const ASTMMC_INIT_VER: u32 = 0x12; //        @ 8bit verison
+//const ASTMMC_INIT_DATE: u32 = 0x20171027; //     @ Release
 
 /******************************************************************************
  BMC side DDR IO driving manual mode fine-tuning, used to improve CK/CKN Vix violation.
@@ -158,6 +155,8 @@ const ASTMMC_INIT_DATE: u32 = 0x20171027; //     @ Release
 //const CONFIG_DDR4_SUPPORT_HYNIX              @ Enable this when Hynix DDR4 included in the: u32 = BOM;
 //#define CONFIG_DDR4_HYNIX_SET_1536
 //#define CONFIG_DDR4_HYNIX_SET_1488
+
+/*
 const CONFIG_DDR4_HYNIX_SET_1440: u32 = 1;
 
 const ASTMMC_REGIDX_010: u32 = 0x00;
@@ -258,6 +257,7 @@ static TIME_TABLE_DDR4_1600: [u32; 17] = [
     0x99714545, //       @ tRFC
     0x000071C1, //       @ PLL
 ];
+*/
 
 // These register are all mixed up for now. First things first:
 // get dram to work at all
@@ -273,71 +273,70 @@ static TIME_TABLE_DDR4_1600: [u32; 17] = [
 
 #[repr(C)]
 struct TimerReload {
-    RELOAD: ReadWrite<u32>,
+    reload: ReadWrite<u32>,
 }
 // const TimerReloadBase: StaticRef<TimerReload> = unsafe { StaticRef::new(0x1e78_2024 as *const TimerReload) };
 
 #[repr(C)]
 struct TimerEnable {
-    ENABLE: ReadWrite<u32>,
+    enable: ReadWrite<u32>,
 }
 // const TimerEnableBase: StaticRef<TimerEnable> = unsafe { StaticRef::new(0x1e78_2030 as *const TimerEnable) };
 
 #[repr(C)]
 struct TimerControl {
-    ENABLE: ReadWrite<u32>,
+    enable: ReadWrite<u32>,
 }
 // const TimerControlBase: StaticRef<TimerControl> = unsafe { StaticRef::new(0x1e78_2030 as *const TimerControl) };
 
 #[repr(C)]
 struct ISRClear {
-    CLEAR: ReadWrite<u32>,
+    clear: ReadWrite<u32>,
 }
 // const ISRClearBase: StaticRef<ISRClear> = unsafe { StaticRef::new(0x1e6c_0038 as *const ISRClear) };
 
 #[repr(C)]
 struct ISRStatus {
-    STATUS: ReadWrite<u32>,
+    status: ReadWrite<u32>,
 }
 // const ISRStatusBase: StaticRef<ISRStatus> = unsafe { StaticRef::new(0x1e6c_0090 as *const ISRStatus) };
 
 struct Timer {
-    ISR: ISR,
+    isr: ISR,
 }
 
 impl Timer {
     pub fn new() -> Timer {
-        Timer { ISR: ISR::new() }
+        Timer { isr: ISR::new() }
     }
 
     // The question: can this fit into a read-write world?
     pub fn set(&self, t: u32) -> u32 {
         let r = 0x1e78_2024 as *const TimerReload;
-        unsafe { (*r).RELOAD.set(t as u32) };
-        self.ISR.clear(0x40000);
+        unsafe { (*r).reload.set(t as u32) };
+        self.isr.clear(0x40000);
         self.start(7);
-        self.ISR.status()
+        self.isr.status()
     }
 
     pub fn start(&self, t: u32) {
         let r = 0x1e78_2030 as *const TimerEnable;
-        let _v = t << 8;
-        unsafe { (*r).ENABLE.set(t as u32) };
+        unsafe { (*r).enable.set(t as u32) };
     }
 
     pub fn done(&self) -> bool {
-        let v = self.ISR.status();
+        let v = self.isr.status();
         v & 0x40000 == 0x40000
     }
 
     pub fn enable(&self, t: u32) {
         let r = 0x1e78_2030 as *const TimerEnable;
-        unsafe { (*r).ENABLE.set(t as u32) };
+        unsafe { (*r).enable.set(t as u32) };
     }
 
     pub fn clear(&self) {
         self.enable(0xf << 8);
-        self.ISR.clear(0x40000);
+        self.isr.clear(0x40000);
     }
 }
 
@@ -352,12 +351,12 @@ impl ISR {
     // The question: can this fit into a read-write world?
     pub fn clear(&self, t: u32) {
         let r = 0x1e6c_0038 as *const ISRClear;
-        unsafe { (*r).CLEAR.set(t as u32) };
+        unsafe { (*r).clear.set(t as u32) };
     }
 
     pub fn status(&self) -> u32 {
         let r = 0x1e6c_0090 as *const ISRStatus;
-        unsafe { (*r).STATUS.get() }
+        unsafe { (*r).status.get() }
     }
 }
 

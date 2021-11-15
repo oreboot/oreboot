@@ -1,9 +1,6 @@
-#![no_std]
-
 pub mod ramtable;
 #[macro_use]
 pub mod ram;
-
 use core::ptr;
 
 const UART5DR: u32 = 0x1E78_4000;
@@ -53,7 +50,7 @@ const ASTMMC_INIT_DATE: u32 = 0x20171027; //     @ Release
 //const CONFIG_DDR4_SUPPORT_HYNIX              @ Enable this when Hynix DDR4 included in the: u32 = BOM;
 //#define CONFIG_DDR4_HYNIX_SET_1536
 //#define CONFIG_DDR4_HYNIX_SET_1488
-const CONFIG_DDR4_HYNIX_SET_1440: u32 = 1;
+//const CONFIG_DDR4_HYNIX_SET_1440: u32 = 1;
 
 const ASTMMC_REGIDX_010: u32 = 0x00 / 4;
 const ASTMMC_REGIDX_014: u32 = 0x04 / 4;
@@ -94,7 +91,7 @@ const CONFIG_DRAM_UART_TO_UART1: u32 = 0;
 
 const CONFIG_DRAM_UART_38400: u32 = 0;
 const CONFIG_DRAM_UART_57600: u32 = 0;
-const CONFIG_DRAM_UART_115200: u32 = 1;
+//const CONFIG_DRAM_UART_115200: u32 = 1;
 //I recommend 57600 (or better yet: create a 115200 because it's 2019).
 //The reason 57600 was chosen was that the OCP Leopards have it, happy to move as much as possible to 115200.
 
@@ -140,7 +137,7 @@ pub fn ram(w: &mut impl core::fmt::Write) {
     let mut r8 = 0u32;
     let mut r9 = 0u32;
     let mut r10 = 0u32;
-    let mut r11 = 0u32;
+    //let mut r11 = 0u32;
     let mut z = false;
     let mut gt;
     let mut lt;
@@ -152,13 +149,11 @@ pub fn ram(w: &mut impl core::fmt::Write) {
             State::Exit => {
                 write!(w, "DRAM done\n").expect("oh no");
                 break;
-
-                State::init_dram
             }
-            // This will be duplicative of init_dram for now. All we're trying to do
+            // This will be duplicative of InitDram for now. All we're trying to do
             // first is get some kinda serial output on power on. Nothing more.
-            State::PowerOn => State::uartSETUP,
-            State::uartSETUP => {
+            State::PowerOn => State::UartSetup,
+            State::UartSetup => {
                 // Put only the bare minimum code here needed for uart5.
                 // There shall be no magic numbers.
                 //
@@ -168,10 +163,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                     r1 = 'O' as u32;
                     poke(r1, r0); /*"    str   r1, [r0]"*/
                 }
-                loop {}
-                State::init_dram
+                State::InitDram
             }
-            State::init_dram => {
+            State::InitDram => {
                 /* save lr */
 
                 /********************************************
@@ -198,18 +192,18 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::bypass_first_reset;
+                    s = State::BypassFirstReset;
                     continue;
-                } /*"    beq   bypass_first_reset"*/
+                } /*"    beq   BypassFirstReset"*/
 
                 r0 = 0x1e785010_u32; /*"    ldr   r0, =0x1e785010"*/
                 r3 = peek(r0); /*"    ldr   r3, [r0]"*/
                 z = r3 == 0x0_u32;
 
                 if z {
-                    s = State::start_first_reset;
+                    s = State::StartFirstReset;
                     continue;
-                } /*"    beq   start_first_reset"*/
+                } /*"    beq   StartFirstReset"*/
                 // The real question: what is this code? It's not first reset, not bypass first reset.
                 r0 += 0x04_u32; /*"    add   r0, r0, #0x04"*/
                 r3 = 0x77_u32; /*"    mov   r3, #0x77"*/
@@ -229,12 +223,10 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e78501c_u32; /*"    ldr   r0, =0x1e78501c                        @ restore normal mask setting"*/
                 r1 = 0x023FFFF3_u32; /*"    ldr   r1, =0x023FFFF3                        @ added 2016.09.06"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::bypass_first_reset;
-                continue; /*"    b     bypass_first_reset"*/
-
-                State::start_first_reset
+                s = State::BypassFirstReset;
+                continue; /*"    b     BypassFirstReset"*/
             }
-            State::start_first_reset => {
+            State::StartFirstReset => {
                 if ASTMMC_INIT_RESET_MODE_FULL == 1 {
                     // #ifdef ASTMMC_INIT_RESET_MODE_FULL
                     r0 = 0x1e785004_u32; /*"    ldr   r0, =0x1e785004"*/
@@ -432,22 +424,20 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                     r1 = 0x00000013_u32; /*"    ldr   r1, =0x00000013"*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
                 } // #endif
-                State::wait_first_reset
+                State::WaitFirstReset
             }
-            State::wait_first_reset => {
+            State::WaitFirstReset => {
                 // What are we doing here? Simply put, we've kicked off a reset from
                 // above, and we loop here. At some point the reset comes in and we're back to
                 // the beginning.
-                s = State::wait_first_reset;
-                continue; /*"    b     wait_first_reset"*/
+                s = State::WaitFirstReset;
+                continue; /*"    b     WaitFirstReset"*/
 
                 /********************************************
                   Initial Reset Procedure : End
                 *******************************************/
-
-                State::bypass_first_reset
             }
-            State::bypass_first_reset => {
+            State::BypassFirstReset => {
                 /* Enable Timer separate clear mode */
                 r0 = 0x1e782038_u32; /*"    ldr   r0, =0x1e782038"*/
                 r1 = 0xAE_u32; /*"    mov   r1, #0xAE"*/
@@ -506,9 +496,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::bypass_USB_init;
+                    s = State::BypassUSBInit;
                     continue;
-                } /*"    beq   bypass_USB_init"*/
+                } /*"    beq   BypassUSBInit"*/
                 r0 = 0x1e6e207c_u32; /*"    ldr   r0, =0x1e6e207c"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
 
@@ -516,14 +506,14 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 r2 = 0x000003E8_u32; /*"    ldr   r2, =0x000003E8                        @ Set Timer3 Reload = 1 ms"*/
                 init_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_delay_timer"*/
-                State::wait_usb_init
+                State::WaitUsbInit
             }
-            State::wait_usb_init => {
+            State::WaitUsbInit => {
                 check_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    check_delay_timer"*/
                 if !z {
-                    s = State::wait_usb_init;
+                    s = State::WaitUsbInit;
                     continue;
-                } /*"    bne   wait_usb_init"*/
+                } /*"    bne   WaitUsbInit"*/
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 /* end delay 1ms */
 
@@ -531,9 +521,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x00800000_u32; /*"    ldr   r1, =0x00800000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::bypass_USB_init
+                State::BypassUSBInit
             }
-            State::bypass_USB_init => {
+            State::BypassUSBInit => {
                 /* Enable AXI_P */
                 //r0 = 0x00000016 as u32; /*"    ldr   r0, =0x00000016"*/
                 //mrc(p15, 0, r1, c15, c2, 4);/*"    mrc   p15, 0, r1, c15, c2, 4"*/
@@ -567,9 +557,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r2 == 0x01_u32;
 
                 if z {
-                    s = State::platform_exit;
+                    s = State::PlatformExit;
                     continue;
-                } /*"    beq   platform_exit"*/
+                } /*"    beq   PlatformExit"*/
 
                 /* Disable VGA display */
                 r0 = 0x1e6e202c_u32; /*"    ldr   r0, =0x1e6e202c"*/
@@ -591,9 +581,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                         r1 = r3 >> 24_u32; /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
                         z = r1 == 0x01_u32; /*"    tst   r1, #0x01"*/
                         if z {
-                            s = State::bypass_mpll_hynix_mode_1;
+                            s = State::BypassMpllHynixMode1;
                             continue;
-                        } /*"    beq   bypass_mpll_hynix_mode_1"*/
+                        } /*"    beq   BypassMpllHynixMode1"*/
                         if CONFIG_DDR4_HYNIX_SET_1536 == 1 {
                             // #if   defined (CONFIG_DDR4_HYNIX_SET_1536)
                             r2 = 0x930023E0_u32; /*"    ldr   r2, =0x930023E0                        @ load PLL parameter for 24Mhz CLKIN (384)"*/
@@ -603,20 +593,20 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                         } else {
                             // #else 	r2 = 0x930023A0 as u32;/*"    ldr   r2, =0x930023A0                        @ load PLL parameter for 24Mhz CLKIN (360)"*/
                         } // #endif
-                        s = State::bypass_mpll_hynix_mode_1;
-                        continue; /*"\tb bypass_mpll_hynix_mode_1"*/
+                        s = State::BypassMpllHynixMode1;
+                        continue; /*"\tb BypassMpllHynixMode1"*/
                     } // #endif
                 } // #endif
 
-                State::bypass_mpll_hynix_mode_1
+                State::BypassMpllHynixMode1
             }
-            State::bypass_mpll_hynix_mode_1 => {
+            State::BypassMpllHynixMode1 => {
                 r1 = r3 >> 23_u32; /*"    mov   r1, r3, lsr #23                        @ Check CLKIN = 25MHz"*/
                 z = r1 == 0x01_u32; /*"    tst   r1, #0x01"*/
                 if z {
-                    s = State::set_MPLL;
+                    s = State::SetMPLL;
                     continue;
-                } /*"    beq   set_MPLL"*/
+                } /*"    beq   SetMPLL"*/
                 if CONFIG_DRAM_1333 == 1 {
                     // #if   defined (CONFIG_DRAM_1333)
                     r2 = 0xC4806680_u32; /*"    ldr   r2, =0xC4806680                        @ load PLL parameter for 25Mhz CLKIN (331)"*/
@@ -627,9 +617,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                         r1 = r3 >> 24_u32; /*"    mov   r1, r3, lsr #24                        @ Check DDR4"*/
                         z = r1 == 0x01_u32; /*"    tst   r1, #0x01"*/
                         if z {
-                            s = State::bypass_mpll_hynix_mode_2;
+                            s = State::BypassMpllHynixMode2;
                             continue;
-                        } /*"    beq   bypass_mpll_hynix_mode_2"*/
+                        } /*"    beq   BypassMpllHynixMode2"*/
                         if CONFIG_DDR4_HYNIX_SET_1536 == 1 {
                             // #if   defined (CONFIG_DDR4_HYNIX_SET_1536)
                             r2 = 0x930023C0_u32; /*"    ldr   r2, =0x930023C0                        @ load PLL parameter for 24Mhz CLKIN (387.5)"*/
@@ -638,21 +628,21 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                             r2 = 0x930023A0_u32; /*"    ldr   r2, =0x930023A0                        @ load PLL parameter for 24Mhz CLKIN (375)"*/
                         } else {
                             // #else 	r2 = 0x93002380 as u32;/*"    ldr   r2, =0x93002380                        @ load PLL parameter for 24Mhz CLKIN (362.5)"*/
-                            s = State::bypass_mpll_hynix_mode_2;
-                            continue; /*"    b   bypass_mpll_hynix_mode_2"*/
+                            s = State::BypassMpllHynixMode2;
+                            continue; /*"    b   BypassMpllHynixMode2"*/
                         } // #endif
                     } // #endif
                 } // #endif
-                State::bypass_mpll_hynix_mode_2
+                State::BypassMpllHynixMode2
             }
-            State::bypass_mpll_hynix_mode_2 => {
+            State::BypassMpllHynixMode2 => {
                 r0 = 0x1e6e2160_u32; /*"    ldr   r0, =0x1e6e2160                        @ set 24M Jitter divider (HPLL=825MHz)"*/
                 r1 = 0x00011320_u32; /*"    ldr   r1, =0x00011320"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::set_MPLL
+                State::SetMPLL
             }
-            State::set_MPLL => {
+            State::SetMPLL => {
                 r0 = 0x1e6e2020_u32; /*"    ldr   r0, =0x1e6e2020                        @ M-PLL (DDR SDRAM) Frequency"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
 
@@ -661,21 +651,21 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /* Delay about 3ms */
                 r2 = 0x00000BB8_u32; /*"    ldr   r2, =0x00000BB8                        @ Set Timer3 Reload = 3 ms"*/
                 init_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_delay_timer"*/
-                State::wait_mpll_init
+                State::WaitMpllInit
             }
-            State::wait_mpll_init => {
+            State::WaitMpllInit => {
                 check_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    check_delay_timer"*/
                 if !z {
-                    s = State::wait_mpll_init;
+                    s = State::WaitMpllInit;
                     continue;
-                } /*"    bne   wait_mpll_init"*/
+                } /*"    bne   WaitMpllInit"*/
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 /* end delay 3ms */
 
                 /* Reset MMC */
-                State::reset_mmc
+                State::ResetMmc
             }
-            State::reset_mmc => {
+            State::ResetMmc => {
                 r0 = 0x1e78505c_u32; /*"    ldr   r0, =0x1e78505c"*/
                 r1 = 0x00000004_u32; /*"    ldr   r1, =0x00000004"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -688,15 +678,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e78504c_u32; /*"    ldr   r0, =0x1e78504c"*/
                 r1 = 0x00000013_u32; /*"    ldr   r1, =0x00000013"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                State::wait_mmc_reset
+                State::WaitMmcReset
             }
-            State::wait_mmc_reset => {
+            State::WaitMmcReset => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x02_u32; /*"    tst   r1, #0x02"*/
                 if !z {
-                    s = State::wait_mmc_reset;
+                    s = State::WaitMmcReset;
                     continue;
-                } /*"    bne   wait_mmc_reset"*/
+                } /*"    bne   WaitMmcReset"*/
 
                 r0 = 0x1e78505c_u32; /*"    ldr   r0, =0x1e78505c"*/
                 r1 = 0x023FFFF3_u32; /*"    ldr   r1, =0x023FFFF3"*/
@@ -713,17 +703,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 r0 = 0x1e6e0000_u32; /*"    ldr   r0, =0x1e6e0000"*/
                 r1 = 0xFC600309_u32; /*"    ldr   r1, =0xFC600309"*/
-                State::wait_mmc_reset_done
+                State::WaitMmcResetDone
             }
-            State::wait_mmc_reset_done => {
+            State::WaitMmcResetDone => {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == 0x1_u32;
 
                 if !z {
-                    s = State::wait_mmc_reset_done;
+                    s = State::WaitMmcResetDone;
                     continue;
-                } /*"    bne   wait_mmc_reset_done"*/
+                } /*"    bne   WaitMmcResetDone"*/
 
                 r0 = 0x1e6e0034_u32; /*"    ldr   r0, =0x1e6e0034                        @ disable MMC request"*/
                 r1 = 0x00020000_u32; /*"    ldr   r1, =0x00020000"*/
@@ -732,14 +722,14 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /* Delay about 10ms */
                 r2 = 0x00002710_u32; /*"    ldr   r2, =0x00002710                        @ Set Timer3 Reload = 10 ms"*/
                 init_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_delay_timer"*/
-                State::wait_ddr_reset
+                State::WaitDdrReset
             }
-            State::wait_ddr_reset => {
+            State::WaitDdrReset => {
                 check_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    check_delay_timer"*/
                 if !z {
-                    s = State::wait_ddr_reset;
+                    s = State::WaitDdrReset;
                     continue;
-                } /*"    bne   wait_ddr_reset"*/
+                } /*"    bne   WaitDdrReset"*/
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 /* end delay 10ms */
 
@@ -839,15 +829,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x2D_u32; /*"    mov   r1, #0x2D                              @ '-'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print
+                State::WaitPrint
             }
-            State::wait_print => {
+            State::WaitPrint => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print;
+                    s = State::WaitPrint;
                     continue;
-                } /*"    beq   wait_print"*/
+                } /*"    beq   WaitPrint"*/
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x44_u32; /*"    mov   r1, #0x44                              @ 'D'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -931,18 +921,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r2 = 0x01000000_u32; /*"    ldr   r2, =0x01000000                        @ bit[24]=1 => DDR4"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if !z {
-                    s = State::ddr4_init;
+                    s = State::Ddr4Init;
                     continue;
-                } /*"    bne   ddr4_init"*/
-                s = State::ddr3_init;
-                continue; /*"    b     ddr3_init"*/
+                } /*"    bne   Ddr4Init"*/
+                s = State::Ddr3Init;
+                continue; /*"    b     Ddr3Init"*/
 
                 /******************************************************************************
                 DDR3 Init
                 ******************************************************************************/
-                State::ddr3_init
             }
-            State::ddr3_init => {
+            State::Ddr3Init => {
                 /* Debug - UART console message */
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x33_u32; /*"    mov   r1, #0x33                              @ '3'"*/
@@ -1080,12 +1069,10 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e6e0120_u32; /*"    ldr   r0, =0x1e6e0120"*/
                 r1 = 0x00_u32; /*"    mov   r1, #0x00"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::ddr_phy_init_process;
-                continue; /*"    b     ddr_phy_init_process"*/
-
-                State::ddr3_phyinit_done
+                s = State::DdrPhyInitProcess;
+                continue; /*"    b     DdrPhyInitProcess"*/
             }
-            State::ddr3_phyinit_done => {
+            State::Ddr3PhyinitDone => {
                 /********************************************
                  Check Read training margin
                 ********************************************/
@@ -1098,17 +1085,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = r1 >> 16_u32; /*"    mov   r0, r1, lsr #16"*/
                 z = r0 == r2;
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
 
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
@@ -1118,17 +1105,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = r1 >> 8_u32; /*"    mov   r0, r1, lsr #8"*/
                 z = r0 == r2;
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 /*******************************************/
 
                 /* Debug - UART console message */
@@ -1182,15 +1169,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 r0 = 0x1e6e0034_u32; /*"    ldr   r0, =0x1e6e0034"*/
                 r2 = 0x70000000_u32; /*"    ldr   r2, =0x70000000"*/
-                State::ddr3_check_dllrdy
+                State::Ddr3CheckDllrdy
             }
-            State::ddr3_check_dllrdy => {
+            State::Ddr3CheckDllrdy => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if !z {
-                    s = State::ddr3_check_dllrdy;
+                    s = State::Ddr3CheckDllrdy;
                     continue;
-                } /*"    bne   ddr3_check_dllrdy"*/
+                } /*"    bne   Ddr3CheckDllrdy"*/
 
                 r0 = 0x1e6e000c_u32; /*"    ldr   r0, =0x1e6e000c"*/
                 if CONFIG_DRAM_EXT_TEMP == 1 {
@@ -1209,17 +1196,16 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = tptr[(ASTMMC_REGIDX_PLL as u32) as usize]; /*"    ldr   r1, [r5, #ASTMMC_REGIDX_PLL]"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                s = State::calibration_End;
-                continue; /*"    b     calibration_End"*/
+                s = State::CalibrationEnd;
+                continue; /*"    b     CalibrationEnd"*/
                 /******************************************************************************
                 End DDR3 Init
                 ******************************************************************************/
                 /******************************************************************************
                 DDR4 Init
                 ******************************************************************************/
-                State::ddr4_init
             }
-            State::ddr4_init => {
+            State::Ddr4Init => {
                 /* Debug - UART console message */
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x34_u32; /*"    mov   r1, #0x34                              @ '4'"*/
@@ -1367,13 +1353,13 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                     r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060                        @ Fire DDRPHY Init"*/
                     r1 = 0x05_u32; /*"    mov   r1, #0x05"*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
-                    s = State::ddr_phy_init_process;
-                    continue; /*"    b     ddr_phy_init_process"*/
+                    s = State::DdrPhyInitProcess;
+                    continue; /*"    b     DdrPhyInitProcess"*/
                 } // #endif // place here by ron
 
-                State::ddr4_ron_phyinit_done
+                State::Ddr4RonPhyinitDone
             }
-            State::ddr4_ron_phyinit_done => {
+            State::Ddr4RonPhyinitDone => {
                 r0 = 0x1e6e0300_u32; /*"    ldr   r0, =0x1e6e0300                        @ read calibrated Ron_pd"*/
                 r3 = peek(r0); /*"    ldr   r3, [r0]"*/
                 r3 &= !0xFFFFFF0F as u32; /*"    bic   r3, r3, #0xFFFFFF0F"*/
@@ -1408,9 +1394,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e720000_u32; /*"    ldr   r0, =0x1e720000                        @ retry count"*/
                 r1 = 0x5_u32; /*"    mov   r1, #0x5"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                State::ddr4_vref_phy_cal_start
+                State::Ddr4VrefPhyCalStart
             }
-            State::ddr4_vref_phy_cal_start => {
+            State::Ddr4VrefPhyCalStart => {
                 r7 = 0x0_u32; /*"    mov   r7, #0x0"*/
                 r8 = 0x0_u32; /*"    mov   r8, #0x0"*/
                 r10 = 0x3F_u32; /*"    mov   r10, #0x3F"*/
@@ -1419,9 +1405,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 r1 -= 0x01_u32; /*"    subs  r1, r1, #0x01"*/
                 if z {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    beq   ddr_test_fail"*/
+                } /*"    beq   DdrTestFail"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e6e0120_u32; /*"    ldr   r0, =0x1e6e0120"*/
@@ -1438,9 +1424,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x00001C06_u32; /*"    ldr   r1, =0x00001C06"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::ddr4_vref_phy_loop
+                State::Ddr4VrefPhyLoop
             }
-            State::ddr4_vref_phy_loop => {
+            State::Ddr4VrefPhyLoop => {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1449,9 +1435,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r10 == 0x80_u32;
 
                 if z {
-                    s = State::ddr4_vref_phy_test_fail;
+                    s = State::Ddr4VrefPhyTestFail;
                     continue;
-                } /*"    beq   ddr4_vref_phy_test_fail                @ no valid margin and retry"*/
+                } /*"    beq   Ddr4VrefPhyTestFail                @ no valid margin and retry"*/
 
                 r0 = 0x1e6e02cc_u32; /*"    ldr   r0, =0x1e6e02cc"*/
                 r1 = r10 | (r10 << 8_u32); /*"    orr   r1, r10, r10, lsl #8"*/
@@ -1460,18 +1446,14 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x00000005_u32; /*"    ldr   r1, =0x00000005"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::ddr_phy_init_process;
-                continue; /*"    b     ddr_phy_init_process"*/
-
-                State::ddr4_vref_phy_phyinit_done
+                s = State::DdrPhyInitProcess;
+                continue; /*"    b     DdrPhyInitProcess"*/
             }
-            State::ddr4_vref_phy_phyinit_done => {
-                s = State::cbr_test_start;
-                continue; /*"    b     cbr_test_start"*/
-
-                State::ddr4_vref_phy_cbrtest_done
+            State::Ddr4VrefPhyPhyinitDone => {
+                s = State::CbrTestStart;
+                continue; /*"    b     CbrTestStart"*/
             }
-            State::ddr4_vref_phy_cbrtest_done => {
+            State::Ddr4VrefPhyCbrtestDone => {
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0                        @ read eye pass window"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 r0 = 0x1e720000_u32; /*"    ldr   r0, =0x1e720000"*/
@@ -1480,9 +1462,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r9 == 0x01_u32;
 
                 if !z {
-                    s = State::ddr4_vref_phy_test_fail;
+                    s = State::Ddr4VrefPhyTestFail;
                     continue;
-                } /*"    bne   ddr4_vref_phy_test_fail"*/
+                } /*"    bne   Ddr4VrefPhyTestFail"*/
                 r8 += 0x01_u32; /*"    add   r8, r8, #0x01"*/
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0                        @ read eye pass window"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
@@ -1503,37 +1485,33 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 if gt {
                     r7 = r1;
                 } /*"    movgt r7, r1"*/
-                s = State::ddr4_vref_phy_loop;
-                continue; /*"    b     ddr4_vref_phy_loop"*/
-
-                State::ddr4_vref_phy_test_fail
+                s = State::Ddr4VrefPhyLoop;
+                continue; /*"    b     Ddr4VrefPhyLoop"*/
             }
-            State::ddr4_vref_phy_test_fail => {
+            State::Ddr4VrefPhyTestFail => {
                 z = r8 == 0x0_u32;
 
                 if !z {
-                    s = State::ddr4_vref_phy_loop_end;
+                    s = State::Ddr4VrefPhyLoopEnd;
                     continue;
-                } /*"    bne   ddr4_vref_phy_loop_end"*/
+                } /*"    bne   Ddr4VrefPhyLoopEnd"*/
                 z = r10 == 0x80_u32;
 
                 if z {
-                    s = State::ddr4_vref_phy_cal_start;
+                    s = State::Ddr4VrefPhyCalStart;
                     continue;
-                } /*"    beq   ddr4_vref_phy_cal_start"*/
-                s = State::ddr4_vref_phy_loop;
-                continue; /*"    b     ddr4_vref_phy_loop"*/
-
-                State::ddr4_vref_phy_loop_end
+                } /*"    beq   Ddr4VrefPhyCalStart"*/
+                s = State::Ddr4VrefPhyLoop;
+                continue; /*"    b     Ddr4VrefPhyLoop"*/
             }
-            State::ddr4_vref_phy_loop_end => {
+            State::Ddr4VrefPhyLoopEnd => {
                 z = r8 == 16_u32;
 
                 lt = r8 < 16_u32; /*"    cmp   r8, #16                                @ check phyvref margin >= 16"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = 0x1e6e02cc_u32; /*"    ldr   r0, =0x1e6e02cc"*/
                 r1 = r6 | (r6 << 8_u32); /*"    orr   r1, r6, r6, lsl #8"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1554,9 +1532,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e720000_u32; /*"    ldr   r0, =0x1e720000                        @ retry count"*/
                 r1 = 0x5_u32; /*"    mov   r1, #0x5"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                State::ddr4_vref_ddr_cal_start
+                State::Ddr4VrefDdrCalStart
             }
-            State::ddr4_vref_ddr_cal_start => {
+            State::Ddr4VrefDdrCalStart => {
                 r6 = 0xFF_u32; /*"    mov   r6, #0xFF"*/
                 r7 = 0x0_u32; /*"    mov   r7, #0x0"*/
                 r8 = 0x0_u32; /*"    mov   r8, #0x0"*/
@@ -1566,9 +1544,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 r1 -= 0x01_u32; /*"    subs  r1, r1, #0x01"*/
                 if z {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    beq   ddr_test_fail"*/
+                } /*"    beq   DdrTestFail"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e6e0120_u32; /*"    ldr   r0, =0x1e6e0120"*/
@@ -1581,9 +1559,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 /* Debug - UART console message */
 
-                State::ddr4_vref_ddr_loop
+                State::Ddr4VrefDdrLoop
             }
-            State::ddr4_vref_ddr_loop => {
+            State::Ddr4VrefDdrLoop => {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1592,9 +1570,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r10 == 0x40_u32;
 
                 if z {
-                    s = State::ddr4_vref_ddr_test_fail;
+                    s = State::Ddr4VrefDdrTestFail;
                     continue;
-                } /*"    beq   ddr4_vref_ddr_test_fail                @ no valid margin and retry"*/
+                } /*"    beq   Ddr4VrefDdrTestFail                @ no valid margin and retry"*/
 
                 r0 = 0x1e6e02c0_u32; /*"    ldr   r0, =0x1e6e02c0"*/
                 r1 = 0x06_u32; /*"    mov   r1, #0x06"*/
@@ -1604,24 +1582,20 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x00000005_u32; /*"    ldr   r1, =0x00000005"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::ddr_phy_init_process;
-                continue; /*"    b     ddr_phy_init_process"*/
-
-                State::ddr4_vref_ddr_phyinit_done
+                s = State::DdrPhyInitProcess;
+                continue; /*"    b     DdrPhyInitProcess"*/
             }
-            State::ddr4_vref_ddr_phyinit_done => {
-                s = State::cbr_test_start;
-                continue; /*"    b     cbr_test_start"*/
-
-                State::ddr4_vref_ddr_cbrtest_done
+            State::Ddr4VrefDdrPhyinitDone => {
+                s = State::CbrTestStart;
+                continue; /*"    b     CbrTestStart"*/
             }
-            State::ddr4_vref_ddr_cbrtest_done => {
+            State::Ddr4VrefDdrCbrtestDone => {
                 z = r9 == 0x01_u32;
 
                 if !z {
-                    s = State::ddr4_vref_ddr_test_fail;
+                    s = State::Ddr4VrefDdrTestFail;
                     continue;
-                } /*"    bne   ddr4_vref_ddr_test_fail"*/
+                } /*"    bne   Ddr4VrefDdrTestFail"*/
                 r8 += 0x01_u32; /*"    add   r8, r8, #0x01"*/
 
                 gt = r6 > r10;
@@ -1635,30 +1609,26 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 if lt {
                     r7 = r10;
                 } /*"    movlt r7, r10"*/
-                s = State::ddr4_vref_ddr_loop;
-                continue; /*"    b     ddr4_vref_ddr_loop"*/
-
-                State::ddr4_vref_ddr_test_fail
+                s = State::Ddr4VrefDdrLoop;
+                continue; /*"    b     Ddr4VrefDdrLoop"*/
             }
-            State::ddr4_vref_ddr_test_fail => {
+            State::Ddr4VrefDdrTestFail => {
                 z = r8 == 0x0_u32;
 
                 if !z {
-                    s = State::ddr4_vref_ddr_loop_end;
+                    s = State::Ddr4VrefDdrLoopEnd;
                     continue;
-                } /*"    bne   ddr4_vref_ddr_loop_end"*/
+                } /*"    bne   Ddr4VrefDdrLoopEnd"*/
                 z = r10 == 0x40_u32;
 
                 if z {
-                    s = State::ddr4_vref_ddr_cal_start;
+                    s = State::Ddr4VrefDdrCalStart;
                     continue;
-                } /*"    beq   ddr4_vref_ddr_cal_start"*/
-                s = State::ddr4_vref_ddr_loop;
-                continue; /*"    b     ddr4_vref_ddr_loop"*/
-
-                State::ddr4_vref_ddr_loop_end
+                } /*"    beq   Ddr4VrefDdrCalStart"*/
+                s = State::Ddr4VrefDdrLoop;
+                continue; /*"    b     Ddr4VrefDdrLoop"*/
             }
-            State::ddr4_vref_ddr_loop_end => {
+            State::Ddr4VrefDdrLoopEnd => {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1667,9 +1637,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 lt = r8 < 16_u32; /*"    cmp   r8, #16                                @ check ddrvref margin >= 16"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = 0x1e6e02c0_u32; /*"    ldr   r0, =0x1e6e02c0"*/
                 r1 = r6 + r7; /*"    add   r1, r6, r7"*/
                 r1 += 0x01_u32; /*"    add   r1, r1, #0x01"*/
@@ -1695,12 +1665,10 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060                        @ Fire DDRPHY Init"*/
                 r1 = 0x00000005_u32; /*"    ldr   r1, =0x00000005"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::ddr_phy_init_process;
-                continue; /*"    b     ddr_phy_init_process"*/
-
-                State::ddr4_phyinit_done
+                s = State::DdrPhyInitProcess;
+                continue; /*"    b     DdrPhyInitProcess"*/
             }
-            State::ddr4_phyinit_done => {
+            State::Ddr4PhyinitDone => {
                 /********************************************
                  Check Read training margin
                 ********************************************/
@@ -1713,17 +1681,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = r1 >> 16_u32; /*"    mov   r0, r1, lsr #16"*/
                 z = r0 == r2;
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
 
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
@@ -1733,17 +1701,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 r0 = r1 >> 8_u32; /*"    mov   r0, r1, lsr #8"*/
                 z = r0 == r2;
 
                 lt = r0 < r2; /*"    cmp   r0, r2"*/
                 if lt {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    blt   ddr_test_fail"*/
+                } /*"    blt   DdrTestFail"*/
                 /*******************************************/
 
                 /*******************************************/
@@ -1770,8 +1738,8 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = tptr[(ASTMMC_REGIDX_PLL as u32) as usize]; /*"    ldr   r1, [r5, #ASTMMC_REGIDX_PLL]"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                s = State::calibration_End;
-                continue; /*"    b     calibration_End"*/
+                s = State::CalibrationEnd;
+                continue; /*"    b     CalibrationEnd"*/
 
                 /******************************************************************************
                 End DDR4 Init
@@ -1782,28 +1750,27 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /********************************************
                  DDRPHY Init Process
                 ********************************************/
-                State::ddr_phy_init_process
             }
-            State::ddr_phy_init_process => {
+            State::DdrPhyInitProcess => {
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 /* Wait DDR PHY init done - timeout 300 ms */
                 r2 = 0x000493E0_u32; /*"    ldr   r2, =0x000493E0                        @ Set Timer3 Reload = 300 ms"*/
                 init_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_delay_timer"*/
                 r3 = 0x1e6e0060_u32; /*"    ldr   r3, =0x1e6e0060"*/
-                State::ddr_phy_init
+                State::DdrPhyInit
             }
-            State::ddr_phy_init => {
+            State::DdrPhyInit => {
                 check_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    check_delay_timer"*/
                 if z {
-                    s = State::ddr_phy_init_timeout;
+                    s = State::DdrPhyInitTimeout;
                     continue;
-                } /*"    beq   ddr_phy_init_timeout"*/
+                } /*"    beq   DdrPhyInitTimeout"*/
                 r1 = peek(r3); /*"    ldr   r1, [r3]"*/
                 z = r1 == 0x01_u32; /*"    tst   r1, #0x01"*/
                 if !z {
-                    s = State::ddr_phy_init;
+                    s = State::DdrPhyInit;
                     continue;
-                } /*"    bne   ddr_phy_init"*/
+                } /*"    bne   DdrPhyInit"*/
 
                 /* Check DDR PHY init status */
                 r0 = 0x1e6e0300_u32; /*"    ldr   r0, =0x1e6e0300"*/
@@ -1811,13 +1778,13 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::ddr_phy_init_success;
+                    s = State::DdrPhyInitSuccess;
                     continue;
-                } /*"    beq   ddr_phy_init_success"*/
+                } /*"    beq   DdrPhyInitSuccess"*/
 
-                State::ddr_phy_init_timeout
+                State::DdrPhyInitTimeout
             }
-            State::ddr_phy_init_timeout => {
+            State::DdrPhyInitTimeout => {
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060                        @ Reset PHY"*/
                 r1 = 0x00_u32; /*"    mov   r1, #0x00"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1832,26 +1799,24 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /* Delay about 10us */
                 r2 = 0x0000000A_u32; /*"    ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us"*/
                 init_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_delay_timer"*/
-                State::ddr_phy_init_delay_0
+                State::DdrPhyInitDelay0
             }
-            State::ddr_phy_init_delay_0 => {
+            State::DdrPhyInitDelay0 => {
                 check_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    check_delay_timer"*/
                 if !z {
-                    s = State::ddr_phy_init_delay_0;
+                    s = State::DdrPhyInitDelay0;
                     continue;
-                } /*"    bne   ddr_phy_init_delay_0"*/
+                } /*"    bne   DdrPhyInitDelay0"*/
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 /* end delay 10us */
 
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060                        @ Fire PHY Init"*/
                 r1 = 0x05_u32; /*"    mov   r1, #0x05"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::ddr_phy_init_process;
-                continue; /*"    b     ddr_phy_init_process"*/
-
-                State::ddr_phy_init_success
+                s = State::DdrPhyInitProcess;
+                continue; /*"    b     DdrPhyInitProcess"*/
             }
-            State::ddr_phy_init_success => {
+            State::DdrPhyInitSuccess => {
                 clear_delay_timer!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    clear_delay_timer"*/
                 r0 = 0x1e6e0060_u32; /*"    ldr   r0, =0x1e6e0060"*/
                 r1 = 0x06_u32; /*"    mov   r1, #0x06"*/
@@ -1862,39 +1827,38 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r1 == 0_u32;
 
                 if z {
-                    s = State::ddr3_phyinit_done;
+                    s = State::Ddr3PhyinitDone;
                     continue;
-                } /*"    beq   ddr3_phyinit_done"*/
+                } /*"    beq   Ddr3PhyinitDone"*/
                 z = r1 == 1_u32;
 
                 if z {
-                    s = State::ddr4_vref_phy_phyinit_done;
+                    s = State::Ddr4VrefPhyPhyinitDone;
                     continue;
-                } /*"    beq   ddr4_vref_phy_phyinit_done"*/
+                } /*"    beq   Ddr4VrefPhyPhyinitDone"*/
                 z = r1 == 2_u32;
 
                 if z {
-                    s = State::ddr4_vref_ddr_phyinit_done;
+                    s = State::Ddr4VrefDdrPhyinitDone;
                     continue;
-                } /*"    beq   ddr4_vref_ddr_phyinit_done"*/
+                } /*"    beq   Ddr4VrefDdrPhyinitDone"*/
                 if ASTMMC_DDR4_MANUAL_RPU == 1 {
                     // #ifdef ASTMMC_DDR4_MANUAL_RPU
                     z = r1 == 4_u32;
 
                     if z {
-                        s = State::ddr4_ron_phyinit_done;
+                        s = State::Ddr4RonPhyinitDone;
                         continue;
-                    } /*"    beq   ddr4_ron_phyinit_done"*/
+                    } /*"    beq   Ddr4RonPhyinitDone"*/
                 } // #endif
-                s = State::ddr4_phyinit_done;
-                continue; /*"    b     ddr4_phyinit_done"*/
+                s = State::Ddr4PhyinitDone;
+                continue; /*"    b     Ddr4PhyinitDone"*/
 
                 /********************************************
                  CBRTest
                 ********************************************/
-                State::cbr_test_start
             }
-            State::cbr_test_start => {
+            State::CbrTestStart => {
                 r0 = 0x1e6e000c_u32; /*"    ldr   r0, =0x1e6e000c"*/
                 r1 = 0x00005C01_u32; /*"    ldr   r1, =0x00005C01"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -1905,47 +1869,47 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0xFF00FF00_u32; /*"    ldr   r1, =0xFF00FF00"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::cbr_test_single
+                State::CbrTestSingle
             }
-            State::cbr_test_single => {
+            State::CbrTestSingle => {
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r1 = 0x00000085_u32; /*"    ldr   r1, =0x00000085"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r3 = 0x3000_u32; /*"    ldr   r3, =0x3000"*/
-                r11 = 0x50000_u32; /*"    ldr   r11, =0x50000"*/
-                State::cbr_wait_engine_idle_0
+                //r11 = 0x50000_u32; /*"    ldr   r11, =0x50000"*/
+                State::CbrWaitEngineIdle0
             }
-            State::cbr_wait_engine_idle_0 => {
-                r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
+            State::CbrWaitEngineIdle0 => {
+                //r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
                 if z {
-                    s = State::cbr_test_fail;
+                    s = State::CbrTestFail;
                     continue;
-                } /*"    beq   cbr_test_fail"*/
+                } /*"    beq   CbrTestFail"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[12] = idle bit"*/
                 if z {
-                    s = State::cbr_wait_engine_idle_0;
+                    s = State::CbrWaitEngineIdle0;
                     continue;
-                } /*"    beq   cbr_wait_engine_idle_0"*/
+                } /*"    beq   CbrWaitEngineIdle0"*/
 
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070                        @ read fail bit status"*/
                 r3 = 0x2000_u32; /*"    ldr   r3, =0x2000"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[13] = fail bit"*/
                 if !z {
-                    s = State::cbr_test_fail;
+                    s = State::CbrTestFail;
                     continue;
-                } /*"    bne   cbr_test_fail"*/
+                } /*"    bne   CbrTestFail"*/
 
-                State::cbr_test_burst
+                State::CbrTestBurst
             }
-            State::cbr_test_burst => {
+            State::CbrTestBurst => {
                 r1 = 0x00_u32; /*"    mov   r1, #0x00                              @ initialize loop index, r1 is loop index"*/
-                State::cbr_test_burst_loop
+                State::CbrTestBurstLoop
             }
-            State::cbr_test_burst_loop => {
+            State::CbrTestBurstLoop => {
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r2 = 0x00000000_u32; /*"    ldr   r2, =0x00000000"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
@@ -1953,57 +1917,55 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r2 |= 0xC1_u32; /*"    orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r3 = 0x3000_u32; /*"    ldr   r3, =0x3000"*/
-                r11 = 0x20000_u32; /*"    ldr   r11, =0x20000"*/
-                State::cbr_wait_engine_idle_1
+                //r11 = 0x20000_u32; /*"    ldr   r11, =0x20000"*/
+                State::CbrWaitEngineIdle1
             }
-            State::cbr_wait_engine_idle_1 => {
-                r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
+            State::CbrWaitEngineIdle1 => {
+                //r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
                 if z {
-                    s = State::cbr_test_fail;
+                    s = State::CbrTestFail;
                     continue;
-                } /*"    beq   cbr_test_fail"*/
+                } /*"    beq   CbrTestFail"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[12] = idle bit"*/
                 if z {
-                    s = State::cbr_wait_engine_idle_1;
+                    s = State::CbrWaitEngineIdle1;
                     continue;
-                } /*"    beq   cbr_wait_engine_idle_1"*/
+                } /*"    beq   CbrWaitEngineIdle1"*/
 
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070                        @ read fail bit status"*/
                 r3 = 0x2000_u32; /*"    ldr   r3, =0x2000"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[13] = fail bit"*/
                 if !z {
-                    s = State::cbr_test_fail;
+                    s = State::CbrTestFail;
                     continue;
-                } /*"    bne   cbr_test_fail"*/
+                } /*"    bne   CbrTestFail"*/
 
                 r1 += 1_u32; /*"    add   r1, r1, #1                             @ increase the test mode index"*/
                 z = r1 == 0x04_u32;
 
                 if !z {
-                    s = State::cbr_test_burst_loop;
+                    s = State::CbrTestBurstLoop;
                     continue;
-                } /*"    bne   cbr_test_burst_loop"*/
+                } /*"    bne   CbrTestBurstLoop"*/
 
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r9 = 0x1_u32; /*"    mov   r9, #0x1"*/
-                s = State::cbr_test_pattern_end;
-                continue; /*"    b     cbr_test_pattern_end                   @ CBRTest() return(1)"*/
-
-                State::cbr_test_fail
+                s = State::CbrTestPatternEnd;
+                continue; /*"    b     CbrTestPatternEnd                   @ CBRTest() return(1)"*/
             }
-            State::cbr_test_fail => {
+            State::CbrTestFail => {
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r9 = 0x0_u32; /*"    mov   r9, #0x0                               @ CBRTest() return(0)"*/
 
-                State::cbr_test_pattern_end
+                State::CbrTestPatternEnd
             }
-            State::cbr_test_pattern_end => {
+            State::CbrTestPatternEnd => {
                 r0 = 0x1e6e000c_u32; /*"    ldr   r0, =0x1e6e000c"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2012,19 +1974,17 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r1 == 1_u32;
 
                 if z {
-                    s = State::ddr4_vref_phy_cbrtest_done;
+                    s = State::Ddr4VrefPhyCbrtestDone;
                     continue;
-                } /*"    beq   ddr4_vref_phy_cbrtest_done"*/
-                s = State::ddr4_vref_ddr_cbrtest_done;
-                continue; /*"    b     ddr4_vref_ddr_cbrtest_done"*/
+                } /*"    beq   Ddr4VrefPhyCbrtestDone"*/
+                s = State::Ddr4VrefDdrCbrtestDone;
+                continue; /*"    b     Ddr4VrefDdrCbrtestDone"*/
 
                 /******************************************************************************
                 Other features configuration
                 *****************************************************************************/
-
-                State::calibration_End
             }
-            State::calibration_End => {
+            State::CalibrationEnd => {
                 /*******************************
                      Check DRAM Size
                 //Can't find instruction for      1Gb : 0x80000000 ~ 0x87FFFFFF/*"     1Gb : 0x80000000 ~ 0x87FFFFFF"*/
@@ -2037,9 +1997,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r6 &= !0x00000003 as u32; /*"    bic   r6, r6, #0x00000003                    @ record MCR04"*/
                 r7 = tptr[(ASTMMC_REGIDX_RFC as u32) as usize]; /*"    ldr   r7, [r5, #ASTMMC_REGIDX_RFC]"*/
 
-                State::check_dram_size
+                State::CheckDramSize
             }
-            State::check_dram_size => {
+            State::CheckDramSize => {
                 r0 = 0xA0100000_u32; /*"    ldr   r0, =0xA0100000"*/
                 r1 = 0x41424344_u32; /*"    ldr   r1, =0x41424344"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2065,9 +2025,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 } /*"    moveq r7, r7, lsr #24"*/
                 r3 = 0x38_u32; /*"    mov   r3, #0x38                              @ '8'"*/
                 if z {
-                    s = State::check_dram_size_end;
+                    s = State::CheckDramSizeEnd;
                     continue;
-                } /*"    beq   check_dram_size_end"*/
+                } /*"    beq   CheckDramSizeEnd"*/
                 r0 = 0x90100000_u32; /*"    ldr   r0, =0x90100000"*/
                 r1 = 0x35363738_u32; /*"    ldr   r1, =0x35363738"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
@@ -2081,9 +2041,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 } /*"    moveq r7, r7, lsr #16"*/
                 r3 = 0x34_u32; /*"    mov   r3, #0x34                              @ '4'"*/
                 if z {
-                    s = State::check_dram_size_end;
+                    s = State::CheckDramSizeEnd;
                     continue;
-                } /*"    beq   check_dram_size_end"*/
+                } /*"    beq   CheckDramSizeEnd"*/
                 r0 = 0x88100000_u32; /*"    ldr   r0, =0x88100000"*/
                 r1 = 0x292A2B2C_u32; /*"    ldr   r1, =0x292A2B2C"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
@@ -2097,14 +2057,14 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 } /*"    moveq r7, r7, lsr #8"*/
                 r3 = 0x32_u32; /*"    mov   r3, #0x32                              @ '2'"*/
                 if z {
-                    s = State::check_dram_size_end;
+                    s = State::CheckDramSizeEnd;
                     continue;
-                } /*"    beq   check_dram_size_end"*/
+                } /*"    beq   CheckDramSizeEnd"*/
                 r3 = 0x31_u32; /*"    mov   r3, #0x31                              @ '1'"*/
 
-                State::check_dram_size_end
+                State::CheckDramSizeEnd
             }
-            State::check_dram_size_end => {
+            State::CheckDramSizeEnd => {
                 r0 = 0x1e6e0004_u32; /*"    ldr   r0, =0x1e6e0004"*/
                 poke(r6, r0); /*"    str   r6, [r0]"*/
                 r0 = 0x1e6e0014_u32; /*"    ldr   r0, =0x1e6e0014"*/
@@ -2145,15 +2105,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r2 = r1 | (r2 << 12_u32); /*"    orr   r2, r1, r2, lsl #12"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r3 = 0x00080000_u32; /*"    ldr   r3, =0x00080000"*/
-                State::dram_cache_init
+                State::DramCacheInit
             }
-            State::dram_cache_init => {
+            State::DramCacheInit => {
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3"*/
                 if z {
-                    s = State::dram_cache_init;
+                    s = State::DramCacheInit;
                     continue;
-                } /*"    beq   dram_cache_init"*/
+                } /*"    beq   DramCacheInit"*/
                 r2 = 1_u32; /*"    mov   r2, #1"*/
                 r1 |= r2 << 10_u32; /*"    orr   r1, r1, r2, lsl #10"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2169,9 +2129,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /********************************************
                  DDRTest
                 ********************************************/
-                State::ddr_test_start
+                State::DdrTestStart
             }
-            State::ddr_test_start => {
+            State::DdrTestStart => {
                 r0 = 0x1e6e0074_u32; /*"    ldr   r0, =0x1e6e0074"*/
                 r1 = 0x0000FFFF_u32; /*"    ldr   r1, =0x0000FFFF                        @ test size = 64KB"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2179,13 +2139,13 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0xFF00FF00_u32; /*"    ldr   r1, =0xFF00FF00"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::ddr_test_burst
+                State::DdrTestBurst
             }
-            State::ddr_test_burst => {
+            State::DdrTestBurst => {
                 r1 = 0x00_u32; /*"    mov   r1, #0x00                              @ initialize loop index, r1 is loop index"*/
-                State::ddr_test_burst_loop
+                State::DdrTestBurstLoop
             }
-            State::ddr_test_burst_loop => {
+            State::DdrTestBurstLoop => {
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r2 = 0x00000000_u32; /*"    ldr   r2, =0x00000000"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
@@ -2193,48 +2153,46 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r2 |= 0xC1_u32; /*"    orr   r2, r2, #0xC1                          @ test command = 0xC1 | (datagen << 3)"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r3 = 0x3000_u32; /*"    ldr   r3, =0x3000"*/
-                r11 = 0x20000_u32; /*"    ldr   r11, =0x20000"*/
-                State::ddr_wait_engine_idle_1
+                //r11 = 0x20000_u32; /*"    ldr   r11, =0x20000"*/
+                State::DdrWaitEngineIdle1
             }
-            State::ddr_wait_engine_idle_1 => {
-                r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
+            State::DdrWaitEngineIdle1 => {
+                //r11 -= 1_u32; /*"    subs  r11, r11, #1"*/
                 if z {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    beq   ddr_test_fail"*/
+                } /*"    beq   DdrTestFail"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[12] = idle bit"*/
                 if z {
-                    s = State::ddr_wait_engine_idle_1;
+                    s = State::DdrWaitEngineIdle1;
                     continue;
-                } /*"    beq   ddr_wait_engine_idle_1"*/
+                } /*"    beq   DdrWaitEngineIdle1"*/
 
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070                        @ read fail bit status"*/
                 r3 = 0x2000_u32; /*"    ldr   r3, =0x2000"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 z = r2 == r3; /*"    tst   r2, r3                                 @ D[13] = fail bit"*/
                 if !z {
-                    s = State::ddr_test_fail;
+                    s = State::DdrTestFail;
                     continue;
-                } /*"    bne   ddr_test_fail"*/
+                } /*"    bne   DdrTestFail"*/
 
                 r1 += 1_u32; /*"    add   r1, r1, #1                             @ increase the test mode index"*/
                 z = r1 == 0x01_u32;
 
                 if !z {
-                    s = State::ddr_test_burst_loop;
+                    s = State::DdrTestBurstLoop;
                     continue;
-                } /*"    bne   ddr_test_burst_loop"*/
+                } /*"    bne   DdrTestBurstLoop"*/
 
                 r0 = 0x1e6e0070_u32; /*"    ldr   r0, =0x1e6e0070"*/
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::set_scratch;
-                continue; /*"    b     set_scratch                            @ CBRTest() return(1)"*/
-
-                State::ddr_test_fail
+                s = State::SetScratch;
+                continue; /*"    b     SetScratch                            @ CBRTest() return(1)"*/
             }
-            State::ddr_test_fail => {
+            State::DdrTestFail => {
                 /* Debug - UART console message */
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x46_u32; /*"    mov   r1, #0x46                              @ 'F'"*/
@@ -2250,22 +2208,20 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x0A_u32; /*"    mov   r1, #0x0A                              @ '\\n'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_0
+                State::WaitPrint0
             }
-            State::wait_print_0 => {
+            State::WaitPrint0 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_0;
+                    s = State::WaitPrint0;
                     continue;
-                } /*"    beq   wait_print_0"*/
+                } /*"    beq   WaitPrint0"*/
                 /* Debug - UART console message */
-                s = State::reset_mmc;
-                continue; /*"    b     reset_mmc"*/
-
-                State::set_scratch
+                s = State::ResetMmc;
+                continue; /*"    b     ResetMmc"*/
             }
-            State::set_scratch => {
+            State::SetScratch => {
                 /*Set Scratch register Bit 6 after ddr initial finished */
                 r0 = 0x1e6e2040_u32; /*"    ldr   r0, =0x1e6e2040"*/
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
@@ -2297,15 +2253,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 /* Debug - UART console message */
                 /* Print PHY timing information */
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_1
+                State::WaitPrint1
             }
-            State::wait_print_1 => {
+            State::WaitPrint1 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_1;
+                    s = State::WaitPrint1;
                     continue;
-                } /*"    beq   wait_print_1"*/
+                } /*"    beq   WaitPrint1"*/
 
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x52_u32; /*"    mov   r1, #0x52                              @ 'R'"*/
@@ -2340,15 +2296,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_2
+                State::WaitPrint2
             }
-            State::wait_print_2 => {
+            State::WaitPrint2 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_2;
+                    s = State::WaitPrint2;
                     continue;
-                } /*"    beq   wait_print_2"*/
+                } /*"    beq   WaitPrint2"*/
 
                 r7 = 0x000001FE_u32; /*"    ldr   r7, =0x000001FE                        @ divide by 510"*/
                 r8 = 10_u32; /*"    mov   r8, #10                                @ multiply by 10"*/
@@ -2362,9 +2318,9 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 if z {
                     r10 = 0xB3_u32;
                 } /*"    moveq r10, #0xB3                             @ DDR3 min = 0xB3 (0.35)"*/
-                State::print_DQL_eye_margin
+                State::PrintDQLEyeMargin
             }
-            State::print_DQL_eye_margin => {
+            State::PrintDQLEyeMargin => {
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
                 r2 |= 0xFF_u32; /*"    and   r2, r2, #0xFF"*/
@@ -2380,65 +2336,60 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x2E_u32; /*"    mov   r1, #0x2E                              @ '.'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r3 = 0x4_u32; /*"    mov   r3, #0x4                               @ print 4 digits"*/
-                State::print_DQL_div_loop
+                State::PrintDQLDivLoop
             }
-            State::print_DQL_div_loop => {
+            State::PrintDQLDivLoop => {
                 r2 *= r8; /*"    mul   r2, r8, r2"*/
                 z = r2 == r7;
 
                 lt = r2 < r7; /*"    cmp   r2, r7"*/
                 if lt {
-                    s = State::print_DQL_div_0;
+                    s = State::PrintDQLDiv0;
                     continue;
-                } /*"    blt   print_DQL_div_0"*/
+                } /*"    blt   PrintDQLDiv0"*/
                 r6 = 0x0_u32; /*"    mov   r6, #0x0"*/
-                State::print_DQL_div_digit
+                State::PrintDQLDivDigit
             }
-            State::print_DQL_div_digit => {
+            State::PrintDQLDivDigit => {
                 r2 -= r7; /*"    sub   r2, r2, r7"*/
                 r6 += 0x1_u32; /*"    add   r6, r6, #0x1"*/
                 z = r2 == r7;
                 gt = r2 > r7;
 
                 if gt || z {
-                    s = State::print_DQL_div_digit;
+                    s = State::PrintDQLDivDigit;
                     continue;
-                } /*"    bge   print_DQL_div_digit"*/
-                s = State::print_DQL_div_n;
-                continue; /*"    b     print_DQL_div_n"*/
-
-                State::print_DQL_div_0
+                } /*"    bge   PrintDQLDivDigit"*/
+                s = State::PrintDQLDivN;
+                continue; /*"    b     PrintDQLDivN"*/
             }
-            State::print_DQL_div_0 => {
+            State::PrintDQLDiv0 => {
                 r1 = 0x30_u32; /*"    mov   r1, #0x30                              @ '0'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::print_DQL_next;
-                continue; /*"    b     print_DQL_next"*/
-                State::print_DQL_div_n
+                s = State::PrintDQLNext;
+                continue; /*"    b     PrintDQLNext"*/
             }
-            State::print_DQL_div_n => {
+            State::PrintDQLDivN => {
                 r1 = r6 + 0x30_u32; /*"    add   r1, r6, #0x30                          @ print n"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                State::print_DQL_next
+                State::PrintDQLNext
             }
-            State::print_DQL_next => {
+            State::PrintDQLNext => {
                 r3 -= 1_u32; /*"    subs  r3, r3, #1"*/
                 if z {
-                    s = State::print_DQH_eye_margin;
+                    s = State::PrintDQHEyeMargin;
                     continue;
-                } /*"    beq   print_DQH_eye_margin"*/
+                } /*"    beq   PrintDQHEyeMargin"*/
                 z = r2 == 0x0_u32;
 
                 if z {
-                    s = State::print_DQH_eye_margin;
+                    s = State::PrintDQHEyeMargin;
                     continue;
-                } /*"    beq   print_DQH_eye_margin"*/
-                s = State::print_DQL_div_loop;
-                continue; /*"    b     print_DQL_div_loop"*/
-
-                State::print_DQH_eye_margin
+                } /*"    beq   PrintDQHEyeMargin"*/
+                s = State::PrintDQLDivLoop;
+                continue; /*"    b     PrintDQLDivLoop"*/
             }
-            State::print_DQH_eye_margin => {
+            State::PrintDQHEyeMargin => {
                 r1 = 0x2F_u32; /*"    mov   r1, #0x2F                              @ '/'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r1 = 0x44_u32; /*"    mov   r1, #0x44                              @ 'D'"*/
@@ -2449,15 +2400,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_3
+                State::WaitPrint3
             }
-            State::wait_print_3 => {
+            State::WaitPrint3 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_3;
+                    s = State::WaitPrint3;
                     continue;
-                } /*"    beq   wait_print_3"*/
+                } /*"    beq   WaitPrint3"*/
 
                 r0 = 0x1e6e03d0_u32; /*"    ldr   r0, =0x1e6e03d0"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]"*/
@@ -2475,65 +2426,60 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x2E_u32; /*"    mov   r1, #0x2E                              @ '.'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r3 = 0x4_u32; /*"    mov   r3, #0x4                               @ print 4 digits"*/
-                State::print_DQH_div_loop
+                State::PrintDQHDivLoop
             }
-            State::print_DQH_div_loop => {
+            State::PrintDQHDivLoop => {
                 r2 *= r8; /*"    mul   r2, r8, r2"*/
                 z = r2 == r7;
 
                 lt = r2 < r7; /*"    cmp   r2, r7"*/
                 if lt {
-                    s = State::print_DQH_div_0;
+                    s = State::PrintDQHDiv0;
                     continue;
-                } /*"    blt   print_DQH_div_0"*/
+                } /*"    blt   PrintDQHDiv0"*/
                 r6 = 0x0_u32; /*"    mov   r6, #0x0"*/
-                State::print_DQH_div_digit
+                State::PrintDQHDivDigit
             }
-            State::print_DQH_div_digit => {
+            State::PrintDQHDivDigit => {
                 r2 -= r7; /*"    sub   r2, r2, r7"*/
                 r6 += 0x1_u32; /*"    add   r6, r6, #0x1"*/
                 z = r2 == r7;
                 gt = r2 > r7;
 
                 if gt || z {
-                    s = State::print_DQH_div_digit;
+                    s = State::PrintDQHDivDigit;
                     continue;
-                } /*"    bge   print_DQH_div_digit"*/
-                s = State::print_DQH_div_n;
-                continue; /*"    b     print_DQH_div_n"*/
-
-                State::print_DQH_div_0
+                } /*"    bge   PrintDQHDivDigit"*/
+                s = State::PrintDQHDivN;
+                continue; /*"    b     PrintDQHDivN"*/
             }
-            State::print_DQH_div_0 => {
+            State::PrintDQHDiv0 => {
                 r1 = 0x30_u32; /*"    mov   r1, #0x30                              @ '0'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                s = State::print_DQH_next;
-                continue; /*"    b     print_DQH_next"*/
-                State::print_DQH_div_n
+                s = State::PrintDQHNext;
+                continue; /*"    b     PrintDQHNext"*/
             }
-            State::print_DQH_div_n => {
+            State::PrintDQHDivN => {
                 r1 = r6 + 0x30_u32; /*"    add   r1, r6, #0x30                          @ print n"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
-                State::print_DQH_next
+                State::PrintDQHNext
             }
-            State::print_DQH_next => {
+            State::PrintDQHNext => {
                 r3 -= 1_u32; /*"    subs  r3, r3, #1"*/
                 if z {
-                    s = State::print_DQ_eye_margin_last;
+                    s = State::PrintDQEyeMarginLast;
                     continue;
-                } /*"    beq   print_DQ_eye_margin_last"*/
+                } /*"    beq   PrintDQEyeMarginLast"*/
                 z = r2 == 0x0_u32;
 
                 if z {
-                    s = State::print_DQ_eye_margin_last;
+                    s = State::PrintDQEyeMarginLast;
                     continue;
-                } /*"    beq   print_DQ_eye_margin_last"*/
-                s = State::print_DQH_div_loop;
-                continue; /*"    b     print_DQH_div_loop"*/
-
-                State::print_DQ_eye_margin_last
+                } /*"    beq   PrintDQEyeMarginLast"*/
+                s = State::PrintDQHDivLoop;
+                continue; /*"    b     PrintDQHDivLoop"*/
             }
-            State::print_DQ_eye_margin_last => {
+            State::PrintDQEyeMarginLast => {
                 r1 = 0x20_u32; /*"    mov   r1, #0x20                              @ ' '"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r1 = 0x43_u32; /*"    mov   r1, #0x43                              @ 'C'"*/
@@ -2552,15 +2498,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 } /*"    moveq r10, #0x35                             @ DDR4 min = 0.35"*/
 
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_4
+                State::WaitPrint4
             }
-            State::wait_print_4 => {
+            State::WaitPrint4 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_4;
+                    s = State::WaitPrint4;
                     continue;
-                } /*"    beq   wait_print_4"*/
+                } /*"    beq   WaitPrint4"*/
 
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x20_u32; /*"    mov   r1, #0x20                              @ ' '"*/
@@ -2588,21 +2534,21 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r9 == 0_u32;
 
                 if z {
-                    s = State::print_DQ_margin_last;
+                    s = State::PrintDQMarginLast;
                     continue;
-                } /*"    beq   print_DQ_margin_last"*/
+                } /*"    beq   PrintDQMarginLast"*/
                 r1 = 0x20_u32; /*"    mov   r1, #0x20                              @ ' '"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_5
+                State::WaitPrint5
             }
-            State::wait_print_5 => {
+            State::WaitPrint5 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_5;
+                    s = State::WaitPrint5;
                     continue;
-                } /*"    beq   wait_print_5"*/
+                } /*"    beq   WaitPrint5"*/
 
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x57_u32; /*"    mov   r1, #0x57                              @ 'W'"*/
@@ -2636,15 +2582,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x6E_u32; /*"    mov   r1, #0x6E                              @ 'n'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r0 = 0x1e784014_u32; /*"    ldr   r0, =0x1e784014"*/
-                State::wait_print_6
+                State::WaitPrint6
             }
-            State::wait_print_6 => {
+            State::WaitPrint6 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == 0x40_u32; /*"    tst   r1, #0x40"*/
                 if z {
-                    s = State::wait_print_6;
+                    s = State::WaitPrint6;
                     continue;
-                } /*"    beq   wait_print_6"*/
+                } /*"    beq   WaitPrint6"*/
                 r0 = 0x1e784000_u32; /*"    ldr   r0, =0x1e784000"*/
                 r1 = 0x20_u32; /*"    mov   r1, #0x20                              @ ' '"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2667,18 +2613,18 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 = 0x6C_u32; /*"    mov   r1, #0x6C                              @ 'l'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                State::print_DQ_margin_last
+                State::PrintDQMarginLast
             }
-            State::print_DQ_margin_last => {
+            State::PrintDQMarginLast => {
                 r1 = 0x0D_u32; /*"    mov   r1, #0x0D                              @ '\\r'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 r1 = 0x0A_u32; /*"    mov   r1, #0x0A                              @ '\\n'"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
                 /* Debug - UART console message */
 
-                State::platform_exit
+                State::PlatformExit
             }
-            State::platform_exit => {
+            State::PlatformExit => {
                 if CONFIG_DRAM_ECC == 1 {
                     // #ifdef CONFIG_DRAM_ECC
                     r0 = 0x1e6e0004_u32; /*"    ldr   r0, =0x1e6e0004"*/
@@ -2692,7 +2638,7 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 "*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
 
-                    r0 = 0x1e6e007C_u32; /*"    ldr   r0, =0x1e6e007C"*/
+                    r0 = 0x1e6e007c_u32; /*"    ldr   r0, =0x1e6e007C"*/
                     r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                     poke(r1, r0); /*"    str   r1, [r0]"*/
                     r0 = 0x1e6e0074_u32; /*"    ldr   r0, =0x1e6e0074"*/
@@ -2704,18 +2650,16 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
                     r2 = 0x00001000_u32; /*"    ldr   r2, =0x00001000"*/
                 } // #endif
-                s = State::ecc_Init_Flag;
-                continue; /*"b ecc_Init_Flag"*/
-
-                State::ecc_Init_Flag
+                s = State::EccInitFlag;
+                continue; /*"b EccInitFlag"*/
             }
-            State::ecc_Init_Flag => {
+            State::EccInitFlag => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2                                 @ D[12] = 1, Done"*/
                 if z {
-                    s = State::ecc_Init_Flag;
+                    s = State::EccInitFlag;
                     continue;
-                } /*"    beq   ecc_Init_Flag"*/
+                } /*"    beq   EccInitFlag"*/
 
                 r1 = 0x00000000_u32; /*"    ldr   r1, =0x00000000"*/
                 poke(r1, r0); /*"    str   r1, [r0]"*/
@@ -2740,15 +2684,15 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r6 = 0x0_u32; /*"    mov   r6, #0x0"*/
                 r7 = 0x0_u32; /*"    mov   r7, #0x0"*/
                 init_spi_checksum!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_spi_checksum"*/
-                State::spi_checksum_wait_0
+                State::SpiChecksumWait0
             }
-            State::spi_checksum_wait_0 => {
+            State::SpiChecksumWait0 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::spi_checksum_wait_0;
+                    s = State::SpiChecksumWait0;
                     continue;
-                } /*"    beq   spi_checksum_wait_0"*/
+                } /*"    beq   SpiChecksumWait0"*/
                 r0 = 0x1e620090_u32; /*"    ldr   r0, =0x1e620090"*/
                 r5 = peek(r0); /*"    ldr   r5, [r0]                               @ record golden checksum"*/
                 r0 = 0x1e620080_u32; /*"    ldr   r0, =0x1e620080"*/
@@ -2762,34 +2706,34 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r6 = 0x00F7E6D0_u32; /*"    ldr   r6, =0x00F7E6D0                        @ Init spiclk loop"*/
                 r8 = 0x0_u32; /*"    mov   r8, #0x0                               @ Init delay record"*/
 
-                State::spi_cbr_next_clkrate
+                State::SpiCbrNextClkrate
             }
-            State::spi_cbr_next_clkrate => {
+            State::SpiCbrNextClkrate => {
                 r6 >>= 0x4_u32; /*"    mov   r6, r6, lsr #0x4"*/
                 z = r6 == 0x0_u32;
 
                 if z {
-                    s = State::spi_cbr_end;
+                    s = State::SpiCbrEnd;
                     continue;
-                } /*"    beq   spi_cbr_end"*/
+                } /*"    beq   SpiCbrEnd"*/
 
                 r7 = 0x0_u32; /*"    mov   r7, #0x0                               @ Init delay loop"*/
                 r8 <<= 4_u32; /*"    mov   r8, r8, lsl #4"*/
 
-                State::spi_cbr_next_delay_s
+                State::SpiCbrNextDelayS
             }
-            State::spi_cbr_next_delay_s => {
+            State::SpiCbrNextDelayS => {
                 r2 = 0x8_u32; /*"    mov   r2, #0x8"*/
                 init_spi_checksum!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_spi_checksum"*/
-                State::spi_checksum_wait_1
+                State::SpiChecksumWait1
             }
-            State::spi_checksum_wait_1 => {
+            State::SpiChecksumWait1 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::spi_checksum_wait_1;
+                    s = State::SpiChecksumWait1;
                     continue;
-                } /*"    beq   spi_checksum_wait_1"*/
+                } /*"    beq   SpiChecksumWait1"*/
                 r0 = 0x1e620090_u32; /*"    ldr   r0, =0x1e620090"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]                               @ read checksum"*/
                 r0 = 0x1e620080_u32; /*"    ldr   r0, =0x1e620080"*/
@@ -2798,21 +2742,21 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r2 == r5;
 
                 if !z {
-                    s = State::spi_cbr_next_delay_e;
+                    s = State::SpiCbrNextDelayE;
                     continue;
-                } /*"    bne   spi_cbr_next_delay_e"*/
+                } /*"    bne   SpiCbrNextDelayE"*/
 
                 r2 = 0x0_u32; /*"    mov   r2, #0x0"*/
                 init_spi_checksum!(r0, r1, r2, r3, r4, r5, r6, r7, z, gt, lt); /*"    init_spi_checksum"*/
-                State::spi_checksum_wait_2
+                State::SpiChecksumWait2
             }
-            State::spi_checksum_wait_2 => {
+            State::SpiChecksumWait2 => {
                 r1 = peek(r0); /*"    ldr   r1, [r0]"*/
                 z = r1 == r2; /*"    tst   r1, r2"*/
                 if z {
-                    s = State::spi_checksum_wait_2;
+                    s = State::SpiChecksumWait2;
                     continue;
-                } /*"    beq   spi_checksum_wait_2"*/
+                } /*"    beq   SpiChecksumWait2"*/
                 r0 = 0x1e620090_u32; /*"    ldr   r0, =0x1e620090"*/
                 r2 = peek(r0); /*"    ldr   r2, [r0]                               @ read checksum"*/
                 r0 = 0x1e620080_u32; /*"    ldr   r0, =0x1e620080"*/
@@ -2821,31 +2765,27 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 z = r2 == r5;
 
                 if !z {
-                    s = State::spi_cbr_next_delay_e;
+                    s = State::SpiCbrNextDelayE;
                     continue;
-                } /*"    bne   spi_cbr_next_delay_e"*/
+                } /*"    bne   SpiCbrNextDelayE"*/
 
                 r8 |= r7; /*"    orr   r8, r8, r7                             @ record passed delay"*/
-                s = State::spi_cbr_next_clkrate;
-                continue; /*"    b     spi_cbr_next_clkrate"*/
-
-                State::spi_cbr_next_delay_e
+                s = State::SpiCbrNextClkrate;
+                continue; /*"    b     SpiCbrNextClkrate"*/
             }
-            State::spi_cbr_next_delay_e => {
+            State::SpiCbrNextDelayE => {
                 r7 += 0x1_u32; /*"    add   r7, r7, #0x1"*/
                 z = r7 == 0x6_u32;
 
                 lt = r7 < 0x6_u32; /*"    cmp   r7, #0x6"*/
                 if lt {
-                    s = State::spi_cbr_next_delay_s;
+                    s = State::SpiCbrNextDelayS;
                     continue;
-                } /*"    blt   spi_cbr_next_delay_s"*/
-                s = State::spi_cbr_next_clkrate;
-                continue; /*"    b     spi_cbr_next_clkrate"*/
-
-                State::spi_cbr_end
+                } /*"    blt   SpiCbrNextDelayS"*/
+                s = State::SpiCbrNextClkrate;
+                continue; /*"    b     SpiCbrNextClkrate"*/
             }
-            State::spi_cbr_end => {
+            State::SpiCbrEnd => {
                 r0 = 0x1e620094_u32; /*"    ldr   r0, =0x1e620094"*/
                 poke(r8, r0); /*"    str   r8, [r0]"*/
                 r0 = 0x1e620010_u32; /*"    ldr   r0, =0x1e620010"*/
@@ -2908,14 +2848,14 @@ pub fn ram(w: &mut impl core::fmt::Write) {
                 r1 >>= 23_u32; /*"    mov   r1, r1, lsr #23"*/
                 z = r1 == 0x01_u32; /*"    tst   r1, #0x01"*/
                 if z {
-                    s = State::set_D2PLL;
+                    s = State::SetD2PLL;
                     continue;
-                } /*"    beq   set_D2PLL"*/
+                } /*"    beq   SetD2PLL"*/
                 r2 = 0x8E00A177_u32; /*"    ldr   r2, =0x8E00A177"*/
 
-                State::set_D2PLL
+                State::SetD2PLL
             }
-            State::set_D2PLL => {
+            State::SetD2PLL => {
                 r0 = 0x1e6e201c_u32; /*"    ldr   r0, =0x1e6e201c"*/
                 poke(r2, r0); /*"    str   r2, [r0]"*/
                 r0 = 0x1e6e213c_u32; /*"    ldr   r0, =0x1e6e213c                        @ Enable D2PLL"*/
@@ -2995,94 +2935,94 @@ pub fn ram(w: &mut impl core::fmt::Write) {
 
 #[derive(Debug)]
 enum State {
-    init_dram = 0,
-    start_first_reset = 1,
-    wait_first_reset = 2,
-    bypass_first_reset = 3,
-    wait_usb_init = 4,
-    bypass_USB_init = 5,
-    bypass_mpll_hynix_mode_1 = 6,
-    bypass_mpll_hynix_mode_2 = 7,
-    set_MPLL = 8,
-    wait_mpll_init = 9,
-    reset_mmc = 10,
-    wait_mmc_reset = 11,
-    wait_mmc_reset_done = 12,
-    wait_ddr_reset = 13,
-    wait_print = 14,
-    ddr3_init = 15,
-    ddr3_phyinit_done = 16,
-    ddr3_check_dllrdy = 17,
-    ddr4_init = 18,
-    ddr4_ron_phyinit_done = 19,
-    ddr4_vref_phy_cal_start = 20,
-    ddr4_vref_phy_loop = 21,
-    ddr4_vref_phy_phyinit_done = 22,
-    ddr4_vref_phy_cbrtest_done = 23,
-    ddr4_vref_phy_test_fail = 24,
-    ddr4_vref_phy_loop_end = 25,
-    ddr4_vref_ddr_cal_start = 26,
-    ddr4_vref_ddr_loop = 27,
-    ddr4_vref_ddr_phyinit_done = 28,
-    ddr4_vref_ddr_cbrtest_done = 29,
-    ddr4_vref_ddr_test_fail = 30,
-    ddr4_vref_ddr_loop_end = 31,
-    ddr4_phyinit_done = 32,
-    ddr_phy_init_process = 33,
-    ddr_phy_init = 34,
-    ddr_phy_init_timeout = 35,
-    ddr_phy_init_delay_0 = 36,
-    ddr_phy_init_success = 37,
-    cbr_test_start = 38,
-    cbr_test_single = 39,
-    cbr_wait_engine_idle_0 = 40,
-    cbr_test_burst = 41,
-    cbr_test_burst_loop = 42,
-    cbr_wait_engine_idle_1 = 43,
-    cbr_test_fail = 44,
-    cbr_test_pattern_end = 45,
-    calibration_End = 46,
-    check_dram_size = 47,
-    check_dram_size_end = 48,
-    dram_cache_init = 49,
-    ddr_test_start = 50,
-    ddr_test_burst = 51,
-    ddr_test_burst_loop = 52,
-    ddr_wait_engine_idle_1 = 53,
-    ddr_test_fail = 54,
-    wait_print_0 = 55,
-    set_scratch = 56,
-    wait_print_1 = 57,
-    wait_print_2 = 58,
-    print_DQL_eye_margin = 59,
-    print_DQL_div_loop = 60,
-    print_DQL_div_digit = 61,
-    print_DQL_div_0 = 62,
-    print_DQL_div_n = 63,
-    print_DQL_next = 64,
-    print_DQH_eye_margin = 65,
-    wait_print_3 = 66,
-    print_DQH_div_loop = 67,
-    print_DQH_div_digit = 68,
-    print_DQH_div_0 = 69,
-    print_DQH_div_n = 70,
-    print_DQH_next = 71,
-    print_DQ_eye_margin_last = 72,
-    wait_print_4 = 73,
-    wait_print_5 = 74,
-    wait_print_6 = 75,
-    print_DQ_margin_last = 76,
-    platform_exit = 77,
-    ecc_Init_Flag = 78,
-    spi_checksum_wait_0 = 79,
-    spi_cbr_next_clkrate = 80,
-    spi_cbr_next_delay_s = 81,
-    spi_checksum_wait_1 = 82,
-    spi_checksum_wait_2 = 83,
-    spi_cbr_next_delay_e = 84,
-    spi_cbr_end = 85,
-    set_D2PLL = 86,
-    uartSETUP,
+    InitDram = 0,
+    StartFirstReset = 1,
+    WaitFirstReset = 2,
+    BypassFirstReset = 3,
+    WaitUsbInit = 4,
+    BypassUSBInit = 5,
+    BypassMpllHynixMode1 = 6,
+    BypassMpllHynixMode2 = 7,
+    SetMPLL = 8,
+    WaitMpllInit = 9,
+    ResetMmc = 10,
+    WaitMmcReset = 11,
+    WaitMmcResetDone = 12,
+    WaitDdrReset = 13,
+    WaitPrint = 14,
+    Ddr3Init = 15,
+    Ddr3PhyinitDone = 16,
+    Ddr3CheckDllrdy = 17,
+    Ddr4Init = 18,
+    Ddr4RonPhyinitDone = 19,
+    Ddr4VrefPhyCalStart = 20,
+    Ddr4VrefPhyLoop = 21,
+    Ddr4VrefPhyPhyinitDone = 22,
+    Ddr4VrefPhyCbrtestDone = 23,
+    Ddr4VrefPhyTestFail = 24,
+    Ddr4VrefPhyLoopEnd = 25,
+    Ddr4VrefDdrCalStart = 26,
+    Ddr4VrefDdrLoop = 27,
+    Ddr4VrefDdrPhyinitDone = 28,
+    Ddr4VrefDdrCbrtestDone = 29,
+    Ddr4VrefDdrTestFail = 30,
+    Ddr4VrefDdrLoopEnd = 31,
+    Ddr4PhyinitDone = 32,
+    DdrPhyInitProcess = 33,
+    DdrPhyInit = 34,
+    DdrPhyInitTimeout = 35,
+    DdrPhyInitDelay0 = 36,
+    DdrPhyInitSuccess = 37,
+    CbrTestStart = 38,
+    CbrTestSingle = 39,
+    CbrWaitEngineIdle0 = 40,
+    CbrTestBurst = 41,
+    CbrTestBurstLoop = 42,
+    CbrWaitEngineIdle1 = 43,
+    CbrTestFail = 44,
+    CbrTestPatternEnd = 45,
+    CalibrationEnd = 46,
+    CheckDramSize = 47,
+    CheckDramSizeEnd = 48,
+    DramCacheInit = 49,
+    DdrTestStart = 50,
+    DdrTestBurst = 51,
+    DdrTestBurstLoop = 52,
+    DdrWaitEngineIdle1 = 53,
+    DdrTestFail = 54,
+    WaitPrint0 = 55,
+    SetScratch = 56,
+    WaitPrint1 = 57,
+    WaitPrint2 = 58,
+    PrintDQLEyeMargin = 59,
+    PrintDQLDivLoop = 60,
+    PrintDQLDivDigit = 61,
+    PrintDQLDiv0 = 62,
+    PrintDQLDivN = 63,
+    PrintDQLNext = 64,
+    PrintDQHEyeMargin = 65,
+    WaitPrint3 = 66,
+    PrintDQHDivLoop = 67,
+    PrintDQHDivDigit = 68,
+    PrintDQHDiv0 = 69,
+    PrintDQHDivN = 70,
+    PrintDQHNext = 71,
+    PrintDQEyeMarginLast = 72,
+    WaitPrint4 = 73,
+    WaitPrint5 = 74,
+    WaitPrint6 = 75,
+    PrintDQMarginLast = 76,
+    PlatformExit = 77,
+    EccInitFlag = 78,
+    SpiChecksumWait0 = 79,
+    SpiCbrNextClkrate = 80,
+    SpiCbrNextDelayS = 81,
+    SpiChecksumWait1 = 82,
+    SpiChecksumWait2 = 83,
+    SpiCbrNextDelayE = 84,
+    SpiCbrEnd = 85,
+    SetD2PLL = 86,
+    UartSetup,
     PowerOn,
     Exit,
 }
