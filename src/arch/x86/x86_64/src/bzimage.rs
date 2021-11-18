@@ -65,7 +65,7 @@ pub struct BootParams {
 }
 
 /**
- * https://www.kernel.org/doc/Documentation/x86/boot.txt
+ * https://www.kernel.org/doc/html/latest/x86/boot.html
 */
 #[repr(C, packed)]
 #[derive(Default)]
