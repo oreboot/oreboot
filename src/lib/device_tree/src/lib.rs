@@ -20,14 +20,14 @@
 
 #[macro_use]
 extern crate num_derive;
-extern crate heapless; 
+extern crate heapless;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
+use heapless::consts::*;
+use heapless::{String, Vec};
 use model::{Driver, Result};
 use wrappers::SectionReader;
-use heapless::{String, Vec};
-use heapless::consts::*;
 
 /// Special value that every device tree in FDT format starts with.
 pub const MAGIC: u32 = 0xd00dfeed;
@@ -252,7 +252,8 @@ pub struct Area {
 // MAX_NAME_SIZE is 64 atm. Thus v shouldn't be able to grow beyond that.
 pub fn read_all(d: &dyn Driver) -> Vec<u8, U64> {
     let mut v = Vec::new();
-    v.resize(MAX_NAME_SIZE, 0).expect("Tried resizing beyond v's size");
+    v.resize(MAX_NAME_SIZE, 0)
+        .expect("Tried resizing beyond v's size");
     // Safe to unwrap because SliceReader does not return an error.
     // as_mut_slice() is not implemented on heapless::Vec. However:
     // "Equivalent to &mut s[..].": https://doc.rust-lang.org/std/vec/struct.Vec.html#method.as_mut_slice
@@ -295,7 +296,9 @@ pub fn read_areas(driver: &impl Driver) -> Result<Vec<Area, U64>> {
         match item {
             Entry::StartNode { name } => {
                 if name.starts_with("area@") {
-                    areas.push(read_area_node(&mut iter).unwrap()).expect("Unable to push last Area into results vec");
+                    areas
+                        .push(read_area_node(&mut iter).unwrap())
+                        .expect("Unable to push last Area into results vec");
                 }
             }
             Entry::EndNode => continue,
