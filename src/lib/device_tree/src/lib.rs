@@ -238,7 +238,7 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
     }
 }
 // Unsure about U512 as a default size. Too big?
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Area {
     pub description: String<U512>,
     pub compatible: String<U512>,
@@ -285,6 +285,24 @@ pub fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
         }
     }
     Ok(area)
+}
+
+pub fn read_areas(driver: &impl Driver) -> Result<Vec<Area, U64>> {
+    let mut areas = Vec::new();
+    let reader = FdtReader::new(driver).unwrap();
+    let mut iter = reader.walk();
+    while let Some(item) = iter.next().unwrap() {
+        match item {
+            Entry::StartNode { name } => {
+                if name.starts_with("area@") {
+                    areas.push(read_area_node(&mut iter).unwrap()).expect("Unable to push last Area into results vec");
+                }
+            }
+            Entry::EndNode => continue,
+            Entry::Property { name: _, value: _ } => continue,
+        }
+    }
+    Ok(areas)
 }
 
 /// Reads the device tree in FDT format from given driver and writes it in human readable form to

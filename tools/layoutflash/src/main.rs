@@ -1,5 +1,5 @@
 use clap::Clap;
-use device_tree::{Area, read_area_node, Entry, FdtReader};
+use device_tree::{Area, read_areas};
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
 use std::process::exit;
@@ -9,7 +9,6 @@ use std::{
 };
 use wrappers::SliceReader;
 
-// TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
         Err(e) => {
@@ -22,22 +21,10 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     };
     let driver = SliceReader::new(data.as_slice());
 
-    let mut areas = Vec::new();
-    let reader = FdtReader::new(&driver).unwrap();
-    let mut iter = reader.walk();
-    while let Some(item) = iter.next().unwrap() {
-        match item {
-            Entry::StartNode { name } => {
-                if name.starts_with("area@") {
-                    areas.push(read_area_node(&mut iter).unwrap());
-                }
-            }
-            Entry::EndNode => continue,
-            Entry::Property { name: _, value: _ } => continue,
-        }
-    }
+    // no error returned from helper
+    let areas = read_areas(&driver).unwrap();
 
-    Ok(areas)
+    Ok(areas.to_vec())
 }
 
 // This method assumes that areas are sorted by offset.
