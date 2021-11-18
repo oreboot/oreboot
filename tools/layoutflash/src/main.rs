@@ -9,16 +9,6 @@ use std::{
 };
 use wrappers::SliceReader;
 
-// TODO: Move this struct to lib so it can be used at runtime.
-// struct Area
-
-// TODO: Move to some common library.
-// fn read_all(d: &dyn Driver) -> Vec<u8> 
-
-
-// fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
-
-
 // TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
