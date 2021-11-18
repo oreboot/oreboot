@@ -29,3 +29,6 @@ debug.log
 #We only care about Cargo.lock files in src/mainboard
 Cargo.lock
 !src/mainboard/**/Cargo.lock
+
+# Ignore all intellij related files
+*.idea
