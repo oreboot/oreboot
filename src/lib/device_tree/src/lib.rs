@@ -237,9 +237,9 @@ impl<'a, D: Driver> FdtIterator<'a, D> {
         Err("EOF")
     }
 }
-// Unsure about U512 as a default size. Too big?
 #[derive(Default, Debug, Clone)]
 pub struct Area {
+    // Unsure about U512 as a default size. Too big?
     pub description: String<U512>,
     pub compatible: String<U512>,
     // If not specified, it will be automatically computed based on previous areas (if this is
