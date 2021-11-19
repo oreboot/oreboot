@@ -1,3 +1,5 @@
+#![feature(asm)]
+#![feature(lang_items, start)]
 #![no_std]
 #![feature(global_asm)]
 #![deny(warnings)]
@@ -65,6 +67,10 @@ impl Driver for MMU {
 extern "C" {
     fn mmu_get() -> usize;
     fn mmu_set(i: usize);
+}
+
+pub fn nop() {
+    unsafe { asm!("nop") }
 }
 
 global_asm!(include_str!("mmu.S"));
