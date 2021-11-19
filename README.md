@@ -103,12 +103,17 @@ Developing oreboot
 
 There are two different things in the project:
 
-1. `src/mainboards/` the actual targets; those depend on and share crates, which
-   can be drivers, SoC init code, and similar. For mainboards, `Cargo.lock` does
-   not need to be tracked.
-2. `src/*` everything else; these are the aforementioned crates, for which, by
-   convention, `Cargo.lock` **must** be tracked, for reproducibility as well as
-   effective caching.
+1. `src/mainboards/*` the actual targets; those depend on and shared crates, which
+   can be drivers, SoC init code, and similar. For mainboards, `Cargo.lock`
+   **must** be tracked.
+2. `src/*` everything else; these are the aforementioned crates, for which, we
+    do not track the `Cargo.lock` files.
+
+Checking in a mainboard's `Cargo.lock` file records the state of its dependencies
+at the time of a successful build, enabling reproducibility. Ideally, a lock file
+is updated follwoing successful boot on hardware.
+
+For more, see: https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries
 
 When creating a new mainboard, looking at how others are set up for the same
 architecture is a good start. Be aware that oreboot is targeting bare metal, so
