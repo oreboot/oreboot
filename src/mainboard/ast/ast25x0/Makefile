@@ -5,7 +5,6 @@ QEMU_FLAGS += -m 512m -machine ast2500-evb -nographic -drive file=${IMAGE},forma
 include ../../../../Makefile.inc
 include ../../../../Makefile.qemu.inc
 include ../../../../Makefile.mainboard.inc
-cibuild:
-	echo Skipping $(BOARD)
+cibuild: $(IMAGE)
 ciclippy: skipclippy
 citest: skiptest
