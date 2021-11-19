@@ -26,39 +26,7 @@ global_asm!(
 );
 
 fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
-    // TODO: Is this going to be different for different boards, or
-    // can it just be wrapped in the fsp-common crate?
-    // TODO: This struct has to be aligned to 4.
-    // mut because we can't make the assumption FSP won't modify it.
-    let mut fspm_upd = fsp32::FSPM_UPD {
-        FspUpdHeader: fsp32::FSP_UPD_HEADER {
-            Signature: fsp32::FSPM_UPD_SIGNATURE,
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 23],
-        },
-        FspmArchUpd: fsp32::FSPM_ARCH_UPD {
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 3],
-            NvsBufferPtr: 0,        // non-volatile storage not available
-            StackBase: 0x20000000,  // TODO: I picked this at random
-            StackSize: 0x10000,     // TODO: I picked this at random
-            BootLoaderTolumSize: 0, // Don't reserve "top of low usable memory" for bootloader.
-            BootMode: fsp32::BOOT_WITH_FULL_CONFIGURATION,
-            FspEventHandler: 0 as *mut fsp32::FSP_EVENT_HANDLER, // optional
-            Reserved1: [0u8; 4],
-        },
-        FspmConfig: fsp32::FSP_M_CONFIG {
-            SerialDebugPortAddress: 0x3f8,
-            SerialDebugPortType: 1,       // I/O
-            SerialDebugPortDevice: 3,     // External Device
-            SerialDebugPortStrideSize: 0, // 1
-            UnusedUpdSpace0: [0; 49],
-            ReservedFspmUpd: [0; 4],
-        },
-        UnusedUpdSpace1: [0u8; 2],
-        UpdTerminator: 0x55AA, // ???
-    };
-
+    let mut fspm_upd = fsp32::get_fspm_upd();
     let x86_util = arch::X86Util::new_rom_util();
 
     let status = unsafe {
@@ -73,26 +41,7 @@ fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
 }
 
 fn call_fsps(fsp_base: u32, fsps_entry: u32) -> u32 {
-    // TODO: This struct has to be aligned to 4.
-    // mut because we can't make the assumption FSP won't modify it.
-    let mut fsps_upd = fsp32::FSPS_UPD {
-        FspUpdHeader: fsp32::FSP_UPD_HEADER {
-            Signature: fsp32::FSPS_UPD_SIGNATURE,
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 23],
-        },
-        UnusedUpdSpace0: [0u8; 32],
-        FspsConfig: fsp32::FSP_S_CONFIG {
-            LogoSize: 0,
-            LogoPtr: 0,
-            GraphicsConfigPtr: 0,
-            PciTempResourceBase: 0,
-            UnusedUpdSpace1: [0; 32],
-            ReservedFspsUpd: 0,
-        },
-        UnusedUpdSpace2: [0u8; 13],
-        UpdTerminator: 0x55AA, // ???
-    };
+    let mut fsps_upd = fsp32::get_fsps_upd();
 
     // TODO: Making a new X86Util for each call is redundant.
     // Just make one in _start.

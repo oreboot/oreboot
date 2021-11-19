@@ -16,10 +16,6 @@ use rpp_procedural::preprocess_asm;
 use fsp_common as fsp;
 use fsp_qemu_sys as fsp64;
 
-// Unless we mention the fsp_qemu_sys crate, the compiler will optimize it away. This crate
-// introduces the symbols containing the FSP binary which get picked up by the linker.
-extern crate fsp_qemu_sys;
-
 global_asm!(
     preprocess_asm!("../../../arch/x86/x86_64/src/bootblock_nomem.S"),
     options(att_syntax)
@@ -30,37 +26,7 @@ fn call_fspm(
     fspm_entry: usize,
     hob_list_ptr_ptr: *mut *mut fsp64::EFI_HOB_HANDOFF_INFO_TABLE,
 ) -> fsp64::EFI_STATUS {
-    // TODO: This struct has to be aligned to 4.
-    // mut because we can't make the assumption FSP won't modify it.
-    let mut fspm_upd = fsp64::FSPM_UPD {
-        FspUpdHeader: fsp64::FSP_UPD_HEADER {
-            Signature: fsp64::FSPM_UPD_SIGNATURE,
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 23],
-        },
-        FspmArchUpd: fsp64::FSPM_ARCH_UPD {
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 3],
-            NvsBufferPtr: 0,        // non-volatile storage not available
-            StackBase: 0x20000000,  // TODO: I picked this at random
-            StackSize: 0x10000,     // TODO: I picked this at random
-            BootLoaderTolumSize: 0, // Don't reserve "top of low usable memory" for bootloader.
-            BootMode: fsp64::BOOT_WITH_FULL_CONFIGURATION,
-            FspEventHandler: 0 as *mut fsp64::FSP_EVENT_HANDLER, // optional
-            Reserved1: [0u8; 4],
-        },
-        FspmConfig: fsp64::FSP_M_CONFIG {
-            SerialDebugPortAddress: 0x3f8,
-            SerialDebugPortType: 1,       // I/O
-            SerialDebugPortDevice: 3,     // External Device
-            SerialDebugPortStrideSize: 0, // 1
-            UnusedUpdSpace0: [0; 49],
-            ReservedFspmUpd: [0; 4],
-        },
-        UnusedUpdSpace1: [0u8; 2],
-        UpdTerminator: 0x55AA, // ???
-    };
-
+    let mut fspm_upd = fsp64::get_fspm_upd();
     let status = unsafe {
         type FspMemoryInit = unsafe extern "win64" fn(
             FspmUpdDataPtr: *mut core::ffi::c_void,
@@ -77,27 +43,7 @@ fn call_fspm(
 }
 
 fn call_fsps(fsp_base: usize, fsps_entry: usize) -> fsp64::EFI_STATUS {
-    // TODO: This struct has to be aligned to 4.
-    // mut because we can't make the assumption FSP won't modify it.
-    let mut fsps_upd = fsp64::FSPS_UPD {
-        FspUpdHeader: fsp64::FSP_UPD_HEADER {
-            Signature: fsp64::FSPS_UPD_SIGNATURE,
-            Revision: 2, // FSP 2.2
-            Reserved: [0u8; 23],
-        },
-        UnusedUpdSpace0: [0u8; 32],
-        FspsConfig: fsp64::FSP_S_CONFIG {
-            LogoSize: 0,
-            LogoPtr: 0,
-            GraphicsConfigPtr: 0,
-            PciTempResourceBase: 0,
-            UnusedUpdSpace1: [0; 32],
-            ReservedFspsUpd: 0,
-        },
-        UnusedUpdSpace2: [0u8; 13],
-        UpdTerminator: 0x55AA, // ???
-    };
-
+    let mut fsps_upd = fsp64::get_fsps_upd();
     let status = unsafe {
         type FspSiliconInit =
             unsafe extern "win64" fn(FspsUpdDataPtr: *mut core::ffi::c_void) -> fsp64::EFI_STATUS;
