@@ -23,27 +23,26 @@ global_asm!(
     options(att_syntax)
 );
 
-fn call_fspm(fsp_base: usize, fspm_entry: usize) -> u32 {
+fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
     let mut fspm_upd = fsp_cfl_sys::get_fspm_upd();
 
-    unsafe {
-        type FspMemoryInit = unsafe extern "win64" fn(
-            FspmUpdDataPtr: *mut core::ffi::c_void,
-            HobListPtr: *mut *mut core::ffi::c_void,
-        ) -> u32;
-        let fspm = core::mem::transmute::<usize, FspMemoryInit>(fsp_base + fspm_entry);
-        fspm(core::mem::transmute(&mut fspm_upd), 0 as *mut _)
-    }
+    let x86_util = arch::X86Util::new_rom_util();
+
+    let upd_adr =
+        unsafe { core::mem::transmute::<&mut fsp_cfl_sys::FSPM_UPD, u64>(&mut fspm_upd) as u32 };
+
+    x86_util.protected_mode_call(fsp_base + fspm_entry, upd_adr, 0)
 }
 
-fn call_fsps(fsp_base: usize, fsps_entry: usize) -> u32 {
+fn call_fsps(fsp_base: u32, fsps_entry: u32) -> u32 {
     let mut fsps_upd = fsp_cfl_sys::get_fsps_upd();
-    unsafe {
-        type FspSiliconInit =
-            unsafe extern "win64" fn(FspsUpdDataPtr: *mut core::ffi::c_void) -> u32;
-        let fsps = core::mem::transmute::<usize, FspSiliconInit>(fsp_base + fsps_entry);
-        fsps(core::mem::transmute(&mut fsps_upd))
-    }
+
+    let x86_util = arch::X86Util::new_rom_util();
+
+    let upd_adr =
+        unsafe { core::mem::transmute::<&mut fsp_cfl_sys::FSPS_UPD, u64>(&mut fsps_upd) as u32 };
+
+    x86_util.protected_mode_call(fsp_base + fsps_entry, upd_adr, 0)
 }
 
 #[no_mangle]
@@ -63,9 +62,9 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
 
     let w = &mut print::WriteTo::new(uart0);
 
-    let fsp_base = 0xFFF80000usize;
-    let fsp_size = 0x40000usize;
-    let fspfv = unsafe { core::slice::from_raw_parts(fsp_base as *const u8, fsp_size) };
+    let fsp_base = 0xFFF80000u32;
+    let fsp_size = 0x40000u32;
+    let fspfv = unsafe { core::slice::from_raw_parts(fsp_base as *const u8, fsp_size as usize) };
     let infos = match fsp::find_fsp(fspfv) {
         Ok(x) => x,
         Err(err) => panic!("Error finding FSP: {}\r\n", err),
@@ -80,7 +79,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         )
         .unwrap();
 
-        let status = call_fspm(fsp_base, fspm_entry);
+        let status = call_fspm(fsp_base, fspm_entry as u32);
 
         write!(w, "Returned {}\r\n", status).unwrap();
     } else {
@@ -95,7 +94,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         )
         .unwrap();
 
-        let status = call_fsps(fsp_base, fsps_entry);
+        let status = call_fsps(fsp_base, fsps_entry as u32);
 
         write!(w, "Returned {}\r\n", status).unwrap();
     } else {

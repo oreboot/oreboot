@@ -29,15 +29,10 @@ fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
     let mut fspm_upd = fsp32::get_fspm_upd();
     let x86_util = arch::X86Util::new_rom_util();
 
-    let status = unsafe {
-        x86_util.protected_mode_call(
-            fsp_base + fspm_entry,
-            core::mem::transmute::<&mut fsp32::FSPM_UPD, u64>(&mut fspm_upd) as u32,
-            0 as u32,
-        )
-    };
+    let upd_adr =
+        unsafe { core::mem::transmute::<&mut fsp32::FSPM_UPD, u64>(&mut fspm_upd) as u32 };
 
-    status
+    x86_util.protected_mode_call(fsp_base + fspm_entry, upd_adr, 0 as u32)
 }
 
 fn call_fsps(fsp_base: u32, fsps_entry: u32) -> u32 {
@@ -47,15 +42,10 @@ fn call_fsps(fsp_base: u32, fsps_entry: u32) -> u32 {
     // Just make one in _start.
     let x86_util = arch::X86Util::new_rom_util();
 
-    let status = unsafe {
-        x86_util.protected_mode_call(
-            fsp_base + fsps_entry,
-            core::mem::transmute::<&mut fsp32::FSPS_UPD, u64>(&mut fsps_upd) as u32,
-            0 as u32,
-        )
-    };
+    let upd_adr =
+        unsafe { core::mem::transmute::<&mut fsp32::FSPS_UPD, u64>(&mut fsps_upd) as u32 };
 
-    status
+    x86_util.protected_mode_call(fsp_base + fsps_entry, upd_adr, 0 as u32)
 }
 
 #[no_mangle]
