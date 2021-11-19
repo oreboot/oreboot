@@ -11,7 +11,7 @@ use arch::nop;
 
 use core::fmt::Write;
 use model::Driver;
-use print;
+
 use wrappers::DoD;
 
 #[no_mangle]
@@ -32,7 +32,7 @@ pub extern "C" fn _start() -> ! {
     console.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(console);
-    write!(w, "{} {}\r\n", "Formatted output:", 7).unwrap();
+    write!(w, "Formatted output: {}\r\n", 7).unwrap();
 
     write!(w, "Starting CPU init\r\n").unwrap();
     cpu::init(); // TODO: does this do anything yet?

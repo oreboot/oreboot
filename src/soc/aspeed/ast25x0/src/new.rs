@@ -1,8 +1,8 @@
 #![no_std]
 
 use tock_registers::interfaces::{Readable, Writeable};
-use tock_registers::register_bitfields;
-use tock_registers::registers::{ReadOnly, ReadWrite};
+
+use tock_registers::registers::ReadWrite;
 /*
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -321,7 +321,7 @@ impl Timer {
 
     pub fn start(&self, t: u32) {
         let r = 0x1e78_2030 as *const TimerEnable;
-        let v = t << 8;
+        let _v = t << 8;
         unsafe { (*r).ENABLE.set(t as u32) };
     }
 
