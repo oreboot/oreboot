@@ -1,5 +1,5 @@
 use clap::Clap;
-use device_tree::{Area, read_areas};
+use device_tree::area::{Area, read_areas};
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
 use std::process::exit;
