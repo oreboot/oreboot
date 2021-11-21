@@ -1,8 +1,7 @@
+use crate::{infer_type, Entry, FdtIterator, FdtReader, Type, MAX_NAME_SIZE};
 use heapless::consts::*;
 use heapless::{String, Vec};
-use crate::{Entry, Type, FdtReader, FdtIterator, infer_type, MAX_NAME_SIZE}; 
 use model::{Driver, Result};
-
 
 #[derive(Default, Debug, Clone)]
 pub struct Area {
