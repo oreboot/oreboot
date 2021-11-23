@@ -13,7 +13,6 @@ SECTIONS
         KEEP(*(.fspblob))
         . = ORIGIN(fspblob) + LENGTH(fspblob);
     } > fspblob = 0xFFFF
-    . = 0xffff0000;
     .bootblock :
     {
         /* TODO: Everything is within 64KiB for real-mode jump. */
@@ -24,18 +23,19 @@ SECTIONS
         /* There should be no 'data' as such but we'll fix it later */
         KEEP(*(.data.*))
     } > bootblock = 0xFFFF
-    . = 0xffffff00;
-    .reset . :
+    .reset :
     {
+        . = ORIGIN(bootblock) + LENGTH(bootblock) - 0x100;
         KEEP(*(.reset .reset.* .reset*))
     } > bootblock = 0xFFFF
 
     .stack_sizes (INFO) :
     {
-        KEEP(*(.stack_sizes));
+        KEEP(*(.stack_sizes))
     }
 
-    /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*)
+    /DISCARD/ : {
+        *(.comment) *(.note*) *(.eh_frame*)
         /* Unused exception related info that only wastes space */
     }
 }
