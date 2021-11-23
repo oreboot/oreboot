@@ -7,3 +7,5 @@
 
 // BOOT_MODE
 #include <Pi/PiBootMode.h>
+#include <Uefi/UefiMultiPhase.h> // Contains types needed by PiHob.h
+#include <Pi/PiHob.h>
