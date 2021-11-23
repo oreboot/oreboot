@@ -1,6 +1,5 @@
 use clap::Clap;
-use device_tree::{infer_type, Entry, FdtIterator, FdtReader, Type, MAX_NAME_SIZE};
-use model::{Driver, Result};
+use device_tree::area::{Area, read_areas};
 use std::io;
 use std::io::{Seek, SeekFrom, Write};
 use std::process::exit;
@@ -10,55 +9,6 @@ use std::{
 };
 use wrappers::SliceReader;
 
-// TODO: Move this struct to lib so it can be used at runtime.
-#[derive(Default, Debug)]
-struct Area {
-    description: String,
-    compatible: String,
-    // If not specified, it will be automatically computed based on previous areas (if this is
-    // first area, we start with 0).
-    offset: Option<u32>,
-    size: u32,
-    file: Option<String>,
-}
-
-// TODO: Move to some common library.
-fn read_all(d: &dyn Driver) -> Vec<u8> {
-    let mut v = Vec::new();
-    v.resize(MAX_NAME_SIZE, 0);
-    // Safe to unwrap because SliceReader does not return an error.
-    let size = d.pread(v.as_mut_slice(), 0).unwrap();
-    v.truncate(size);
-    v
-}
-
-fn read_area_node<D: Driver>(iter: &mut FdtIterator<D>) -> Result<Area> {
-    let mut area = Area {
-        ..Default::default()
-    };
-    while let Some(item) = iter.next()? {
-        match item {
-            Entry::StartNode { name: _ } => {
-                iter.skip_node()?;
-            }
-            Entry::EndNode => return Ok(area),
-            Entry::Property { name, value } => {
-                let data = read_all(&value);
-                match (name, infer_type(data.as_slice())) {
-                    ("description", Type::String(x)) => area.description = String::from(x),
-                    ("compatible", Type::String(x)) => area.compatible = String::from(x),
-                    ("offset", Type::U32(x)) => area.offset = Some(x),
-                    ("size", Type::U32(x)) => area.size = x,
-                    ("file", Type::String(x)) => area.file = Some(String::from(x)),
-                    (_, _) => {}
-                }
-            }
-        }
-    }
-    Ok(area)
-}
-
-// TODO: Move this function to lib so it can be used at runtime.
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
         Err(e) => {
@@ -71,22 +21,10 @@ fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     };
     let driver = SliceReader::new(data.as_slice());
 
-    let mut areas = Vec::new();
-    let reader = FdtReader::new(&driver).unwrap();
-    let mut iter = reader.walk();
-    while let Some(item) = iter.next().unwrap() {
-        match item {
-            Entry::StartNode { name } => {
-                if name.starts_with("area@") {
-                    areas.push(read_area_node(&mut iter).unwrap());
-                }
-            }
-            Entry::EndNode => continue,
-            Entry::Property { name: _, value: _ } => continue,
-        }
-    }
+    // no error returned from helper
+    let areas = read_areas(&driver).unwrap();
 
-    Ok(areas)
+    Ok(areas.to_vec())
 }
 
 // This method assumes that areas are sorted by offset.

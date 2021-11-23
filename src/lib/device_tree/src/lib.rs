@@ -20,12 +20,15 @@
 
 #[macro_use]
 extern crate num_derive;
+extern crate heapless;
 
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
+
 use model::{Driver, Result};
 use wrappers::SectionReader;
 
+pub mod area;
 /// Special value that every device tree in FDT format starts with.
 pub const MAGIC: u32 = 0xd00dfeed;
 

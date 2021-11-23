@@ -1,7 +1,7 @@
 [build]
-target = "armv7a-none-eabihf"
+target = "armv7a-none-eabi"
 
-[target.armv7a-none-eabihf]
+[target.armv7a-none-eabi]
 rustflags = [
   "-C", "link-arg=-Tlink.ld", "-Z", "emit-stack-sizes",
 ]

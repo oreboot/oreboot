@@ -1,4 +1,4 @@
-init_dram:
+InitDram:
     /* save lr */
     mov   r4, lr
 
@@ -25,12 +25,12 @@ init_dram:
     ldr   r2, =0x08000000
     ldr   r1, [r0]
     tst   r1, r2
-    beq   bypass_first_reset
+    beq   BypassFirstReset
 
     ldr   r0, =0x1e785010
     ldr   r3, [r0]
     cmp   r3, #0x0
-    beq   start_first_reset
+    beq   StartFirstReset
     add   r0, r0, #0x04
     mov   r3, #0x77
     str   r3, [r0]
@@ -49,9 +49,9 @@ init_dram:
     ldr   r0, =0x1e78501c                        @ restore normal mask setting
     ldr   r1, =0x023FFFF3                        @ added 2016.09.06
     str   r1, [r0]
-    b     bypass_first_reset
+    b     BypassFirstReset
 
-start_first_reset:
+StartFirstReset:
 #ifdef ASTMMC_INIT_RESET_MODE_FULL
     ldr   r0, =0x1e785004
     ldr   r1, =0x00000001
@@ -236,14 +236,14 @@ start_first_reset:
     ldr   r1, =0x00000013
     str   r1, [r0]
 #endif
-wait_first_reset:
-    b     wait_first_reset
+WaitFirstReset:
+    b     WaitFirstReset
 
     /********************************************
        Initial Reset Procedure : End
      *******************************************/
 
-bypass_first_reset:
+BypassFirstReset:
     /* Enable Timer separate clear mode */
     ldr   r0, =0x1e782038
     mov   r1, #0xAE
@@ -299,7 +299,7 @@ bypass_first_reset:
     ldr   r2, =0x00800000
     ldr   r1, [r0]
     tst   r1, r2
-    beq   bypass_USB_init
+    beq   BypassUSBInit
     ldr   r0, =0x1e6e207c
     str   r2, [r0]
 
@@ -307,9 +307,9 @@ bypass_first_reset:
     clear_delay_timer
     ldr   r2, =0x000003E8                        @ Set Timer3 Reload = 1 ms
     init_delay_timer
-wait_usb_init:
+WaitUsbInit:
     check_delay_timer
-    bne   wait_usb_init
+    bne   WaitUsbInit
     clear_delay_timer
     /* end delay 1ms */
 
@@ -317,7 +317,7 @@ wait_usb_init:
     ldr   r1, =0x00800000
     str   r1, [r0]
 
-bypass_USB_init:
+BypassUSBInit:
     /* Enable AXI_P */
     ldr   r0, =0x00000016
     mrc   p15, 0, r1, c15, c2, 4
@@ -350,7 +350,7 @@ bypass_USB_init:
     bic   r1, r1, #0xFFFFFFBF
     mov   r2, r1, lsr #6
     cmp   r2, #0x01
-    beq   platform_exit
+    beq   PlatformExit
 
     /* Disable VGA display */
     ldr   r0, =0x1e6e202c
@@ -369,7 +369,7 @@ bypass_USB_init:
 #if   defined (CONFIG_DDR4_SUPPORT_HYNIX)
     mov   r1, r3, lsr #24                        @ Check DDR4
     tst   r1, #0x01
-    beq   bypass_mpll_hynix_mode_1
+    beq   BypassMpllHynixMode1
 #if   defined (CONFIG_DDR4_HYNIX_SET_1536)
     ldr   r2, =0x930023E0                        @ load PLL parameter for 24Mhz CLKIN (384)
 #elif defined (CONFIG_DDR4_HYNIX_SET_1488)
@@ -377,14 +377,14 @@ bypass_USB_init:
 #else
     ldr   r2, =0x930023A0                        @ load PLL parameter for 24Mhz CLKIN (360)
 #endif
-	b bypass_mpll_hynix_mode_1
+	b BypassMpllHynixMode1
 #endif
 #endif
 
-bypass_mpll_hynix_mode_1:
+BypassMpllHynixMode1:
     mov   r1, r3, lsr #23                        @ Check CLKIN = 25MHz
     tst   r1, #0x01
-    beq   set_MPLL
+    beq   SetMPLL
 #if   defined (CONFIG_DRAM_1333)
     ldr   r2, =0xC4806680                        @ load PLL parameter for 25Mhz CLKIN (331)
 #else
@@ -392,23 +392,23 @@ bypass_mpll_hynix_mode_1:
 #if   defined (CONFIG_DDR4_SUPPORT_HYNIX)
     mov   r1, r3, lsr #24                        @ Check DDR4
     tst   r1, #0x01
-    beq   bypass_mpll_hynix_mode_2
+    beq   BypassMpllHynixMode2
 #if   defined (CONFIG_DDR4_HYNIX_SET_1536)
     ldr   r2, =0x930023C0                        @ load PLL parameter for 24Mhz CLKIN (387.5)
 #elif defined (CONFIG_DDR4_HYNIX_SET_1488)
     ldr   r2, =0x930023A0                        @ load PLL parameter for 24Mhz CLKIN (375)
 #else
     ldr   r2, =0x93002380                        @ load PLL parameter for 24Mhz CLKIN (362.5)
-    b   bypass_mpll_hynix_mode_2
+    b   BypassMpllHynixMode2
 #endif
 #endif
 #endif
-bypass_mpll_hynix_mode_2:
+BypassMpllHynixMode2:
     ldr   r0, =0x1e6e2160                        @ set 24M Jitter divider (HPLL=825MHz)
     ldr   r1, =0x00011320
     str   r1, [r0]
 
-set_MPLL:
+SetMPLL:
     ldr   r0, =0x1e6e2020                        @ M-PLL (DDR SDRAM) Frequency
     str   r2, [r0]
 
@@ -417,14 +417,14 @@ set_MPLL:
     /* Delay about 3ms */
     ldr   r2, =0x00000BB8                        @ Set Timer3 Reload = 3 ms
     init_delay_timer
-wait_mpll_init:
+WaitMpllInit:
     check_delay_timer
-    bne   wait_mpll_init
+    bne   WaitMpllInit
     clear_delay_timer
     /* end delay 3ms */
 
     /* Reset MMC */
-reset_mmc:
+ResetMmc:
     ldr   r0, =0x1e78505c
     ldr   r1, =0x00000004
     str   r1, [r0]
@@ -437,10 +437,10 @@ reset_mmc:
     ldr   r0, =0x1e78504c
     ldr   r1, =0x00000013
     str   r1, [r0]
-wait_mmc_reset:
+WaitMmcReset:
     ldr   r1, [r0]
     tst   r1, #0x02
-    bne   wait_mmc_reset
+    bne   WaitMmcReset
 
     ldr   r0, =0x1e78505c
     ldr   r1, =0x023FFFF3
@@ -457,11 +457,11 @@ wait_mmc_reset:
 
     ldr   r0, =0x1e6e0000
     ldr   r1, =0xFC600309
-wait_mmc_reset_done:
+WaitMmcResetDone:
     str   r1, [r0]
     ldr   r2, [r0]
     cmp   r2, #0x1
-    bne   wait_mmc_reset_done
+    bne   WaitMmcResetDone
 
     ldr   r0, =0x1e6e0034                        @ disable MMC request
     ldr   r1, =0x00020000
@@ -470,9 +470,9 @@ wait_mmc_reset_done:
     /* Delay about 10ms */
     ldr   r2, =0x00002710                        @ Set Timer3 Reload = 10 ms
     init_delay_timer
-wait_ddr_reset:
+WaitDdrReset:
     check_delay_timer
-    bne   wait_ddr_reset
+    bne   WaitDdrReset
     clear_delay_timer
     /* end delay 10ms */
 
@@ -549,18 +549,18 @@ wait_ddr_reset:
     str   r1, [r0]
     mov   r1, #0x56                              @ 'V'
     str   r1, [r0]
-    mov   r1, #ASTMMC_INIT_VER
+    mov   r1, #AstMmcInitVer
     mov   r1, r1, lsr #4
     print_hex_char
-    mov   r1, #ASTMMC_INIT_VER
+    mov   r1, #AstMmcInitVer
     print_hex_char
     mov   r1, #0x2D                              @ '-'
     str   r1, [r0]
     ldr   r0, =0x1e784014
-wait_print:
+WaitPrint:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print
+    beq   WaitPrint
     ldr   r0, =0x1e784000
     mov   r1, #0x44                              @ 'D'
     str   r1, [r0]
@@ -642,14 +642,14 @@ wait_print:
     ldr   r1, [r0]
     ldr   r2, =0x01000000                        @ bit[24]=1 => DDR4
     tst   r1, r2
-    bne   ddr4_init
-    b     ddr3_init
+    bne   Ddr4Init
+    b     Ddr3Init
 .LTORG
 
 /******************************************************************************
  DDR3 Init
  ******************************************************************************/
-ddr3_init:
+Ddr3Init:
 /* Debug - UART console message */
     ldr   r0, =0x1e784000
     mov   r1, #0x33                              @ '3'
@@ -784,9 +784,9 @@ ddr3_init:
     ldr   r0, =0x1e6e0120
     mov   r1, #0x00
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 
-ddr3_phyinit_done:
+Ddr3PhyinitDone:
 
     /********************************************
      Check Read training margin
@@ -797,20 +797,20 @@ ddr3_phyinit_done:
     bic   r0, r1, #0xFF000000
     bic   r0, r0, #0x00FF0000
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     mov   r0, r1, lsr #16
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
 
     ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window
     ldr   r1, [r0]
     ldr   r2, =0x90
     bic   r0, r1, #0x0000FF00
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     mov   r0, r1, lsr #8
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     /*******************************************/
 
 /* Debug - UART console message */
@@ -863,10 +863,10 @@ ddr3_phyinit_done:
 
     ldr   r0, =0x1e6e0034
     ldr   r2, =0x70000000
-ddr3_check_dllrdy:
+Ddr3CheckDllrdy:
     ldr   r1, [r0]
     tst   r1, r2
-    bne   ddr3_check_dllrdy
+    bne   Ddr3CheckDllrdy
 
     ldr   r0, =0x1e6e000c
 #ifdef CONFIG_DRAM_EXT_TEMP
@@ -884,7 +884,7 @@ ddr3_check_dllrdy:
     ldr   r1, [r5, #ASTMMC_REGIDX_PLL]
     str   r1, [r0]
 
-    b     calibration_End
+    b     CalibrationEnd
 .LTORG
 /******************************************************************************
  End DDR3 Init
@@ -892,7 +892,7 @@ ddr3_check_dllrdy:
 /******************************************************************************
  DDR4 Init
  ******************************************************************************/
-ddr4_init:
+Ddr4Init:
 /* Debug - UART console message */
     ldr   r0, =0x1e784000
     mov   r1, #0x34                              @ '4'
@@ -1037,10 +1037,10 @@ ddr4_init:
     ldr   r0, =0x1e6e0060                        @ Fire DDRPHY Init
     mov   r1, #0x05
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 #endif // place here by ron
 
-ddr4_ron_phyinit_done:
+Ddr4RonPhyinitDone:
 
     ldr   r0, =0x1e6e0300                        @ read calibrated Ron_pd
     ldr   r3, [r0]
@@ -1075,7 +1075,7 @@ ddr4_ron_phyinit_done:
     ldr   r0, =0x1e720000                        @ retry count
     mov   r1, #0x5
     str   r1, [r0]
-ddr4_vref_phy_cal_start:
+Ddr4VrefPhyCalStart:
     mov   r7, #0x0
     mov   r8, #0x0
     mov   r10, #0x3F
@@ -1083,7 +1083,7 @@ ddr4_vref_phy_cal_start:
     ldr   r0, =0x1e720000
     ldr   r1, [r0]
     subs  r1, r1, #0x01
-    beq   ddr_test_fail
+    beq   DdrTestFail
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0120
@@ -1100,14 +1100,14 @@ ddr4_vref_phy_cal_start:
     ldr   r1, =0x00001C06
     str   r1, [r0]
 
-ddr4_vref_phy_loop:
+Ddr4VrefPhyLoop:
     ldr   r0, =0x1e6e0060
     ldr   r1, =0x00000000
     str   r1, [r0]
 
     add   r10, r10, #0x01
     cmp   r10, #0x80
-    beq   ddr4_vref_phy_test_fail                @ no valid margin and retry
+    beq   Ddr4VrefPhyTestFail                @ no valid margin and retry
 
     ldr   r0, =0x1e6e02cc
     orr   r1, r10, r10, lsl #8
@@ -1116,20 +1116,20 @@ ddr4_vref_phy_loop:
     ldr   r0, =0x1e6e0060
     ldr   r1, =0x00000005
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 
-ddr4_vref_phy_phyinit_done:
+Ddr4VrefPhyPhyinitDone:
 
-    b     cbr_test_start
+    b     CbrTestStart
 
-ddr4_vref_phy_cbrtest_done:
+Ddr4VrefPhyCbrtestDone:
     ldr   r0, =0x1e6e03d0                        @ read eye pass window
     ldr   r1, [r0]
     ldr   r0, =0x1e720000
     add   r0, r0, r10, lsl #2
     str   r1, [r0]
     cmp   r9, #0x01
-    bne   ddr4_vref_phy_test_fail
+    bne   Ddr4VrefPhyTestFail
     add   r8, r8, #0x01
     ldr   r0, =0x1e6e03d0                        @ read eye pass window
     ldr   r1, [r0]
@@ -1140,18 +1140,18 @@ ddr4_vref_phy_cbrtest_done:
     cmp   r1, r7
     movgt r6, r10
     movgt r7, r1
-    b     ddr4_vref_phy_loop
+    b     Ddr4VrefPhyLoop
 
-ddr4_vref_phy_test_fail:
+Ddr4VrefPhyTestFail:
     cmp   r8, #0x0
-    bne   ddr4_vref_phy_loop_end
+    bne   Ddr4VrefPhyLoopEnd
     cmp   r10, #0x80
-    beq   ddr4_vref_phy_cal_start
-    b     ddr4_vref_phy_loop
+    beq   Ddr4VrefPhyCalStart
+    b     Ddr4VrefPhyLoop
 
-ddr4_vref_phy_loop_end:
+Ddr4VrefPhyLoopEnd:
     cmp   r8, #16                                @ check phyvref margin >= 16
-    blt   ddr_test_fail
+    blt   DdrTestFail
     ldr   r0, =0x1e6e02cc
     orr   r1, r6, r6, lsl #8
     str   r1, [r0]
@@ -1172,7 +1172,7 @@ ddr4_vref_phy_loop_end:
     ldr   r0, =0x1e720000                        @ retry count
     mov   r1, #0x5
     str   r1, [r0]
-ddr4_vref_ddr_cal_start:
+Ddr4VrefDdrCalStart:
     mov   r6, #0xFF
     mov   r7, #0x0
     mov   r8, #0x0
@@ -1181,7 +1181,7 @@ ddr4_vref_ddr_cal_start:
     ldr   r0, =0x1e720000
     ldr   r1, [r0]
     subs  r1, r1, #0x01
-    beq   ddr_test_fail
+    beq   DdrTestFail
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0120
@@ -1194,14 +1194,14 @@ ddr4_vref_ddr_cal_start:
     str   r1, [r0]
 /* Debug - UART console message */
 
-ddr4_vref_ddr_loop:
+Ddr4VrefDdrLoop:
     ldr   r0, =0x1e6e0060
     ldr   r1, =0x00000000
     str   r1, [r0]
 
     add   r10, r10, #0x01
     cmp   r10, #0x40
-    beq   ddr4_vref_ddr_test_fail                @ no valid margin and retry
+    beq   Ddr4VrefDdrTestFail                @ no valid margin and retry
 
     ldr   r0, =0x1e6e02c0
     mov   r1, #0x06
@@ -1211,36 +1211,36 @@ ddr4_vref_ddr_loop:
     ldr   r0, =0x1e6e0060
     ldr   r1, =0x00000005
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 
-ddr4_vref_ddr_phyinit_done:
+Ddr4VrefDdrPhyinitDone:
 
-    b     cbr_test_start
+    b     CbrTestStart
 
-ddr4_vref_ddr_cbrtest_done:
+Ddr4VrefDdrCbrtestDone:
     cmp   r9, #0x01
-    bne   ddr4_vref_ddr_test_fail
+    bne   Ddr4VrefDdrTestFail
     add   r8, r8, #0x01
     cmp   r6, r10
     movgt r6, r10
     cmp   r7, r10
     movlt r7, r10
-    b     ddr4_vref_ddr_loop
+    b     Ddr4VrefDdrLoop
 
-ddr4_vref_ddr_test_fail:
+Ddr4VrefDdrTestFail:
     cmp   r8, #0x0
-    bne   ddr4_vref_ddr_loop_end
+    bne   Ddr4VrefDdrLoopEnd
     cmp   r10, #0x40
-    beq   ddr4_vref_ddr_cal_start
-    b     ddr4_vref_ddr_loop
+    beq   Ddr4VrefDdrCalStart
+    b     Ddr4VrefDdrLoop
 
-ddr4_vref_ddr_loop_end:
+Ddr4VrefDdrLoopEnd:
     ldr   r0, =0x1e6e0060
     ldr   r1, =0x00000000
     str   r1, [r0]
 
     cmp   r8, #16                                @ check ddrvref margin >= 16
-    blt   ddr_test_fail
+    blt   DdrTestFail
     ldr   r0, =0x1e6e02c0
     add   r1, r6, r7
     add   r1, r1, #0x01
@@ -1266,9 +1266,9 @@ ddr4_vref_ddr_loop_end:
     ldr   r0, =0x1e6e0060                        @ Fire DDRPHY Init
     ldr   r1, =0x00000005
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 
-ddr4_phyinit_done:
+Ddr4PhyinitDone:
 
     /********************************************
      Check Read training margin
@@ -1279,20 +1279,20 @@ ddr4_phyinit_done:
     bic   r0, r1, #0xFF000000
     bic   r0, r0, #0x00FF0000
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     mov   r0, r1, lsr #16
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
 
     ldr   r0, =0x1e6e03d0                        @ check Read Data Eye Training Pass Window
     ldr   r1, [r0]
     ldr   r2, =0x90
     bic   r0, r1, #0x0000FF00
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     mov   r0, r1, lsr #8
     cmp   r0, r2
-    blt   ddr_test_fail
+    blt   DdrTestFail
     /*******************************************/
 
     /*******************************************/
@@ -1318,7 +1318,7 @@ ddr4_phyinit_done:
     ldr   r1, [r5, #ASTMMC_REGIDX_PLL]
     str   r1, [r0]
 
-    b     calibration_End
+    b     CalibrationEnd
 
 .LTORG
 /******************************************************************************
@@ -1330,27 +1330,27 @@ ddr4_phyinit_done:
     /********************************************
      DDRPHY Init Process
     ********************************************/
-ddr_phy_init_process:
+DdrPhyInitProcess:
     clear_delay_timer
     /* Wait DDR PHY init done - timeout 300 ms */
     ldr   r2, =0x000493E0                        @ Set Timer3 Reload = 300 ms
     init_delay_timer
     ldr   r3, =0x1e6e0060
-ddr_phy_init:
+DdrPhyInit:
     check_delay_timer
-    beq   ddr_phy_init_timeout
+    beq   DdrPhyInitTimeout
     ldr   r1, [r3]
     tst   r1, #0x01
-    bne   ddr_phy_init
+    bne   DdrPhyInit
 
     /* Check DDR PHY init status */
     ldr   r0, =0x1e6e0300
     ldr   r2, =0x000A0000
     ldr   r1, [r0]
     tst   r1, r2
-    beq   ddr_phy_init_success
+    beq   DdrPhyInitSuccess
 
-ddr_phy_init_timeout:
+DdrPhyInitTimeout:
     ldr   r0, =0x1e6e0060                        @ Reset PHY
     mov   r1, #0x00
     str   r1, [r0]
@@ -1365,18 +1365,18 @@ ddr_phy_init_timeout:
     /* Delay about 10us */
     ldr   r2, =0x0000000A                        @ Set Timer3 Reload = 10 us
     init_delay_timer
-ddr_phy_init_delay_0:
+DdrPhyInitDelay0:
     check_delay_timer
-    bne   ddr_phy_init_delay_0
+    bne   DdrPhyInitDelay0
     clear_delay_timer
     /* end delay 10us */
 
     ldr   r0, =0x1e6e0060                        @ Fire PHY Init
     mov   r1, #0x05
     str   r1, [r0]
-    b     ddr_phy_init_process
+    b     DdrPhyInitProcess
 
-ddr_phy_init_success:
+DdrPhyInitSuccess:
     clear_delay_timer
     ldr   r0, =0x1e6e0060
     mov   r1, #0x06
@@ -1385,21 +1385,21 @@ ddr_phy_init_success:
     ldr   r0, =0x1e6e0120
     ldr   r1, [r0]
     cmp   r1, #0
-    beq   ddr3_phyinit_done
+    beq   Ddr3PhyinitDone
     cmp   r1, #1
-    beq   ddr4_vref_phy_phyinit_done
+    beq   Ddr4VrefPhyPhyinitDone
     cmp   r1, #2
-    beq   ddr4_vref_ddr_phyinit_done
+    beq   Ddr4VrefDdrPhyinitDone
 #ifdef ASTMMC_DDR4_MANUAL_RPU
     cmp   r1, #4
-    beq   ddr4_ron_phyinit_done
+    beq   Ddr4RonPhyinitDone
 #endif
-    b     ddr4_phyinit_done
+    b     Ddr4PhyinitDone
 
     /********************************************
      CBRTest
     ********************************************/
-cbr_test_start:
+CbrTestStart:
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00005C01
     str   r1, [r0]
@@ -1410,7 +1410,7 @@ cbr_test_start:
     ldr   r1, =0xFF00FF00
     str   r1, [r0]
 
-cbr_test_single:
+CbrTestSingle:
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
@@ -1418,22 +1418,22 @@ cbr_test_single:
     str   r1, [r0]
     ldr   r3, =0x3000
     ldr   r11, =0x50000
-cbr_wait_engine_idle_0:
+CbrWaitEngineIdle0:
     subs  r11, r11, #1
-    beq   cbr_test_fail
+    beq   CbrTestFail
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[12] = idle bit
-    beq   cbr_wait_engine_idle_0
+    beq   CbrWaitEngineIdle0
 
     ldr   r0, =0x1e6e0070                        @ read fail bit status
     ldr   r3, =0x2000
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[13] = fail bit
-    bne   cbr_test_fail
+    bne   CbrTestFail
 
-cbr_test_burst:
+CbrTestBurst:
     mov   r1, #0x00                              @ initialize loop index, r1 is loop index
-cbr_test_burst_loop:
+CbrTestBurstLoop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]
@@ -1442,51 +1442,51 @@ cbr_test_burst_loop:
     str   r2, [r0]
     ldr   r3, =0x3000
     ldr   r11, =0x20000
-cbr_wait_engine_idle_1:
+CbrWaitEngineIdle1:
     subs  r11, r11, #1
-    beq   cbr_test_fail
+    beq   CbrTestFail
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[12] = idle bit
-    beq   cbr_wait_engine_idle_1
+    beq   CbrWaitEngineIdle1
 
     ldr   r0, =0x1e6e0070                        @ read fail bit status
     ldr   r3, =0x2000
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[13] = fail bit
-    bne   cbr_test_fail
+    bne   CbrTestFail
 
     add   r1, r1, #1                             @ increase the test mode index
     cmp   r1, #0x04                              @ test 4 modes
-    bne   cbr_test_burst_loop
+    bne   CbrTestBurstLoop
 
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
     mov   r9, #0x1
-    b     cbr_test_pattern_end                   @ CBRTest() return(1)
+    b     CbrTestPatternEnd                   @ CBRTest() return(1)
 
-cbr_test_fail:
+CbrTestFail:
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
     mov   r9, #0x0                               @ CBRTest() return(0)
 
-cbr_test_pattern_end:
+CbrTestPatternEnd:
     ldr   r0, =0x1e6e000c
     ldr   r1, =0x00000000
     str   r1, [r0]
     ldr   r0, =0x1e6e0120
     ldr   r1, [r0]
     cmp   r1, #1
-    beq   ddr4_vref_phy_cbrtest_done
-    b     ddr4_vref_ddr_cbrtest_done
+    beq   Ddr4VrefPhyCbrtestDone
+    b     Ddr4VrefDdrCbrtestDone
 
 .LTORG
 /******************************************************************************
  Other features configuration
  *****************************************************************************/
 
-calibration_End:
+CalibrationEnd:
 
     /*******************************
      Check DRAM Size
@@ -1500,7 +1500,7 @@ calibration_End:
     bic   r6, r6, #0x00000003                    @ record MCR04
     ldr   r7, [r5, #ASTMMC_REGIDX_RFC]
 
-check_dram_size:
+CheckDramSize:
     ldr   r0, =0xA0100000
     ldr   r1, =0x41424344
     str   r1, [r0]
@@ -1520,7 +1520,7 @@ check_dram_size:
     orreq r6, r6, #0x03
     moveq r7, r7, lsr #24
     mov   r3, #0x38                              @ '8'
-    beq   check_dram_size_end
+    beq   CheckDramSizeEnd
     ldr   r0, =0x90100000
     ldr   r1, =0x35363738
     ldr   r2, [r0]
@@ -1528,7 +1528,7 @@ check_dram_size:
     orreq r6, r6, #0x02
     moveq r7, r7, lsr #16
     mov   r3, #0x34                              @ '4'
-    beq   check_dram_size_end
+    beq   CheckDramSizeEnd
     ldr   r0, =0x88100000
     ldr   r1, =0x292A2B2C
     ldr   r2, [r0]
@@ -1536,10 +1536,10 @@ check_dram_size:
     orreq r6, r6, #0x01
     moveq r7, r7, lsr #8
     mov   r3, #0x32                              @ '2'
-    beq   check_dram_size_end
+    beq   CheckDramSizeEnd
     mov   r3, #0x31                              @ '1'
 
-check_dram_size_end:
+CheckDramSizeEnd:
     ldr   r0, =0x1e6e0004
     str   r6, [r0]
     ldr   r0, =0x1e6e0014
@@ -1552,7 +1552,7 @@ check_dram_size_end:
     /* Version Number */
     ldr   r0, =0x1e6e0004
     ldr   r1, [r0]
-    mov   r2, #ASTMMC_INIT_VER
+    mov   r2, #AstMmcInitVer
     orr   r1, r1, r2, lsl #20
     str   r1, [r0]
 
@@ -1580,10 +1580,10 @@ check_dram_size_end:
     orr   r2, r1, r2, lsl #12
     str   r2, [r0]
     ldr   r3, =0x00080000
-dram_cache_init:
+DramCacheInit:
     ldr   r2, [r0]
     tst   r2, r3
-    beq   dram_cache_init
+    beq   DramCacheInit
     mov   r2, #1
     orr   r1, r1, r2, lsl #10
     str   r1, [r0]
@@ -1599,7 +1599,7 @@ dram_cache_init:
     /********************************************
      DDRTest
     ********************************************/
-ddr_test_start:
+DdrTestStart:
     ldr   r0, =0x1e6e0074
     ldr   r1, =0x0000FFFF                        @ test size = 64KB
     str   r1, [r0]
@@ -1607,9 +1607,9 @@ ddr_test_start:
     ldr   r1, =0xFF00FF00
     str   r1, [r0]
 
-ddr_test_burst:
+DdrTestBurst:
     mov   r1, #0x00                              @ initialize loop index, r1 is loop index
-ddr_test_burst_loop:
+DdrTestBurstLoop:
     ldr   r0, =0x1e6e0070
     ldr   r2, =0x00000000
     str   r2, [r0]
@@ -1618,29 +1618,29 @@ ddr_test_burst_loop:
     str   r2, [r0]
     ldr   r3, =0x3000
     ldr   r11, =0x20000
-ddr_wait_engine_idle_1:
+DdrWaitEngineIdle1:
     subs  r11, r11, #1
-    beq   ddr_test_fail
+    beq   DdrTestFail
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[12] = idle bit
-    beq   ddr_wait_engine_idle_1
+    beq   DdrWaitEngineIdle1
 
     ldr   r0, =0x1e6e0070                        @ read fail bit status
     ldr   r3, =0x2000
     ldr   r2, [r0]
     tst   r2, r3                                 @ D[13] = fail bit
-    bne   ddr_test_fail
+    bne   DdrTestFail
 
     add   r1, r1, #1                             @ increase the test mode index
     cmp   r1, #0x01                              @ test 1 modes
-    bne   ddr_test_burst_loop
+    bne   DdrTestBurstLoop
 
     ldr   r0, =0x1e6e0070
     ldr   r1, =0x00000000
     str   r1, [r0]
-    b     set_scratch                            @ CBRTest() return(1)
+    b     SetScratch                            @ CBRTest() return(1)
 
-ddr_test_fail:
+DdrTestFail:
 /* Debug - UART console message */
     ldr   r0, =0x1e784000
     mov   r1, #0x46                              @ 'F'
@@ -1656,14 +1656,14 @@ ddr_test_fail:
     mov   r1, #0x0A                              @ '\n'
     str   r1, [r0]
     ldr   r0, =0x1e784014
-wait_print_0:
+WaitPrint0:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_0
+    beq   WaitPrint0
 /* Debug - UART console message */
-    b     reset_mmc
+    b     ResetMmc
 
-set_scratch:
+SetScratch:
     /*Set Scratch register Bit 6 after ddr initial finished */
     ldr   r0, =0x1e6e2040
     ldr   r1, [r0]
@@ -1695,10 +1695,10 @@ set_scratch:
 /* Debug - UART console message */
    /* Print PHY timing information */
     ldr   r0, =0x1e784014
-wait_print_1:
+WaitPrint1:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_1
+    beq   WaitPrint1
 
     ldr   r0, =0x1e784000
     mov   r1, #0x52                              @ 'R'
@@ -1733,10 +1733,10 @@ wait_print_1:
     str   r1, [r0]
 
     ldr   r0, =0x1e784014
-wait_print_2:
+WaitPrint2:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_2
+    beq   WaitPrint2
 
     ldr   r7, =0x000001FE                        @ divide by 510
     mov   r8, #10                                @ multiply by 10
@@ -1746,7 +1746,7 @@ wait_print_2:
     tst   r1, #0x10                              @ bit[4]=1 => DDR4
     movne r10, #0x9A                             @ DDR4 min = 0x99 (0.30)
     moveq r10, #0xB3                             @ DDR3 min = 0xB3 (0.35)
-print_DQL_eye_margin:
+PrintDQLEyeMargin:
     ldr   r0, =0x1e6e03d0
     ldr   r2, [r0]
     and   r2, r2, #0xFF
@@ -1758,33 +1758,33 @@ print_DQL_eye_margin:
     mov   r1, #0x2E                              @ '.'
     str   r1, [r0]
     mov   r3, #0x4                               @ print 4 digits
-print_DQL_div_loop:
+PrintDQLDivLoop:
     mul   r2, r8, r2
     cmp   r2, r7
-    blt   print_DQL_div_0
+    blt   PrintDQLDiv0
     mov   r6, #0x0
-print_DQL_div_digit:
+PrintDQLDivDigit:
     sub   r2, r2, r7
     add   r6, r6, #0x1
     cmp   r2, r7
-    bge   print_DQL_div_digit
-    b     print_DQL_div_n
+    bge   PrintDQLDivDigit
+    b     PrintDQLDivN
 
-print_DQL_div_0:
+PrintDQLDiv0:
     mov   r1, #0x30                              @ '0'
     str   r1, [r0]
-    b     print_DQL_next
-print_DQL_div_n:
+    b     PrintDQLNext
+PrintDQLDivN:
     add   r1, r6, #0x30                          @ print n
     str   r1, [r0]
-print_DQL_next:
+PrintDQLNext:
     subs  r3, r3, #1
-    beq   print_DQH_eye_margin
+    beq   PrintDQHEyeMargin
     cmp   r2, #0x0
-    beq   print_DQH_eye_margin
-    b     print_DQL_div_loop
+    beq   PrintDQHEyeMargin
+    b     PrintDQLDivLoop
 
-print_DQH_eye_margin:
+PrintDQHEyeMargin:
     mov   r1, #0x2F                              @ '/'
     str   r1, [r0]
     mov   r1, #0x44                              @ 'D'
@@ -1795,10 +1795,10 @@ print_DQH_eye_margin:
     str   r1, [r0]
 
     ldr   r0, =0x1e784014
-wait_print_3:
+WaitPrint3:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_3
+    beq   WaitPrint3
 
     ldr   r0, =0x1e6e03d0
     ldr   r2, [r0]
@@ -1812,33 +1812,33 @@ wait_print_3:
     mov   r1, #0x2E                              @ '.'
     str   r1, [r0]
     mov   r3, #0x4                               @ print 4 digits
-print_DQH_div_loop:
+PrintDQHDivLoop:
     mul   r2, r8, r2
     cmp   r2, r7
-    blt   print_DQH_div_0
+    blt   PrintDQHDiv0
     mov   r6, #0x0
-print_DQH_div_digit:
+PrintDQHDivDigit:
     sub   r2, r2, r7
     add   r6, r6, #0x1
     cmp   r2, r7
-    bge   print_DQH_div_digit
-    b     print_DQH_div_n
+    bge   PrintDQHDivDigit
+    b     PrintDQHDivN
 
-print_DQH_div_0:
+PrintDQHDiv0:
     mov   r1, #0x30                              @ '0'
     str   r1, [r0]
-    b     print_DQH_next
-print_DQH_div_n:
+    b     PrintDQHNext
+PrintDQHDivN:
     add   r1, r6, #0x30                          @ print n
     str   r1, [r0]
-print_DQH_next:
+PrintDQHNext:
     subs  r3, r3, #1
-    beq   print_DQ_eye_margin_last
+    beq   PrintDQEyeMarginLast
     cmp   r2, #0x0
-    beq   print_DQ_eye_margin_last
-    b     print_DQH_div_loop
+    beq   PrintDQEyeMarginLast
+    b     PrintDQHDivLoop
 
-print_DQ_eye_margin_last:
+PrintDQEyeMarginLast:
     mov   r1, #0x20                              @ ' '
     str   r1, [r0]
     mov   r1, #0x43                              @ 'C'
@@ -1853,10 +1853,10 @@ print_DQ_eye_margin_last:
     moveq r10, #0x35                             @ DDR4 min = 0.35
 
     ldr   r0, =0x1e784014
-wait_print_4:
+WaitPrint4:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_4
+    beq   WaitPrint4
 
     ldr   r0, =0x1e784000
     mov   r1, #0x20                              @ ' '
@@ -1882,14 +1882,14 @@ wait_print_4:
     str   r1, [r0]
 
     cmp   r9, #0
-    beq   print_DQ_margin_last
+    beq   PrintDQMarginLast
     mov   r1, #0x20                              @ ' '
     str   r1, [r0]
     ldr   r0, =0x1e784014
-wait_print_5:
+WaitPrint5:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_5
+    beq   WaitPrint5
 
     ldr   r0, =0x1e784000
     mov   r1, #0x57                              @ 'W'
@@ -1923,10 +1923,10 @@ wait_print_5:
     mov   r1, #0x6E                              @ 'n'
     str   r1, [r0]
     ldr   r0, =0x1e784014
-wait_print_6:
+WaitPrint6:
     ldr   r1, [r0]
     tst   r1, #0x40
-    beq   wait_print_6
+    beq   WaitPrint6
     ldr   r0, =0x1e784000
     mov   r1, #0x20                              @ ' '
     str   r1, [r0]
@@ -1949,14 +1949,14 @@ wait_print_6:
     mov   r1, #0x6C                              @ 'l'
     str   r1, [r0]
 
-print_DQ_margin_last:
+PrintDQMarginLast:
     mov   r1, #0x0D                              @ '\r'
     str   r1, [r0]
     mov   r1, #0x0A                              @ '\n'
     str   r1, [r0]
 /* Debug - UART console message */
 
-platform_exit:
+PlatformExit:
 #ifdef CONFIG_DRAM_ECC
     ldr   r0, =0x1e6e0004
     ldr   r2, =0x00000880                        @ add cache range control, 2016.09.02
@@ -1965,7 +1965,7 @@ platform_exit:
     str   r1, [r0]
 
     ldr   r0, =0x1e6e0054
-    ldr   r1, =CONFIG_DRAM_ECC_SIZE              /* ECC protected memory size */
+    ldr   r1, =ConfigDramEccSize              /* ECC protected memory size */
     str   r1, [r0]
 
     ldr   r0, =0x1e6e007C
@@ -1980,12 +1980,12 @@ platform_exit:
 
     ldr   r2, =0x00001000
 #endif
-b ecc_Init_Flag
+b EccInitFlag
 
-ecc_Init_Flag:
+EccInitFlag:
     ldr   r1, [r0]
     tst   r1, r2                                 @ D[12] = 1, Done
-    beq   ecc_Init_Flag
+    beq   EccInitFlag
 
     ldr   r1, =0x00000000
     str   r1, [r0]
@@ -2010,10 +2010,10 @@ ecc_Init_Flag:
     mov   r6, #0x0
     mov   r7, #0x0
     init_spi_checksum
-spi_checksum_wait_0:
+SpiChecksumWait0:
     ldr   r1, [r0]
     tst   r1, r2
-    beq   spi_checksum_wait_0
+    beq   SpiChecksumWait0
     ldr   r0, =0x1e620090
     ldr   r5, [r0]                               @ record golden checksum
     ldr   r0, =0x1e620080
@@ -2027,53 +2027,53 @@ spi_checksum_wait_0:
     ldr   r6, =0x00F7E6D0                        @ Init spiclk loop
     mov   r8, #0x0                               @ Init delay record
 
-spi_cbr_next_clkrate:
+SpiCbrNextClkrate:
     mov   r6, r6, lsr #0x4
     cmp   r6, #0x0
-    beq   spi_cbr_end
+    beq   SpiCbrEnd
 
     mov   r7, #0x0                               @ Init delay loop
     mov   r8, r8, lsl #4
 
-spi_cbr_next_delay_s:
+SpiCbrNextDelayS:
     mov   r2, #0x8
     init_spi_checksum
-spi_checksum_wait_1:
+SpiChecksumWait1:
     ldr   r1, [r0]
     tst   r1, r2
-    beq   spi_checksum_wait_1
+    beq   SpiChecksumWait1
     ldr   r0, =0x1e620090
     ldr   r2, [r0]                               @ read checksum
     ldr   r0, =0x1e620080
     mov   r1, #0x0
     str   r1, [r0]
     cmp   r2, r5
-    bne   spi_cbr_next_delay_e
+    bne   SpiCbrNextDelayE
 
     mov   r2, #0x0
     init_spi_checksum
-spi_checksum_wait_2:
+SpiChecksumWait2:
     ldr   r1, [r0]
     tst   r1, r2
-    beq   spi_checksum_wait_2
+    beq   SpiChecksumWait2
     ldr   r0, =0x1e620090
     ldr   r2, [r0]                               @ read checksum
     ldr   r0, =0x1e620080
     mov   r1, #0x0
     str   r1, [r0]
     cmp   r2, r5
-    bne   spi_cbr_next_delay_e
+    bne   SpiCbrNextDelayE
 
     orr   r8, r8, r7                             @ record passed delay
-    b     spi_cbr_next_clkrate
+    b     SpiCbrNextClkrate
 
-spi_cbr_next_delay_e:
+SpiCbrNextDelayE:
     add   r7, r7, #0x1
     cmp   r7, #0x6
-    blt   spi_cbr_next_delay_s
-    b     spi_cbr_next_clkrate
+    blt   SpiCbrNextDelayS
+    b     SpiCbrNextClkrate
 
-spi_cbr_end:
+SpiCbrEnd:
     ldr   r0, =0x1e620094
     str   r8, [r0]
     ldr   r0, =0x1e620010
@@ -2135,10 +2135,10 @@ spi_cbr_end:
     ldr   r1, [r0]
     mov   r1, r1, lsr #23
     tst   r1, #0x01
-    beq   set_D2PLL
+    beq   SetD2PLL
     ldr   r2, =0x8E00A177
 
-set_D2PLL:
+SetD2PLL:
     ldr   r0, =0x1e6e201c
     str   r2, [r0]
     ldr   r0, =0x1e6e213c                        @ Enable D2PLL

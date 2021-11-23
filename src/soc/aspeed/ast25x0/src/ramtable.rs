@@ -1,5 +1,3 @@
-#![no_std]
-
 static TIME_TABLE_DDR3_1333: [u32; 17] = [
     0x53503C37, //       @ 0x010
     0xF858D47F, //       @ 0x014
