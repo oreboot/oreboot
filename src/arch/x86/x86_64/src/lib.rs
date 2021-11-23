@@ -3,7 +3,6 @@
 #![feature(global_asm)]
 
 const PAGE_SIZE: usize = 4096;
-use rpp_procedural::preprocess_asm;
 
 pub mod acpi;
 pub mod bzimage;
@@ -66,7 +65,24 @@ impl X86Util {
     }
 }
 
-global_asm!(preprocess_asm!("src/mode_switch.S"), options(att_syntax));
+use self::consts::*;
+global_asm!(
+    include_str!("mode_switch.S"),
+    CD = const x86::cr0::CD,
+    NW = const x86::cr0::NW,
+    TS = const x86::cr0::TS,
+    MP = const x86::cr0::MP,
+    PG = const x86::cr0::PG,
+    WP = const x86::cr0::WP,
+    PSE = const x86::cr4::PSE,
+    PAE = const x86::cr4::PAE,
+    EFER = const msr::EFER,
+    LME = const msr::efer::LME,
+    options(att_syntax)
+);
+/*
+self::const_asm!(include_str!("mode_switch.S"), options(att_syntax));
+*/
 
 pub fn halt() -> ! {
     loop {

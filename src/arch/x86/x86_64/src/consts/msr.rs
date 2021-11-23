@@ -1,5 +1,3 @@
-// ==== This file seems to be unused =======
-
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 // imported from Akaros/kern/arch/x86/ros/msr-index.h

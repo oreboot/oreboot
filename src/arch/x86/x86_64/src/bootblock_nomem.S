@@ -21,14 +21,11 @@
  *
  */
 
-
 // The non-memory bootblock.
 // THERE IS NO MEMORY.
 // Everything comes from ROM.
 // A/D bits MUST BE SET so that the hardware doesn't
 // get upset trying to set them.
-
-#include "asm_defs.h"
 
 .section .bootblock.boot
 .code32
@@ -118,20 +115,20 @@ pml3:
 	*/
 lme:
 	movl	%cr4, %eax
-	andl	$(~Pse), %eax			/* Page Size */
-	orl		$(Pge | Pae), %eax		/* Page Global, Phys. Address */
+	andl	$(~{PSE}), %eax			/* Page Size */
+	orl		$({PGE} | {PAE}), %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
-	movl	$(Efer), %ecx			/* Extended Feature Enable */
+	movl	$({EFER}), %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$Lme, %eax			/* Long Mode Enable */
+	ORL	${LME}, %eax			/* Long Mode Enable */
 	WRMSR
 
 	movl	%cr0, %edx
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// If only the rust assembler acted more like gas.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
-	ANDL	$~(CD|NW|TS|MP), %edx
-	ORL	$(PG|WP), %edx			/* Paging Enable */
+	ANDL	$~({CD}|{NW}|{TS}|{MP}), %edx
+	ORL	$({PG}|{WP}), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 	ljmp $0x28, $_identity
 
@@ -255,7 +252,7 @@ outb	%al, $0x80
 	.byte 0x66, 0x2E, 0x0F, 0x01, 0x17
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$(CD|NW|PE), %eax
+	orl	$({CD}|{NW}|{PE}), %eax
 	movl	%eax, %cr0
 
 	/* Restore BIST to %eax */

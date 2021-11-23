@@ -43,8 +43,6 @@
 // 0x7e000 Page Table Page Level 4 (PML4)
 // 0x7e000 Initial top of stack; x86 is pre-decrement so this location is not written.
 
-#include "asm_defs.h"
-
 .align 4096
 .code16
 .globl _start16bit
@@ -184,7 +182,7 @@ gdtptr16:
 
 	movl	%cr0, %eax
 	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$(CD | NW | PE), %eax
+	orl	$({CD} | {NW} | {PE}), %eax
 	movl	%eax, %cr0
 
 	/* Restore BIST to %eax */
@@ -258,7 +256,7 @@ clear_fixed_mtrr:
 
 	/* Figure out how many MTRRs we have, and clear them out */
 	// This is a standard definition.
-	mov	$MTRR_CAP_MSR, %ecx
+	mov	${MTRR_CAP_MSR}, %ecx
 	rdmsr
 	movzb	%al, %ebx		/* Number of variable MTRRs */
 	mov	/*$MTRR_PHYS_BASE(0)*/0x200, %ecx
@@ -276,7 +274,7 @@ clear_var_mtrr:
 	//post_code_be_careful_about_al(0x21)
 
 	/* Configure the default memory type to uncacheable. */
-	movl	$MTRR_DEF_TYPE_MSR, %ecx
+	movl	${MTRR_DEF_TYPE_MSR}, %ecx
 	rdmsr
 	andl	$(~0x00000cff), %eax
 	wrmsr
@@ -304,7 +302,7 @@ addrsize_set_high:
 	/* Set Cache-as-RAM base address. */
 	movl	/*$(MTRR_PHYS_BASE(0))*/$0x200, %ecx
 	movl	$_car_mtrr_start, %eax
-	orl	$MTRR_TYPE_WRBACK, %eax
+	orl	${MTRR_TYPE_WRBACK}, %eax
 	xorl	%edx, %edx
 	wrmsr
 
@@ -312,15 +310,15 @@ addrsize_set_high:
 	movl	/*$(MTRR_PHYS_MASK(0))*/$0x201, %ecx
 	rdmsr
 	movl	$_car_mtrr_mask, %eax
-	orl	$MTRR_PHYS_MASK_VALID, %eax
+	orl	${MTRR_PHYS_MASK_VALID}, %eax
 	wrmsr
 
 	//post_code_be_careful_about_al(0x2b)
 
 	/* Enable MTRR. */
-	movl	$MTRR_DEF_TYPE_MSR, %ecx
+	movl	${MTRR_DEF_TYPE_MSR}, %ecx
 	rdmsr
-	orl	$MTRR_DEF_TYPE_EN, %eax
+	orl	${MTRR_DEF_TYPE_EN}, %eax
 	wrmsr
 
 	//post_code_be_careful_about_al(0x2c)
@@ -348,7 +346,7 @@ addrsize_set_high:
 	//post_code_be_careful_about_al(0x2d)
 	/* Enable Cache-as-RAM mode by disabling cache. */
 	movl	%cr0, %eax
-	orl	/*$CR0_CacheDisable*/$CR0_CD, %eax
+	orl	/*$CR0_CacheDisable*/${CD}, %eax
 	movl	%eax, %cr0
 
 	/* Enable cache for our code in Flash because we do XIP here */
@@ -356,12 +354,12 @@ addrsize_set_high:
 	xorl	%edx, %edx
 	movl	$_program, %eax
 	andl	$_xip_mtrr_mask, %eax
-	orl	$MTRR_TYPE_WRPROT, %eax
+	orl	${MTRR_TYPE_WRPROT}, %eax
 	wrmsr
 	movl	/*MTRR_PHYS_MASK(1)*/$(0x202+1), %ecx
 	rdmsr
 	movl	$_xip_mtrr_mask, %eax
-	orl	$MTRR_PHYS_MASK_VALID, %eax
+	orl	${MTRR_PHYS_MASK_VALID}, %eax
 	wrmsr
 
 	//post_code_be_careful_about_al(0x2e)
@@ -464,10 +462,10 @@ _gdtptr64p:
 	movl %cr3, %ecx
 	movl %ecx, %edx
 	//$(PteRW|PteP)
-	orl $(PteRW | PteP), %edx	
-	addl $(Pte2MPAT), %edx
+	orl $({PTE_RW} | {PTE_P}), %edx
+	addl $({PTE2_MPAT}), %edx
 	movl %edx, 0(%ecx) // identity map entry to point to pml3
-	movl $(PtePS|PteRW|PteP), %edx
+	movl $({PTE_PS}|{PTE_RW}|{PTE_P}), %edx
 	movl %edx, 0x1000(%ecx)
 	addl $(0x40000000), %edx
 	movl %edx, 0x1008(%ecx)
@@ -489,19 +487,19 @@ _gdtptr64p:
 	*/
 lme:
 	movl	%cr4, %eax
-	andl	$(~Pse), %eax			/* Page Size */
+	andl	$(~{PSE}), %eax			/* Page Size */
 	orl	$0x60, %eax		/* Page Global, Phys. Address */
 	movl	%eax, %cr4
-	movl	$(Efer | Lme), %ecx			/* Extended Feature Enable */
+	movl	$({EFER} | {LME}), %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$Lme, %eax			/* Long Mode Enable */
+	ORL	${LME}, %eax			/* Long Mode Enable */
 	WRMSR
 
 	movl	%cr0, %edx
 	// yeah yeah repeat defines. It's ok. They've been constant for almost 40 years.
 	// view screen scrape from the docs. Includes of 40-year-old constants are a PITA.
-	ANDL	$~(CD|NW|TS|MP), %edx
-	ORL	$(PG|WP), %edx			/* Paging Enable */
+	ANDL	$~({CD}|{NW}|{TS}|{MP}), %edx
+	ORL	$({PG}|{WP}), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 	ljmp $0x18, $_identity
 

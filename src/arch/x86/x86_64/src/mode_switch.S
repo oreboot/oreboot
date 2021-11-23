@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-#include "asm_defs.h"
-
 /**
  * protected_mode_call_impl(
  *     RDI=func_ptr: u32,
@@ -146,18 +144,18 @@ protected_mode_call_impl:
 
 	/* Disable paging. */
 	movl	%cr0, %eax
-	andl	$(~CR0_PG), %eax
+	andl	$(~{PG}), %eax
 	movl	%eax, %cr0
 
 	/* Disable long mode. */
-	movl	$(Efer), %ecx
+	movl	$({EFER}), %ecx
 	rdmsr
-	andl	$(~Lme), %eax
+	andl	$(~{LME}), %eax
 	wrmsr
 
 	/* Disable PAE. */
 	movl	%cr4, %eax
-	andl	$(~Pae), %eax
+	andl	$(~{PAE}), %eax
 	movl	%eax, %cr4
 
 	/* Clear page table register */
@@ -184,14 +182,14 @@ protected_mode_call_impl:
 
 	/* enable PAE */
 	movl	%cr4, %eax
-	andl    $(~Pse), %eax // Turn off PSE because... reasons?
-	orl		$Pae, %eax
+	andl    $(~{PSE}), %eax // Turn off PSE because... reasons?
+	orl		${PAE}, %eax
 	movl	%eax, %cr4
 
 	/* enable long mode */
-	movl	$(Efer), %ecx
+	movl	$({EFER}), %ecx
 	rdmsr
-	orl	    $(Lme), %eax
+	orl	    $({LME}), %eax
 	wrmsr
 
 	/* enable paging */
@@ -199,11 +197,11 @@ protected_mode_call_impl:
 
 	// TODO: Not convinced that these should be set here. Should probably just
 	// do this once in the bootblock code.
-	andl	$~(CD|NW|TS|MP), %eax
+	andl	$~({CD}|{NW}|{TS}|{MP}), %eax
 
 	// TODO: Coreboot doesn't set the WP bit here, but the oreboot bootblock
 	// code does, so here we are.
-	orl		$(PG|WP), %eax
+	orl		$({PG}|{WP}), %eax
 	movl	%eax, %cr0
 
 	ret
