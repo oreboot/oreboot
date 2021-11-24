@@ -120,55 +120,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     // "The bootloader should not expect a complete HOB list after the FSP returns
     // from this API. It is recommended for the bootloader to save this HobListPtr
     // returned from this API and parse the full HOB list after the FspSiliconInit() API."
-    unsafe {
-        write!(w, "EFI_HOB_HANDOFF_INFO_TABLE\r\n").unwrap();
-        write!(w, "========================================\r\n").unwrap();
-        write!(w, "Version = {}\r\n", (*hob_list_ptr).Version).unwrap();
-        write!(w, "BootMode = {}\r\n", (*hob_list_ptr).BootMode).unwrap();
-        write!(w, "EfiMemoryTop = {:#x?}\r\n", (*hob_list_ptr).EfiMemoryTop).unwrap();
-        write!(
-            w,
-            "EfiMemoryBottom = {:#x?}\r\n",
-            (*hob_list_ptr).EfiMemoryBottom
-        )
-        .unwrap();
-        write!(
-            w,
-            "EfiFreeMemoryTop = {:#x?}\r\n",
-            (*hob_list_ptr).EfiFreeMemoryTop
-        )
-        .unwrap();
-        write!(
-            w,
-            "EfiFreeMemoryBottom = {:#x?}\r\n",
-            (*hob_list_ptr).EfiFreeMemoryBottom
-        )
-        .unwrap();
-        write!(
-            w,
-            "EfiEndOfHobList = {:#x?}\r\n",
-            (*hob_list_ptr).EfiEndOfHobList
-        )
-        .unwrap();
-
-        let end_address: u64 = (*hob_list_ptr).EfiEndOfHobList;
-
-        let mut hob_list_bytes_offset: isize = 0;
-        let hob_list_bytes_ptr: *const u8 = core::mem::transmute(hob_list_ptr);
-
-        while (hob_list_ptr as u64) < end_address {
-            write!(w, "Hob @ {:#x?}\r\n", hob_list_ptr).unwrap();
-            write!(w, "Header.HobType = {}\r\n", (*hob_list_ptr).Header.HobType).unwrap();
-            write!(
-                w,
-                "Header.HobLength = {}\r\n",
-                (*hob_list_ptr).Header.HobLength
-            )
-            .unwrap();
-            hob_list_bytes_offset += (*hob_list_ptr).Header.HobLength as isize;
-            hob_list_ptr = core::mem::transmute(hob_list_bytes_ptr.offset(hob_list_bytes_offset));
-        }
-    }
+    fsp64::dump_fsp_hobs(hob_list_ptr, w);
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
