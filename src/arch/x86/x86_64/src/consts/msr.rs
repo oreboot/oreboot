@@ -18,9 +18,10 @@ pub const KERNEL_GS_BASE: u32 = 0xc000_0102; /* SwapGS GS shadow */
 pub const TSC_AUX: u32 = 0xc000_0103; /* Auxiliary TSC */
 
 /* EFER bits: */
-
-pub const EFER_LME: u64 = 1 << 8; /* Long mode enable */
-pub const EFER_LMA: u64 = 1 << 10; /* Long mode active (read-only) */
+pub mod efer {
+    pub const LME: u64 = 1 << 8; /* Long mode enable */
+    pub const LMA: u64 = 1 << 10; /* Long mode active (read-only) */
+}
 
 pub const IA32_SYSENTER_CS: u32 = 0x00000174;
 pub const IA32_SYSENTER_ESP: u32 = 0x00000175;
