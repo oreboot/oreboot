@@ -11,7 +11,6 @@ print = { path = "../../../lib/print" }
 util = { path = "../../../lib/util" }
 wrappers = { path = "../../../drivers/wrappers"}
 vcell = "0.1.2"
-rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

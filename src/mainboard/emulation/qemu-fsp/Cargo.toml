@@ -14,7 +14,6 @@ payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
 uefi = { path = "../../../lib/uefi"}
 wrappers = { path = "../../../drivers/wrappers"}
-rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
 heapless = "0.4.x"
 tock-registers = "0.7.0"
@@ -29,9 +28,6 @@ features = ["i8250"]
 opt-level = 'z'  # Optimize for size.
 lto = true
 panic = "abort"
-
-[build_dependencies]
-rpp = { path = "../../../../tools/rpp" }
 
 [profile.dev]
 panic = "abort"

@@ -7,6 +7,7 @@
 #![allow(clippy::zero_ptr)]
 
 use arch::bzimage::BzImage;
+use arch::consts::*;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
@@ -14,12 +15,22 @@ use model::Driver;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 
-use rpp_procedural::preprocess_asm;
-
 use fsp_common as fsp;
 
 global_asm!(
-    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    include_str!("../../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    CD = const x86::cr0::CD,
+    NW = const x86::cr0::NW,
+    TS = const x86::cr0::TS,
+    MP = const x86::cr0::MP,
+    PG = const x86::cr0::PG,
+    WP = const x86::cr0::WP,
+    PE = const x86::cr0::PE,
+    PSE = const x86::cr4::PSE,
+    PGE = const x86::cr4::PGE,
+    PAE = const x86::cr4::PAE,
+    EFER = const msr::EFER,
+    LME = const msr::efer::LME,
     options(att_syntax)
 );
 

@@ -13,7 +13,6 @@ model = { path = "../../../drivers/model" }
 payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
 wrappers = { path = "../../../drivers/wrappers"}
-rpp_procedural = { path = "../../../../tools/rpp_procedural" }
 
 static-ref = "0.1.1"
 postcard = "0.4.3"
@@ -26,9 +25,6 @@ features = ["i8250"]
 opt-level = 'z'  # Optimize for size.
 lto = true
 panic = "abort"
-
-[build_dependencies]
-rpp = { path = "../../../../tools/rpp" }
 
 [profile.dev]
 panic = "abort"

@@ -5,6 +5,7 @@
 #![feature(global_asm)]
 
 use arch::bzimage::BzImage;
+use arch::consts::*;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
@@ -13,10 +14,28 @@ use print;
 use uart::debug_port::DebugPort;
 use uart::i8250::I8250;
 
-use rpp_procedural::preprocess_asm;
-
 global_asm!(
-    preprocess_asm!("../../../arch/x86/x86_64/src/bootblock.S"),
+    include_str!("../../../../arch/x86/x86_64/src/bootblock.S"),
+    PSE = const x86::cr4::PSE,
+    EFER = const msr::EFER,
+    LME = const msr::efer::LME,
+    CD = const x86::cr0::CD,
+    NW = const x86::cr0::NW,
+    TS = const x86::cr0::TS,
+    MP = const x86::cr0::MP,
+    PG = const x86::cr0::PG,
+    WP = const x86::cr0::WP,
+    PE = const x86::cr0::PE,
+    PTE_P = const x86::pg::P,
+    PTE_RW = const x86::pg::RW,
+    PTE_PS = const x86::pg::PS,
+    PTE2_MPAT = const x86::pg::PAT,
+    MTRR_CAP_MSR = const mtrr::CAP_MSR,
+    MTRR_DEF_TYPE_MSR = const mtrr::DEF_TYPE_MSR,
+    MTRR_TYPE_WRBACK = const mtrr::TYPE_WRBACK,
+    MTRR_PHYS_MASK_VALID = const mtrr::PHYS_MASK_VALID,
+    MTRR_DEF_TYPE_EN = const mtrr::DEF_TYPE_EN,
+    MTRR_TYPE_WRPROT = const mtrr::TYPE_WRPROT,
     options(att_syntax)
 );
 
