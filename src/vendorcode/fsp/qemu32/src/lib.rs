@@ -72,11 +72,13 @@ pub fn get_fsps_upd() -> FSPS_UPD {
     }
 }
 
-pub fn dump_fsp_hobs(
+/// # Safety
+/// Inherently unsafe, since the HOB is provided by the caller.
+pub unsafe fn dump_fsp_hobs(
     mut hob_list_ptr: *const EFI_HOB_HANDOFF_INFO_TABLE,
     w: &mut impl core::fmt::Write,
 ) {
-    let hob_list: &EFI_HOB_HANDOFF_INFO_TABLE = unsafe { &*hob_list_ptr };
+    let hob_list: &EFI_HOB_HANDOFF_INFO_TABLE = &*hob_list_ptr;
     write!(w, "EFI_HOB_HANDOFF_INFO_TABLE\r\n").unwrap();
     write!(w, "========================================\r\n").unwrap();
     write!(w, "Version = {}\r\n", hob_list.Version).unwrap();
@@ -99,15 +101,14 @@ pub fn dump_fsp_hobs(
 
     let end_address: u64 = hob_list.EfiEndOfHobList;
     let mut hob_list_bytes_offset: isize = 0;
-    let hob_list_bytes_ptr: *const u8 = unsafe { core::mem::transmute(hob_list_ptr) };
+    let hob_list_bytes_ptr: *const u8 = core::mem::transmute(hob_list_ptr);
 
     while (hob_list_ptr as u64) < end_address {
-        let hob_list: &EFI_HOB_HANDOFF_INFO_TABLE = unsafe { &*hob_list_ptr };
+        let hob_list: &EFI_HOB_HANDOFF_INFO_TABLE = &*hob_list_ptr;
         write!(w, "Hob @ {:#x?}\r\n", hob_list_ptr).unwrap();
         write!(w, "Header.HobType = {}\r\n", hob_list.Header.HobType).unwrap();
         write!(w, "Header.HobLength = {}\r\n", hob_list.Header.HobLength).unwrap();
         hob_list_bytes_offset += hob_list.Header.HobLength as isize;
-        hob_list_ptr =
-            unsafe { core::mem::transmute(hob_list_bytes_ptr.offset(hob_list_bytes_offset)) };
+        hob_list_ptr = core::mem::transmute(hob_list_bytes_ptr.offset(hob_list_bytes_offset));
     }
 }

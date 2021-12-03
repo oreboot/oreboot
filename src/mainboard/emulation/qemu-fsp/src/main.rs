@@ -120,7 +120,9 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     // "The bootloader should not expect a complete HOB list after the FSP returns
     // from this API. It is recommended for the bootloader to save this HobListPtr
     // returned from this API and parse the full HOB list after the FspSiliconInit() API."
-    fsp64::dump_fsp_hobs(hob_list_ptr, w);
+    unsafe {
+        fsp64::dump_fsp_hobs(hob_list_ptr, w);
+    }
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
