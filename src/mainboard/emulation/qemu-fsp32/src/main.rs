@@ -8,6 +8,7 @@ use arch::consts::*;
 use arch::ioport::IOPort;
 use core::fmt::Write;
 use core::panic::PanicInfo;
+use core::ptr;
 use model::Driver;
 use print;
 use uart::i8250::I8250;
@@ -36,14 +37,22 @@ global_asm!(
     options(att_syntax)
 );
 
-fn call_fspm(fsp_base: u32, fspm_entry: u32) -> u32 {
+fn call_fspm(
+    fsp_base: u32,
+    fspm_entry: u32,
+    hob_list_ptr_ptr: *mut *mut fsp32::EFI_HOB_HANDOFF_INFO_TABLE,
+) -> u32 {
     let mut fspm_upd = fsp32::get_fspm_upd();
     let x86_util = arch::X86Util::new_rom_util();
 
     let upd_adr =
         unsafe { core::mem::transmute::<&mut fsp32::FSPM_UPD, u64>(&mut fspm_upd) as u32 };
+    let hob_adr = unsafe {
+        core::mem::transmute::<*mut *mut fsp32::EFI_HOB_HANDOFF_INFO_TABLE, u64>(hob_list_ptr_ptr)
+            as u32
+    };
 
-    x86_util.protected_mode_call(fsp_base + fspm_entry, upd_adr, 0 as u32)
+    x86_util.protected_mode_call(fsp_base + fspm_entry, upd_adr, hob_adr)
 }
 
 fn call_fsps(fsp_base: u32, fsps_entry: u32) -> u32 {
@@ -79,6 +88,9 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     };
     write!(w, "Found FSP_INFO: {:#x?}\r\n", infos).unwrap();
 
+    let mut hob_list_ptr: *mut fsp32::EFI_HOB_HANDOFF_INFO_TABLE = ptr::null_mut();
+    let hob_list_ptr_ptr: *mut *mut fsp32::EFI_HOB_HANDOFF_INFO_TABLE = &mut hob_list_ptr;
+
     if let Some(fspm_entry) = fsp::get_fspm_entry(&infos) {
         write!(
             w,
@@ -87,7 +99,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         )
         .unwrap();
 
-        let status = call_fspm(fsp_base, fspm_entry as u32);
+        let status = call_fspm(fsp_base, fspm_entry as u32, hob_list_ptr_ptr);
 
         write!(w, "Returned {}\r\n", status).unwrap();
     } else {
@@ -108,6 +120,11 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
     } else {
         write!(w, "Could not find FspSiliconInit\r\n").unwrap();
     }
+
+    // "The bootloader should not expect a complete HOB list after the FSP returns
+    // from this API. It is recommended for the bootloader to save this HobListPtr
+    // returned from this API and parse the full HOB list after the FspSiliconInit() API."
+    unsafe { fsp32::dump_fsp_hobs(hob_list_ptr, w) };
 
     // TODO: Get these values from the fdt
     let payload = &mut BzImage {
