@@ -34,7 +34,8 @@ firsttime:
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv64gc-unknown-none-elf
-
+	rustup target add aarch64-unknown-none-softfloat
+	rustup target add riscv32imc-unknown-none-elf
 
 nexttime:
 	rustup toolchain install $(TOOLCHAIN_VER)
