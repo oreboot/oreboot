@@ -9,9 +9,10 @@ use core::fmt::Write;
 
 use device_tree::print_fdt;
 use model::Driver;
-use payloads::external::zimage::DTB;
 use uart;
-use wrappers::{DoD, SliceReader};
+use wrappers::{DoD, Memory, SectionReader};
+const DTFS_BASE: usize = 0x800000;
+const DTFS_SIZE: usize = 0x80000;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -23,9 +24,10 @@ pub extern "C" fn _start() -> ! {
     let s = &mut [uart_driver];
     let console = &mut DoD::new(s);
     let mut w = print::WriteTo::new(console);
-    let spi = SliceReader::new(DTB);
 
-    if let Err(err) = print_fdt(&spi, &mut w) {
+    // TODO: determine DTFS_BASE+SIZE based on layoutflash (or some other toolchain component)
+    let dtfs = SectionReader::new(&Memory {}, DTFS_BASE, DTFS_SIZE);
+    if let Err(err) = print_fdt(&dtfs, &mut w) {
         write!(w, "error: {}\n", err).expect(err);
     }
 
