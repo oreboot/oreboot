@@ -1,13 +1,12 @@
 use crate::halt;
 pub const KERNEL: &[u8] = include_bytes!("notmain.bin");
-use device_tree::area::{get_kernel_area};
+use device_tree::area::get_kernel_area;
 use payloads::payload;
 use wrappers::{Memory, SectionReader};
 
 const MEM: usize = 0x40200000;
 const DTFS_BASE: usize = 0x800000;
 const DTFS_SIZE: usize = 0x80000;
-
 
 pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
     let kernel_area = get_kernel_area(DTFS_BASE, DTFS_SIZE);
@@ -27,7 +26,7 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
         kernel_area.offset.unwrap() as usize,
         kernel_area.size as usize,
     );
-    // TODO: Need capacity+size in dtb to size this appropriately 
+    // TODO: Need capacity+size in dtb to size this appropriately
     let mut dtb = SectionReader::new(&Memory {}, DTFS_BASE, 0x800);
 
     let kernel_segs = &[
