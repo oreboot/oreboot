@@ -4,7 +4,6 @@ use heapless::{String, Vec};
 use model::{Driver, Result};
 use wrappers::{Memory, SectionReader};
 
-
 #[derive(Default, Debug, Clone)]
 pub struct Area {
     // Unsure about U512 as a default size. Too big?
@@ -42,7 +41,7 @@ pub fn get_kernel_area(dtfs_base: usize, dtfs_size: usize) -> Area {
         last_area_end = offset + cur_area.size;
     };
 
-    // Load payload using kernel_area. 
+    // Load payload using kernel_area.
     area_opt.expect("Did not find node of type 'ore-rompayload' while looping through dtfs.\n")
 }
 
