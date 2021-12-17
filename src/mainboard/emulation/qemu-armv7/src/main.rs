@@ -40,7 +40,7 @@ pub extern "C" fn _start() -> ! {
     write!(w, "6").expect("blame ryan");
     write!(w, "7").expect("blame ryan");
     write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
-    romstage::romstage()
+    romstage::romstage(&mut w)
 }
 use core::panic::PanicInfo;
 
