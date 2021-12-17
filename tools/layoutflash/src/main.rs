@@ -42,6 +42,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
         }
         last_area_end = offset + a.size;
 
+        println!("<{}> @ 0x{:x}", a.description, last_area_end);
         // First fill with 0xff.
         let mut v = Vec::new();
         v.resize(a.size as usize, 0xff);
