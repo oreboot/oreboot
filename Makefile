@@ -124,4 +124,9 @@ checkandbuildall: ciprepare clippy checkformat test mainboards
 	echo "Done CI!"
 
 clean:
-	rm -rf $(wildcard src/mainboard/*/*/target)
+	rm -rf $(wildcard payloads/target) \
+	rm -rf $(wildcard tools/*/target) \
+	rm -rf $(wildcard src/*/target) \
+	rm -rf $(wildcard src/*/*/target) \
+	rm -rf $(wildcard src/*/*/*/target) \
+	rm -rf $(wildcard src/*/*/*/*/target)
