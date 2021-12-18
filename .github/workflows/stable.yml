@@ -1,0 +1,59 @@
+name: build_stable
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  LintAndFormat:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: 'Install Dependencies'
+      continue-on-error: true
+      run: |
+        sudo apt-get update && 
+        sed -r -i 's/channel = "nightly-.{4}-..-.."/channel = "stable-2021-12-02"/g' rust-toolchain.toml && 
+        make ciprepare
+    - name: 'clippy linter'
+      continue-on-error: true
+      run: make --keep-going clippy
+    - name: 'Check formatting'
+      continue-on-error: true
+      run: make --keep-going checkformat
+
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: 'Install Dependencies'
+      continue-on-error: true
+      run: |
+        sudo apt-get update && 
+        sed -r -i 's/channel = "nightly-.{4}-..-.."/channel = "stable-2021-12-02"/g' rust-toolchain.toml && 
+        make ciprepare
+    - name: 'Run rust tests'
+      continue-on-error: true
+      run: make --keep-going test
+
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: 'Install Dependencies'
+      continue-on-error: true
+      run: |
+        sudo apt-get update && 
+        sed -r -i 's/channel = "nightly-.{4}-..-.."/channel = "stable-2021-12-02"/g' rust-toolchain.toml && 
+        make ciprepare
+    - name: 'Build all mainboards'
+      continue-on-error: true
+      run: make --keep-going mainboards
+    - name: 'Generate report of binary sizes'
+      continue-on-error: true
+      run: ./scripts/generate-size-report.sh
