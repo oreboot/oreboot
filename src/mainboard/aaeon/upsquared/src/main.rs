@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![feature(asm_const)]
 
 use arch::bzimage::BzImage;
 use arch::consts::*;

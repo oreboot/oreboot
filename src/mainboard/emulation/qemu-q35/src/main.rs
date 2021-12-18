@@ -2,6 +2,7 @@
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
+#![feature(asm_const)]
 #![feature(global_asm)]
 
 use arch::bzimage::BzImage;

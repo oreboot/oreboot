@@ -1,4 +1,5 @@
 #![feature(asm, lang_items, start)]
+#![feature(asm_const)]
 #![no_std]
 #![feature(global_asm)]
 

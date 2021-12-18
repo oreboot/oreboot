@@ -2,6 +2,7 @@
 #![no_std]
 #![no_main]
 #![feature(global_asm)]
+#![feature(asm_const)]
 // Clippy stupidly suggests using functions from std even you we have declared
 // no_std. Shame on clippy.
 #![allow(clippy::zero_ptr)]
