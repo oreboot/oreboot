@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(const_panic)]
 
 use vcell::*;
 
