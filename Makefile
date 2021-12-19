@@ -19,7 +19,7 @@ help:
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
-BINUTILS_VER := 0.3.2
+BINUTILS_VER := 0.3.4
 STACK_SIZES_VER := 0.4.0
 
 CARGOINST := rustup run --install nightly cargo install
@@ -124,4 +124,9 @@ checkandbuildall: ciprepare clippy checkformat test mainboards
 	echo "Done CI!"
 
 clean:
-	rm -rf $(wildcard src/mainboard/*/*/target)
+	rm -rf $(wildcard payloads/target) \
+	rm -rf $(wildcard tools/*/target) \
+	rm -rf $(wildcard src/*/target) \
+	rm -rf $(wildcard src/*/*/target) \
+	rm -rf $(wildcard src/*/*/*/target) \
+	rm -rf $(wildcard src/*/*/*/*/target)
