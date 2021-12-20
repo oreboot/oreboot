@@ -1,11 +1,10 @@
-use clock::ClockNode;
 use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
 use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
 use tock_registers::register_bitfields;
-use tock_registers::registers::{ReadOnly, ReadWrite};
+use tock_registers::registers::ReadWrite;
 
 const RETRY_COUNT: u32 = 100_000;
 
@@ -49,7 +48,6 @@ pub struct RegisterBlock {
 
 pub struct Sunxi {
     base: usize,
-    baudrate: u32,
 }
 
 impl ops::Deref for Sunxi {
@@ -102,8 +100,8 @@ register_bitfields! [
 ];
 
 impl Sunxi {
-    pub fn new(base: usize, baudrate: u32) -> Sunxi {
-        Sunxi { base, baudrate }
+    pub fn new(base: usize, _baudrate: u32) -> Sunxi {
+        Sunxi { base }
     }
 
     /// Returns a pointer to the register block
