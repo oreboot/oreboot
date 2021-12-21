@@ -37,6 +37,6 @@ jobs:
     - name: 'Install Dependencies'
       run: sudo apt-get update && make ciprepare
     - name: 'Build all mainboards'
-      run: make --keep-going mainboard
+      run: make --keep-going mainboards
     - name: 'Generate report of binary sizes'
       run: ./scripts/generate-size-report.sh
