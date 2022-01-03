@@ -1,5 +1,5 @@
 use crate::halt;
-pub const KERNEL: &[u8] = include_bytes!("notmain.bin");
+pub const KERNEL: &[u8] = include_bytes!("../../../../../payloads/src/external/simple/notmain.bin");
 use device_tree::area::get_kernel_area;
 use payloads::payload;
 use wrappers::{Memory, SectionReader};
