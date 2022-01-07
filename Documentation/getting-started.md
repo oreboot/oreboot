@@ -1,5 +1,7 @@
 # Getting Started
 
+<img alt="oreboot logo" src="img/logo-full.png" height="100px" />[^1]
+
 If you would like to contribute, but don't know how to start, this page is for
 you. This guide will walk you through running oreboot locally using QEMU
 emulation and explain the high level architecture / structure of the project.
@@ -118,3 +120,6 @@ Those commands are invoked from the top level `oreboot` directory:
   try to improve the comments, write unit tests or refactor.
 * Look at open Issues in github, especially the ones with `good first issue`
   label.
+
+[^1]: logo by Susanne Nähler, taken from [linuxboot/stickers](
+https://github.com/linuxboot/stickers#oreboot)
