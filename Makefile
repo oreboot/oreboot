@@ -24,8 +24,8 @@ STACK_SIZES_VER := 0.4.0
 
 CARGOINST := rustup run --install nightly cargo install
 
-.PHONY: mainboards $(MAINBOARDS)
-mainboard: $(MAINBOARDS)
+.PHONY: $(MAINBOARDS)
+mainboards: $(MAINBOARDS)
 $(MAINBOARDS):
 	cd $(dir $@) && make cibuild
 
