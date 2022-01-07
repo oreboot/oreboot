@@ -18,7 +18,7 @@ const RETRY_COUNT: u32 = 100_000;
 // https://dl.linux-sunxi.org/D1/D1_User_Manual_V0.1_Draft_Version.pdf
 
 // pp 910
-pub const UART0: u32 = 0x02500000;
+pub const UART0: u32 = 0x0250_0000;
 pub const UART0_RB_TH_DLL: u32 = UART0 + 0x0;
 pub const UART0_DLH_IE: u32 = UART0 + 0x4;
 pub const UART0_II_FC: u32 = UART0 + 0x8;
@@ -26,11 +26,11 @@ pub const UART0_LC: u32 = UART0 + 0xc;
 pub const UART0_LS: u32 = UART0 + 0x14;
 
 // p897
-pub const UART1: u32 = 0x02500400;
-pub const UART2: u32 = 0x02500800;
-pub const UART3: u32 = 0x02500C00;
-pub const UART4: u32 = 0x02501000;
-pub const UART5: u32 = 0x02501400;
+pub const UART1: u32 = 0x0250_0400;
+pub const UART2: u32 = 0x0250_0800;
+pub const UART3: u32 = 0x0250_0C00;
+pub const UART4: u32 = 0x0250_1000;
+pub const UART5: u32 = 0x0250_1400;
 
 #[repr(C)]
 pub struct RegisterBlock {
@@ -42,7 +42,7 @@ pub struct RegisterBlock {
     u0iifc: ReadWrite<u32, UART0_II_FC::Register>,
     /* UART0 Line Control Register */
     u0lc: ReadWrite<u32, UART0_LC::Register>,
-    pad1: u32,
+    u0mc: u32,
     /* UART0 Line Status Register */
     u0ls: ReadWrite<u32, UART0_LS::Register>,
 }
@@ -62,7 +62,9 @@ impl ops::Deref for Sunxi {
 register_bitfields! [
     u32,
     UART0_RB_TH_DLL [
-        VAL OFFSET(0) NUMBITS(8) []
+        RBR OFFSET(0) NUMBITS(8) [],
+        DLL OFFSET(0) NUMBITS(8) [],
+        HALT_TX OFFSET(0) NUMBITS(1) []
     ],
     UART0_DLH_IE [
         DLH OFFSET(0) NUMBITS(8) [],
@@ -77,7 +79,13 @@ register_bitfields! [
         // last 24 bits are reserved
     ],
     UART0_II_FC [
-        IID OFFSET(0) NUMBITS(3) []
+        IID OFFSET(0) NUMBITS(3) [],
+        FIFOE OFFSET(0) NUMBITS(1) [], // FIFO enable
+        RFIFOR OFFSET(1) NUMBITS(1) [], // rx reset
+        XFIFOR OFFSET(2) NUMBITS(1) [], // tx reset
+        DMAM OFFSET(3) NUMBITS(1) [], // DMA mode
+        TFT OFFSET(4) NUMBITS(2) [], // TX trigger; 00 = empty
+        RT OFFSET(6) NUMBITS(2) [], // RX trigger; 00 = 1 char
     ],
     UART0_LC [
         DLS OFFSET(0) NUMBITS(2) [],
@@ -106,9 +114,6 @@ impl Sunxi {
 
 impl Driver for Sunxi {
     fn init(&mut self) -> Result<()> {
-        // disable interrupts
-        self.u0dlhie.modify(UART0_DLH_IE::ETBEI.val(0));
-
         // TODO: full init needs this; put it in the mainboard main.rs or in the
         // CCU init, assuming that we always need it anyway? How about panic?
         /*
@@ -123,25 +128,37 @@ impl Driver for Sunxi {
         self.bgr.modify(CCU_UART_BGR::UART0_GATING.val(1));
         */
 
+        // disable interrupts
+        self.u0dlhie.modify(UART0_DLH_IE::ETBEI.val(0));
+        // enable FIFO
+        self.u0iifc.modify(UART0_II_FC::FIFOE.val(1));
+
+        // disable TX transfer
+        self.u0rbthdll.modify(UART0_RB_TH_DLL::HALT_TX.val(1));
+
+        // DLAB
+        self.u0lc.modify(UART0_LC::DLAB.val(1));
+        // default clock rate: 24MHz
+        // divisor = clock rate / (16 * baud rate)
+        // baud rate 115200 - divisor 13
+        // high 8-bit of divisor
+        self.u0dlhie.modify(UART0_DLH_IE::DLH.val(0));
+        // low 8-bit of divisor
+        self.u0rbthdll.modify(UART0_RB_TH_DLL::DLL.val(13));
+        // DLAB
+        self.u0lc.modify(UART0_LC::DLAB.val(0));
+
+        // enable TX transfer
+        self.u0rbthdll.modify(UART0_RB_TH_DLL::HALT_TX.val(0));
+
         Ok(())
     }
 
     fn pread(&self, data: &mut [u8], _offset: usize) -> Result<usize> {
-        // TODO: this is just copied from another board
-        /*
-        'outer: for (read_count, c) in data.iter_mut().enumerate() {
-            for _ in 0..RETRY_COUNT {
-                // Create a copy of the rxdata register so that we don't
-                // lose the Data field when we read the Empty field.
-                let rd_copy = self.rd.extract();
-                if !rd_copy.is_set(RD::Empty) {
-                    *c = rd_copy.read(RD::Data) as u8;
-                    continue 'outer;
-                }
-            }
-            return Ok(read_count);
+        for c in data.iter_mut() {
+            while self.u0ls.is_set(UART0_LS::DR) {}
+            *c = self.u0rbthdll.read(UART0_RB_TH_DLL::RBR) as u8;
         }
-        */
         Ok(data.len())
     }
 

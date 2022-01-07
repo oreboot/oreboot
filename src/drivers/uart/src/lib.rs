@@ -19,6 +19,8 @@ pub mod opentitan;
 pub mod pl011;
 #[cfg(feature = "sifive")]
 pub mod sifive;
+#[cfg(feature = "spi")]
+pub mod spi;
 #[cfg(feature = "sunxi")]
 pub mod sunxi;
 

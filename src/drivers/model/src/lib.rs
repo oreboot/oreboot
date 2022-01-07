@@ -41,7 +41,7 @@ pub trait Driver {
     /// Returns ok if `data` is empty.
     fn pread_exact(&self, mut data: &mut [u8], mut pos: usize) -> Result<()> {
         while !data.is_empty() {
-            match self.pread(&mut data, pos) {
+            match self.pread(data, pos) {
                 Ok(0) => return Err("unexpected eof"),
                 Ok(x) => {
                     data = &mut data[x..];
