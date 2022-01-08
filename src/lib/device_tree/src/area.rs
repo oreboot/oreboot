@@ -23,6 +23,11 @@ pub fn get_kernel_area(dtfs_base: usize, dtfs_size: usize) -> Area {
     let mut area_iter = areas.into_iter();
 
     // Look for the first rompayload area and check for overlapping areas on the way
+    // The layoutflash tool sorts offsets while building and errors out if there are overlapping areas.
+    // If there are no offsets defined in the fdt the areas are just put one after another
+    // the sum of sizes of area 0 to n-1 defines the offset of area n.
+    // This code assumes that layoutflash made sure the fdt is sorted in that way.
+    // The offset property for an area is set for cur_area here for the first time.
     let area_opt = loop {
         let mut cur_area = match area_iter.next() {
             Some(a) => a,
