@@ -31,7 +31,7 @@ global_asm!(
 );
 
 #[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
+pub extern "C" fn _start(_fdt_address: usize) -> ! {
     let uart0 = &mut I8250::new(0x3f8, 0, IOPort {});
     // Note: on real hardware, use port 0x80 instead for "POST" output
     let debug = &mut DebugPort::new(0xe9, IOPort {});
