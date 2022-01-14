@@ -14,6 +14,7 @@ help:
 	@echo '  make -j mainboards'
 	@echo '  # Build debug mode'
 	@echo '  MODE=debug make mainboards'
+	@echo $(CRATES_TO_TEST)
 
 # Turn them all off. We'll turn them back on to try to get to working tests.
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)

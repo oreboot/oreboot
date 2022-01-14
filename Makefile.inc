@@ -54,6 +54,9 @@ skipclippy:
 
 # Testing. A lot of directories can't test either, yet.
 test:
+	cargo tarpaulin --ciserver travis-ci --coveralls ABC ;
+	cargo tarpaulin --out Xml;
+	wget -q "https://codecov.io/bash" && chmod u+x ./bash && ./bash ;
 
 skiptest:
 	echo Not doing test for this target
