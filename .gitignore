@@ -22,6 +22,7 @@ oreboot.asm
 #
 #already existing elements are commented out
 
+coverall
 target
 **/*.rs.bk
 debug.log

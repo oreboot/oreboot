@@ -37,7 +37,7 @@ checkformat:
 	cargo fmt -- --check
 
 clean:
-	rm -rf target/
+	rm -rf target/ coverall/
 
 # Clippy is the standard rule
 clippy:
@@ -54,6 +54,10 @@ skipclippy:
 
 # Testing. A lot of directories can't test either, yet.
 test:
+	cargo test
 
 skiptest:
 	echo Not doing test for this target
+
+coverage:
+	cargo tarpaulin --out Lcov
