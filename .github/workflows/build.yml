@@ -26,9 +26,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: 'Install Dependencies'
-      run: sudo apt-get update && make ciprepare
-    - name: 'Run rust tests'
-      run: make --keep-going test
+      run: |
+        sudo apt-get update && make ciprepare
+    - name: 'Create coverage file'
+      run: make --keep-going citest
+    - name: 'upload the coverage file to server'
+      uses: codecov/codecov-action@v2.1.0
+      with:
+        files: ./coverall/lcov.txt
 
   Build:
     runs-on: ubuntu-latest
