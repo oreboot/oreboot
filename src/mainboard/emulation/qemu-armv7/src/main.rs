@@ -1,10 +1,10 @@
-#![feature(asm, lang_items, start)]
+#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
 #![deny(warnings)]
 
 mod romstage;
+use core::arch::{asm, global_asm};
 use core::fmt::Write;
 
 use device_tree::print_fdt;

@@ -1,4 +1,5 @@
 use core::{
+    arch::asm,
     ops::{Generator, GeneratorState},
     pin::Pin,
 };

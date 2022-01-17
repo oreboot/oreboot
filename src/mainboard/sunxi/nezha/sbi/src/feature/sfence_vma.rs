@@ -1,4 +1,5 @@
 use crate::runtime::SupervisorContext;
+use core::arch::asm;
 use riscv::register::{mstatus, satp};
 
 // There is no `sfence.vma` in 1.9.1 privileged spec; however there is a `sfence.vm`.

@@ -1,7 +1,8 @@
-#![feature(asm, lang_items, start)]
+#![feature(lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
 #![deny(warnings)]
+
+use core::arch::asm;
 
 pub fn halt() -> ! {
     loop {

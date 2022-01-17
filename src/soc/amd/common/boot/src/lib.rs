@@ -1,10 +1,9 @@
-#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
 
 use arch::bzimage::BzImage;
 use arch::ioport::IOPort;
+use core::arch::{asm, global_asm};
 use model::Driver;
 use uart::i8250::I8250;
 mod acpi;

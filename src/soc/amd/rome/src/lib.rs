@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(asm)]
 
 pub mod hsmp;
 use hsmp::HSMP;

@@ -1,12 +1,11 @@
-#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
 #![deny(warnings)]
 
 use clock::ClockNode;
 use consts::DeviceCtl;
+use core::arch::{asm, global_asm};
 use core::hint::spin_loop;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;

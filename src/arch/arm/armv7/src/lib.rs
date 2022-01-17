@@ -1,12 +1,11 @@
-#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
 #![deny(warnings)]
 
 pub fn init() {}
 
 use consts::DeviceCtl;
+use core::arch::{asm, global_asm};
 use model::{Driver, Result, NOT_IMPLEMENTED};
 
 pub struct MMU {}
@@ -33,8 +32,7 @@ impl Driver for MMU {
     }
 
     fn pwrite(&mut self, data: &[u8], _pos: usize) -> Result<usize> {
-        let r: usize;
-        match data {
+        let r: usize = match data {
             b"off" => {
                 let mut r0 = unsafe { mmu_get() };
                 // TODO: make this a register type
@@ -45,11 +43,11 @@ impl Driver for MMU {
                 unsafe {
                     mmu_set(r0);
                 }
-                r = 1;
+                1
             }
-            b"on" => r = 1,
-            _ => r = 0,
-        }
+            b"on" => 1,
+            _ => 0,
+        };
         Ok(r)
     }
 

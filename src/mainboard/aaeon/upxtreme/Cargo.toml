@@ -16,7 +16,7 @@ uefi = { path = "../../../lib/uefi"}
 wrappers = { path = "../../../drivers/wrappers"}
 
 static-ref = "0.1.1"
-postcard = "0.4.3"
+postcard = "0.7.3"
 
 [dependencies.uart]
 path = "../../../drivers/uart"

@@ -1,3 +1,5 @@
+use core::arch::asm;
+
 /// Write 32 bits to port
 unsafe fn outb(port: u16, val: u8) {
     asm!("outb %al, %dx", in("al") val, in("dx") port, options(att_syntax));

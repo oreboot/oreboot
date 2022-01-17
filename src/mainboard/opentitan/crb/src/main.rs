@@ -1,8 +1,6 @@
-#![feature(asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
 //#![deny(warnings)]
 
 use core::fmt::Write;
