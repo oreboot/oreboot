@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(asm)]
 
 #[cfg(feature = "amdmmio")]
 pub mod amdmmio;

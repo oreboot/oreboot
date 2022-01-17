@@ -1,5 +1,6 @@
 #![no_std]
-#![feature(global_asm)]
+
+use core::arch::global_asm;
 
 global_asm!(include_str!("bootblock.S"));
 

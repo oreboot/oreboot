@@ -139,7 +139,6 @@ fn pmp_get(n: usize) -> Option<(usize, usize, usize)> {
         return None;
     }
     let t1;
-    let mut addr;
     let log2len;
     let pmpcfg_shift = (n & 7) << 3;
     let cfgmask = 0xff << pmpcfg_shift;
@@ -149,7 +148,7 @@ fn pmp_get(n: usize) -> Option<(usize, usize, usize)> {
         pmpcfg2::read() & cfgmask
     };
     let port = pmpcfg >> pmpcfg_shift;
-    addr = match n {
+    let mut addr = match n {
         0 => pmpaddr0::read(),
         1 => pmpaddr1::read(),
         2 => pmpaddr2::read(),

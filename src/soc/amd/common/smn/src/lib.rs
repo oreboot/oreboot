@@ -1,5 +1,5 @@
-#![feature(asm)]
 #![no_std]
+use core::arch::asm;
 
 /// Write 32 bits to port
 unsafe fn outl(port: u16, val: u32) {

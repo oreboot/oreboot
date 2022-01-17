@@ -6,8 +6,7 @@ edition = "2021"
 
 [dependencies]
 nb = "1"
-#rustsbi = "0.2.0-alpha.10" # TODO: use when our toolchain is supported
-rustsbi = { git = "https://github.com/orangecms/rustsbi", rev = "aa7052b633b73f5c840f3c0671c066bb5830d120" }
+rustsbi = "0.2.0-alpha.10"
 bitflags = "1"
 buddy_system_allocator = "0.8"
 lazy_static = { version = "1", features = ["spin_no_std"] }

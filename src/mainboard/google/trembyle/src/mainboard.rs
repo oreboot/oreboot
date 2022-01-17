@@ -19,6 +19,7 @@
 use arch::ioport::IOPort;
 use clock::ClockNode;
 use consts::DeviceCtl;
+use core::arch::asm;
 use core::ops::BitAnd;
 use core::ops::BitOr;
 use core::ops::Not;

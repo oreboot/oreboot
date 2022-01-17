@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(asm)]
+#![feature(asm_sym)]
 #![feature(generator_trait)]
 #![feature(default_alloc_error_handler)]
 #![feature(naked_functions)]
@@ -16,6 +16,7 @@ extern crate bitflags;
 
 use crate::{hal::write_reg, hart_csr_utils::print_hart_pmp};
 use buddy_system_allocator::LockedHeap;
+use core::arch::asm;
 use riscv::register::{medeleg, mideleg, mie};
 use rustsbi::println;
 

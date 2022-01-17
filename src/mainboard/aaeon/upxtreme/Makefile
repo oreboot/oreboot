@@ -1,5 +1,5 @@
 OREBOOT=$(abspath $(CURDIR)/../../../../)
-TARGET     = x86_64-unknown-none
+TARGET     = x86_64-unknown-none-oreboot
 DPCMD      ?= dpcmd
 include ../../../../Makefile.inc
 include ../../../../Makefile.mainboard.inc

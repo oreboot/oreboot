@@ -1,6 +1,7 @@
 // ioports reads and writes bytes to ioports, using the offset.
 // TODO: use the type system to guide whether to use outw, outl, etc.
 use consts::DeviceCtl;
+use core::arch::asm;
 use model::*;
 
 // enough already.

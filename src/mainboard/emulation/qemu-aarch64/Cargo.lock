@@ -58,6 +58,7 @@ name = "device_tree"
 version = "0.1.0"
 dependencies = [
  "byteorder",
+ "heapless 0.6.1",
  "model",
  "num-derive",
  "num-traits",
@@ -115,6 +116,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "heapless"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634bd4d29cbf24424d0a4bfcbf80c6960129dc24424752a7d1d1390607023422"
+dependencies = [
+ "as-slice",
+ "generic-array 0.14.4",
+ "hash32",
+ "stable_deref_trait",
+]
+
+[[package]]
 name = "model"
 version = "0.1.0"
 dependencies = [
@@ -158,7 +171,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f61f42c9617f3d7b447ee300bf80cb16c7cd7b28ca88555822793f073f69719f"
 dependencies = [
  "byteorder",
- "heapless",
+ "heapless 0.5.6",
  "postcard-cobs",
  "serde",
 ]

@@ -1,11 +1,12 @@
+#![feature(asm_const)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
 
 use arch::bzimage::BzImage;
 use arch::consts::*;
 use arch::ioport::IOPort;
+use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use core::ptr;
