@@ -2,6 +2,7 @@ use crate::{infer_type, Entry, FdtIterator, FdtReader, Type, MAX_NAME_SIZE};
 use heapless::consts::*;
 use heapless::{String, Vec};
 use model::{Driver, Result};
+use wrappers::{Memory, SectionReader};
 
 #[derive(Default, Debug, Clone)]
 pub struct Area {
@@ -13,6 +14,40 @@ pub struct Area {
     pub offset: Option<u32>,
     pub size: u32,
     pub file: Option<String<U512>>,
+}
+
+pub fn get_kernel_area(dtfs_base: usize, dtfs_size: usize) -> Area {
+    let dtb = SectionReader::new(&Memory {}, dtfs_base, dtfs_size);
+    let areas = read_areas(&dtb).unwrap();
+    let mut last_area_end = 0;
+    let mut area_iter = areas.into_iter();
+
+    // Look for the first rompayload area and check for overlapping areas on the way
+    // The layoutflash tool sorts offsets while building and errors out if there are overlapping areas.
+    // If there are no offsets defined in the fdt the areas are just put one after another
+    // the sum of sizes of area 0 to n-1 defines the offset of area n.
+    // This code assumes that layoutflash made sure the fdt is sorted in that way.
+    // The offset property for an area is set for cur_area here for the first time.
+    let area_opt = loop {
+        let mut cur_area = match area_iter.next() {
+            Some(a) => a,
+            None => break None,
+        };
+        let offset = cur_area.offset.unwrap_or(last_area_end);
+
+        if offset < last_area_end {
+            panic!("Malformed dtb: offset lies within previous area.\n");
+        }
+
+        if cur_area.compatible.eq("ore-rompayload") {
+            cur_area.offset = Some(last_area_end);
+            break Some(cur_area);
+        }
+        last_area_end = offset + cur_area.size;
+    };
+
+    // Load payload using kernel_area.
+    area_opt.expect("Did not find node of type 'ore-rompayload' while looping through dtfs.\n")
 }
 
 // MAX_NAME_SIZE is 64 atm. Thus v shouldn't be able to grow beyond that.

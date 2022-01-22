@@ -20,9 +20,10 @@ impl<D: Driver> DebugPort<D> {
 }
 
 impl<D: Driver> Driver for DebugPort<D> {
-    // Nothing to set up here
     fn init(&mut self) -> Result<()> {
-        Ok(())
+        self.timer
+            .enable()
+            .map_err(|_| "DebugPort unusable: enable bit not set for HPET timer.")
     }
 
     // DebugPort can only be used to write, nothing here

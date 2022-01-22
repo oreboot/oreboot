@@ -39,12 +39,14 @@
                 compatible = "ore-rompayload";
                 half = <0>;
                 size = <0x100000>; // 1MiB
+                file = "$(PAYLOAD_A)";
             };
             area@5 {
                 description = "RomPayload DTFS B";
                 compatible = "ore-rompayload";
                 half = <1>;
                 size = <0x100000>; // 1MiB
+                file = "$(PAYLOAD_A)";
             };
             area@6 {
                 description = "RamPayload DTFS A";

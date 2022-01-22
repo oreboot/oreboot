@@ -13,6 +13,7 @@
 
 use core::ops;
 
+use tock_registers::interfaces::ReadWriteable;
 use tock_registers::interfaces::Readable;
 use tock_registers::register_bitfields;
 use tock_registers::registers::{ReadOnly, ReadWrite};
@@ -80,6 +81,16 @@ impl HPET {
     /// Returns a pointer to the register block
     fn ptr(&self) -> *const RegisterBlock {
         self.base as *const _
+    }
+
+    pub fn enable(&self) -> Result<(), &str> {
+        // set enable bit for HPET timer as per 2.3.5
+        // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/software-developers-hpet-spec-1-0a.pdf
+        self.config.modify(CONFIG::TMREN::SET);
+        match self.config.is_set(CONFIG::TMREN) {
+            true => Ok(()),
+            false => Err("HPET.enable() failed to set timer_enable."),
+        }
     }
 
     // Sleeps at least the given amount of time (in fs).

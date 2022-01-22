@@ -83,6 +83,15 @@ clbss_1:
     blt t0, t1, clbss_1
     ret
 
+_debug:
+    li t0, 0x02500000
+    li t2, 0x0
+    sw t2, 4(t0)
+_loop:
+    li t1, 0x42424242
+    sw t1, 0(t0)
+    j _loop
+
 .section ".bootblock.stack", "aw", %progbits
 _stack:
 .space 65536
