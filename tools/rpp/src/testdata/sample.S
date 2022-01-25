@@ -1,4 +1,5 @@
-#define MACRO 1 // Test test test
+#define MACRO \
+	(1)// Test test test
 
 #include <test.inc>
 
@@ -14,3 +15,4 @@ test:
     mov $A, %rsp
     mov $B, %rsp
     mov $C, %rsp
+				$MULTILINE_MACRO

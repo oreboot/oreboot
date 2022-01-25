@@ -37,6 +37,7 @@ pub struct Context {
     word_re: Regex,
     block_comment_re: Regex,
     eol_comment_re: Regex,
+    split_lines_re: Regex,
 }
 
 impl Context {
@@ -49,6 +50,7 @@ impl Context {
             word_re: Regex::new(r"\b\w+\b").unwrap(),
             block_comment_re: Regex::new(r"(?s)/\*.*?\*/").unwrap(),
             eol_comment_re: Regex::new(r"//.*$").unwrap(),
+            split_lines_re: Regex::new(r"(\\\s|.)*").unwrap(),
         }
     }
 
@@ -101,6 +103,7 @@ fn process_include(_: &str, value: &str, ctx: &mut Context) -> Result<String, Pa
 fn evaluate_macros(line: &str, ctx: &Context) -> String {
     let mut last = 0;
     let mut out = String::new();
+
     for m in ctx.word_re.find_iter(line) {
         // Push everything leading up the the matched word
         out.push_str(&line[last..m.start()]);
@@ -130,9 +133,17 @@ fn process_line(line: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     // Trim whitespace
     let trimmed = line.trim();
 
+    ctx.line_num += 1;
+
     if trimmed.starts_with('#') {
+        // Increment line_num by count of escaped '\n'
+        ctx.line_num += trimmed.matches("\\\n").count() as u32;
+
+        // Replace escaped '\n' by '\n'
+        let replaced = trimmed.replace("\\\n", "\n");
+
         // For lines with keywords, remove comments
-        let replaced = ctx.eol_comment_re.replace_all(trimmed, "");
+        let replaced = ctx.eol_comment_re.replace_all(&replaced, "");
 
         let mut parts = replaced.splitn(2, ' ');
         let keyword_name = parts
@@ -172,8 +183,11 @@ pub fn process_str(s: &str, ctx: &mut Context) -> Result<String, ParsingError> {
     });
 
     let mut out = String::new();
-    for line in no_comments.lines() {
-        ctx.line_num += 1;
+
+    // Collect range of splits
+    let split_lines_range: Vec<_> = ctx.split_lines_re.find_iter(&no_comments).collect();
+    for m in split_lines_range {
+        let line = &no_comments[m.start()..m.end()];
         let processed = process_line(line, ctx)?;
         out.push_str(&processed);
     }
