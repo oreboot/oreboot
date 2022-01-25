@@ -36,3 +36,31 @@ fn simple_include() {
 
     assert!(out.contains("keep"));
 }
+
+#[test]
+fn macro_with_newline() {
+    let main = tmp_filename();
+
+    let test_string = format!(
+        r#"
+    #define A 42
+    #define B (12)
+    #define MULTILINE_MACRO \
+        (A + \
+         B + \
+         A*B) // Comment to be ignored
+    mov $MULTILINE_MACRO, %rbp;
+    "#
+    );
+    let expected = "mov $(42 + (12) + 42*(12)), %rbp";
+
+    let mut main_file = File::create(&main).unwrap();
+
+    main_file.write_all(test_string.as_bytes()).unwrap();
+
+    let mut rpp_ctx = rpp::Context::new();
+    let out: String = rpp::process_str(&test_string, &mut rpp_ctx).unwrap();
+
+    fs::remove_file(main).unwrap();
+    assert!(out.contains(expected));
+}
