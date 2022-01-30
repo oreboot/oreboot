@@ -32,6 +32,7 @@ $(MAINBOARDS):
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	cargo install cargo-tarpaulin
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv64gc-unknown-none-elf
 	rustup target add aarch64-unknown-none-softfloat
@@ -103,13 +104,26 @@ $(CRATES_TO_CHECKFORMAT):
 .PHONY: checkformat $(CRATES_TO_CHECKFORMAT)
 checkformat: $(CRATES_TO_CHECKFORMAT)
 
-# There are a number of targets which can not test.
-# Once those are fixed, we can just use a test target.
 CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.test,$(ALLMAKEFILE))
 $(CRATES_TO_TEST):
-	cd $(dir $@) && make citest
+	cd $(dir $@) && make test
 .PHONY: test $(CRATES_TO_TEST)
 test: $(CRATES_TO_TEST)
+
+# NOTE: In CI, we run tests with coverage report.
+# The individual crates' Makefiles use the `citest` target.
+# However, there are a number of crates which can not test.
+# Hence, `citest` either points to `coverage` or `skiptest`.
+# We use the LCOV format so that we can simply concatenate
+# the multiple reports. See ./Makefile.inc for details.
+CRATES_TO_CITEST := $(patsubst %/Makefile,%/Makefile.citest,$(ALLMAKEFILE))
+$(CRATES_TO_CITEST):
+	cd $(dir $@) && make citest
+.PHONY: test $(CRATES_TO_CITEST)
+citest: $(CRATES_TO_CITEST)
+	# concatenate all the results from the indidividual directories
+	mkdir -p coverall
+	find . -name "lcov.info" -exec cat > coverall/lcov.txt {} +
 
 # TODO: Remove write_with_newline
 CRATES_TO_CLIPPY := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
