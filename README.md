@@ -2,8 +2,8 @@ oreboot README
 ==============
 
 [![Build Status](
-https://dev.azure.com/azure0427/Oreboot%20Pipeline/_apis/build/status/oreboot.oreboot?branchName=main)](
-https://dev.azure.com/azure0427/Oreboot%20Pipeline/_build/latest?definitionId=1&branchName=main)
+https://github.com/oreboot/oreboot/actions/workflows/build.yml/badge.svg)
+](https://github.com/oreboot/oreboot/actions/workflows/build.yml)
 
 ![oreboot logo](Documentation/img/logo-small.png)
 
