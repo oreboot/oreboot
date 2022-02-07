@@ -35,7 +35,7 @@ SECTIONS
     }
 
     /DISCARD/ : {
-        *(.comment) *(.note*) *(.eh_frame*)
+        *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
         /* Unused exception related info that only wastes space */
     }
 }
