@@ -11,3 +11,6 @@
 	url = https://github.com/universalpayload/fspsdk
 	branch = qemu_fsp_x64
 	ignore = dirty
+[submodule "src/lib/uefi/tests/fsp-bin"]
+	path = src/lib/uefi/tests/fsp-bin
+	url = https://github.com/oreboot/fsp
