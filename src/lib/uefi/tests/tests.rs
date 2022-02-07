@@ -3,7 +3,8 @@ use std::{fs, io};
 extern crate uefi;
 use uefi::*;
 
-/// This test parses every fsp image from https://github.com/intel/FSP.
+/// This test parses every fsp image from https://github.com/oreboot/FSP.
+/// NOTE: Paths are relative to the _crate_ directory, not this file.
 #[test]
 fn parse_fsp() -> io::Result<()> {
     use std::path::Path;
@@ -15,7 +16,7 @@ fn parse_fsp() -> io::Result<()> {
 
     let test_cases = &[
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/AmberLakeFspBinPkg/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/AmberLakeFspBinPkg/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -1028,7 +1029,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/ApolloLakeFspBinPkg/FspBin/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/ApolloLakeFspBinPkg/FspBin/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -1657,7 +1658,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/BraswellFspBinPkg/FspBin/BSWFSP.fd"),
+            path: Path::new("./tests/fsp-bin/BraswellFspBinPkg/FspBin/BSWFSP.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -2878,7 +2879,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/CoffeeLakeFspBinPkg/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/CoffeeLakeFspBinPkg/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -3635,7 +3636,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/CometLakeFspBinPkg/CometLake1/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/CometLakeFspBinPkg/CometLake1/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -4712,7 +4713,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/CometLakeFspBinPkg/CometLake2/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/CometLakeFspBinPkg/CometLake2/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -5789,7 +5790,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/CometLakeFspBinPkg/CometLakeS/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/CometLakeFspBinPkg/CometLakeS/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -6866,7 +6867,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/CometLakeFspBinPkg/CometLakeV/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/CometLakeFspBinPkg/CometLakeV/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -7943,7 +7944,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/DenvertonNSFspBinPkg/FspBin/DenvertonNSFsp.fd"),
+            path: Path::new("./tests/fsp-bin/DenvertonNSFspBinPkg/FspBin/DenvertonNSFsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -8940,7 +8941,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/IceLakeFspBinPkg/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/IceLakeFspBinPkg/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -10033,7 +10034,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/KabylakeFspBinPkg/Fsp.fd"),
+            path: Path::new("./tests/fsp-bin/KabylakeFspBinPkg/Fsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
@@ -10790,7 +10791,7 @@ fn parse_fsp() -> io::Result<()> {
             ],
         },
         TestCase {
-            path: Path::new("../../../3rdparty/fsp/SkylakeFspBinPkg/FspBin/SkylakeFsp.fd"),
+            path: Path::new("./tests/fsp-bin/SkylakeFspBinPkg/FspBin/SkylakeFsp.fd"),
             expected_sections_and_sizes: &[
                 (
                     SectionInfo {
