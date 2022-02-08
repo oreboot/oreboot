@@ -2,7 +2,6 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use crate::is_qemu;
 use crate::reg;
 use crate::ux00;
 use core::convert::TryInto;
@@ -235,10 +234,6 @@ register_bitfields! {
 // 0
 // MASK interrupt due to cause INT_STATUS [31:0]
 fn sdram_init() {
-    if is_qemu() {
-        return;
-    }
-
     ux00::ux00ddr_writeregmap();
     ux00::ux00ddr_disableaxireadinterleave();
 
@@ -268,8 +263,5 @@ fn sdram_init() {
 }
 
 pub fn mem_size() -> u64 {
-    if is_qemu() {
-        return 1024 * 1024 * 1024;
-    }
     reg::DDR_SIZE
 }
