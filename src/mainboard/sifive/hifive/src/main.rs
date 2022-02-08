@@ -17,7 +17,6 @@ use model::Driver;
 use payloads::payload;
 use soc::clock::Clock;
 use soc::ddr::DDR;
-use soc::is_qemu;
 use spi::SiFiveSpi;
 use uart::sifive::SiFive;
 use wrappers::{Memory, SectionReader, SliceReader};
@@ -79,28 +78,25 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     clk.ctl(DeviceCtl::On).unwrap();
     uart0.pwrite(b"Done\r\n", 0).unwrap();
 
-    // QEMU doesn't emulate the SPI controller interface
-    if !is_qemu() {
-        // Right now we execute out of the memory mapped by spi0, so we can't
-        // reconfigure it. Show that the SPI init code works by initializing
-        // spi1.
-        uart0.pwrite(b"Initializing SPI1 controller...", 0).unwrap();
-        spi1.init().unwrap();
-        spi1.mmap(soc::spi::FU540_SPI_MMAP_CONFIG).unwrap();
-        uart0.pwrite(b"Done\r\n", 0).unwrap();
+    // Right now we execute out of the memory mapped by spi0, so we can't
+    // reconfigure it. Show that the SPI init code works by initializing
+    // spi1.
+    uart0.pwrite(b"Initializing SPI1 controller...", 0).unwrap();
+    spi1.init().unwrap();
+    spi1.mmap(soc::spi::FU540_SPI_MMAP_CONFIG).unwrap();
+    uart0.pwrite(b"Done\r\n", 0).unwrap();
 
-        uart0
-            .pwrite(b"Testing read from SPI1 mapped memory...", 0)
-            .unwrap();
-        unsafe {
-            // Perform a read at the base address of the SPI1 memory mapped space
-            let mut _val: u32 = *(0x30000000 as *const u32);
-            // Volatile `and` operation of the value with itself to try and make
-            // sure that we don't optimize the read out.
-            asm!("and {0}, {1}, {1}", in(reg) _val, out(reg) _val);
-        }
-        uart0.pwrite(b"Done\r\n", 0).unwrap();
+    uart0
+        .pwrite(b"Testing read from SPI1 mapped memory...", 0)
+        .unwrap();
+    unsafe {
+        // Perform a read at the base address of the SPI1 memory mapped space
+        let mut _val: u32 = *(0x30000000 as *const u32);
+        // Volatile `and` operation of the value with itself to try and make
+        // sure that we don't optimize the read out.
+        asm!("and {0}, {1}, {1}", in(reg) _val, out(reg) _val);
     }
+    uart0.pwrite(b"Done\r\n", 0).unwrap();
 
     let w = &mut print::WriteTo::new(uart0);
 
@@ -109,12 +105,10 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, fdt_address: usize) -> ! {
     // TODO: The fdt_address is garbage while running on hardware (but not in QEMU).
     writeln!(w, "ROM FDT address: 0x{:x}", fdt_address).unwrap();
 
-    if is_qemu() {
-        // We have no idea how long the FDT really is. This caps it to 1MiB.
-        let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 1024 * 1024);
-        if let Err(err) = print_fdt(rom_fdt, w) {
-            writeln!(w, "error: {}", err).unwrap();
-        }
+    // We have no idea how long the FDT really is. This caps it to 1MiB.
+    let rom_fdt = &mut SectionReader::new(&Memory {}, fdt_address, 1024 * 1024);
+    if let Err(err) = print_fdt(rom_fdt, w) {
+        writeln!(w, "error: {}", err).unwrap();
     }
 
     writeln!(w, "## Oreboot Fixed Device Tree\r").unwrap();

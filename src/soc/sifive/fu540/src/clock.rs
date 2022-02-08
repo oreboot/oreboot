@@ -21,7 +21,6 @@ use consts::DeviceCtl;
 use core::ops;
 use model::*;
 
-use crate::is_qemu;
 use crate::reg;
 use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
 use tock_registers::register_bitfields;
@@ -253,10 +252,6 @@ impl<'a> Clock<'a> {
     }
 
     fn clock_init(&mut self) {
-        if is_qemu() {
-            return;
-        }
-
         // Update the peripheral clock dividers of UART, SPI and I2C to safe
         // values as we can't put them in reset before changing frequency.
         let hfclk = 1_000_000_000; // 1GHz

@@ -55,39 +55,6 @@ jobs:
           grep Running.payload serial
         )
 
-  TestSiFiveQEMU:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: 'Install Dependencies'
-      run: sudo apt-get update && make ciprepare
-    - name: 'Build SiFice QEMU firmware'
-      run: |
-        (
-          cd src/mainboard/sifive/hifive
-          PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest make
-        )
-    - name: 'Build QEMU'
-      run: |
-        exit 0 # Rebuilding QEMU takes too long. Remove once we cache.
-        git clone --single-branch --branch v5.1.0 https://github.com/qemu/qemu
-        mkdir qemu/build-riscv64
-        (
-          cd qemu/build-riscv64
-          ../configure --target-list=riscv64-softmmu
-          make -j16
-          sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
-          sudo ln -s $PWD/qemu-img /usr/bin/
-        )
-    - name: 'Run test'
-      run: |
-        exit 0 # Rebuilding QEMU takes too long. Remove once we cache.
-        (
-          cd src/mainboard/sifive/hifive
-          PAYLOAD_A=../../../../payloads/src/external/simple/testtesttest timeout 120s make run | tee serial
-          grep TESTTESTTEST serial
-        )
-
   TestRISCVVirtBoardQEMU:
     runs-on: ubuntu-latest
     steps:
@@ -107,19 +74,9 @@ jobs:
         )
     - name: 'Build QEMU'
       run: |
-        exit 0 # Rebuilding QEMU takes too long. Remove once we cache.
-        git clone --single-branch --branch v5.1.0 https://github.com/qemu/qemu
-        mkdir qemu/build-riscv64
-        (
-          cd qemu/build-riscv64
-          ../configure --target-list=riscv64-softmmu
-          make -j16
-          sudo ln -s $PWD/riscv64-softmmu/qemu-system-riscv64 /usr/bin/
-          sudo ln -s $PWD/qemu-img /usr/bin/
-        )
+        sudo apt-get install qemu-system-misc
     - name: 'Run test'
       run: |
-        exit 0 # Rebuilding QEMU takes too long. Remove once we cache.
         (
           cd src/mainboard/emulation/qemu-riscv
           timeout 30s make run | tee serial
