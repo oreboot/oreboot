@@ -287,6 +287,13 @@ impl BzImage {
             size: (self.low_mem_size - LOW_MEM_1M as u64),
             r#type: E820::RAM as u32,
         };
+        // Mark 0xB000_0000 to top of 4G address space as reserved.
+        // MMIO configuration space lives here. Linux complains if it is not reserved.
+        let config_reserved = E820Entry {
+            addr: 0xB000_0000u64,
+            size: 0x5000_0000u64,
+            r#type: E820::RESERVED as u32,
+        };
         // Memory between low_mem_size and high_mem is used for PCI address space
         // main memory above 4GB
         let entry_main = E820Entry {
@@ -298,8 +305,9 @@ impl BzImage {
         bp.e820_table[1] = entry_low;
         bp.e820_table[2] = entry_reserved;
         bp.e820_table[3] = entry_low_main;
-        bp.e820_table[4] = entry_main;
-        bp.e820_entries = 5;
+        bp.e820_table[4] = config_reserved;
+        bp.e820_table[5] = entry_main;
+        bp.e820_entries = 6;
     }
 
     /// Run the payload. This might not return.
