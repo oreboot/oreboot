@@ -21,6 +21,7 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.4
 STACK_SIZES_VER := 0.4.0
+TARPAULIN_VER := 0.19.1
 
 CARGOINST := rustup run --install nightly cargo install
 
@@ -32,17 +33,18 @@ $(MAINBOARDS):
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	$(CARGOINST) $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv64gc-unknown-none-elf
 	rustup target add aarch64-unknown-none-softfloat
 	rustup target add riscv32imc-unknown-none-elf
-	cargo install cargo-tarpaulin
 
 nexttime:
 	rustup toolchain install $(TOOLCHAIN_VER)
 	rustup component add llvm-tools-preview rust-src --toolchain $(TOOLCHAIN_VER)
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) --force $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
+	$(CARGOINST) --force $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv64gc-unknown-none-elf
 
