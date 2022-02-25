@@ -1,10 +1,10 @@
+#![feature(llvm_asm)]
 #![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(asm)]
-#![feature(global_asm)]
 #![feature(default_alloc_error_handler)]
 
+use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;

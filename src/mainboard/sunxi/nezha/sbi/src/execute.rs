@@ -1,6 +1,7 @@
 use crate::feature;
 use crate::runtime::{MachineTrap, Runtime, SupervisorContext};
 use core::{
+    arch::asm,
     ops::{Generator, GeneratorState},
     pin::Pin,
 };

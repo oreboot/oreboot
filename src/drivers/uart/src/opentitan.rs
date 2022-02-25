@@ -21,6 +21,7 @@
 // http://www.ti.com/lit/ds/symlink/pc16550d.pdf
 use clock::ClockNode;
 use consts::DeviceCtl;
+use core::arch::asm;
 use core::ops;
 use model::*;
 

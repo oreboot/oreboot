@@ -1,7 +1,6 @@
-#![feature(lang_items, start)]
+#![feature(asm_const, lang_items, start)]
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
 // Clippy stupidly suggests using functions from std even you we have declared
 // no_std. Shame on clippy.
 #![allow(clippy::zero_ptr)]
@@ -9,6 +8,7 @@
 use arch::bzimage::BzImage;
 use arch::consts::*;
 use arch::ioport::IOPort;
+use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use model::Driver;

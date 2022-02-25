@@ -1,7 +1,10 @@
 [build]
-target = "x86_64-unknown-none"
+target = "x86_64-unknown-none-oreboot"
 
-[target.x86_64-unknown-none]
+[target.x86_64-unknown-none-oreboot]
 rustflags = [
-  "-C", "link-arg=-Tlink.ld", "-C", "link-arg=-nostdlib", "-C", "link-arg=-nostartfiles", "-Z", "emit-stack-sizes",
+  "-C", "link-arg=-Tlink.ld",
+  "-C", "link-arg=-nostdlib",
+  "-C", "link-arg=-nostartfiles",
+  "-Z", "emit-stack-sizes",
 ]

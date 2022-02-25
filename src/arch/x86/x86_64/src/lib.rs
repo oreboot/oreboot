@@ -1,6 +1,6 @@
-#![feature(asm, lang_items, start)]
+#![feature(asm_const)]
+#![feature(lang_items, start)]
 #![no_std]
-#![feature(global_asm)]
 
 const PAGE_SIZE: usize = 4096;
 
@@ -8,6 +8,9 @@ pub mod acpi;
 pub mod bzimage;
 pub mod consts;
 pub mod ioport;
+
+use core::arch::asm;
+use core::arch::global_asm;
 
 // NOTE: The ROM page table is defined by a symbol in the bootblock. It
 // will be populated at runtime in new_rom_util.
