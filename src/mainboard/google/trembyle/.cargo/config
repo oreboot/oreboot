@@ -1,0 +1,11 @@
+[build]
+target = "x86_64-unknown-none"
+
+[target.x86_64-unknown-none]
+rustflags = [
+  "-C", "linker-flavor=gcc",
+  "-C", "link-arg=-Tlink-coreboot.ld",
+  "-C", "link-arg=-nostdlib",
+  "-C", "link-arg=-nostartfiles",
+  "-Z", "emit-stack-sizes",
+]
