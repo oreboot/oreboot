@@ -4,15 +4,11 @@
 #![no_main]
 #![deny(warnings)]
 
-use soc::asmram;
-
-use arch::nop;
-
 use core::arch::global_asm;
 use core::fmt::Write;
-use model::Driver;
-
-use wrappers::DoD;
+use oreboot_arch::armv7::{self as arch, nop};
+use oreboot_drivers::{wrappers::DoD, Driver};
+use soc::asmram;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {

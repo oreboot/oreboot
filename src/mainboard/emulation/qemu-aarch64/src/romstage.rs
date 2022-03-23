@@ -1,8 +1,8 @@
 use crate::halt;
 use core::intrinsics::transmute;
 use device_tree::print_fdt;
+use oreboot_drivers::wrappers::{Memory, SectionReader};
 use payloads::payload;
-use wrappers::{Memory, SectionReader};
 
 /* TODO: get kernel / dtb information from the loader dtb */
 const LOADER_DTB_ADDR: usize = 0x80000;

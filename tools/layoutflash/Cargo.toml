@@ -6,6 +6,5 @@ edition = "2021"
 
 [dependencies]
 device_tree = { path = "../../src/lib/device_tree" }
-model = { path = "../../src/drivers/model" }
-wrappers = { path = "../../src/drivers/wrappers" }
-clap = { git = "https://github.com/clap-rs/clap" }
+oreboot-drivers = { path = "../../src/drivers" }
+clap = { version = "3", features = ["derive"] }

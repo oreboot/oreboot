@@ -1,18 +1,14 @@
 #![feature(asm_const)]
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 
-use arch::bzimage::BzImage;
-use arch::consts::*;
-use arch::ioport::IOPort;
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use core::ptr;
-use model::Driver;
+use oreboot_arch::x86_64::{self as arch, bzimage::BzImage, consts::*, ioport::IOPort};
+use oreboot_drivers::{uart::i8250::I8250, Driver};
 use print;
-use uart::i8250::I8250;
 
 use fsp_common as fsp;
 use fsp_qemu32_sys as fsp32;
@@ -22,7 +18,7 @@ use fsp_qemu32_sys as fsp32;
 extern crate fsp_qemu32_sys;
 
 global_asm!(
-    include_str!("../../../../arch/x86/x86_64/src/bootblock_nomem.S"),
+    include_str!("../../../../arch/src/x86_64/bootblock_nomem.S"),
     CD = const x86::cr0::CD,
     NW = const x86::cr0::NW,
     TS = const x86::cr0::TS,

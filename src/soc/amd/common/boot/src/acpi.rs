@@ -1,6 +1,5 @@
-use arch::acpi::*;
-use arch::consts::x86;
 use core::mem::size_of;
+use oreboot_arch::x86_64::{acpi::*, consts::x86};
 use raw_cpuid::cpuid;
 use util::round_up_4k;
 

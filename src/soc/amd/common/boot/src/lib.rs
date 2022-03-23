@@ -1,11 +1,9 @@
 #![feature(lang_items, start)]
 #![no_std]
 
-use arch::bzimage::BzImage;
-use arch::ioport::IOPort;
 use core::arch::{asm, global_asm};
-use model::Driver;
-use uart::i8250::I8250;
+use oreboot_arch::x86_64::{bzimage::BzImage, ioport::IOPort};
+use oreboot_drivers::{uart::i8250::I8250, Driver};
 mod acpi;
 use acpi::setup_acpi_tables;
 extern crate heapless; // v0.4.x

@@ -38,12 +38,12 @@
  *
  * COPYRIGHT 2020 Shanghai StarFive Technology Co., Ltd.
  */
-use clock::ClockNode;
-//use core::ops;
-use model::*;
-
-//use crate::reg;
 use core::ptr;
+//use core::ops;
+//use crate::reg;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{ClockNode, Driver, Result, NOT_IMPLEMENTED};
+
 //use register::mmio::ReadWrite;
 //use register::register_bitfields;
 
@@ -4481,7 +4481,7 @@ impl<'a> Driver for Clock<'a> {
     fn stat(&self, data: &mut [u8]) -> Result<usize> {
         NOT_IMPLEMENTED
     }
-    
+
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         NOT_IMPLEMENTED
     }

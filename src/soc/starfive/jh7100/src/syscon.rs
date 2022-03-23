@@ -19,6 +19,9 @@
  */
 
 /* SPDX-License-Identifier: GPL-2.0-or-later */
+use crate::clock::*;
+use crate::iopadctl::*;
+use crate::rstgen::*;
 /**
  ******************************************************************************
  * @file  syscon_sysmain_ctrl_macro.h
@@ -39,12 +42,9 @@
  * COPYRIGHT 2020 Shanghai StarFive Technology Co., Ltd.
  */
 //use core::ops;
-use model::*;
-
-use crate::clock::*;
-use crate::iopadctl::*;
-use crate::rstgen::*;
 use core::ptr;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 //use register::mmio::ReadWrite;
 //use register::register_bitfields;
 
@@ -1780,7 +1780,7 @@ impl Driver for Syscon {
     fn stat(&self, data: &mut [u8]) -> Result<usize> {
         NOT_IMPLEMENTED
     }
-    
+
     fn pread(&self, _data: &mut [u8], _offset: usize) -> Result<usize> {
         NOT_IMPLEMENTED
     }

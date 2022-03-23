@@ -1,8 +1,9 @@
 use crate::halt;
-pub const KERNEL: &[u8] = include_bytes!("../../../../../payloads/src/external/simple/notmain.bin");
 use device_tree::area::get_kernel_area;
+use oreboot_drivers::wrappers::{Memory, SectionReader};
 use payloads::payload;
-use wrappers::{Memory, SectionReader};
+
+pub const KERNEL: &[u8] = include_bytes!("../../../../../payloads/src/external/simple/notmain.bin");
 
 const MEM: usize = 0x40200000;
 const DTFS_BASE: usize = 0x800000;

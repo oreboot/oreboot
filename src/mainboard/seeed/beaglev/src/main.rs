@@ -12,14 +12,14 @@ use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::slice_from_raw_parts;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use model::Driver;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::Driver;
 use payloads::payload;
 use soc::clock::Clock;
 use soc::syscon::Syscon;
 //use soc::iopad::IOpad;
 use soc::iopadctl::IOpadctl;
 use soc::rstgen::RSTgen;
-//use uart::sifive::SiFive;
 pub mod uart;
 use crate::uart::UART;
 

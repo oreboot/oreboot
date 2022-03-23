@@ -9,7 +9,5 @@ opt-level = 'z'  # Optimize for size.
 
 [dependencies]
 consts = { path="../../../lib/consts"}
-arch = { path = "../../../arch/riscv/rv64"}
-model = { path = "../../../drivers/model"}
+oreboot-drivers = { path = "../../../drivers" }
 tock-registers = "0.7.0"
-

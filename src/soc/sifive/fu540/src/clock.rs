@@ -16,12 +16,11 @@
 // 33.33 Mhz after reset
 //const FU540_BASE_FQY: usize = 33330;
 
-use clock::ClockNode;
+use crate::reg;
 use consts::DeviceCtl;
 use core::ops;
-use model::*;
-
-use crate::reg;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{ClockNode, Driver, Result, NOT_IMPLEMENTED};
 use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
 use tock_registers::register_bitfields;
 use tock_registers::registers::ReadWrite;

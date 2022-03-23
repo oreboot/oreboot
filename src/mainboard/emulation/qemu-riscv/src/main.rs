@@ -1,14 +1,16 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use model::Driver;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{
+    uart::ns16550::NS16550,
+    wrappers::{Memory, SectionReader, SliceReader},
+    Driver,
+};
 use payloads::payload;
-use uart::ns16550::NS16550;
-use wrappers::{Memory, SectionReader, SliceReader};
 
 global_asm!(include_str!("bootblock.S"));
 global_asm!(include_str!("init.S"));

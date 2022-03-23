@@ -7,14 +7,16 @@
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use model::Driver;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{
+    uart::sunxi::{Sunxi, UART0},
+    wrappers::{DoD, Memory, SectionReader},
+    Driver,
+};
 use payloads::payload;
 use sbi::sbi_init;
 use soc::ccu::CCU;
 use soc::gpio::GPIO;
-use uart::sunxi::Sunxi;
-use uart::sunxi::UART0;
-use wrappers::{DoD, Memory, SectionReader};
 
 global_asm!(include_str!("../start.S"));
 

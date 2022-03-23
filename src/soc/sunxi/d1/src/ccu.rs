@@ -1,7 +1,7 @@
 use crate::reg;
 use consts::DeviceCtl;
 use core::ops;
-use model::*;
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 
 //use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
 use tock_registers::register_bitfields;

@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "arch"
-version = "0.1.0"
-dependencies = [
- "consts",
- "model",
- "print",
- "util",
- "vcell",
- "wrappers",
-]
-
-[[package]]
 name = "as-slice"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -45,10 +33,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
-name = "clock"
-version = "0.1.0"
-
-[[package]]
 name = "console"
 version = "0.1.0"
 
@@ -60,7 +44,6 @@ version = "0.1.0"
 name = "cpu"
 version = "0.1.0"
 dependencies = [
- "arch",
  "raw-cpuid",
 ]
 
@@ -68,7 +51,6 @@ dependencies = [
 name = "df"
 version = "0.1.0"
 dependencies = [
- "arch",
  "heapless 0.6.1",
  "pci",
  "vcell",
@@ -157,13 +139,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "model"
-version = "0.1.0"
-dependencies = [
- "consts",
-]
-
-[[package]]
 name = "mp"
 version = "0.1.0"
 dependencies = [
@@ -171,20 +146,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "oreboot-arch"
+version = "0.1.0"
+dependencies = [
+ "consts",
+ "oreboot-drivers",
+ "print",
+ "util",
+ "vcell",
+]
+
+[[package]]
+name = "oreboot-drivers"
+version = "0.1.0"
+dependencies = [
+ "consts",
+ "heapless 0.4.4",
+ "tock-registers",
+ "vcell",
+]
+
+[[package]]
 name = "payloads"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
  "postcard",
  "serde",
- "wrappers",
 ]
 
 [[package]]
 name = "pci"
 version = "0.1.0"
 dependencies = [
- "arch",
  "vcell",
 ]
 
@@ -210,7 +204,7 @@ checksum = "7c68cb38ed13fd7bc9dd5db8f165b7c8d9c1a315104083a2b10f11354c2af97f"
 name = "print"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
 ]
 
 [[package]]
@@ -264,7 +258,6 @@ dependencies = [
 name = "smn"
 version = "0.1.0"
 dependencies = [
- "arch",
  "vcell",
 ]
 
@@ -272,7 +265,6 @@ dependencies = [
 name = "soc"
 version = "0.1.0"
 dependencies = [
- "arch",
  "df",
  "mp",
  "pci",
@@ -304,15 +296,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "timer"
-version = "0.1.0"
-dependencies = [
- "model",
- "tock-registers",
- "vcell",
-]
-
-[[package]]
 name = "tock-registers"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -322,13 +305,12 @@ checksum = "4ee8fba06c1f4d0b396ef61a54530bb6b28f0dc61c38bc8bc5a5a48161e6282e"
 name = "trembyle"
 version = "0.1.0"
 dependencies = [
- "arch",
- "clock",
  "console",
  "consts",
  "cpu",
  "heapless 0.4.4",
- "model",
+ "oreboot-arch",
+ "oreboot-drivers",
  "payloads",
  "postcard",
  "print",
@@ -336,10 +318,8 @@ dependencies = [
  "soc",
  "static-ref",
  "tock-registers",
- "uart",
  "util",
  "vcell",
- "wrappers",
  "x86_64",
 ]
 
@@ -348,18 +328,6 @@ name = "typenum"
 version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b63708a265f51345575b27fe43f9500ad611579e764c79edbc2037b1121959ec"
-
-[[package]]
-name = "uart"
-version = "0.1.0"
-dependencies = [
- "clock",
- "consts",
- "heapless 0.4.4",
- "model",
- "timer",
- "tock-registers",
-]
 
 [[package]]
 name = "unicode-xid"
@@ -388,14 +356,6 @@ name = "volatile"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4c2dbd44eb8b53973357e6e207e370f0c1059990df850aca1eca8947cf464f0"
-
-[[package]]
-name = "wrappers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "model",
-]
 
 [[package]]
 name = "x86_64"

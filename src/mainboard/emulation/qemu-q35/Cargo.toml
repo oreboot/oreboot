@@ -5,20 +5,21 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64"}
 console = { path = "../../../console" }
-model = { path = "../../../drivers/model" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
-wrappers = { path = "../../../drivers/wrappers"}
 
 heapless = "0.4.x"
 postcard = "0.4.3"
 static-ref = "0.1.1"
 
-[dependencies.uart]
-path = "../../../drivers/uart"
-features = ["i8250", "debug_port"]
+[dependencies.oreboot-arch]
+path = "../../../arch"
+features = ["x86_64"]
+
+[dependencies.oreboot-drivers]
+path = "../../../drivers"
+features = ["uart_i8250", "uart_debug_port"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

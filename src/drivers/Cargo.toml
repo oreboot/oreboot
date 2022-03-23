@@ -1,0 +1,31 @@
+[package]
+name = "oreboot-drivers"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+# Remove after whole project arranged under workspace
+# Profiles should be declared in workspace configurations
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+
+[dependencies]
+consts = { path = "../lib/consts"}
+tock-registers = "0.7.0"
+vcell = "0.1.2"
+# Heapless does not build for rv32imc.
+heapless = { version = "0.4.4", optional = true }
+
+[features]
+spi_sifive = []
+timer_hpet = []
+uart_i8250 = ["heapless"]
+uart_amdmmio = []
+uart_pl011 = []
+uart_ns16550 = []
+uart_spi = []
+uart_sifive = []
+uart_sunxi = []
+uart_log = ["heapless"]
+uart_opentitan = []
+uart_debug_port = ["timer_hpet"]

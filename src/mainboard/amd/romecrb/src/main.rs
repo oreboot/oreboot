@@ -2,26 +2,24 @@
 #![no_std]
 #![no_main]
 
-use arch::ioport::IOPort;
 use boot::boot;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use cpu::model::amd_family_id;
 use cpu::model::amd_model_id;
-use model::Driver;
+use oreboot_arch::x86_64::{self as arch, ioport::IOPort};
+use oreboot_drivers::{uart::i8250::I8250, wrappers::DoD, Driver};
 use raw_cpuid::CpuId;
 use smn::{smn_read, smn_write};
 use soc::SOC;
 mod mainboard;
 use mainboard::MainBoard;
-use uart::i8250::I8250;
 mod fabric;
 use fabric::fabric;
 mod msr;
 use msr::msrs;
 mod c00;
 use c00::c00;
-use wrappers::DoD;
 use x86_64::registers::model_specific::Msr;
 
 use core::ptr;

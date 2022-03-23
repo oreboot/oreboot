@@ -1,0 +1,26 @@
+[package]
+name = "oreboot-arch"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+consts = { path= "../lib/consts" }
+oreboot-drivers = { path = "../drivers" }
+print = { path = "../lib/print" }
+util = { path = "../lib/util" }
+vcell = "0.1.3"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+
+[features]
+armv7 = []
+armv8 = []
+powerpc64 = []
+riscv32 = []
+riscv64 = []
+x86_64 = []
+x86_ioport = []
+x86_bzimage = []
+x86_acpi = []

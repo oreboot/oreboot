@@ -3,10 +3,6 @@
 version = 3
 
 [[package]]
-name = "arch"
-version = "0.1.0"
-
-[[package]]
 name = "as-slice"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -24,10 +20,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
-name = "clock"
-version = "0.1.0"
-
-[[package]]
 name = "console"
 version = "0.1.0"
 
@@ -39,7 +31,7 @@ version = "0.1.0"
 name = "cpu"
 version = "0.1.0"
 dependencies = [
- "arch",
+ "oreboot-arch",
 ]
 
 [[package]]
@@ -47,14 +39,12 @@ name = "crb"
 version = "0.1.0"
 dependencies = [
  "console",
- "model",
+ "oreboot-drivers",
  "payloads",
  "print",
  "soc",
  "static-ref",
  "tock-registers",
- "uart",
- "wrappers",
 ]
 
 [[package]]
@@ -98,20 +88,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "model"
+name = "oreboot-arch"
 version = "0.1.0"
 dependencies = [
  "consts",
+ "oreboot-drivers",
+ "print",
+ "util",
+ "vcell",
+]
+
+[[package]]
+name = "oreboot-drivers"
+version = "0.1.0"
+dependencies = [
+ "consts",
+ "tock-registers",
+ "vcell",
 ]
 
 [[package]]
 name = "payloads"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
  "postcard",
  "serde",
- "wrappers",
 ]
 
 [[package]]
@@ -136,7 +138,7 @@ checksum = "7c68cb38ed13fd7bc9dd5db8f165b7c8d9c1a315104083a2b10f11354c2af97f"
 name = "print"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
 ]
 
 [[package]]
@@ -181,10 +183,7 @@ dependencies = [
 name = "soc"
 version = "0.1.0"
 dependencies = [
- "clock",
  "cpu",
- "model",
- "tock-registers",
 ]
 
 [[package]]
@@ -211,15 +210,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "timer"
-version = "0.1.0"
-dependencies = [
- "model",
- "tock-registers",
- "vcell",
-]
-
-[[package]]
 name = "tock-registers"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -232,32 +222,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "373c8a200f9e67a0c95e62a4f52fbf80c23b4381c05a17845531982fa99e6b33"
 
 [[package]]
-name = "uart"
-version = "0.1.0"
-dependencies = [
- "clock",
- "consts",
- "model",
- "timer",
- "tock-registers",
-]
-
-[[package]]
 name = "unicode-xid"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
+name = "util"
+version = "0.1.0"
+
+[[package]]
 name = "vcell"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77439c1b53d2303b20d9459b1ade71a83c716e3f9c34f3228c00e6f185d6c002"
-
-[[package]]
-name = "wrappers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "model",
-]

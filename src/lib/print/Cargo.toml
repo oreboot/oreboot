@@ -5,7 +5,7 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-model = { path = "../../drivers/model"}
+oreboot-drivers = { path = "../../drivers"}
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

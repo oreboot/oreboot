@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use core::ptr;
-use model::{Driver, Result, NOT_IMPLEMENTED};
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 // This is a temporary hack until the board works, at which point we'll use
 // the real drivers.
 

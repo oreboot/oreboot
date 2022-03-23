@@ -3,21 +3,22 @@
 #![no_std]
 #![no_main]
 
-use arch::bzimage::BzImage;
-use arch::ioport::IOPort;
 use core::arch::asm;
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use cpu::model::amd_family_id;
 use cpu::model::amd_model_id;
-use model::Driver;
+use oreboot_arch::x86_64::{self as arch, bzimage::BzImage, ioport::IOPort};
+use oreboot_drivers::{
+    // use uart::amdmmio::UART;
+    uart::i8250::I8250,
+    wrappers::DoD,
+    Driver,
+};
 use print;
 use raw_cpuid::CpuId;
 use soc::soc_init;
-// use uart::amdmmio::UART;
-use uart::debug_port::DebugPort;
-use uart::i8250::I8250;
 mod mainboard;
 use mainboard::MainBoard;
 mod msr;
@@ -32,7 +33,6 @@ use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
 use heapless::Vec;
-use wrappers::DoD;
 
 use core::ptr;
 // Until we are done hacking on this, use our private copy.

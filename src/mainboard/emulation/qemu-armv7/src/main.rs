@@ -1,4 +1,3 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 #![deny(warnings)]
@@ -6,17 +5,19 @@
 mod romstage;
 use core::arch::{asm, global_asm};
 use core::fmt::Write;
-
 use device_tree::print_fdt;
-use model::Driver;
-use uart;
-use wrappers::{DoD, Memory, SectionReader};
+use oreboot_drivers::{
+    uart::pl011::PL011,
+    wrappers::{DoD, Memory, SectionReader},
+    Driver,
+};
+
 const DTFS_BASE: usize = 0x800000;
 const DTFS_SIZE: usize = 0x80000;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
+    let mut pl011 = PL011::new(0x09000000, 115200);
     let uart_driver: &mut dyn Driver = &mut pl011;
     // TODO: Handle error here and quit, rather than unwrapping.
     uart_driver.init().unwrap();

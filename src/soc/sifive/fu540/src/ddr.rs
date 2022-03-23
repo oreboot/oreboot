@@ -1,10 +1,9 @@
-use consts::DeviceCtl;
-use core::ops;
-use model::*;
-
 use crate::reg;
 use crate::ux00;
+use consts::DeviceCtl;
 use core::convert::TryInto;
+use core::ops;
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 use tock_registers::register_bitfields;
 use tock_registers::registers::ReadWrite;
 

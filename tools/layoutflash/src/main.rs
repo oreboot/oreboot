@@ -1,13 +1,12 @@
-use clap::Clap;
-use device_tree::area::{Area, read_areas};
-use std::io;
-use std::io::{Seek, SeekFrom, Write};
+use std::io::{self, Seek, SeekFrom, Write};
 use std::process::exit;
 use std::{
     env, fs,
     path::{Path, PathBuf},
 };
-use wrappers::SliceReader;
+use device_tree::area::{Area, read_areas};
+use oreboot_drivers::wrappers::SliceReader;
+use clap::Parser;
 
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {
@@ -81,7 +80,7 @@ fn layout_flash(path: &Path, areas: &mut [Area]) -> io::Result<()> {
     Ok(())
 }
 
-#[derive(Clap)]
+#[derive(clap::Parser)]
 #[clap(version)]
 struct Opts {
     /// The path to the firmware device tree file

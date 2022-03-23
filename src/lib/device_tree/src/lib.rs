@@ -25,8 +25,7 @@ extern crate heapless;
 use byteorder::{BigEndian, ByteOrder};
 use core::fmt;
 
-use model::{Driver, Result};
-use wrappers::SectionReader;
+use oreboot_drivers::{wrappers::SectionReader, Driver, Result};
 
 pub mod area;
 /// Special value that every device tree in FDT format starts with.

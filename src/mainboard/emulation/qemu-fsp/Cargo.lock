@@ -21,18 +21,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arch"
-version = "0.1.0"
-dependencies = [
- "consts",
- "model",
- "print",
- "util",
- "vcell",
- "wrappers",
-]
-
-[[package]]
 name = "as-slice"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -134,10 +122,6 @@ dependencies = [
  "unicode-width",
  "vec_map",
 ]
-
-[[package]]
-name = "clock"
-version = "0.1.0"
 
 [[package]]
 name = "console"
@@ -320,13 +304,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
-name = "model"
-version = "0.1.0"
-dependencies = [
- "consts",
-]
-
-[[package]]
 name = "nom"
 version = "5.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -337,13 +314,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "oreboot-arch"
+version = "0.1.0"
+dependencies = [
+ "consts",
+ "oreboot-drivers",
+ "print",
+ "util",
+ "vcell",
+]
+
+[[package]]
+name = "oreboot-drivers"
+version = "0.1.0"
+dependencies = [
+ "consts",
+ "heapless 0.4.4",
+ "tock-registers",
+ "vcell",
+]
+
+[[package]]
 name = "payloads"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
  "postcard",
  "serde",
- "wrappers",
 ]
 
 [[package]]
@@ -374,7 +371,7 @@ checksum = "7c68cb38ed13fd7bc9dd5db8f165b7c8d9c1a315104083a2b10f11354c2af97f"
 name = "print"
 version = "0.1.0"
 dependencies = [
- "model",
+ "oreboot-drivers",
 ]
 
 [[package]]
@@ -390,20 +387,18 @@ dependencies = [
 name = "qemu-fsp"
 version = "0.1.0"
 dependencies = [
- "arch",
  "console",
  "fsp-common",
  "fsp-qemu-sys",
  "heapless 0.4.4",
- "model",
+ "oreboot-arch",
+ "oreboot-drivers",
  "payloads",
  "postcard",
  "print",
  "static-ref",
  "tock-registers",
- "uart",
  "uefi",
- "wrappers",
 ]
 
 [[package]]
@@ -512,15 +507,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "timer"
-version = "0.1.0"
-dependencies = [
- "model",
- "tock-registers",
- "vcell",
-]
-
-[[package]]
 name = "tock-registers"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -531,18 +517,6 @@ name = "typenum"
 version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b63708a265f51345575b27fe43f9500ad611579e764c79edbc2037b1121959ec"
-
-[[package]]
-name = "uart"
-version = "0.1.0"
-dependencies = [
- "clock",
- "consts",
- "heapless 0.4.4",
- "model",
- "timer",
- "tock-registers",
-]
 
 [[package]]
 name = "uefi"
@@ -625,11 +599,3 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
-
-[[package]]
-name = "wrappers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "model",
-]
