@@ -1,8 +1,8 @@
 use core::intrinsics::{copy, transmute};
-use model::{Driver, EOF};
+use oreboot_drivers::wrappers::{Memory, SectionReader};
+use oreboot_drivers::{Driver, EOF};
 use postcard::from_bytes;
 use serde::Deserialize;
-use wrappers::{Memory, SectionReader};
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 
 /// compression types

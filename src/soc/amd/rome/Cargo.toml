@@ -5,7 +5,6 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-arch = { path = "../../../arch/x86/x86_64" }
 df = { path = "../common/df" }
 mp = { path = "../common/mp" }
 pci = { path = "../common/pci" }

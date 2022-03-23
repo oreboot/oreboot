@@ -1,10 +1,9 @@
 extern crate device_tree;
 
 use device_tree::{Entry, FdtReader};
-use model::{Driver, Result};
+use oreboot_drivers::{wrappers::SliceReader, Driver, Result};
 use std::io::Write;
 use std::process::{Command, Stdio};
-use wrappers::SliceReader;
 
 fn assert_start_node<D: Driver>(entry: Result<Option<Entry<D>>>, expected_name: &str) {
     let entry = entry.unwrap().unwrap();

@@ -3,19 +3,20 @@
 #![no_std]
 #![no_main]
 
-use arch::bzimage::BzImage;
-use arch::consts::*;
-use arch::ioport::IOPort;
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use model::Driver;
+use oreboot_arch::x86_64 as arch;
+use oreboot_arch::x86_64::{bzimage::BzImage, consts::*, ioport::IOPort};
+use oreboot_drivers::{
+    uart::{debug_port::DebugPort, i8250::I8250},
+    Driver,
+};
 use print;
-use uart::debug_port::DebugPort;
-use uart::i8250::I8250;
+// mod romstage; // FIXME
 
 global_asm!(
-    include_str!("../../../../arch/x86/x86_64/src/bootblock.S"),
+    include_str!("../../../../arch/src/x86_64/bootblock.S"),
     PSE = const x86::cr4::PSE,
     EFER = const msr::EFER,
     LME = const msr::efer::LME,

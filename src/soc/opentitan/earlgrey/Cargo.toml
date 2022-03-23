@@ -9,6 +9,3 @@ opt-level = 'z'  # Optimize for size.
 
 [dependencies]
 cpu = { path = "../../../cpu/lowrisc/ibex"}
-model = { path = "../../../drivers/model"}
-clock = { path = "../../../drivers/clock" }
-tock-registers = "0.7.0"

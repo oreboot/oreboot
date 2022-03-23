@@ -38,9 +38,10 @@
  *
  * COPYRIGHT 2020 Shanghai StarFive Technology Co., Ltd.
  */
-use model::*;
-//use crate::reg;
 use core::ptr;
+//use crate::reg;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 
 pub const SYSCON_IOPAD_CTRL_BASE_ADDR: u32 = 0x00_1185_8000;
 pub const syscon_iopad_ctrl_register0_REG_ADDR: u32 = SYSCON_IOPAD_CTRL_BASE_ADDR + 0x0;

@@ -3,7 +3,6 @@
 #![no_main]
 #![deny(warnings)]
 
-use clock::ClockNode;
 use consts::DeviceCtl;
 use core::arch::{asm, global_asm};
 use core::hint::spin_loop;
@@ -12,13 +11,16 @@ use core::panic::PanicInfo;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::{fmt::Write, ptr};
 use device_tree::print_fdt;
-use model::Driver;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{
+    spi::sifive::SiFiveSpi,
+    uart::sifive::SiFive,
+    wrappers::{Memory, SectionReader, SliceReader},
+    ClockNode, Driver,
+};
 use payloads::payload;
 use soc::clock::Clock;
 use soc::ddr::DDR;
-use spi::SiFiveSpi;
-use uart::sifive::SiFive;
-use wrappers::{Memory, SectionReader, SliceReader};
 
 global_asm!(include_str!(
     "../../../../../src/soc/sifive/fu540/src/bootblock.S"

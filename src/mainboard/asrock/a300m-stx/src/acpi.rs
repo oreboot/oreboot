@@ -1,6 +1,5 @@
-use arch::acpi::*;
-use arch::consts::x86;
 use core::mem::size_of;
+use oreboot_arch::x86_64::acpi::*;
 use util::round_up_4k;
 
 /// Setup the BIOS tables in the low memory

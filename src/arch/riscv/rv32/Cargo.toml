@@ -1,8 +1,0 @@
-[package]
-name = "arch"
-version = "0.1.0"
-authors = ["Oreboot Authors"]
-edition = "2021"
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.

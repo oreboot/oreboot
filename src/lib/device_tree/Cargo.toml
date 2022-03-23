@@ -6,10 +6,9 @@ edition = "2021"
 
 [dependencies]
 byteorder = { version = "1", default-features = false }
-model = { path = "../../drivers/model"}
+oreboot-drivers = { path = "../../drivers"}
 num-derive = { version = "0.2", default-features = false }
 num-traits = { version = "0.2", default-features = false }
-wrappers = { path = "../../drivers/wrappers"}
 heapless = "0.6.0"
 
 [profile.release]

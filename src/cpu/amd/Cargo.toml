@@ -5,7 +5,6 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-arch = { path = "../../arch/x86/x86_64"}
 raw-cpuid = "9.0.0"
 
 [profile.release]

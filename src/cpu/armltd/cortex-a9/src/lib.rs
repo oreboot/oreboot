@@ -2,5 +2,5 @@
 #![deny(warnings)]
 
 pub fn init() {
-    arch::init()
+    oreboot_arch::armv7::init()
 }

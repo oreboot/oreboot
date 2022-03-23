@@ -37,12 +37,13 @@
  *
  * COPYRIGHT 2020 Shanghai StarFive Technology Co., Ltd.
  */
-use model::*;
+use core::ptr;
 //use crate::reg;
 use crate::clock::_ENABLE_CLOCK_clk_msi_apb_;
 use crate::clock::_ENABLE_CLOCK_clk_x2c_axi_;
-use core::ptr;
 //pub mod clock;
+use oreboot_arch::riscv64 as arch;
+use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 
 pub const RSTGEN_BASE_ADDR: u32 = 0x1184_0000;
 pub const rstgen_Software_RESET_assert0_REG_ADDR: u32 = RSTGEN_BASE_ADDR + 0x0;

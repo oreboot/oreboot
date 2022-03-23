@@ -1,8 +1,10 @@
 use crate::{infer_type, Entry, FdtIterator, FdtReader, Type, MAX_NAME_SIZE};
 use heapless::consts::*;
 use heapless::{String, Vec};
-use model::{Driver, Result};
-use wrappers::{Memory, SectionReader};
+use oreboot_drivers::{
+    wrappers::{Memory, SectionReader},
+    Driver, Result,
+};
 
 #[derive(Default, Debug, Clone)]
 pub struct Area {

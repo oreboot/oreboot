@@ -8,8 +8,10 @@ edition = "2021"
 opt-level = 'z'  # Optimize for size.
 
 [dependencies]
-arch = { path = "../../../arch/riscv/rv64"}
-model = { path = "../../../drivers/model"}
-clock = { path = "../../../drivers/clock" }
 consts = { path= "../../../lib/consts" }
+oreboot-drivers = { path = "../../../drivers" }
+
+[dependencies.oreboot-arch]
+path = "../../../arch"
+features = ["riscv64"]
 

@@ -1,7 +1,7 @@
 #![no_std]
 
 use core::fmt;
-use model::Driver;
+use oreboot_drivers::Driver;
 
 pub struct WriteTo<'a, D: Driver> {
     drv: &'a mut D,

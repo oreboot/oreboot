@@ -6,24 +6,23 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
-arch = { path = "../../../arch/riscv/rv64"}
-clock = { path = "../../../drivers/clock" }
 console = { path = "../../../console" }
 consts = { path="../../../lib/consts"}
 device_tree = { path = "../../../lib/device_tree" }
 print = { path = "../../../lib/print" }
-model = { path = "../../../drivers/model" }
 payloads = { path = "../../../../payloads"}
 soc = { path = "../../../soc/sifive/fu540" }
-spi = { path = "../../../drivers/sifive/spi" }
-wrappers = { path = "../../../drivers/wrappers"}
 
 heapless = "0.4.x"
 static-ref = "0.1.1"
 
-[dependencies.uart]
-path = "../../../drivers/uart"
-features = ["sifive", "log", "heapless"]
+[dependencies.oreboot-arch]
+path = "../../../arch"
+features = ["riscv64"]
+
+[dependencies.oreboot-drivers]
+path = "../../../drivers"
+features = ["spi_sifive", "uart_sifive", "uart_log", "heapless"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

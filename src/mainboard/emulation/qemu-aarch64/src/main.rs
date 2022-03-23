@@ -1,4 +1,3 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 #![deny(warnings)]
@@ -9,9 +8,7 @@ use core::arch::global_asm;
 use core::fmt::Write;
 use core::mem::zeroed;
 use core::ptr::write_volatile;
-
-use model::Driver;
-use wrappers::DoD;
+use oreboot_drivers::{uart::pl011::PL011, wrappers::DoD, Driver};
 
 #[no_mangle]
 pub fn _init() -> ! {
@@ -43,7 +40,7 @@ pub fn _init() -> ! {
 }
 
 fn main() -> ! {
-    let mut pl011 = uart::pl011::PL011::new(0x09000000, 115200);
+    let mut pl011 = PL011::new(0x09000000, 115200);
     let uart_driver: &mut dyn Driver = &mut pl011;
     // TODO: Handle error here and quit, rather than unwrapping.
     uart_driver.init().unwrap();

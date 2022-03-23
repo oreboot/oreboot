@@ -5,10 +5,12 @@
 
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use model::Driver;
+use oreboot_drivers::{
+    uart::opentitan::OpenTitanUART,
+    wrappers::{Memory, SectionReader, SliceReader},
+    Driver,
+};
 use payloads::payload;
-use uart::opentitan::OpenTitanUART;
-use wrappers::{Memory, SectionReader, SliceReader};
 
 const BAUDRATE: u32 = 230400;
 

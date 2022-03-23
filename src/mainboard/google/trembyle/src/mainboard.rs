@@ -16,17 +16,14 @@
 
 #![allow(non_upper_case_globals)]
 
-use arch::ioport::IOPort;
-use clock::ClockNode;
 use consts::DeviceCtl;
 use core::arch::asm;
 use core::ops::BitAnd;
 use core::ops::BitOr;
 use core::ops::Not;
 use core::ptr;
-use model::*;
-use uart::debug_port::DebugPort;
-use uart::i8250::I8250;
+use oreboot_arch::x86_64::ioport::IOPort;
+use oreboot_drivers::{uart::i8250::I8250, ClockNode, Driver, Result, NOT_IMPLEMENTED};
 use vcell::VolatileCell;
 use x86_64::registers::model_specific::Msr;
 

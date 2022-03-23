@@ -1,4 +1,4 @@
-use spi::*;
+use oreboot_drivers::spi::sifive::*;
 
 pub const FU540_SPI_CONFIG: SiFiveSpiConfig = SiFiveSpiConfig {
     freq: 33_330_000,

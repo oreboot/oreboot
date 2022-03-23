@@ -16,17 +16,14 @@
 
 #![allow(non_upper_case_globals)]
 
-use arch::ioport::IOPort;
-use clock::ClockNode;
 use consts::DeviceCtl;
 use core::ops::BitAnd;
 use core::ops::BitOr;
 use core::ops::Not;
 use core::ptr;
-use model::*;
+use oreboot_arch::x86_64::ioport::IOPort;
+use oreboot_drivers::{uart::i8250::I8250, ClockNode, Driver, Result, NOT_IMPLEMENTED};
 use smn::smn_write;
-use uart::debug_port::DebugPort;
-use uart::i8250::I8250;
 use vcell::VolatileCell;
 
 const SMB_UART_CONFIG: *const VolatileCell<u32> = 0xfed8_00fc as *const _;
