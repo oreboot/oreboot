@@ -15,14 +15,15 @@ ciclippy: clippy
 citest: skiptest
 
 boot:
-	$(XFEL) ddr ddr3
 	$(XFEL) write $(MEMADDR) target/$(TARGET)/release/bootblob.bin
 	$(XFEL) exec $(MEMADDR)
+
+raminit:
+	$(XFEL) ddr d1
 
 objdump:
 	rust-objdump -d target/$(TARGET)/release/nezha
 
-run:
-	$(XFEL) ddr ddr3
+run: raminit
 	$(XFEL) write $(MEMADDR) $(IMAGE)
 	$(XFEL) exec $(MEMADDR)
