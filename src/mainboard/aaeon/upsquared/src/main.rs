@@ -62,7 +62,7 @@ pub extern "C" fn _start(_fdt_address: usize) -> ! {
         rom_base: 0xff_000_000,
         rom_size: 0x1_000_000,
         load: 0x1_000_000,
-        entry: 0x1_000_200,
+        entry: 0x0100_0200,
     };
 
     payload.load(w).unwrap();

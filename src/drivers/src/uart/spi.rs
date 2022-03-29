@@ -11,9 +11,9 @@
  * GNU General Public License for more details.
  */
 
+use crate::model::{Driver, Result, NOT_IMPLEMENTED};
 use consts::DeviceCtl;
 use core::ptr;
-use crate::model::{Driver, Result, NOT_IMPLEMENTED};
 
 // The "spi uart" is just a base address, which we offset
 // with data. The one spi specific element is the dance we

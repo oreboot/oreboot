@@ -8,6 +8,7 @@ use core::arch::global_asm;
 use core::fmt::Write;
 use core::mem::zeroed;
 use core::ptr::write_volatile;
+use oreboot_cpu::armltd::cortex_a53 as cpu;
 use oreboot_drivers::{uart::pl011::PL011, wrappers::DoD, Driver};
 
 #[no_mangle]

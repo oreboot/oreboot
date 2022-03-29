@@ -6,21 +6,23 @@ edition = "2021"
 
 [dependencies]
 console = { path = "../../../console" }
-cpu = { path = "../../../cpu/armltd/cortex-a9"}
 payloads = { path = "../../../../payloads"}
 device_tree = { path = "../../../lib/device_tree" }
 print = { path = "../../../lib/print" }
-soc = { path = "../../../soc/aspeed/ast25x0" }
 static-ref = "0.1.1"
 
 [dependencies.oreboot-arch]
 path = "../../../arch"
 features = ["armv7"]
 
+[dependencies.oreboot-cpu]
+path = "../../../cpu"
+features = ["armltd_cortex_a9"]
+
+[dependencies.oreboot-soc]
+path = "../../../soc"
+features = ["aspeed_ast25x0"]
+
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_ns16550"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true

@@ -6,7 +6,3 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true

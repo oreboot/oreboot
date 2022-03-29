@@ -15,14 +15,14 @@
                 compatible = "ore-bootblob";
                 offset = <0x3e0000>;
                 size = <0x20000>;
-                file = "$(TARGET_DIR)/bootblob.bin";
+                file = "$(BOOTBLOB)";
             };
             area@1 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 offset = <0x3d8000>;
                 size = <0x8000>;
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(FIXED_DTFS)";
             };
             area@2 {
                 description = "NVRAM A";

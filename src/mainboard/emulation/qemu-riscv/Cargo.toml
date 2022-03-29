@@ -8,9 +8,8 @@ edition = "2021"
 console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
-soc = { path = "../../../soc/sifive/fu540" }
 
-heapless = "0.4.x"
+heapless = "0.6.1"
 tock-registers = "0.7.0"
 static-ref = "0.1.1"
 
@@ -18,10 +17,10 @@ static-ref = "0.1.1"
 path = "../../../arch"
 features = ["riscv64"]
 
+[dependencies.oreboot-soc]
+path = "../../../soc"
+features = ["sifive_fu540"]
+
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_ns16550"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true

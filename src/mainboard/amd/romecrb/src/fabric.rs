@@ -1,5 +1,5 @@
-use core::fmt::Write;
-use df::*;
+// use core::fmt::Write;
+use oreboot_soc::amd::common::df::{df_read_indirect, df_write_indirect, FabricTopology};
 
 fn dfhack(w: &mut impl core::fmt::Write, generating: bool, id: u8, off: u16, val: u32) {
     let fun = 0;
@@ -38,7 +38,7 @@ pub fn fabric(w: &mut impl core::fmt::Write) {
         write!(w, "Can't read fabric :-(\r\n").unwrap();
         return;
     }
-    let d = &df::FabricTopology::new();
+    let d = &FabricTopology::new();
     write!(w, "Topo: {:?}\r\n", d).unwrap();
 
     /* you can't set these.

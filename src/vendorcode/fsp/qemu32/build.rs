@@ -2,9 +2,9 @@ extern crate bindgen;
 
 use build_utils::{build_qemu_fsp, FspArchitecture};
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
+fn generate_bindings(oreboot_root: &Path) -> std::io::Result<()> {
     let root_path = PathBuf::from(oreboot_root);
 
     let include_paths: Vec<PathBuf> = [
@@ -70,9 +70,16 @@ fn main() -> std::io::Result<()> {
     // Tell cargo to invalidate the built crate whenever wrapper.h changes.
     println!("cargo:rerun-if-changed=src/wrapper.h");
 
-    let oreboot_root = "../../../../";
-    build_qemu_fsp(oreboot_root, FspArchitecture::Ia32)?;
-    generate_bindings(oreboot_root)?;
+    let oreboot_root = {
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let mut path = PathBuf::from(manifest_dir);
+        for _ in 0..4 {
+            path.pop();
+        }
+        path
+    };
+    build_qemu_fsp(&oreboot_root, FspArchitecture::Ia32)?;
+    generate_bindings(&oreboot_root)?;
 
     Ok(())
 }

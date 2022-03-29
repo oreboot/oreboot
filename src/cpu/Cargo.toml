@@ -1,0 +1,17 @@
+[package]
+name = "oreboot-cpu"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+raw-cpuid = { version = "9.0.0", optional = true }
+oreboot-arch = { path = "../arch", optional = true }
+
+[features]
+amd = ["raw-cpuid"]
+armltd = []
+armltd_cortex_a9 = ["armltd", "oreboot-arch/armv7"]
+armltd_cortex_a53 = ["armltd", "oreboot-arch/armv8"]
+lowrisc = []
+lowrisc_ibex = ["lowrisc", "oreboot-arch/riscv32"]

@@ -1,5 +1,3 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 #![feature(default_alloc_error_handler)]
@@ -13,10 +11,9 @@ use oreboot_drivers::{
     wrappers::{DoD, Memory, SectionReader},
     Driver,
 };
+use oreboot_soc::sunxi::d1::{ccu::CCU, gpio::GPIO};
 use payloads::payload;
 use sbi::sbi_init;
-use soc::ccu::CCU;
-use soc::gpio::GPIO;
 
 global_asm!(include_str!("../start.S"));
 

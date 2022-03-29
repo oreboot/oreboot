@@ -4,8 +4,8 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
-    let root_path = PathBuf::from(oreboot_root);
+fn generate_bindings(oreboot_root: PathBuf) -> std::io::Result<()> {
+    let root_path = oreboot_root;
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let include_paths: Vec<PathBuf> = [
@@ -18,12 +18,15 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
     .iter()
     .map(|include| root_path.join(include))
     .collect();
+    println!("include paths: {:?}", include_paths);
+
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     // The bindgen::Builder is the main entry point to bindgen, and lets you build up options for
     // the resulting bindings.
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate bindings for.
-        .header("src/wrapper.h")
+        .header(format!("{}/src/wrapper.h", manifest_dir))
         .clang_args(
             include_paths
                 .iter()
@@ -66,9 +69,16 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=src/wrapper.h");
 
-    let oreboot_root = "../../../../";
-
-    let mut fsp_bin = PathBuf::from(oreboot_root);
+    let oreboot_root = {
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let mut path = PathBuf::from(manifest_dir);
+        for _ in 0..4 {
+            path.pop();
+        }
+        path
+    };
+    
+    let mut fsp_bin = oreboot_root.clone();
     fsp_bin.push("3rdparty/fsp/CoffeeLakeFspBinPkg/Fsp.fd");
 
     let mut out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -76,7 +86,7 @@ fn main() -> std::io::Result<()> {
 
     fs::copy(fsp_bin, out_dir)?;
 
-    generate_bindings(&oreboot_root)?;
+    generate_bindings(oreboot_root)?;
 
     Ok(())
 }

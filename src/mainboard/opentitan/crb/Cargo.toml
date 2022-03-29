@@ -9,15 +9,14 @@ build = "build.rs"
 console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
-soc = { path = "../../../soc/opentitan/earlgrey" }
 
 tock-registers = "0.7.0"
 static-ref = "0.1.1"
 
+[dependencies.oreboot-soc]
+path = "../../../soc"
+features = ["opentitan_earlgrey"]
+
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_opentitan"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true

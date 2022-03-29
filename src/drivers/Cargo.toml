@@ -4,17 +4,12 @@ version = "0.1.0"
 authors = ["Oreboot Authors"]
 edition = "2021"
 
-# Remove after whole project arranged under workspace
-# Profiles should be declared in workspace configurations
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-
 [dependencies]
 consts = { path = "../lib/consts"}
 tock-registers = "0.7.0"
-vcell = "0.1.2"
+vcell = "0.1.3"
 # Heapless does not build for rv32imc.
-heapless = { version = "0.4.4", optional = true }
+heapless = { version = "0.6.1", optional = true }
 
 [features]
 spi_sifive = []

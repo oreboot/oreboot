@@ -1,8 +1,5 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![deny(warnings)]
 
 //use core::fmt;
 //use core::fmt::Write;
@@ -15,7 +12,7 @@
 
 #[no_mangle]
 pub extern "C" fn _start(_fdt_address: usize) -> ! {
-    loop {}
+    todo!()
 }
 
 // This function is called on panic.

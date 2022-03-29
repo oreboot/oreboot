@@ -6,6 +6,3 @@ edition = "2021"
 
 [dependencies]
 oreboot-drivers = { path = "../../drivers"}
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.

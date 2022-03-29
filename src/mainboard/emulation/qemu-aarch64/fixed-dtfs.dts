@@ -14,13 +14,13 @@
                 description = "Boot Blob";
                 compatible = "ore-bootblob";
                 size = <0x80000>; // 512KiB
-                file = "$(TARGET_DIR)/bootblob.bin";
+                file = "$(BOOTBLOB)";
             };
             area@1 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 size = <0x80000>; // 512KiB
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(FIXED_DTFS)";
             };
             area@2 {
                 description = "QEMU aarch64 virt dtb";

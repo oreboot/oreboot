@@ -18,6 +18,7 @@ const RETRY_COUNT: u32 = 100_000;
 
 // pp 910
 pub const UART0: u32 = 0x0250_0000;
+#[allow(clippy::identity_op)]
 pub const UART0_RB_TH_DLL: u32 = UART0 + 0x0;
 pub const UART0_DLH_IE: u32 = UART0 + 0x4;
 pub const UART0_II_FC: u32 = UART0 + 0x8;

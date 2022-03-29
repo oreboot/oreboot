@@ -36,14 +36,14 @@
                 compatible = "ore-dtfs";
                 offset = <0x6f8000>;
                 size = <0x8000>;
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(FIXED_DTFS)";
             };
             area@4 {
                 description = "Boot Blob";
                 compatible = "ore-bootblob";
                 offset = <0x700000>;
                 size = <0x100000>;
-                file = "$(TARGET_DIR)/bootblob.bin";
+                file = "$(BOOTBLOB)";
             };
         };
     };

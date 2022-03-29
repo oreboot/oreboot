@@ -9,7 +9,4 @@ byteorder = { version = "1", default-features = false }
 oreboot-drivers = { path = "../../drivers"}
 num-derive = { version = "0.2", default-features = false }
 num-traits = { version = "0.2", default-features = false }
-heapless = "0.6.0"
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
+heapless = "0.6.1"

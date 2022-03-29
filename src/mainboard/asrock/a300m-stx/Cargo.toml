@@ -7,15 +7,11 @@ edition = "2021"
 [dependencies]
 console = { path = "../../../console" }
 consts = { path="../../../lib/consts"}
-cpu = { path = "../../../cpu/amd" }
-pci = { path = "../../../soc/amd/common/pci" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads" }
-smn = { path = "../../../soc/amd/common/smn" }
-soc = { path = "../../../soc/amd/picasso" }
 util = { path = "../../../lib/util" }
 
-heapless = "0.4.x"
+heapless = "0.6.1"
 raw-cpuid = "9.0.0"
 static-ref = "0.1.1"
 postcard = "0.7.3"
@@ -26,14 +22,15 @@ x86_64 = "0.14.8"
 path = "../../../arch"
 features = ["x86_64"]
 
+[dependencies.oreboot-cpu]
+path = "../../../cpu"
+features = ["amd"]
+
+[dependencies.oreboot-soc]
+path = "../../../soc"
+# Remove amd_exclude_bootblock after bootblock.S hacking
+features = ["amd_picasso", "amd_exclude_bootblock"]
+
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_i8250", "uart_amdmmio"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true
-panic = "abort"
-
-[profile.dev]
-panic = "abort"

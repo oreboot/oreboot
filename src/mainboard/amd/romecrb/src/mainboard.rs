@@ -26,7 +26,7 @@ use oreboot_drivers::{
     uart::{amdmmio::UART, debug_port::DebugPort, i8250::I8250},
     ClockNode, Driver, Result, NOT_IMPLEMENTED,
 };
-use smn::smn_write;
+use oreboot_soc::amd::common::smn::smn_write;
 use vcell::VolatileCell;
 
 const SMB_UART_CONFIG: *const VolatileCell<u32> = 0xfed8_00fc as *const _;
