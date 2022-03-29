@@ -13,9 +13,9 @@ pub fn romstage(w: &mut impl core::fmt::Write) -> ! {
     let kernel_area = get_kernel_area(DTFS_BASE, DTFS_SIZE);
 
     // => found payload <RomPayload DTFS A> @ 0x980000, and would copy it to 0x40200000
-    write!(
+    writeln!(
         w,
-        "found payload <{}> @ 0x{:x}, and would copy it to 0x{:x}\n",
+        "found payload <{}> @ 0x{:x}, and would copy it to 0x{:x}",
         kernel_area.description,
         kernel_area.offset.unwrap(),
         MEM

@@ -6,8 +6,5 @@ edition = "2021"
 
 [dependencies]
 oreboot-drivers = { path = "../src/drivers"}
-postcard = "0.4.3"
+postcard = "0.7.3"
 serde = { version = "1.0", default-features = false }
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.

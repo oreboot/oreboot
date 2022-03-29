@@ -60,7 +60,7 @@ unsafe fn get_vaddr_u32(vaddr: usize) -> u32 {
 }
 
 #[inline]
-#[warn(asm_sub_register)]
+#[allow(asm_sub_register)]
 unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     let mut ans: u16;
     asm!("

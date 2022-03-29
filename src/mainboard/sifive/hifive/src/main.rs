@@ -1,7 +1,5 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![deny(warnings)]
 
 use consts::DeviceCtl;
 use core::arch::{asm, global_asm};
@@ -18,16 +16,11 @@ use oreboot_drivers::{
     wrappers::{Memory, SectionReader, SliceReader},
     ClockNode, Driver,
 };
+use oreboot_soc::sifive::fu540::{self as soc, clock::Clock, ddr::DDR};
 use payloads::payload;
-use soc::clock::Clock;
-use soc::ddr::DDR;
 
-global_asm!(include_str!(
-    "../../../../../src/soc/sifive/fu540/src/bootblock.S"
-));
-global_asm!(include_str!(
-    "../../../../../src/soc/sifive/fu540/src/init.S"
-));
+global_asm!(include_str!("../../../../soc/src/sifive/fu540/bootblock.S"));
+global_asm!(include_str!("../../../../soc/src/sifive/fu540/init.S"));
 
 // TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
 // tree here. TODO: The kernel ebreaks when given this device tree.

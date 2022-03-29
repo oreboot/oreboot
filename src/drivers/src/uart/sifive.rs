@@ -101,7 +101,7 @@ impl SiFive {
 impl Driver for SiFive {
     fn init(&mut self) -> Result<()> {
         // Disable UART interrupts.
-        self.ie.set(0 as u32);
+        self.ie.set(0_u32);
         // Set clock rate to the default 33.33MHz.
         self.set_clock_rate(33330000);
         // Enable transmit.

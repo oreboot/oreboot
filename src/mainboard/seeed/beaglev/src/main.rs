@@ -1,8 +1,5 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![deny(warnings)]
 
 use core::arch::global_asm;
 //use core::fmt::Write;
@@ -14,17 +11,19 @@ use core::ptr::slice_from_raw_parts;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use oreboot_arch::riscv64 as arch;
 use oreboot_drivers::Driver;
+use oreboot_soc::starfive::jh7100::{
+    clock::Clock,
+    //  iopad::IOpad,
+    iopadctl::IOpadctl,
+    rstgen::RSTgen,
+    syscon::Syscon,
+};
 use payloads::payload;
-use soc::clock::Clock;
-use soc::syscon::Syscon;
-//use soc::iopad::IOpad;
-use soc::iopadctl::IOpadctl;
-use soc::rstgen::RSTgen;
 pub mod uart;
 use crate::uart::UART;
 
 global_asm!(include_str!(
-    "../../../../../src/soc/starfive/jh7100/src/start.S"
+    "../../../../../src/soc/src/starfive/jh7100/start.S"
 ));
 
 // TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
@@ -71,7 +70,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // and then call write with appropriate strings to enable stuff.
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
-    let mut iopadctl = IOpadctl::new();
+    let mut iopadctl = IOpadctl::new(0); // todo: use base
     iopadctl.pwrite(b"early", 0).unwrap(); // you might argue this is getting ridiculous.
                                            // plan 9 is not for everywhere.
                                            // I might agree.
@@ -89,7 +88,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     uart.init().unwrap();
     uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
-    let mut syscon = Syscon::new();
+    let mut syscon = Syscon::new(0); // todo: use base
     syscon.pwrite(b"on", 0).unwrap();
     uart.pwrite(b"\r\nsyscon done\r\n", 0).unwrap();
 

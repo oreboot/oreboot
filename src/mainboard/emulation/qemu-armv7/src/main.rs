@@ -1,11 +1,11 @@
 #![no_std]
 #![no_main]
-#![deny(warnings)]
 
 mod romstage;
 use core::arch::{asm, global_asm};
 use core::fmt::Write;
 use device_tree::print_fdt;
+use oreboot_cpu::armltd::cortex_a9 as cpu;
 use oreboot_drivers::{
     uart::pl011::PL011,
     wrappers::{DoD, Memory, SectionReader},
@@ -29,7 +29,7 @@ pub extern "C" fn _start() -> ! {
     // TODO: determine DTFS_BASE+SIZE based on layoutflash (or some other toolchain component)
     let dtfs = SectionReader::new(&Memory {}, DTFS_BASE, DTFS_SIZE);
     if let Err(err) = print_fdt(&dtfs, &mut w) {
-        write!(w, "error: {}\n", err).expect(err);
+        writeln!(w, "error: {}", err).expect(err);
     }
 
     cpu::init();
@@ -42,7 +42,7 @@ pub extern "C" fn _start() -> ! {
     write!(w, "5").expect("blame ryan");
     write!(w, "6").expect("blame ryan");
     write!(w, "7").expect("blame ryan");
-    write!(w, "{}{}\r\n", 3, "7").expect("blame ryan");
+    writeln!(w, "{}7", 3).expect("blame ryan");
     romstage::romstage(&mut w)
 }
 use core::panic::PanicInfo;

@@ -7,18 +7,20 @@ use core::arch::asm;
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use cpu::model::amd_family_id;
-use cpu::model::amd_model_id;
 use oreboot_arch::x86_64::{self as arch, bzimage::BzImage, ioport::IOPort};
+use oreboot_cpu::amd::model::{amd_family_id, amd_model_id};
 use oreboot_drivers::{
     // use uart::amdmmio::UART;
     uart::i8250::I8250,
     wrappers::DoD,
     Driver,
 };
+use oreboot_soc::amd::{
+    common::pci::{config32, PciAddress},
+    picasso::soc_init,
+};
 use print;
 use raw_cpuid::CpuId;
-use soc::soc_init;
 mod mainboard;
 use mainboard::MainBoard;
 mod msr;
@@ -27,8 +29,6 @@ use msr::msrs;
 // use c00::c00;
 mod acpi;
 use acpi::setup_acpi_tables;
-use pci::config32;
-use pci::PciAddress;
 use x86_64::registers::model_specific::Msr;
 extern crate heapless; // v0.4.x
 use heapless::consts::*;
@@ -37,6 +37,8 @@ use heapless::Vec;
 use core::ptr;
 // Until we are done hacking on this, use our private copy.
 // Plan to copy it back later.
+// After hacking with bootblock.S, remove feature 'amd_exclude_bootblock'
+// in orebooot-soc dependency and Cargo.toml of this project.
 global_asm!(include_str!("bootblock.S"), options(att_syntax));
 
 fn poke32(a: u32, v: u32) -> () {

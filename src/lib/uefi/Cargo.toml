@@ -9,6 +9,3 @@ cty = "0.2.1"
 
 [build-dependencies]
 bindgen = "0.58.1"
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.

@@ -2,9 +2,9 @@ extern crate bindgen;
 
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
+fn generate_bindings(oreboot_root: &Path) -> std::io::Result<()> {
     let root_path = PathBuf::from(oreboot_root);
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
@@ -66,9 +66,16 @@ fn generate_bindings(oreboot_root: &str) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=src/wrapper.h");
 
-    let oreboot_root = "../../../../";
+    let oreboot_root = {
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let mut path = PathBuf::from(manifest_dir);
+        for _ in 0..4 {
+            path.pop();
+        }
+        path
+    };
 
-    let mut fsp_bin = PathBuf::from(oreboot_root);
+    let mut fsp_bin = PathBuf::from(&oreboot_root);
     fsp_bin.push("3rdparty/fsp/CoffeeLakeFspBinPkg/Fsp.fd");
 
     let mut out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());

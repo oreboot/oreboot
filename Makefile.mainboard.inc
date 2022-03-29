@@ -1,25 +1,26 @@
 VENDOR      = $(notdir $(shell dirname $(CURDIR)))
 BOARD       = $(notdir $(CURDIR))
-FIXED_DTFS  = fixed-dtfs.dtb
+FIXED_DTFS  = $(TARGET_DIR)/$(VENDOR)-$(BOARD)-fixed-dtfs.dtb
 FLASHROM_PROGRAMMER ?= dediprog
 OBJCOPY    ?= rust-objcopy
 # ELF and BOOTBLOB are intermediate files while IMAGE is the final firmware
 # image ready to be flashed onto the machine.
 ELF      = $(TARGET_DIR)/$(BOARD)
-BOOTBLOB = $(TARGET_DIR)/bootblob.bin
-IMAGE    = $(TARGET_DIR)/image.bin
+BOOTBLOB = $(TARGET_DIR)/$(VENDOR)-$(BOARD)-bootblob.bin
+IMAGE    = $(TARGET_DIR)/$(VENDOR)-$(BOARD).bin
 
 $(shell echo "VENDOR       = $(VENDOR)" 1>&2)
 $(shell echo "BOARD        = $(BOARD)" 1>&2)
 
-$(IMAGE): $(BOOTBLOB) $(TARGET_DIR)/$(FIXED_DTFS)
-	TARGET_DIR=$(TARGET_DIR) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(TARGET_DIR)/$(FIXED_DTFS) $@
+$(IMAGE): $(BOOTBLOB) $(FIXED_DTFS)
+# These two environment variable parameters are used in fixed-dtfs.dts
+	BOOTBLOB=$(BOOTBLOB) FIXED_DTFS=$(FIXED_DTFS) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(FIXED_DTFS) $@
 	@printf "**\n** Output: $@\n**\n"
 
-$(TARGET_DIR)/bootblob.bin: $(ELF)
+$(BOOTBLOB): $(ELF)
 	$(OBJCOPY) -O binary -R .bss $< $@
 
-$(TARGET_DIR)/fixed-dtfs.dtb: fixed-dtfs.dts
+$(FIXED_DTFS): fixed-dtfs.dts
 	mkdir -p $(TARGET_DIR)
 	dtc -W no-unit_address_vs_reg $< -O dtb -o $@
 

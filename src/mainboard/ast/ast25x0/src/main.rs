@@ -1,14 +1,12 @@
-#![feature(llvm_asm)]
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
-#![deny(warnings)]
 
 use core::arch::global_asm;
 use core::fmt::Write;
 use oreboot_arch::armv7::{self as arch, nop};
+use oreboot_cpu::armltd::cortex_a9 as cpu;
 use oreboot_drivers::{wrappers::DoD, Driver};
-use soc::asmram;
+use oreboot_soc::aspeed::ast25x0::asmram;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -66,5 +64,5 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 global_asm!(include_str!(
-    "../../../../../src/soc/aspeed/ast25x0/src/vector_table.S"
+    "../../../../../src/soc/src/aspeed/ast25x0/vector_table.S"
 ));

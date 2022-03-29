@@ -24,11 +24,3 @@ features = ["x86_64"]
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_i8250"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true
-panic = "abort"
-
-[profile.dev]
-panic = "abort"

@@ -6,16 +6,15 @@ edition = "2021"
 
 [dependencies]
 console = { path = "../../../console" }
-consts = { path="../../../lib/consts"}
-cpu = { path = "../../../cpu/armltd/cortex-a53"}
+consts = { path = "../../../lib/consts"}
 device_tree = { path = "../../../lib/device_tree" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
 
+[dependencies.oreboot-cpu]
+path = "../../../cpu"
+features = ["armltd_cortex_a53"]
+
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_pl011"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true

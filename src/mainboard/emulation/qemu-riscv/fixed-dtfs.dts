@@ -13,13 +13,13 @@
                 description = "Boot Blob and Romstage";
                 offset = <0x0>;
                 size = <0x80000>; // 512KiB
-                file = "$(TARGET_DIR)/bootblob.bin";
+                file = "$(BOOTBLOB)";
             };
             area@1 {
                 description = "Fixed DTFS";
                 offset = <0x80000>;
                 size = <0x80000>; // 512KiB
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(FIXED_DTFS)";
             };
             area@2 {
                 description = "Empty Space";

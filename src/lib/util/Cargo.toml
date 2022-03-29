@@ -5,7 +5,3 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-

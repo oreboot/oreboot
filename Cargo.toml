@@ -1,0 +1,39 @@
+[workspace]
+members = [
+    "src/arch",
+    "src/drivers",
+    "src/console",
+    "src/cpu",
+    "src/soc",
+    "payloads",
+    
+    "src/lib/*",
+    "src/mainboard/aaeon/*",
+    "src/mainboard/amd/*",
+    "src/mainboard/asrock/*",
+    "src/mainboard/ast/*",
+    "src/mainboard/emulation/*",
+    "src/mainboard/google/*",
+    "src/mainboard/nuvoton/*",
+    "src/mainboard/opentitan/*",
+    "src/mainboard/seeed/*",
+    "src/mainboard/sifive/*",
+    "src/mainboard/sunxi/*",
+
+    "src/vendorcode/fsp/build-utils",
+    "src/vendorcode/fsp/coffeelake",
+    "src/vendorcode/fsp/common",
+    "src/vendorcode/fsp/qemu",
+    "src/vendorcode/fsp/qemu32",
+    # "src/vendorcode/fsp/tigerlake", # Won't pass cargo check by now
+
+    "tools/layoutflash",
+]
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

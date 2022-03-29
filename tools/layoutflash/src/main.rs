@@ -1,12 +1,12 @@
+use clap::Parser;
+use device_tree::area::{read_areas, Area};
+use oreboot_drivers::wrappers::SliceReader;
 use std::io::{self, Seek, SeekFrom, Write};
 use std::process::exit;
 use std::{
     env, fs,
     path::{Path, PathBuf},
 };
-use device_tree::area::{Area, read_areas};
-use oreboot_drivers::wrappers::SliceReader;
-use clap::Parser;
 
 fn read_fixed_fdt(path: &Path) -> io::Result<Vec<Area>> {
     let data = match fs::read(path) {

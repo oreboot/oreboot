@@ -9,8 +9,8 @@ console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
 
-heapless = "0.4.x"
-postcard = "0.4.3"
+heapless = "0.6.1"
+postcard = "0.7.3"
 static-ref = "0.1.1"
 
 [dependencies.oreboot-arch]
@@ -20,11 +20,3 @@ features = ["x86_64"]
 [dependencies.oreboot-drivers]
 path = "../../../drivers"
 features = ["uart_i8250", "uart_debug_port"]
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
-lto = true
-panic = "abort"
-
-[profile.dev]
-panic = "abort"

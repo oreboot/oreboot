@@ -1,4 +1,3 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 //#![deny(warnings)]
@@ -10,6 +9,7 @@ use oreboot_drivers::{
     wrappers::{Memory, SectionReader, SliceReader},
     Driver,
 };
+use oreboot_soc::opentitan::earlgrey as soc;
 use payloads::payload;
 
 const BAUDRATE: u32 = 230400;

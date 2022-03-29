@@ -1,3 +1,0 @@
-pub fn chain() -> ! {
-    loop {}
-}

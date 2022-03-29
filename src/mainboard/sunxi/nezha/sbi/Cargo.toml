@@ -14,6 +14,3 @@ riscv = { version = "0.7.0", features = ["inline-asm"] }
 embedded-hal = "0.2.6"
 vcell = "0.1.3"
 r0 = "1.0"
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.

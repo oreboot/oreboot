@@ -1,1 +1,1 @@
-TARGET_DIR = target/$(TARGET)/debug
+TARGET_DIR = $(OREBOOT)/target/$(TARGET)/debug

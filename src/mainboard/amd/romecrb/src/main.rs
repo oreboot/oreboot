@@ -1,17 +1,19 @@
-#![feature(lang_items, start)]
 #![no_std]
 #![no_main]
 
-use boot::boot;
 use core::fmt::Write;
 use core::panic::PanicInfo;
-use cpu::model::amd_family_id;
-use cpu::model::amd_model_id;
 use oreboot_arch::x86_64::{self as arch, ioport::IOPort};
+use oreboot_cpu::amd::model::{amd_family_id, amd_model_id};
 use oreboot_drivers::{uart::i8250::I8250, wrappers::DoD, Driver};
+use oreboot_soc::amd::{
+    common::{
+        boot::boot,
+        smn::{smn_read, smn_write},
+    },
+    rome::{self as soc, SOC},
+};
 use raw_cpuid::CpuId;
-use smn::{smn_read, smn_write};
-use soc::SOC;
 mod mainboard;
 use mainboard::MainBoard;
 mod fabric;

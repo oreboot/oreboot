@@ -20,7 +20,7 @@
                 description = "Fixed DTFS";
                 offset = <0xf000>;
                 size = <0x1000>; // 4KiB
-                file = "$(TARGET_DIR)/fixed-dtfs.dtb";
+                file = "$(FIXED_DTFS)";
             };
             area@2 {
                 description = "Payload A";

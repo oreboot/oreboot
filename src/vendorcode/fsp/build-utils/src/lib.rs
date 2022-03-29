@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
 pub enum FspArchitecture {
@@ -8,13 +8,13 @@ pub enum FspArchitecture {
     Ia32,
 }
 
-pub fn build_qemu_fsp(oreboot_root: &str, arch: FspArchitecture) -> std::io::Result<()> {
+pub fn build_qemu_fsp(oreboot_root: &Path, arch: FspArchitecture) -> std::io::Result<()> {
     let arch_name = match arch {
         FspArchitecture::X64 => "x64",
         FspArchitecture::Ia32 => "ia32",
     };
 
-    let root_path = PathBuf::from(oreboot_root);
+    let root_path = oreboot_root.to_path_buf();
 
     // Build FSP binaries and generate header files.
     let status = Command::new("python3")

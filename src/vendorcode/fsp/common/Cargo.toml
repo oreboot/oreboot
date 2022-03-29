@@ -8,11 +8,8 @@ edition = "2021"
 
 [dependencies]
 cty = "0.2.1"
-heapless = "0.4.x"
+heapless = "0.6.1"
 uefi = { path = "../../../lib/uefi"}
 
 [build-dependencies]
 bindgen = "0.58.1"
-
-[profile.release]
-opt-level = 'z'  # Optimize for size.
