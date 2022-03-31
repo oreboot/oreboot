@@ -14,7 +14,7 @@ cibuild: $(IMAGE)
 ciclippy: clippy
 citest: skiptest
 
-boot:
+boot: raminit
 	$(XFEL) write $(MEMADDR) target/$(TARGET)/release/bootblob.bin
 	$(XFEL) exec $(MEMADDR)
 
