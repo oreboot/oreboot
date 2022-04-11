@@ -220,27 +220,6 @@ Ground Rules
   now, that is Azure but we will be flexible.
 
 
-Ground Rules for x86
---------------------
-
-* We prefer all pieces of the firmware to be open-source.
-* Blobs must be essential to boot the system and not provide any extraneous
-  functionality which could not be implemented in Oreboot.
-* Blobs must be redistributable and are ideally available on GitHub.
-* Blobs must not be submitted to github.com/oreboot/oreboot. We prefer blobs to
-  be submitted to github.com/oreboot/blobs, github.com/coreboot/blobs or some
-other GitHub repository.
-* The blobs must be in a binary format. No additional C code, assembly files or
-  header files are acceptable.
-* Any compromises to the language safety features of Rust must be explicitly
-  stated.
-
-As a "measure" for how open-source firmware is, use the percentage of the final
-binary size. For example, if 70% of the firmware bytes are closed-source blob
-and 30% built from Oreboot source code, we would say the firmware is 30%
-open-source.
-
-
 Copyright and License
 ---------------------
 
