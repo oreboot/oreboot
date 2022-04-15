@@ -21,7 +21,6 @@ members = [
     "src/mainboard/sunxi/*",
 
     "src/vendorcode/fsp/build-utils",
-    "src/vendorcode/fsp/coffeelake",
     "src/vendorcode/fsp/common",
     "src/vendorcode/fsp/qemu",
     "src/vendorcode/fsp/qemu32",
