@@ -22,8 +22,6 @@ members = [
 
     "src/vendorcode/fsp/build-utils",
     "src/vendorcode/fsp/common",
-    "src/vendorcode/fsp/qemu",
-    "src/vendorcode/fsp/qemu32",
 
     "tools/layoutflash",
 ]
