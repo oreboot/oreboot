@@ -8,7 +8,6 @@ members = [
     "payloads",
 
     "src/lib/*",
-    "src/mainboard/aaeon/*",
     "src/mainboard/amd/*",
     "src/mainboard/asrock/*",
     "src/mainboard/ast/*",
