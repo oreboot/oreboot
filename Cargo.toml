@@ -6,7 +6,7 @@ members = [
     "src/cpu",
     "src/soc",
     "payloads",
-    
+
     "src/lib/*",
     "src/mainboard/aaeon/*",
     "src/mainboard/amd/*",
@@ -21,11 +21,7 @@ members = [
     "src/mainboard/sunxi/*",
 
     "src/vendorcode/fsp/build-utils",
-    "src/vendorcode/fsp/coffeelake",
     "src/vendorcode/fsp/common",
-    "src/vendorcode/fsp/qemu",
-    "src/vendorcode/fsp/qemu32",
-    # "src/vendorcode/fsp/tigerlake", # Won't pass cargo check by now
 
     "tools/layoutflash",
 ]
