@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 nb = "1"
-rustsbi = "0.2.0-alpha.10"
+rustsbi = "0.2.2"
 bitflags = "1"
 buddy_system_allocator = "0.8"
 lazy_static = { version = "1", features = ["spin_no_std"] }
