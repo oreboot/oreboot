@@ -36,9 +36,6 @@ format:
 checkformat:
 	cargo fmt -- --check
 
-clean:
-	rm -rf target/ coverall/
-
 # Clippy is the standard rule
 clippy:
 	cargo clippy -- -D warnings -A clippy::write_with_newline
@@ -61,3 +58,6 @@ skiptest:
 
 coverage:
 	cargo tarpaulin --out Lcov
+
+clean:
+	rm -rf $(TOP)/target
