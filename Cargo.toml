@@ -20,9 +20,6 @@ members = [
     "src/mainboard/sifive/*",
     "src/mainboard/sunxi/*",
 
-    "src/vendorcode/fsp/build-utils",
-    "src/vendorcode/fsp/common",
-
     "tools/layoutflash",
 ]
 
