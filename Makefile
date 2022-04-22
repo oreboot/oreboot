@@ -48,10 +48,6 @@ nexttime:
 	rustup target add riscv64imac-unknown-none-elf
 	rustup target add riscv64gc-unknown-none-elf
 
-firsttime_fsp:
-	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
-	git submodule update --init --recursive
-
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
 	# --default-toolchain is purely an optimization to avoid downloading stable Rust first.
@@ -59,7 +55,7 @@ debiansysprepare:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
 
 .PHONY: ciprepare debiansysprepare firsttime
-ciprepare: debiansysprepare firsttime firsttime_fsp
+ciprepare: debiansysprepare firsttime
 
 update:
 	rustup update

@@ -124,12 +124,6 @@ there is no standard library available.
 Building oreboot
 ----------------
 
-If the mainboard uses FSP (Intel platforms), download the blobs with:
-
-```
-git submodule update --init
-```
-
 To build oreboot for a specific platform, do this:
 
 ```
@@ -222,8 +216,7 @@ Ground Rules
 Ground Rules for x86
 --------------------
 
-* We prefer all pieces of the firmware to be open-source; but can accept an ME
-  and FSP binary blob for x86 architectures.
+* We prefer all pieces of the firmware to be open-source.
 * Blobs must be essential to boot the system and not provide any extraneous
   functionality which could not be implemented in Oreboot.
 * Blobs must be redistributable and are ideally available on GitHub.
