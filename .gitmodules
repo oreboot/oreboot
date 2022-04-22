@@ -2,15 +2,3 @@
 	path = 3rdparty/edk2
 	url = https://github.com/tianocore/edk2
 	ignore = dirty
-[submodule "FSP"]
-	path = 3rdparty/fsp
-	url = https://github.com/intel/FSP
-	ignore = dirty
-[submodule "fspsdk"]
-	path = 3rdparty/fspsdk
-	url = https://github.com/universalpayload/fspsdk
-	branch = qemu_fsp_x64
-	ignore = dirty
-[submodule "src/lib/uefi/tests/fsp-bin"]
-	path = src/lib/uefi/tests/fsp-bin
-	url = https://github.com/oreboot/fsp
