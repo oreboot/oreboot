@@ -24,6 +24,12 @@ pub struct RegisterBlock {
     _pad2: [u32; 2],
     /* PB Pull config */
     pbpull: ReadWrite<u32, GPIO_PB_PULL::Register>,
+    _pad3: [u32; 2],
+    /* Port C Config Register 0 */
+    pccfg0: ReadWrite<u32, GPIO_PC_CFG0::Register>,
+    _pad4: [u32; 3],
+    /* PC Data Register */
+    pcdat: ReadWrite<u32, GPIO_PC_DAT::Register>,
 }
 
 pub struct GPIO {
@@ -106,7 +112,27 @@ register_bitfields! [
         PB11_PULL OFFSET(22) NUMBITS(2) [],
         PB12_PULL OFFSET(24) NUMBITS(2) []
         // 26-31: reserved
-    ]
+    ],
+    GPIO_PC_CFG0 [
+        PC0_SELECT OFFSET(0) NUMBITS(4) [],
+        PC1_SELECT OFFSET(4) NUMBITS(4) [],
+        PC2_SELECT OFFSET(8) NUMBITS(4) [],
+        PC3_SELECT OFFSET(12) NUMBITS(4) [],
+        PC4_SELECT OFFSET(16) NUMBITS(4) [],
+        PC5_SELECT OFFSET(20) NUMBITS(4) [],
+        PC6_SELECT OFFSET(24) NUMBITS(4) [],
+        PC7_SELECT OFFSET(28) NUMBITS(4) []
+    ],
+    GPIO_PC_DAT [
+        PC0_DAT OFFSET(0) NUMBITS(1) [],
+        PC1_DAT OFFSET(1) NUMBITS(1) [],
+        PC2_DAT OFFSET(2) NUMBITS(1) [],
+        PC3_DAT OFFSET(3) NUMBITS(1) [],
+        PC4_DAT OFFSET(4) NUMBITS(1) [],
+        PC5_DAT OFFSET(5) NUMBITS(1) [],
+        PC6_DAT OFFSET(6) NUMBITS(1) [],
+        PC7_DAT OFFSET(7) NUMBITS(1) [],
+    ],
 ];
 
 impl GPIO {
@@ -127,10 +153,16 @@ impl Driver for GPIO {
         // set port B GPIO5 high
         self.pbcfg0.modify(GPIO_PB_CFG0::PB5_SELECT.val(1)); // output / LED
         self.pbdat.modify(GPIO_PB_DAT::PB5_DAT.val(1)); // high
-                                                        // Config GPIOB8 and GPIOB9 to txd0 and rxd0
+
+        // set port C GPIO1 high
+        self.pccfg0.modify(GPIO_PC_CFG0::PC1_SELECT.val(1)); // output / LED
+        self.pcdat.modify(GPIO_PC_DAT::PC1_DAT.val(1)); // high
+
+        // Config GPIOB8 and GPIOB9 to txd0 and rxd0
         self.pbcfg1.modify(GPIO_PB_CFG1::PB8_SELECT.val(6)); // 0110: UART0 TX
         self.pbcfg1.modify(GPIO_PB_CFG1::PB9_SELECT.val(6)); // 0110: UART0 RX
-                                                             // enable pull-ups
+
+        // enable pull-ups
         self.pbpull.modify(GPIO_PB_PULL::PB8_PULL.val(1)); // 01: pull-up
         self.pbpull.modify(GPIO_PB_PULL::PB9_PULL.val(1)); // 01: pull-up
         Ok(())
