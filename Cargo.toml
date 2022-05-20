@@ -17,7 +17,6 @@ members = [
     "src/mainboard/nuvoton/*",
     "src/mainboard/opentitan/*",
     "src/mainboard/seeed/*",
-    "src/mainboard/sifive/*",
     "src/mainboard/sunxi/*",
 
     "tools/layoutflash",

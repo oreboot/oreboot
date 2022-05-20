@@ -128,7 +128,7 @@ To build oreboot for a specific platform, do this:
 
 ```
 # Go to the mainboard's directory.
-cd src/mainboard/sifive/hifive
+cd src/mainboard/sunxi/nezha
 # Build in release mode.
 make
 # Build in debug mode.
@@ -195,7 +195,6 @@ Oreboot Mainboards
   * Aspeed ast25x0
   * Nuvoton npcm7xx
   * OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
-  * SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
 
 
 Ground Rules
