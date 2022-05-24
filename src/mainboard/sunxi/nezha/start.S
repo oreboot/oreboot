@@ -55,8 +55,8 @@ _boot:
     /*disable interrupt*/
     csrw mie, zero
 
-    /*enable theadisaee and maee*/
-    li t1, (0x1 << 22 | 0x1 << 21)
+    /*enable theadisaee and DO NOT SET maee (bit 21) - that'd bork Linux */
+    li t1, (0x1 << 22 | 0x0 << 21)
     csrs 0x7c0, t1     // mxstatus
 
     /*invaild ICACHE/DCACHE/BTB/BHT*/
