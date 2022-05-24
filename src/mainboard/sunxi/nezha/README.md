@@ -53,3 +53,6 @@ using RustSBI, which is implemented here within oreboot statically.
 Set `PAYLOAD_B` for a Linux kernel and `PAYLOAD_C` for its corresponding DTB.
 The DTB (device tree blob) is built together with Linux for the respective board
 and to be found within Linux in the directory `arch/riscv/boot/dts/allwinner/`.
+
+For a WIP Linux 5.18 with kexec support, see:
+https://github.com/orangecms/linux/tree/5.18-kexec
