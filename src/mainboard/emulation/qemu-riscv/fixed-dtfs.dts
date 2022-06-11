@@ -11,20 +11,20 @@
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";
-                offset = <0x0>;
-                size = <0x80000>; // 512KiB
+                compatible = "ore-bootblob";
+                size = <0x100000>; // 512KiB
                 file = "$(BOOTBLOB)";
             };
             area@1 {
                 description = "Fixed DTFS";
-                offset = <0x80000>;
+                compatible = "ore-dtfs";
                 size = <0x80000>; // 512KiB
                 file = "$(FIXED_DTFS)";
             };
             area@2 {
                 description = "Empty Space";
-                offset = <0x100000>;
-                size = <0x1f00000>; // 31MiB
+                offset = <0x180000>;
+                size = <0x1e80000>; // 31MiB
             };
         };
     };
