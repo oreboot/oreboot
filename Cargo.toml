@@ -8,7 +8,7 @@ members = [
     "payloads",
 
     "src/lib/*",
-    "src/mainboard/*/*",
+    "src/mainboard/sunxi/nezha/*",
 
     "tools/layoutflash",
 
@@ -19,7 +19,11 @@ default-members = ["xtask"]
 [profile.release]
 opt-level = 'z'  # Optimize for size.
 lto = true
-panic = "abort"
+# Leave debug symbol information on release compilation mode
+# That's okay, these symbols won't appear on flash binary
+debug = true
 
 [profile.dev]
-panic = "abort"
+opt-level = 1               # Use slightly better optimizations.
+overflow-checks = false     # Disable integer overflow checks.
+lto = true

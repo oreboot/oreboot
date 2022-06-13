@@ -16,9 +16,13 @@ vcell = { version = "0.1.3", optional = true }
 heapless = { version = "0.6.1", optional = true }
 util = { path = "../lib/util", optional = true }
 
+d1-pac = { version = "0.0.23", optional = true }
+embedded-hal = { version = "1.0.0-alpha.8", optional = true }
+nb = "1"
+
 [features]
 amd = [
-    "oreboot-arch/x86_64", "oreboot-cpu/amd", 
+    "oreboot-arch/x86_64", "oreboot-cpu/amd",
     "oreboot-drivers/uart_i8250", "oreboot-drivers/uart_debug_port", "oreboot-drivers/uart_amdmmio",
     "util", "raw-cpuid", "heapless", "vcell",
 ]
@@ -35,4 +39,4 @@ sifive_fu540 = ["sifive", "oreboot-arch/riscv64", "oreboot-drivers/spi_sifive"]
 starfive = []
 starfive_jh7100 = ["starfive", "oreboot-arch/riscv64", "oreboot-drivers"]
 sunxi = []
-sunxi_d1 = ["sunxi", "oreboot-drivers"]
+sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal"]

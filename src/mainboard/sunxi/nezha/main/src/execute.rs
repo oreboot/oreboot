@@ -8,9 +8,7 @@ use core::{
 use riscv::register::scause::{Exception, Trap};
 use rustsbi::println;
 
-const DEBUG_ECALL: bool = false;
-
-pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> ! {
+pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
     loop {
         match Pin::new(&mut rt).resume(()) {
@@ -20,14 +18,12 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> ! {
                 feature::preprocess_supervisor_external(ctx);
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
                 let ans = rustsbi::ecall(ctx.a7, ctx.a6, param);
+                if ans.error & (0xFFFFFFFF << 32) == 0x114514 << 32 {
+                    // magic value to exit execution loop
+                    break (ans.error & 0xFFFFFFFF, ans.value);
+                }
                 ctx.a0 = ans.error;
                 ctx.a1 = ans.value;
-                if DEBUG_ECALL {
-                    println!(
-                        "[rustsbi] ecall {:#04X?}/{:#04X?}, res {:#04X?}\r",
-                        ctx.a6, ctx.a7, ctx.a1
-                    );
-                }
                 ctx.mepc = ctx.mepc.wrapping_add(4);
             }
             GeneratorState::Yielded(MachineTrap::IllegalInstruction()) => {
