@@ -12,29 +12,28 @@
         areas {
             area@0 {
                 description = "Boot Blob and Romstage";
-                size = <0x10000>; // 64KiB
+                size = <0x8000>; // 32KiB; SRAM size
                 file = "$(BOOTBLOB)";
             };
             area@1 {
+                description = "Payloader/Decompressor/SBI";
+                size = <0x18000>; // 96KiB
+                file = "$(PAYLOADER)";
+            };
+            area@2 {
                 description = "Fixed DTFS";
                 size = <0x10000>; // 64KiB
                 file = "$(FIXED_DTFS)";
             };
-            area@2 {
+            area@3 {
                 description = "Payload A";
-                size = <0x1e0000>; // 1.875MiB for M-mode payloads such as xv6
+                size = <0xfc0000>; // 16MB-256K
                 file = "$(PAYLOAD_A)";
             };
-            area@3 {
-                description = "Payload B";
-                // TODO: reduce when support compressed payloads
-                size = <0x1200000>; // 18MiB, enough for Linux + initramfs
-                file = "$(PAYLOAD_B)";
-            };
             area@4 {
-                description = "Payload C";
-                size = <0xe000>; // 56K
-                file = "$(PAYLOAD_C)";
+                description = "DTB";
+                size = <0x10000>; // 64KiB
+                file = "$(DTB)";
             };
         };
     };

@@ -1,0 +1,25 @@
+[package]
+name = "oreboot-nezha-main"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nb = "1"
+rustsbi = { version = "0.3.0-alpha.1", features = ["legacy"] }
+bitflags = "1"
+buddy_system_allocator = "0.8"
+lazy_static = { version = "1", features = ["spin_no_std"] }
+riscv = { version = "0.7.0", features = ["inline-asm"] }
+embedded-hal = "1.0.0-alpha.8"
+vcell = "0.1.3"
+lzss = { version = "0.8", default-features = false }
+payloads = { path = "../../../../../payloads"}
+# todo: a new package oreboot-console
+spin = "0.9" # todo: remove when we have a console package
+oreboot-drivers = { path = "../../../../drivers" }
+
+[dependencies.oreboot-soc]
+path = "../../../../soc"
+features = ["sunxi_d1"]

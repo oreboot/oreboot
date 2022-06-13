@@ -72,6 +72,10 @@ struct Env {
     memory: Option<Memory>,
     #[clap(long, global = true, help = "Board variant")]
     variant: Option<String>,
+    #[clap(long, global = true, help = "Path to raw payload")]
+    payload: Option<String>,
+    #[clap(long, global = true, help = "Path to dtb")]
+    dtb: Option<String>,
 }
 
 fn main() {

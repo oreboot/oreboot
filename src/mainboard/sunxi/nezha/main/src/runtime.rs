@@ -59,7 +59,7 @@ impl Generator for Runtime {
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
         // if mcause::read().cause() != Trap::Exception(Exception::SupervisorEnvCall){
-        //     println!("[rustsbi] 0x{:x} 0x{:x} {:?}",mtval,mepc::read(),mcause::read().cause());
+        //     print!("[rustsbi] 0x{:x} 0x{:x} {:?}",mtval,mepc::read(),mcause::read().cause());
         // }
         let trap = match mcause::read().cause() {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),

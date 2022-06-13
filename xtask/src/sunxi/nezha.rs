@@ -4,8 +4,10 @@ use crate::project_root;
 use crate::{Commands, Env, Memory};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use log::{error, info, trace};
+use lzss::Lzss;
 use std::env;
 use std::fs::File;
+use std::io::Write;
 use std::io::{self, ErrorKind, Seek, SeekFrom};
 use std::process::{self, Command, Stdio};
 
@@ -212,7 +214,18 @@ fn align_up_to(len: u64, target_align: u64) -> u64 {
     }
 }
 
+const IMG_SIZE: u64 = 16 * 1024 * 1024;
+const EI: usize = 12; // offset bits
+const MAX_COMPRESSED_SIZE: usize = 0xc00000;
+
 fn xtask_concat_flash_binaries(env: &Env) {
+    // offset_bits aka EI, usually 10..13
+    // length_bits aka EJ, usually 4..5
+    // buf_fill_byte (often 0x20, space) - should we use 0x00, zero byte?
+    // decompress_buf_size, always 1 << EI
+    // compress_buf_size, always 2 << EI
+    type MyLzss = Lzss<EI, 4, 0x00, { 1 << EI }, { 2 << EI }>;
+
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
     let mut bt0_file = File::options()
         .read(true)
@@ -222,20 +235,82 @@ fn xtask_concat_flash_binaries(env: &Env) {
         .read(true)
         .open(dist_dir.join("oreboot-nezha-main.bin"))
         .expect("open main binary file");
+
+    let bt0_len = bt0_file.metadata().unwrap().len();
+    let main_len = main_file.metadata().unwrap().len();
+    // TODO: evaluate flash layout
+    let payloader_len = 96 * 1024;
+    let dtfs_len = 64 * 1024;
+
     let output_file_path = dist_dir.join("oreboot-nezha.bin");
     let mut output_file = File::options()
         .write(true)
         .create(true)
         .open(&output_file_path)
         .expect("create output binary file");
-    let bt0_len = bt0_file.metadata().unwrap().len();
-    let new_len = bt0_len + main_file.metadata().unwrap().len();
-    output_file.set_len(new_len).unwrap();
+
+    let img_size = bt0_len + payloader_len + dtfs_len; // use for oreboot only
+    output_file.set_len(IMG_SIZE).unwrap(); // FIXME: depend on storage
+
     io::copy(&mut bt0_file, &mut output_file).expect("copy bt0 binary");
     output_file
         .seek(SeekFrom::Start(bt0_len))
         .expect("seek after bt0 copy");
     io::copy(&mut main_file, &mut output_file).expect("copy main binary");
+    println!("payloader stage: 0x{:x} bytes", main_len);
+
+    let payload_file = match env.payload.as_deref() {
+        Some(p) => p,
+        None => {
+            error!("provide a payload");
+            process::exit(1);
+        }
+    };
+    println!("adding payload {}", payload_file);
+    let payload = std::fs::read(payload_file).expect("open payload file");
+    println!("payload size: 0x{:x} bytes", payload.len());
+    output_file
+        .seek(SeekFrom::Start(bt0_len + payloader_len + dtfs_len))
+        .expect("seek after payloader copy");
+    let mut compressed = vec![0; MAX_COMPRESSED_SIZE];
+    let result = MyLzss::compress(
+        lzss::SliceReader::new(&payload),
+        lzss::SliceWriter::new(&mut compressed),
+    );
+    match result {
+        Ok(r) => {
+            println!("compressed payload size: {r}\n");
+            output_file
+                .write_u32::<LittleEndian>(r as u32)
+                .expect("write compressed size");
+            output_file
+                .write_all(&compressed[..r])
+                .expect("copy payload");
+        }
+        Err(r) => {
+            error!("compression: {r}\n");
+            process::exit(1);
+        }
+    };
+
+    let dtb = match env.dtb.as_deref() {
+        Some(d) => d,
+        None => {
+            error!("provide a dtb");
+            process::exit(1);
+        }
+    };
+    println!("adding dtb {}", dtb);
+    let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
+    let dtb_len = 64 * 1024;
+    output_file
+        .seek(SeekFrom::Start(IMG_SIZE - dtb_len))
+        .expect("seek after payload copy");
+    io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
+    let dtb_len = dtb_file.metadata().unwrap().len();
+    println!("dtb size: 0x{:x} bytes", dtb_len);
+
+    println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
