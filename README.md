@@ -203,6 +203,8 @@ Oreboot Mainboards
   * Nuvoton npcm7xx
   * OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
   * SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
+  * Sipeed Lichee RV / Pro (Allwinner D1 SoC)
+  * DongshanPi Nezha STU (Allwinner D1 SoC)
 
 
 Ground Rules
