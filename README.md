@@ -48,6 +48,13 @@ Memory: 1031428K/1048576K available (814K kernel code, 80K rwdata, 98K rodata, 6
 served, 0K cma-reserved) 
 ```
 
+Boot Flow and Setup
+-------------------
+
+To get a general understanding of how oreboot and firmware in general works,
+have a look at the [boot flow documentation](Documentation/boot-flow.md). It
+describes how firmware is stored and boots up on a platform / SoC.
+
 Getting oreboot
 ---------------
 
