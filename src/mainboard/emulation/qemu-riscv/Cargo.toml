@@ -8,6 +8,7 @@ edition = "2021"
 console = { path = "../../../console" }
 print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
+sbi-qemu = { path = "./sbi" }
 
 heapless = "0.6.1"
 tock-registers = "0.7.0"

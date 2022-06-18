@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-
+#![feature(default_alloc_error_handler)]
 use core::arch::global_asm;
 use core::fmt::Write;
 use core::panic::PanicInfo;
@@ -11,9 +11,14 @@ use oreboot_drivers::{
     Driver,
 };
 use payloads::payload;
+use sbi_qemu::sbi_init;
 
 global_asm!(include_str!("bootblock.S"));
 global_asm!(include_str!("init.S"));
+
+const BASE: usize = 0x8020_0000;
+const PAYLOAD_ADDR: usize = 0x2000_0000 + 0x40_0000;
+const PAYLOAD_SIZE: usize = 6 * 1024 * 1024;
 
 #[no_mangle]
 pub extern "C" fn _start(fdt_address: usize) -> ! {
@@ -26,8 +31,8 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     let kernel_segs = &[
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: 0x80000000,
-            data: &mut SectionReader::new(&Memory {}, 0x20000000 + 0x400000, 6 * 1024 * 1024),
+            base: BASE,
+            data: &mut SectionReader::new(&Memory {}, PAYLOAD_ADDR, PAYLOAD_SIZE),
         },
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_DATA,
@@ -35,19 +40,28 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
             data: &mut SliceReader::new(&[0u8; 0]),
         },
     ];
-    let payload = payload::Payload {
+    let mut payload = payload::Payload {
         typ: payload::ftype::CBFS_TYPE_RAW,
         compression: payload::ctype::CBFS_COMPRESS_NONE,
         offset: 0,
-        entry: 0x8000_0000,
+        entry: BASE,
         rom_len: 0,
         mem_len: 0,
         segs: kernel_segs,
         dtb: 0,
     };
+    payload.load();
 
     write!(w, "Running payload\r\n").unwrap();
-    payload.run();
+    // payload.run();
+
+    writeln!(
+        w,
+        "Handing over to SBI, will continue at 0x{:x}\r",
+        PAYLOAD_ADDR
+    )
+    .unwrap();
+    sbi_init(PAYLOAD_ADDR, PAYLOAD_ADDR + 0x0020_0000);
 
     write!(w, "Unexpected return from payload\r\n").unwrap();
     arch::halt()
@@ -56,7 +70,7 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // Assume that uart0.init() has already been called before the panic.
-    let uart0 = &mut NS16550::new(0x10000000, 115200);
+    let uart0 = &mut NS16550::new(0x1000_0000, 115200);
     let w = &mut print::WriteTo::new(uart0);
     // Printing in the panic handler is best-effort because we really don't want to invoke the panic
     // handler from inside itself.
