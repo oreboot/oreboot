@@ -52,18 +52,19 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     };
     payload.load();
 
-    write!(w, "Running payload\r\n").unwrap();
+    writeln!(w, "Running payload\r").unwrap();
     // payload.run();
 
     writeln!(
         w,
         "Handing over to SBI, will continue at 0x{:x}\r",
-        PAYLOAD_ADDR
+        BASE // PAYLOAD_ADDR
     )
     .unwrap();
-    sbi_init(PAYLOAD_ADDR, PAYLOAD_ADDR + 0x0020_0000);
+    // sbi_init(PAYLOAD_ADDR, PAYLOAD_ADDR + 0x0020_0000);
+    sbi_init(BASE, BASE + 0x0020_0000);
 
-    write!(w, "Unexpected return from payload\r\n").unwrap();
+    writeln!(w, "Unexpected return from payload\r").unwrap();
     arch::halt()
 }
 

@@ -1,6 +1,12 @@
 use super::{
     pac_encoding::{
-        UART_FCR, UART_IER, UART_LCR, UART_LSR, UART_MCR, UART_RBR, UART_THR, UART_USR,
+        UART_FCR,
+        UART_IER,
+        UART_LCR,
+        UART_LSR,
+        UART_MCR,
+        UART_RBR,
+        UART_THR, // UART_USR,
     },
     read_reg, write_reg,
 };
@@ -28,15 +34,20 @@ impl Serial {
         }
         */
         // FIXME: This works; why doesn't println! work?
+        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
+        unsafe { write_reg::<u8>(base, UART_THR, 0x41) }
+        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
         unsafe { write_reg::<u8>(base, UART_THR, 0x42) }
+        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
+        unsafe { write_reg::<u8>(base, UART_THR, 0x43) }
         x_self
     }
 }
 impl Read<u8> for Serial {
     type Error = Infallible;
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        if unsafe { (read_reg::<u32>(self.uart, UART_LSR) & (1 << 0)) != 0 } {
-            Ok(unsafe { (read_reg::<u32>(self.uart, UART_RBR) & 0xff) as u8 })
+        if unsafe { (read_reg::<u8>(self.uart, UART_LSR) & (1 << 0)) != 0 } {
+            Ok(unsafe { read_reg::<u8>(self.uart, UART_RBR) & 0xff })
         } else {
             Err(nb::Error::WouldBlock)
         }
@@ -46,16 +57,15 @@ impl Write<u8> for Serial {
     type Error = Infallible;
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        // FIXME: which is correct?
-        // while unsafe { read_reg::<u8>(self.uart, UART_LSR) & 0x1 << 6 } == 0 {}
-        // while unsafe { read_reg::<u8>(self.uart, UART_LSR) & 0x1 << 1 } == 0 {}
+        // FIXME: which bit is correct?
+        while unsafe { read_reg::<u8>(self.uart, UART_LSR) & 1 << 6 } == 0 {}
         unsafe { write_reg::<u8>(self.uart, UART_THR, word) }
         Ok(())
     }
 
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
         // TODO
-        // while unsafe { read_reg::<u8>(self.uart, UART_USR) & 1 } == 0 {}
+        while unsafe { read_reg::<u8>(self.uart, UART_LSR) & 1 << 5 } == 0 {}
         Ok(())
     }
 }

@@ -30,7 +30,7 @@ static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
     let hartid = riscv::register::mhartid::read();
     if hartid == 0 {
-        // init_bss();
+        init_bss();
         peripheral::init_peripheral();
         println!("[rustsbi] RustSBI version {}\r", rustsbi::VERSION);
         println!("{}", rustsbi::LOGO);
