@@ -14,11 +14,25 @@ mod runtime;
 extern crate alloc;
 extern crate bitflags;
 
-use crate::{hal::write_reg, hart_csr_utils::print_hart_pmp};
+use crate::hal::pac_encoding::{
+    UART0_BASE,
+    UART_FCR,
+    UART_IER,
+    UART_LCR,
+    UART_LSR,
+    UART_MCR,
+    UART_RBR,
+    UART_THR, // UART_USR,
+};
+use crate::hal::Serial;
+use crate::{
+    hal::{read_reg, write_reg},
+    hart_csr_utils::print_hart_pmp,
+};
 use buddy_system_allocator::LockedHeap;
 use core::arch::asm;
 use riscv::register::{medeleg, mideleg, mie};
-use rustsbi::println;
+use rustsbi::{print, println};
 
 const SBI_HEAP_SIZE: usize = 8 * 1024; // 8KiB
 
@@ -31,7 +45,15 @@ pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
     let hartid = riscv::register::mhartid::read();
     if hartid == 0 {
         init_bss();
-        peripheral::init_peripheral();
+        // peripheral::init_peripheral();
+        let serial = Serial::new(UART0_BASE);
+        use rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal;
+        // FIXME: This hangs; why?
+        // init_legacy_stdio_embedded_hal(serial);
+        while unsafe { read_reg::<u8>(UART0_BASE, UART_LSR) & 1 << 6 } == 0 {}
+        unsafe { write_reg::<u8>(UART0_BASE, UART_THR, 0x41) }
+
+        print!("[rustsbi]");
         println!("[rustsbi] RustSBI version {}\r", rustsbi::VERSION);
         println!("{}", rustsbi::LOGO);
         println!("[rustsbi] Platform Name: {}\r", PLATFORM);
@@ -64,13 +86,13 @@ fn init_bss() {
     extern "C" {
         // static mut __bss_start: u32;
         // static mut __bss_end: u32;
-        // static mut edata: u32;
-        // static mut sdata: u32;
-        // static sidata: u32;
+        static mut edata: u32;
+        static mut sdata: u32;
+        static sidata: u32;
     }
     unsafe {
         // r0::zero_bss(&mut __bss_start, &mut __bss_end);
-        // r0::init_data(&mut sdata, &mut edata, &sidata);
+        r0::init_data(&mut sdata, &mut edata, &sidata);
     }
 }
 

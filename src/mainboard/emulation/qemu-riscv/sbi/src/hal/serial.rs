@@ -14,12 +14,12 @@ use core::convert::Infallible;
 use embedded_hal::serial::{Read, Write};
 // const SUNXI_UART_USR_NF: u32 = 0x02;
 const SUNXI_UART_USR_RFNE: u32 = 0x04;
+
 pub struct Serial {
     uart: usize,
 }
 impl Serial {
     pub fn new(base: usize) -> Self {
-        let x_self = Self { uart: base };
         /*
         unsafe {
             write_reg::<u8>(base, UART_IER, 0x0);
@@ -40,9 +40,10 @@ impl Serial {
         unsafe { write_reg::<u8>(base, UART_THR, 0x42) }
         while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
         unsafe { write_reg::<u8>(base, UART_THR, 0x43) }
-        x_self
+        Self { uart: base }
     }
 }
+
 impl Read<u8> for Serial {
     type Error = Infallible;
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -53,6 +54,7 @@ impl Read<u8> for Serial {
         }
     }
 }
+
 impl Write<u8> for Serial {
     type Error = Infallible;
 

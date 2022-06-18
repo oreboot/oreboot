@@ -40,6 +40,14 @@ SECTIONS
         KEEP(*(.rodata .rodata.*));
     }
 
+    .data :
+    {
+        sidata = LOADADDR(.data);
+        sdata = .;
+        *(.sdata* .data .data.*)
+        edata = .;
+    }
+
     .stack_sizes (INFO) :
     {
         KEEP(*(.stack_sizes));

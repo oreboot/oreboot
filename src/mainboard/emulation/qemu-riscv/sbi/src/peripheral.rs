@@ -3,6 +3,8 @@ use rustsbi::println;
 
 use crate::hal::{msip, pac_encoding::UART0_BASE, Serial};
 
+const MAX_HART_ID: usize = 0;
+
 pub fn init_peripheral() {
     // serial is used for both println and SBI console
     let serial = Serial::new(UART0_BASE);
@@ -12,11 +14,11 @@ pub fn init_peripheral() {
     // rustsbi::init_reset(Reset);
     // rustsbi::init_ipi(Ipi);
 }
-struct Ipi;
 
+struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn max_hart_id(&self) -> usize {
-        1
+        MAX_HART_ID
     }
     fn send_ipi_many(&self, hart_mask: rustsbi::HartMask) -> rustsbi::SbiRet {
         for i in 0..=self.max_hart_id() {
@@ -42,8 +44,8 @@ impl rustsbi::Timer for Timer {
         };
     }
 }
-pub struct Reset;
 
+pub struct Reset;
 impl rustsbi::Reset for Reset {
     fn system_reset(&self, reset_type: usize, reset_reason: usize) -> rustsbi::SbiRet {
         // TODO: shut down all harts
