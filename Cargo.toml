@@ -21,7 +21,10 @@ members = [
     "src/mainboard/sunxi/*",
 
     "tools/layoutflash",
+
+    "xtask",
 ]
+default-members = ["xtask"]
 
 [profile.release]
 opt-level = 'z'  # Optimize for size.

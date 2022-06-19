@@ -1,0 +1,9 @@
+[alias]
+xtask = "run --package xtask --"
+make = "xtask make"
+asm = "xtask asm"
+flash = "xtask flash"
+# debug = "xtask debug"
+gdb = "xtask gdb"
+
+# todo: xtask qemu for emulation
