@@ -20,14 +20,7 @@ const BASE: usize = 0x8020_0000;
 const PAYLOAD_ADDR: usize = 0x2000_0000 + 0x20_0000;
 const PAYLOAD_SIZE: usize = 6 * 1024 * 1024;
 
-#[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
-    let uart0 = &mut NS16550::new(0x10000000, 115200);
-    uart0.init().unwrap();
-    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
-
-    let w = &mut print::WriteTo::new(uart0);
-
+fn load_kernel(w: &mut print::WriteTo<NS16550>, fdt_address: usize) {
     let kernel_segs = &[
         payload::Segment {
             typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
@@ -60,6 +53,17 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
     } else {
         writeln!(w, "Payload looks like Linux Image, yay!\r").unwrap();
     }
+}
+
+#[no_mangle]
+pub extern "C" fn _start(fdt_address: usize) -> ! {
+    let uart0 = &mut NS16550::new(0x10000000, 115200);
+    uart0.init().unwrap();
+    uart0.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
+
+    let w = &mut print::WriteTo::new(uart0);
+
+    load_kernel(w, fdt_address);
 
     writeln!(w, "Running payload\r").unwrap();
     // payload.run();
