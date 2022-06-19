@@ -17,7 +17,7 @@ global_asm!(include_str!("bootblock.S"));
 global_asm!(include_str!("init.S"));
 
 const BASE: usize = 0x8020_0000;
-const PAYLOAD_ADDR: usize = 0x2000_0000 + 0x40_0000;
+const PAYLOAD_ADDR: usize = 0x2000_0000 + 0x20_0000;
 const PAYLOAD_SIZE: usize = 6 * 1024 * 1024;
 
 #[no_mangle]
@@ -50,7 +50,16 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
         segs: kernel_segs,
         dtb: 0,
     };
+    let r = unsafe { core::ptr::read_volatile(BASE as *mut u32) };
+    writeln!(w, "Before: {:x}\r", r).unwrap();
     payload.load();
+    let r = unsafe { core::ptr::read_volatile(BASE as *mut u32) };
+    writeln!(w, "After:  {:x}\r", r).unwrap();
+    if r != 0x0000aa21 {
+        writeln!(w, "Payload does not look like Linux Image!\r").unwrap();
+    } else {
+        writeln!(w, "Payload looks like Linux Image, yay!\r").unwrap();
+    }
 
     writeln!(w, "Running payload\r").unwrap();
     // payload.run();

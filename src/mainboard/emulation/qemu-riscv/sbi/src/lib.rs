@@ -13,6 +13,7 @@ mod runtime;
 
 extern crate alloc;
 extern crate bitflags;
+extern crate rustsbi;
 
 use crate::hal::pac_encoding::{
     UART0_BASE,
@@ -34,26 +35,33 @@ use core::arch::asm;
 use riscv::register::{medeleg, mideleg, mie};
 use rustsbi::{print, println};
 
-const SBI_HEAP_SIZE: usize = 8 * 1024; // 8KiB
-
+const SBI_HEAP_SIZE: usize = 64 * 1024; // 64KiB
+#[link_section = ".bss.uninit"]
 static mut HEAP_SPACE: [u8; SBI_HEAP_SIZE] = [0; SBI_HEAP_SIZE];
 static PLATFORM: &str = "QEMU RISC-V";
 #[global_allocator]
 static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 
 pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
+    runtime::init();
     let hartid = riscv::register::mhartid::read();
+    while unsafe { read_reg::<u8>(UART0_BASE, UART_LSR) & 1 << 6 } == 0 {}
+    unsafe { write_reg::<u8>(UART0_BASE, UART_THR, 0x41) }
     if hartid == 0 {
         init_bss();
-        // peripheral::init_peripheral();
+        init_heap();
+        /*
         let serial = Serial::new(UART0_BASE);
         use rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal;
         // FIXME: This hangs; why?
-        // init_legacy_stdio_embedded_hal(serial);
+        init_legacy_stdio_embedded_hal(serial);
         while unsafe { read_reg::<u8>(UART0_BASE, UART_LSR) & 1 << 6 } == 0 {}
         unsafe { write_reg::<u8>(UART0_BASE, UART_THR, 0x41) }
 
         print!("[rustsbi]");
+        */
+
+        peripheral::init_peripheral();
         println!("[rustsbi] RustSBI version {}\r", rustsbi::VERSION);
         println!("{}", rustsbi::LOGO);
         println!("[rustsbi] Platform Name: {}\r", PLATFORM);
@@ -63,9 +71,7 @@ pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
         );
     }
     init_pmp();
-    runtime::init();
     if hartid == 0 {
-        init_heap();
         unsafe {
             init_plic();
         }
@@ -84,14 +90,14 @@ pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
 
 fn init_bss() {
     extern "C" {
-        // static mut __bss_start: u32;
-        // static mut __bss_end: u32;
+        static mut __bss_start: u32;
+        static mut __bss_end: u32;
         static mut edata: u32;
         static mut sdata: u32;
         static sidata: u32;
     }
     unsafe {
-        // r0::zero_bss(&mut __bss_start, &mut __bss_end);
+        r0::zero_bss(&mut __bss_start, &mut __bss_end);
         r0::init_data(&mut sdata, &mut edata, &sidata);
     }
 }
