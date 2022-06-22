@@ -96,6 +96,8 @@ fn init_pmp() {
 
 unsafe fn init_plic() {
     let mut addr: usize;
+    // 0xfc1 is MAPBADDR in C906; Machine Mode Read Only,
+    // Machine Mode Peripheral Address High Register Bank
     asm!("csrr {}, 0xfc1", out(reg) addr);
     write_reg(addr, 0x001ffffc, 0x1)
 }

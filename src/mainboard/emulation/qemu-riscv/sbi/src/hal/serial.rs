@@ -34,12 +34,6 @@ impl Serial {
         }
         */
         // FIXME: This works; why doesn't println! work?
-        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
-        unsafe { write_reg::<u8>(base, UART_THR, 0x41) }
-        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
-        unsafe { write_reg::<u8>(base, UART_THR, 0x42) }
-        while unsafe { read_reg::<u8>(base, UART_LSR) & 1 << 6 } == 0 {}
-        unsafe { write_reg::<u8>(base, UART_THR, 0x43) }
         Self { uart: base }
     }
 }

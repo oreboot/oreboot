@@ -10,9 +10,9 @@ pub fn init_peripheral() {
     let serial = Serial::new(UART0_BASE);
     use rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal;
     init_legacy_stdio_embedded_hal(serial);
-    // rustsbi::init_timer(Timer);
-    // rustsbi::init_reset(Reset);
-    // rustsbi::init_ipi(Ipi);
+    rustsbi::init_timer(Timer);
+    rustsbi::init_reset(Reset);
+    rustsbi::init_ipi(Ipi);
 }
 
 struct Ipi;
