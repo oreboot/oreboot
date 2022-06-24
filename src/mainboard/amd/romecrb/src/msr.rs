@@ -366,18 +366,31 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
     // 0x1dd LastExcpFromIp
     // 0x1de LastExcpToIp
 
-    read_write_msr(w, 0x200, 0x6); // MtrrVarBase - Variable Size MTRRs Base
-    read_write_msr(w, 0x201, 0xffff80000800); // MtrrVarMask - Variable Size MTRRs Mask
-    read_write_msr(w, 0x202, 0x80000006); // MtrrVarBase
-    read_write_msr(w, 0x203, 0xffffe0000800); // MtrrVarMask
-    read_write_msr(w, 0x204, 0xa0000006); // MtrrVarBase
-    read_write_msr(w, 0x205, 0xfffff0000800); // MtrrVarMask
-    read_write_msr(w, 0x206, 0xff000005); // MtrrVarBase
-    read_write_msr(w, 0x207, 0xffffff000800); // MtrrVarMask
-    read_write_msr(w, 0x208, 0xac000000); // MtrrVarBase
-    read_write_msr(w, 0x209, 0xfffffc000800); // MtrrVarMask
-    read_write_msr(w, 0x20a, 0xa2fa0000); // MtrrVarBase
-    read_write_msr(w, 0x20b, 0xffffffff0800); // MtrrVarMask
+    // in_range(your_addr) = (BASE & MASK == your_addr & MASK)
+
+    //                       ----BASE---   TY
+    read_write_msr(w, 0x200, 0x000000000_0_06); // MtrrVarBase: at 0x0; writeback
+
+    //                       ----MASK--- V --
+    read_write_msr(w, 0x201, 0xffff80000_8_00); // MtrrVarMask: size 2 GiB
+
+    read_write_msr(w, 0x202, 0x000080000_0_06); // MtrrVarBase: at 0x80000000; writeback
+    read_write_msr(w, 0x203, 0xffffe0000_8_00); // MtrrVarMask: size 512 MiB
+
+    read_write_msr(w, 0x204, 0x0000a0000_0_06); // MtrrVarBase: at 0xa0000000; writeback
+    read_write_msr(w, 0x205, 0xfffff0000_8_00); // MtrrVarMask: size 256 MiB
+
+    read_write_msr(w, 0x206, 0x0000ff000_0_05); // MtrrVarBase: at 0xff000000; write-protected
+    read_write_msr(w, 0x207, 0xffffff000_8_00); // MtrrVarMask: size 16 MiB; presumably the flash
+
+    read_write_msr(w, 0x208, 0x0000ac000_0_00); // MtrrVarBase: at 0xac000000, uncached
+    read_write_msr(w, 0x209, 0xfffffc000_8_00); // MtrrVarMask: size 64 MiB
+
+    read_write_msr(w, 0x20a, 0x0000a2fa0_0_00); // MtrrVarBase: at 0xa2fa0000; uncached
+    read_write_msr(w, 0x20b, 0xffffffff0_8_00); // MtrrVarMask: size 64 kiB
+
+    // Note: MMIO region starts at 0xe000_0000.  Maybe explicitly mark as uncacheable ?
+    // But the default is uncacheable anyway
 
     // 0x20c // MtrrVarBase
     // 0x20d // MtrrVarMask
@@ -385,19 +398,24 @@ pub fn msrs(w: &mut impl core::fmt::Write) {
     // 0x20f // MtrrVarMask
 
     // Fixed-Size MTRRs
-    read_write_msr(w, 0x250, 0x606060606060606); // MtrrFix_64K
-    read_write_msr(w, 0x258, 0x606060606060606); // MtrrFix_16K_0
-    read_write_msr(w, 0x259, 0x404040404040404); // MtrrFix_16K_1
-    read_write_msr(w, 0x268, 0x505050505050505); // MtrrFix_4K_0
-    read_write_msr(w, 0x269, 0x505050505050505); // MtrrFix_4K_1
-    read_write_msr(w, 0x26a, 0x505050505050505); // MtrrFix_4K_2
-    read_write_msr(w, 0x26b, 0x505050505050505); // MtrrFix_4K_3
-    read_write_msr(w, 0x26c, 0x505050505050505); // MtrrFix_4K_4
-    read_write_msr(w, 0x26d, 0x505050505050505); // MtrrFix_4K_5
-    read_write_msr(w, 0x26e, 0x505050505050505); // MtrrFix_4K_6
-    read_write_msr(w, 0x26f, 0x505050505050505); // MtrrFix_4K_7
-    read_write_msr(w, 0x277, 0x7040600070406); // PAT - Page Attribute Table
-    read_write_msr(w, 0x2ff, 0xc00); // MTRRdefType - MTRR Default Type
+    read_write_msr(w, 0x250, 0x606060606060606); // MtrrFix_64K; writeback
+    read_write_msr(w, 0x258, 0x606060606060606); // MtrrFix_16K_0; writeback
+    read_write_msr(w, 0x259, 0x404040404040404); // MtrrFix_16K_1; write-through
+    read_write_msr(w, 0x268, 0x505050505050505); // MtrrFix_4K_0; write-protected
+    read_write_msr(w, 0x269, 0x505050505050505); // MtrrFix_4K_1; write-protected
+    read_write_msr(w, 0x26a, 0x505050505050505); // MtrrFix_4K_2; write-protected
+    read_write_msr(w, 0x26b, 0x505050505050505); // MtrrFix_4K_3; write-protected
+    read_write_msr(w, 0x26c, 0x505050505050505); // MtrrFix_4K_4; write-protected
+    read_write_msr(w, 0x26d, 0x505050505050505); // MtrrFix_4K_5; write-protected
+    read_write_msr(w, 0x26e, 0x505050505050505); // MtrrFix_4K_6; write-protected
+    read_write_msr(w, 0x26f, 0x505050505050505); // MtrrFix_4K_7; write-protected
+
+    // Pi: i = 0b<PAT><CD><WT> of the page table entry
+    // value: 0: UC, 4: write-through, 6: write-back, 7: UC-
+    //                         P7P6P5P4_P3P2P1P0
+    read_write_msr(w, 0x277, 0x00070406_00070406); // PAT - Page Attribute Table; that's the reset default anyway
+
+    read_write_msr(w, 0x2ff, 0xc00); // MTRRdefType - MTRR Default Type; uncacheable
 
     // these need X2APICEN to be useful
     // 0x802 APIC_ID
