@@ -10,6 +10,8 @@ print = { path = "../../../lib/print" }
 payloads = { path = "../../../../payloads"}
 sbi-qemu = { path = "./sbi" }
 
+lz4_flex = { version = "0.9.2", default-features = false, features = ["checked-decode"] }
+lzss = { version = "0.8", default-features = false }
 heapless = "0.6.1"
 tock-registers = "0.7.0"
 static-ref = "0.1.1"

@@ -13,6 +13,7 @@ pub enum ctype {
     CBFS_COMPRESS_NONE = 0,
     CBFS_COMPRESS_LZMA = 1,
     CBFS_COMPRESS_LZ4 = 2,
+    CBFS_COMPRESS_LZSS = 3,
 }
 
 /// cbfs file attrs

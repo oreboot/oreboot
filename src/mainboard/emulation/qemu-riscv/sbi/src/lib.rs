@@ -15,25 +15,10 @@ extern crate alloc;
 extern crate bitflags;
 extern crate rustsbi;
 
-use crate::hal::pac_encoding::{
-    UART0_BASE,
-    UART_FCR,
-    UART_IER,
-    UART_LCR,
-    UART_LSR,
-    UART_MCR,
-    UART_RBR,
-    UART_THR, // UART_USR,
-};
-use crate::hal::Serial;
-use crate::{
-    hal::{read_reg, write_reg},
-    hart_csr_utils::print_hart_pmp,
-};
+use crate::hart_csr_utils::print_hart_pmp;
 use buddy_system_allocator::LockedHeap;
-use core::arch::asm;
 use riscv::register::{medeleg, mideleg, mie};
-use rustsbi::{print, println};
+use rustsbi::println;
 
 const SBI_HEAP_SIZE: usize = 64 * 1024; // 64KiB
 #[link_section = ".bss.uninit"]
@@ -45,8 +30,6 @@ static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
     runtime::init();
     let hartid = riscv::register::mhartid::read();
-    while unsafe { read_reg::<u8>(UART0_BASE, UART_LSR) & 1 << 6 } == 0 {}
-    unsafe { write_reg::<u8>(UART0_BASE, UART_THR, 0x41) }
     if hartid == 0 {
         init_bss();
         init_heap();
@@ -115,9 +98,10 @@ fn init_pmp() {
     pmpaddr4::write(0xffffffffusize >> 2);
 }
 
+// TODO: What do we need to do in QEMU? Anything?
 unsafe fn init_plic() {
     let mut addr: usize;
-    // 0xfc1 is MAPBADDR in C906
+    // NOTE: 0xfc1 is MAPBADDR in C906
     // for Andes, it is CSR_MDCM_CFG
     // https://patchew.org/QEMU/20210805175626.11573-1-ruinland@andestech.com/20210805175626.11573-5-ruinland@andestech.com/
     // println!("csrr {:x}", 0xfc1);
