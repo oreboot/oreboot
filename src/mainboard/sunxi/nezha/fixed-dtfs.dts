@@ -27,8 +27,7 @@
             };
             area@3 {
                 description = "Payload B";
-                // TODO: reduce when support compressed payloads
-                size = <0x1200000>; // 18MiB, enough for Linux + initramfs
+                size = <0xc00000>; // 12MiB, enough for Linux + initramfs
                 file = "$(PAYLOAD_B)";
             };
             area@4 {

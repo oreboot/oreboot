@@ -14,6 +14,7 @@ payloads = { path = "../../../../payloads"}
 print = { path = "../../../lib/print" }
 sbi = { path = "./sbi" }
 heapless = "0.6.1"
+lzss = { version = "0.8", default-features = false }
 
 [dependencies.oreboot-arch]
 path = "../../../arch"
