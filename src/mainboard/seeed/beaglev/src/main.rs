@@ -26,10 +26,6 @@ global_asm!(include_str!(
     "../../../../../src/soc/src/starfive/jh7100/start.S"
 ));
 
-// TODO: For some reason, on hardware, a1 is not the address of the dtb, so we hard-code the device
-// tree here. TODO: The kernel ebreaks when given this device tree.
-//const DTB: &'static [u8] = include_bytes!("hifive.dtb");
-
 // All the non-boot harts spin on this lock.
 static SPIN_LOCK: AtomicUsize = AtomicUsize::new(0);
 
@@ -63,69 +59,98 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
         //spi0 as &mut dyn ClockNode,
         //spi1 as &mut dyn ClockNode,
         //spi2 as &mut dyn ClockNode,
-	//        uart0 as &mut dyn ClockNode,
+    //        uart0 as &mut dyn ClockNode,
     ];
 
     // Note that in future, we will make a DoD of all the parts in .. the mainboard?
     // and then call write with appropriate strings to enable stuff.
+    // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
     let mut clk = Clock::new(&mut clks);
-    clk.pwrite(b"on", 0).unwrap();
-    let mut iopadctl = IOpadctl::new(0); // todo: use base
-    iopadctl.pwrite(b"early", 0).unwrap(); // you might argue this is getting ridiculous.
-                                           // plan 9 is not for everywhere.
-                                           // I might agree.
+    // clk.pwrite(b"on", 0).unwrap();
+
+    // todo: use base
+    let mut iopadctl = IOpadctl::new(0);
+    // you might argue this is getting ridiculous.
+    // plan 9 is not for everywhere.
+    // I might agree.
+    iopadctl.pwrite(b"early", 0).unwrap();
     let mut rstgen = RSTgen::new();
     rstgen.pwrite(b"on", 0).unwrap();
-
-    iopadctl.pwrite(b"on", 0).unwrap();
+    // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
+    // iopadctl.pwrite(b"on", 0).unwrap();
 
     //        let mut syscon = Syscon::new();
     //        let mut iopad = IOpad::new();
 
     //    syscon.finish();
     //      iopad.finish();
+
+    // Let's try some serial out now.
     let mut uart = UART::new();
-    uart.init().unwrap();
+    // NOTE: In mask ROM mode, the UART is already set up for 9600 baud
+    // uart.init().unwrap();
     uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
+
     let mut syscon = Syscon::new(0); // todo: use base
     syscon.pwrite(b"on", 0).unwrap();
     uart.pwrite(b"\r\nsyscon done\r\n", 0).unwrap();
 
-    uart.pwrite(b"\r\n0x2000_0000", 0).unwrap();
+    // Now, dump a bunch of memory ranges to check on
+    // NOTE: When run via mask ROM from SRAM, we do not see the SPI flash
+    // which would be mapped to memory on regular boot, only get ffffffffff.
+
+    // NOTE: First SRAM: We are here!
+    uart.pwrite(b"\r\nRead from 0x1800_0000: ", 0).unwrap();
+    let slice = slice_from_raw_parts(0x1800_0000 as *const u8, 32);
+    uart.pwrite(unsafe { &*slice }, 1).unwrap();
+
+    // NOTE: Stock firmware "second boot" starts here
+    uart.pwrite(b"\r\nRead from 0x2000_0000: ", 0).unwrap();
     let slice = slice_from_raw_parts(0x2000_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
-    uart.pwrite(b"\r\n0x2004_0000", 0).unwrap();
+
+    // NOTE: Offset 256K in stock firmware is U-Boot
+    uart.pwrite(b"\r\nRead from 0x2004_0000: ", 0).unwrap();
     let slice = slice_from_raw_parts(0x2004_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
-    uart.pwrite(b"\r\n0x2001_0000", 0).unwrap();
+
+    // NOTE: Offset 64K in stock firmware is DRAM init
+    uart.pwrite(b"\r\nRead from 0x2001_0000: ", 0).unwrap();
     let slice = slice_from_raw_parts(0x2001_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
-    uart.pwrite(b"\r\n0x1808_0000", 0).unwrap();
+
+    // NOTE: Second SRAM (0x1808_0000 - 0x1809_FFFF)
+    uart.pwrite(b"\r\nRead from 0x1808_0000: ", 0).unwrap();
     let slice = slice_from_raw_parts(0x1808_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
-    let sz = peek32(0x2001_0000) as u32;
-    //	let ddr = slice_from_raw_parts(0x2001_0000 as *const u8, sz as usize);
 
-    for addr in (0usize..sz as usize).step_by(4) {
-        uart.pwrite(b".", 0).unwrap();
+    // NOTE: The first 32bits are the DRAM blob size
+    let dram_blob_size = peek32(0x2001_0000) as u32;
+    // Copy the actual DRAM init blob (starting at byte 4) to second SRAM
+    for addr in (0usize..dram_blob_size as usize).step_by(4) {
+        // uart.pwrite(b".", 0).unwrap();
         let d = peek32(0x2001_0004 + addr as u32);
         poke32(0x1808_0000 + addr as u32, d);
     }
+
+    // Dump to check if the DRAM init blob was copied
     uart.pwrite(b"\r\n0x1808_0000", 0).unwrap();
     let slice = slice_from_raw_parts(0x1808_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
 
-    // Let's try some serial out now.
-
+    /*
     // call ddr
     pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 
+    // this is SRAM space
     unsafe {
         let f = transmute::<usize, EntryPoint>(0x1808_0000);
         uart.pwrite(b"Jump to 1808_0000", 0).unwrap();
+        // NOTE: first argument would be the hart ID, so why 1 and not 0?
         f(1, 0x1804_0000);
     }
+    */
     uart.pwrite(b"That escalated quickly", 0).unwrap();
     arch::halt();
 }

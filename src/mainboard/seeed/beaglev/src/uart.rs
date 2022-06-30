@@ -8,7 +8,7 @@ use oreboot_drivers::{Driver, Result, NOT_IMPLEMENTED};
 // This is a temporary hack until the board works, at which point we'll use
 // the real drivers.
 
-const uartbase: u32 = 0x12440000;
+const uartbase: u32 = 0x1244_0000;
 
 // It's really not hex.
 const UART_CLK: u32 = 100000000;
