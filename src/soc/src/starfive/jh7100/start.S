@@ -32,8 +32,25 @@
 
 .section ".bootblock.boot", "ax", %progbits
 
+// write to UART3 (debug)
+_debug:
+  li t4, 0x42
+  li t5, 0x12440000
+  sw t4, 0(t5)
+  li t4, 0x41
+  li t5, 0x12440000
+  sw t4, 0(t5)
+  li t4, 0x44
+  li t5, 0x12440000
+  sw t4, 0(t5)
+  li t4, '\n'
+  li t5, 0x12440000
+  sw t4, 0(t5)
+  j _start
+
 .globl _boot
 _boot:
+# j _debug
 
 _start:
 	csrwi 0x7c1, 0
@@ -49,7 +66,7 @@ _start:
 	la sp, _bss_end+4096
 	sub sp, sp, t0
 
-	li	 a1, 0 // NONSMP_HART    ; // 
+	li	 a1, 0 // NONSMP_HART    ; //
 	csrr a0, mhartid;
 	bne  a0, a1, .LbootOtherHart //other hart
 
@@ -83,7 +100,7 @@ _start:
 	/*only hart 0*/
 	call _start_boot_hart
 	j .enter_uboot
-	
+
 .LbootOtherHart:
 	li s1, 0x02000000 //CLINT_CTRL_ADDR
 	csrr a0, mhartid
@@ -97,11 +114,11 @@ _start:
 	# Set MSIE bit to receive IPI
 	li a2, (1 << 3) // MIP_MSIP
 	csrw mie, a2
-	
+
 .LwaitOtherHart:
 	# Wait for an IPI to signal that its safe to boot
 //	call second_hart
-	wfi 	
+	wfi
 	# Only start if MIP_MSIP is set
 	csrr a2, mip
 	andi a2, a2, (1 << 3) // MIP_MSIP
@@ -114,7 +131,7 @@ _start:
 	sw zero, 0(s2)
 	fence
 	csrw mip, 0
-	li a2, 2 // NUM_CORES  
+	li a2, 2 // NUM_CORES
 	bltu a0, a2, .enter_uboot
 	j .LwaitOtherHart
 
@@ -128,4 +145,3 @@ aligned_trap_entry:
 //	csrr a0, mhartid
 //	la a1, 0
 //	jr t0
-
