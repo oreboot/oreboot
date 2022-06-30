@@ -222,10 +222,11 @@ fn xtask_concat_flash_binaries(env: &Env) {
         .read(true)
         .open(dist_dir.join("oreboot-nezha-main.bin"))
         .expect("open main binary file");
+    let output_file_path = dist_dir.join("oreboot-nezha.bin");
     let mut output_file = File::options()
         .write(true)
         .create(true)
-        .open(dist_dir.join("oreboot-nezha.bin"))
+        .open(&output_file_path)
         .expect("create output binary file");
     let bt0_len = bt0_file.metadata().unwrap().len();
     let new_len = bt0_len + main_file.metadata().unwrap().len();
@@ -235,6 +236,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
         .seek(SeekFrom::Start(bt0_len))
         .expect("seek after bt0 copy");
     io::copy(&mut main_file, &mut output_file).expect("copy main binary");
+    println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
 fn xtask_burn_d1_flash_bt0(xfel: &str, env: &Env) {
