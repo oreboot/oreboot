@@ -66,7 +66,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // and then call write with appropriate strings to enable stuff.
     // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
     let mut clk = Clock::new(&mut clks);
-    // clk.pwrite(b"on", 0).unwrap();
+    clk.pwrite(b"on", 0).unwrap();
 
     // todo: use base
     let mut iopadctl = IOpadctl::new(0);
@@ -77,7 +77,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     let mut rstgen = RSTgen::new();
     rstgen.pwrite(b"on", 0).unwrap();
     // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
-    // iopadctl.pwrite(b"on", 0).unwrap();
+    iopadctl.pwrite(b"on", 0).unwrap();
 
     //        let mut syscon = Syscon::new();
     //        let mut iopad = IOpad::new();
@@ -88,7 +88,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // Let's try some serial out now.
     let mut uart = UART::new();
     // NOTE: In mask ROM mode, the UART is already set up for 9600 baud
-    // uart.init().unwrap();
+    uart.init().unwrap();
     uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
 
