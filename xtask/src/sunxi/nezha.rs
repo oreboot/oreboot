@@ -249,8 +249,18 @@ fn xtask_concat_flash_binaries(env: &Env) {
         .open(&output_file_path)
         .expect("create output binary file");
 
-    let img_size = bt0_len + payloader_len + dtfs_len; // use for oreboot only
-    output_file.set_len(IMG_SIZE).unwrap(); // FIXME: depend on storage
+    // Build oreboot only if no payload is provided; allows for updating
+    // oreboot only and retain the payload as it is.
+    let mut img_size = bt0_len + payloader_len + dtfs_len;
+    match env.payload.as_deref() {
+        Some(_) => {
+            img_size = IMG_SIZE;
+        }
+        None => {
+            println!("no payload");
+        }
+    }
+    output_file.set_len(img_size).unwrap(); // FIXME: depend on storage
 
     io::copy(&mut bt0_file, &mut output_file).expect("copy bt0 binary");
     output_file
@@ -259,56 +269,54 @@ fn xtask_concat_flash_binaries(env: &Env) {
     io::copy(&mut main_file, &mut output_file).expect("copy main binary");
     println!("payloader stage: 0x{:x} bytes", main_len);
 
-    let payload_file = match env.payload.as_deref() {
-        Some(p) => p,
-        None => {
-            error!("provide a payload");
-            process::exit(1);
-        }
-    };
-    println!("adding payload {}", payload_file);
-    let payload = std::fs::read(payload_file).expect("open payload file");
-    println!("payload size: 0x{:x} bytes", payload.len());
-    output_file
-        .seek(SeekFrom::Start(bt0_len + payloader_len + dtfs_len))
-        .expect("seek after payloader copy");
-    let mut compressed = vec![0; MAX_COMPRESSED_SIZE];
-    let result = MyLzss::compress(
-        lzss::SliceReader::new(&payload),
-        lzss::SliceWriter::new(&mut compressed),
-    );
-    match result {
-        Ok(r) => {
-            println!("compressed payload size: {r}\n");
+    match env.payload.as_deref() {
+        Some(payload_file) => {
+            println!("adding payload {}", payload_file);
+            let payload = std::fs::read(payload_file).expect("open payload file");
+            println!("payload size: 0x{:x} bytes", payload.len());
             output_file
-                .write_u32::<LittleEndian>(r as u32)
-                .expect("write compressed size");
-            output_file
-                .write_all(&compressed[..r])
-                .expect("copy payload");
-        }
-        Err(r) => {
-            error!("compression: {r}\n");
-            process::exit(1);
-        }
-    };
+                .seek(SeekFrom::Start(bt0_len + payloader_len + dtfs_len))
+                .expect("seek after payloader copy");
+            let mut compressed = vec![0; MAX_COMPRESSED_SIZE];
+            let result = MyLzss::compress(
+                lzss::SliceReader::new(&payload),
+                lzss::SliceWriter::new(&mut compressed),
+            );
+            match result {
+                Ok(r) => {
+                    println!("compressed payload size: {r}\n");
+                    output_file
+                        .write_u32::<LittleEndian>(r as u32)
+                        .expect("write compressed size");
+                    output_file
+                        .write_all(&compressed[..r])
+                        .expect("copy payload");
+                }
+                Err(r) => {
+                    error!("compression: {r}\n");
+                    process::exit(1);
+                }
+            };
 
-    let dtb = match env.dtb.as_deref() {
-        Some(d) => d,
-        None => {
-            error!("provide a dtb");
-            process::exit(1);
+            let dtb = match env.dtb.as_deref() {
+                Some(d) => d,
+                None => {
+                    error!("provide a dtb");
+                    process::exit(1);
+                }
+            };
+            println!("adding dtb {}", dtb);
+            let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
+            let dtb_len = 64 * 1024;
+            output_file
+                .seek(SeekFrom::Start(IMG_SIZE - dtb_len))
+                .expect("seek after payload copy");
+            io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
+            let dtb_len = dtb_file.metadata().unwrap().len();
+            println!("dtb size: 0x{:x} bytes", dtb_len);
         }
+        _ => {}
     };
-    println!("adding dtb {}", dtb);
-    let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
-    let dtb_len = 64 * 1024;
-    output_file
-        .seek(SeekFrom::Start(IMG_SIZE - dtb_len))
-        .expect("seek after payload copy");
-    io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
-    let dtb_len = dtb_file.metadata().unwrap().len();
-    println!("dtb size: 0x{:x} bytes", dtb_len);
 
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
