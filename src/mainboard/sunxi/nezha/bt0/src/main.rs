@@ -268,6 +268,22 @@ fn load(
     println!(".");
 }
 
+const SUNXI_AUDIO_CODEC: u32 = 0x0203_0000;
+const AC_SMTH: u32 = SUNXI_AUDIO_CODEC + 0x348;
+const SUNXI_SID_BASE: u32 = 0x0300_6000;
+const BANDGAP_TRIM_REG: u32 = SUNXI_SID_BASE + 0x228;
+
+/* Trim bandgap reference voltage. */
+fn trim_bandgap_ref_voltage() {
+    let mut bg_trim = (unsafe { read_volatile(BANDGAP_TRIM_REG as *mut u32) } >> 16) & 0xff;
+    if bg_trim == 0 {
+        bg_trim = 0x19;
+    }
+    // TODO: recheck
+    let val = unsafe { read_volatile(AC_SMTH as *mut u32) };
+    unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
+}
+
 extern "C" fn main() -> usize {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();
@@ -318,6 +334,9 @@ extern "C" fn main() -> usize {
     crate::logging::set_logger(serial);
 
     println!("oreboot 🦀");
+
+    trim_bandgap_ref_voltage();
+
     let mut cpu_pll = unsafe { read_volatile(PLL_CPU_CTRL as *mut u32) };
     // println!("cpu_pll {:x}", cpu_pll); // 0xFA00_1000
     cpu_pll &= 0xFFFF_00FF;
