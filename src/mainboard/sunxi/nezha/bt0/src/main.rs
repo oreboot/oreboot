@@ -29,6 +29,10 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
+const PLL_CPU_CTRL: u32 = 0x0200_1000;
+const PLL_EN: u32 = 1 << 31;
+const PLL_N: u32 = 42 << 8; // frequency: input_freq * (PLL_N+1)
+
 // taken from oreboot
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, r1: usize);
 
@@ -314,6 +318,11 @@ extern "C" fn main() -> usize {
     crate::logging::set_logger(serial);
 
     println!("oreboot 🦀");
+    let mut cpu_pll = unsafe { read_volatile(PLL_CPU_CTRL as *mut u32) };
+    // println!("cpu_pll {:x}", cpu_pll); // 0xFA00_1000
+    cpu_pll &= 0xFFFF_00FF;
+    cpu_pll |= PLL_EN | PLL_N;
+    unsafe { write_volatile(PLL_CPU_CTRL as *mut u32, cpu_pll) };
 
     let ram_size = mctl::init();
     println!("{}M 🐏", ram_size);
