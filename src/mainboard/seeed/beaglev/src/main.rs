@@ -93,7 +93,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
 
     let mut syscon = Syscon::new(0); // todo: use base
-                                     // syscon.pwrite(b"on", 0).unwrap();
+    syscon.pwrite(b"on", 0).unwrap();
     uart.pwrite(b"\r\nsyscon done\r\n", 0).unwrap();
 
     // Now, dump a bunch of memory ranges to check on
