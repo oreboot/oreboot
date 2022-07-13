@@ -140,22 +140,21 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     }
 
     // Dump to check if the DRAM init blob was copied
-    uart.pwrite(b"\r\n0x1808_0000", 0).unwrap();
+    uart.pwrite(b"\r\n0x1808_0000\r\n", 0).unwrap();
     let slice = slice_from_raw_parts(0x1808_0000 as *const u8, 32);
     uart.pwrite(unsafe { &*slice }, 1).unwrap();
 
-    /*
     // call ddr
     pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 
     // this is SRAM space
     unsafe {
         let f = transmute::<usize, EntryPoint>(0x1808_0000);
-        uart.pwrite(b"Jump to 1808_0000", 0).unwrap();
+        uart.pwrite(b"\r\nJump to 1808_0000\r\n", 0).unwrap();
         // NOTE: first argument would be the hart ID, so why 1 and not 0?
         f(1, 0x1804_0000);
     }
-    */
+
     uart.pwrite(b"That escalated quickly", 0).unwrap();
     arch::halt();
 }
