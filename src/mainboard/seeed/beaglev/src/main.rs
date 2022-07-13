@@ -73,11 +73,11 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // you might argue this is getting ridiculous.
     // plan 9 is not for everywhere.
     // I might agree.
-    iopadctl.pwrite(b"early", 0).unwrap();
+    // iopadctl.pwrite(b"early", 0).unwrap();
     let mut rstgen = RSTgen::new();
-    rstgen.pwrite(b"on", 0).unwrap();
+    // rstgen.pwrite(b"on", 0).unwrap();
     // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
-    iopadctl.pwrite(b"on", 0).unwrap();
+    // iopadctl.pwrite(b"on", 0).unwrap();
 
     //        let mut syscon = Syscon::new();
     //        let mut iopad = IOpad::new();
@@ -93,7 +93,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();
 
     let mut syscon = Syscon::new(0); // todo: use base
-    syscon.pwrite(b"on", 0).unwrap();
+                                     // syscon.pwrite(b"on", 0).unwrap();
     uart.pwrite(b"\r\nsyscon done\r\n", 0).unwrap();
 
     // Now, dump a bunch of memory ranges to check on

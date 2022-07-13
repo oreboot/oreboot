@@ -4490,7 +4490,8 @@ impl<'a> Driver for Clock<'a> {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         match data {
             b"on" => {
-                self.clock_init();
+                // self.clock_init();
+                self.init_coreclk();
                 Ok(1)
             }
             _ => Ok(0),
@@ -4515,8 +4516,8 @@ impl<'a> Clock<'a> {
     fn init_coreclk(&self) {
         // TODO: make base a parameter.
         _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_pll0_out_();
-        _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_pll1_out_();
-        _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll2_out_();
+        // _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_pll1_out_();
+        // _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll2_out_();
         _SWITCH_CLOCK_clk_perh0_root_SOURCE_clk_pll0_out_();
 
         // not enabled in original.
