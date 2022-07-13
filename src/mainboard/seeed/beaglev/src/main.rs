@@ -6,8 +6,8 @@ use core::arch::global_asm;
 use core::hint::spin_loop;
 use core::intrinsics::transmute;
 use core::panic::PanicInfo;
-use core::ptr;
 use core::ptr::slice_from_raw_parts;
+use core::ptr::{self, write_volatile};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use oreboot_arch::riscv64 as arch;
 use oreboot_drivers::Driver;
@@ -28,6 +28,10 @@ global_asm!(include_str!(
 
 // All the non-boot harts spin on this lock.
 static SPIN_LOCK: AtomicUsize = AtomicUsize::new(0);
+
+const QSPI_CSR: usize = 0x1186_0000;
+const QSPI_READ_CMD: usize = QSPI_CSR + 0x0004;
+const SPI_FLASH_READ_CMD: u32 = 0x0003;
 
 #[no_mangle]
 pub extern "C" fn _start_nonboot_hart(hart_id: usize, fdt_address: usize) -> ! {
@@ -67,6 +71,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
+    unsafe { write_volatile(QSPI_READ_CMD as *mut u32, SPI_FLASH_READ_CMD) };
 
     // todo: use base
     let mut iopadctl = IOpadctl::new(0);
