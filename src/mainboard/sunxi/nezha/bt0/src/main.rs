@@ -273,6 +273,11 @@ const AC_SMTH: u32 = SUNXI_AUDIO_CODEC + 0x348;
 const SUNXI_SID_BASE: u32 = 0x0300_6000;
 const BANDGAP_TRIM_REG: u32 = SUNXI_SID_BASE + 0x228;
 
+const CCU_BASE: usize = 0x0200_1000;
+const RISCV_CFG_BGR: usize = CCU_BASE + 0x0d0c;
+const RISCV_CFG_BASE: usize = 0x0601_0000;
+const WAKEUP_MASK_REG0: usize = RISCV_CFG_BASE + 0x0024;
+
 /* Trim bandgap reference voltage. */
 fn trim_bandgap_ref_voltage() {
     let mut bg_trim = (unsafe { read_volatile(BANDGAP_TRIM_REG as *mut u32) } >> 16) & 0xff;
@@ -343,11 +348,19 @@ extern "C" fn main() -> usize {
     cpu_pll |= PLL_EN | PLL_N;
     unsafe { write_volatile(PLL_CPU_CTRL as *mut u32, cpu_pll) };
 
+    /* Initialize RISCV_CFG. */
+    unsafe {
+        write_volatile(RISCV_CFG_BGR as *mut u32, 0x0001_0001);
+        for i in 0..5 {
+            write_volatile((WAKEUP_MASK_REG0 + 4 * i) as *mut u32, 0xffffffff);
+        }
+    }
+
     let ram_size = mctl::init();
     println!("{}M 🐏", ram_size);
 
     #[cfg(feature = "nor")]
-    let spi_speed = 24_000_000.hz();
+    let spi_speed = 48_000_000.hz();
     #[cfg(feature = "nand")]
     let spi_speed = 100_000_000.hz();
 
