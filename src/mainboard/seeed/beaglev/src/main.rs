@@ -82,7 +82,7 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     let mut rstgen = RSTgen::new();
     rstgen.pwrite(b"on", 0).unwrap();
     // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
-    // iopadctl.pwrite(b"on", 0).unwrap();
+    iopadctl.pwrite(b"on", 0).unwrap();
 
     //        let mut syscon = Syscon::new();
     //        let mut iopad = IOpad::new();
