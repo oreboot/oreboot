@@ -4491,7 +4491,6 @@ impl<'a> Driver for Clock<'a> {
         match data {
             b"on" => {
                 self.clock_init();
-                // self.init_coreclk();
                 Ok(1)
             }
             _ => Ok(0),
