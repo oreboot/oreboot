@@ -60,15 +60,14 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     // I mean, even a working pin we could shuffle bits on would work.
 
     let mut clks = [
-        //spi0 as &mut dyn ClockNode,
-        //spi1 as &mut dyn ClockNode,
-        //spi2 as &mut dyn ClockNode,
-    //        uart0 as &mut dyn ClockNode,
+        // spi0 as &mut dyn ClockNode,
+        // spi1 as &mut dyn ClockNode,
+        // spi2 as &mut dyn ClockNode,
+        // uart0 as &mut dyn ClockNode,
     ];
 
     // Note that in future, we will make a DoD of all the parts in .. the mainboard?
     // and then call write with appropriate strings to enable stuff.
-    // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
     let mut clk = Clock::new(&mut clks);
     clk.pwrite(b"on", 0).unwrap();
     unsafe { write_volatile(QSPI_READ_CMD as *mut u32, SPI_FLASH_READ_CMD) };
@@ -81,18 +80,19 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
     iopadctl.pwrite(b"early", 0).unwrap();
     let mut rstgen = RSTgen::new();
     rstgen.pwrite(b"on", 0).unwrap();
-    // FIXME: breaks when running on VisionFive from SRAM / loaded by mask ROM
     iopadctl.pwrite(b"on", 0).unwrap();
 
-    //        let mut syscon = Syscon::new();
-    //        let mut iopad = IOpad::new();
-
-    //    syscon.finish();
-    //      iopad.finish();
+    // TODO: What are those for?
+    // let mut iopad = IOpad::new();
+    // iopad.finish();
+    // syscon.finish();
 
     // Let's try some serial out now.
     let mut uart = UART::new();
     // NOTE: In mask ROM mode, the UART is already set up for 9600 baud
+    // We reconfigure it to 115200, but put it on the other header in `iopadctl`
+    // using `on` so that you can use both headers with the respective different
+    // baud rates.
     uart.init().unwrap();
     uart.pwrite(b"Welcome to oreboot\r\n", 0).unwrap();
     uart.pwrite(b"\r\nsyscon start\r\n", 0).unwrap();

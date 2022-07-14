@@ -140,7 +140,6 @@ fn serial_out(reg: u32, v: u32) {
 
 pub fn uart_init() {
     let divisor = (UART_CLK / UART_BUADRATE_32MCLK_115200) >> 4;
-    // let divisor = (UART_CLK / 9600) >> 4;
 
     let lcr_cache = serial_in(REG_LCR);
     serial_out(REG_LCR, (LCR_DLAB | lcr_cache));
