@@ -132,6 +132,18 @@ pub extern "C" fn _start_boot_hart(_hart_id: usize, _fdt_address: usize) -> ! {
 
     // NOTE: The first 32bits are the DRAM blob size
     let dram_blob_size = peek32(0x2001_0000) as u32;
+    uart.pwrite(b"\r\nDRAM blob size: ", 0).ok();
+    uart.pwrite(
+        &[
+            (dram_blob_size >> 24) as u8,
+            (dram_blob_size >> 16) as u8,
+            (dram_blob_size >> 8) as u8,
+            dram_blob_size as u8,
+        ],
+        1,
+    )
+    .ok();
+    uart.pwrite(b"\r\n", 0).ok();
     // Copy the actual DRAM init blob (starting at byte 4) to second SRAM
     for addr in (0usize..dram_blob_size as usize).step_by(4) {
         // uart.pwrite(b".", 0).unwrap();
