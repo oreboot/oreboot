@@ -4523,7 +4523,6 @@ impl<'a> Clock<'a> {
     /// - PLL1 output to support DDR, DLA and DSP
     /// - PLL2 output to support slow speed peripherals, video input and video
     ///   output
-
     fn init_coreclk(&self) {
         // TODO: make base a parameter.
         _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_pll0_out_();
