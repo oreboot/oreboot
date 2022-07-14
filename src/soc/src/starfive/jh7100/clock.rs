@@ -4490,8 +4490,8 @@ impl<'a> Driver for Clock<'a> {
     fn pwrite(&mut self, data: &[u8], _offset: usize) -> Result<usize> {
         match data {
             b"on" => {
-                // self.clock_init();
-                self.init_coreclk();
+                self.clock_init();
+                // self.init_coreclk();
                 Ok(1)
             }
             _ => Ok(0),
