@@ -50,7 +50,7 @@ use oreboot_drivers::{ClockNode, Driver, Result, NOT_IMPLEMENTED};
 // No register block. I don't want to vet that all these
 // things are nice and contiguous.
 pub const CLKGEN_BASE_ADDR: u32 = 0x1180_0000;
-pub const DENALI_CTL_00_DATA: u32 = 0x00000a00;
+pub const DENALI_CTL_00_DATA: u32 = 0x0000_0a00;
 #[allow(clippy::identity_op)]
 pub const clk_cpundbus_root_ctrl_REG_ADDR: u32 = CLKGEN_BASE_ADDR + 0x0;
 pub const clk_dla_root_ctrl_REG_ADDR: u32 = CLKGEN_BASE_ADDR + 0x4;
@@ -4513,11 +4513,22 @@ impl<'a> Clock<'a> {
         self.base
     }
 
+    /// NOTE: Datasheet p33 / 8.1:
+    /// Two external oscillator OSC0 and OSC1 input
+    /// - OSC0 25M default for USB, GMAC and system main clock source
+    /// - OSC1 input 12-27MHz according to application
+    ///
+    /// Three PLLs
+    /// - PLL0 used for system main logic, including CPU, bus
+    /// - PLL1 output to support DDR, DLA and DSP
+    /// - PLL2 output to support slow speed peripherals, video input and video
+    ///   output
+
     fn init_coreclk(&self) {
         // TODO: make base a parameter.
         _SWITCH_CLOCK_clk_cpundbus_root_SOURCE_clk_pll0_out_();
-        // _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_pll1_out_();
-        // _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll2_out_();
+        _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_pll1_out_();
+        _SWITCH_CLOCK_clk_dsp_root_SOURCE_clk_pll2_out_();
         _SWITCH_CLOCK_clk_perh0_root_SOURCE_clk_pll0_out_();
 
         // not enabled in original.
@@ -4526,7 +4537,7 @@ impl<'a> Clock<'a> {
         //	_SWITCH_CLOCK_clk_nne_bus_SOURCE_clk_cpu_axi_;
     }
 
-    //    fn init_pll_ddr(&self) {}
+    fn init_pll_ddr(&self) {}
 
     fn init_pll_ge(&self) {}
 
