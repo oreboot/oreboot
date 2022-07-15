@@ -271,6 +271,7 @@ fn load(
 const SUNXI_AUDIO_CODEC: u32 = 0x0203_0000;
 const AC_SMTH: u32 = SUNXI_AUDIO_CODEC + 0x348;
 const SUNXI_SID_BASE: u32 = 0x0300_6000;
+const SOC_VER_REG: u32 = SUNXI_SID_BASE + 0x200;
 const BANDGAP_TRIM_REG: u32 = SUNXI_SID_BASE + 0x228;
 
 const CCU_BASE: usize = 0x0200_1000;
@@ -278,12 +279,56 @@ const RISCV_CFG_BGR: usize = CCU_BASE + 0x0d0c;
 const RISCV_CFG_BASE: usize = 0x0601_0000;
 const WAKEUP_MASK_REG0: usize = RISCV_CFG_BASE + 0x0024;
 
+fn clrbits_le32(reg: u32, val: u32) {
+    unsafe {
+        let cval = read_volatile(reg as *mut u32);
+        write_volatile(reg as *mut u32, cval & !val);
+    }
+}
+
+fn setbits_le32(reg: u32, val: u32) {
+    unsafe {
+        let cval = read_volatile(reg as *mut u32);
+        write_volatile(reg as *mut u32, cval | val);
+    }
+}
+
+const GATING_BIT: u32 = 1 << 0;
+const RST_BIT: u32 = 1 << 16;
+
+fn udelay(micros: usize) {
+    unsafe {
+        for _ in 0..micros {
+            core::arch::asm!("nop")
+        }
+    }
+}
+
 /* Trim bandgap reference voltage. */
 fn trim_bandgap_ref_voltage() {
+    let soc_version = (unsafe { read_volatile(SOC_VER_REG as *mut u32) >> 22 }) & 0x3f;
+    println!("v {}", soc_version);
+
     let mut bg_trim = (unsafe { read_volatile(BANDGAP_TRIM_REG as *mut u32) } >> 16) & 0xff;
     if bg_trim == 0 {
         bg_trim = 0x19;
     }
+
+    let reg = (CCU_BASE + 0xA5C) as u32;
+    clrbits_le32(reg, GATING_BIT);
+    udelay(2);
+    clrbits_le32(reg, RST_BIT);
+    udelay(2);
+    /* deassert audio codec reset */
+    setbits_le32(reg, RST_BIT);
+    /* open the clock for audio codec */
+    setbits_le32(reg, GATING_BIT);
+
+    if soc_version == 0b1010 || soc_version == 0 {
+        setbits_le32((SUNXI_AUDIO_CODEC + 0x31C) as u32, 1 << 1);
+        setbits_le32((SUNXI_AUDIO_CODEC + 0x348) as u32, 1 << 30);
+    }
+
     // TODO: recheck
     let val = unsafe { read_volatile(AC_SMTH as *mut u32) };
     unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
@@ -382,7 +427,7 @@ extern "C" fn main() -> usize {
 
         // TODO: Either read sizes from dtfs at runtime or at build time
 
-        println!("Load... 💾");
+        // println!("💾");
         let skip = 0x1 << 15; // 32K, the size of boot0
         let size = ORE_SIZE >> 2;
         load(skip, ORE_ADDR, size, &mut flash);
