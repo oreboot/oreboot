@@ -84,7 +84,7 @@ const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
 // TODO: determine offets/sizes at build time
 // memory load addresses
 const LIN_ADDR: usize = RAM_BASE + 0x0400_0000; // Linux will be decompressed in payloader
-const DTB_ADDR: usize = RAM_BASE + 0x0120_0000; // dtb must be 2MB aligned and behind Linux
+const DTB_ADDR: usize = RAM_BASE + 0x01a0_0000; // dtb must be 2MB aligned and behind Linux
 const ORE_ADDR: usize = RAM_BASE;
 const ORE_SIZE: usize = 0x1_8000; // 96K
 const DTF_SIZE: usize = 0x1_0000; // 64K
