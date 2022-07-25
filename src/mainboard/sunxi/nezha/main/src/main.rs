@@ -107,6 +107,24 @@ fn decompress() {
     }
 }
 
+// MCHR - Machine mode hardware configuration register
+// MCOR - Machine mode cache operation register
+//
+// Cache Enable and Mode Configuration: The Machine Mode Hardware Configuration
+// Register (mhcr) enables switching of instruction and data caches and
+// configuration of write allocation and writeback modes. The supervisor mode
+// hardware configuration register (shcr) is a map of mhcr and is read-only.
+//
+// Dirty Entry Clear and Invalidate Operations: The Machine Mode Cache Operation
+// Register (mcor) can perform dirty entry and invalidation operations on the
+// instruction and data caches.
+//
+// Brother cache read operation: machine mode cache access instruction register
+// (mcins), cache access index register (mcindex) and cache access data register
+// 0/1 (mcdata0/1). and data cache read operations. The specific control
+// register description can refer to the machine mode processor control and
+// status extension register group.
+
 // when handled from BT0 stage, DDR is prepared.
 // this code runs from DDR start
 #[naked]
@@ -115,6 +133,8 @@ fn decompress() {
 unsafe extern "C" fn start() -> ! {
     asm!(
         // 1. clear cache and processor states
+        "li     t2, 0x11ff",
+        "csrs   0x7c1, t2", // MHCR
         // BT0 stage already handled for us
         // 2. initialize programming langauge runtime
         // clear bss segment
