@@ -4,6 +4,7 @@
 #![feature(naked_functions)]
 #![feature(asm_sym, asm_const)]
 #![feature(generator_trait)]
+#![feature(panic_info_message)]
 
 extern crate alloc;
 
@@ -17,7 +18,7 @@ mod runtime;
 //mod logging;
 
 use buddy_system_allocator::LockedHeap;
-use core::panic::PanicInfo;
+use core::panic::{self, PanicInfo};
 use core::{
     arch::asm,
     ptr::{read_volatile, write_volatile},
@@ -59,12 +60,10 @@ const EI: usize = 12;
 type MyLzss = lzss::Lzss<EI, 4, 0x00, { 1 << EI }, { 2 << EI }>;
 
 fn decompress() {
-    let r = unsafe { read_volatile(LINUXBOOT_TMP_ADDR as *mut u32) };
-    print!("Payload at tmp dest: {:08x}\n", r);
     // check for Device Tree header, d00dfeed
-    let r = unsafe { read_volatile(DTB_ADDR as *mut u32) };
-    if r != 0xedfe0dd0 {
-        print!("DTB looks wrong: {:08x}\n", r);
+    let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
+    if dtb != 0xedfe0dd0 {
+        panic!("DTB looks wrong: {:08x}\n", dtb);
     } else {
         print!("DTB looks fine, yay!\n");
     }
@@ -90,19 +89,19 @@ fn decompress() {
             print!("Success, decompressed {r} bytes :)\n");
             let a = LINUXBOOT_ADDR + 0x30;
             let r = unsafe { read_volatile(a as *mut u32) };
-            if r != u32::from_le_bytes(*b"RISC") {
-                print!("Payload does not look like Linux Image: {:x}\n", r);
-            } else {
+            if r == u32::from_le_bytes(*b"RISC") {
                 print!("Payload looks like Linux Image, yay!\n");
+            } else {
+                panic!("Payload does not look like Linux Image: {:x}\n", r);
             }
         }
-        Err(e) => print!("Decompression error {e}\n"),
+        Err(e) => panic!("Decompression error {e}\n"),
     }
 
-    // Recheck on DTB
-    let r = unsafe { read_volatile(DTB_ADDR as *mut u32) };
-    if r != 0xedfe0dd0 {
-        print!("DTB looks wrong: {:08x} - was it overridden?\n", r);
+    // Recheck on DTB, kernel should not run into it
+    let dtb = unsafe { read_volatile(DTB_ADDR as *mut u32) };
+    if dtb != 0xedfe0dd0 {
+        panic!("DTB looks wrong: {:08x} - was it overridden?\n", dtb);
     } else {
         print!("DTB still fine, yay!\n");
     }
@@ -149,7 +148,7 @@ unsafe extern "C" fn start() -> ! {
 // stack which the bootloader environment would make use of.
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-const STACK_SIZE: usize = 1 * 1024; // 1KiB
+const STACK_SIZE: usize = 8 * 1024; // 1KiB
 
 extern "C" fn heap_init() {
     unsafe {
@@ -327,6 +326,14 @@ extern "C" fn finish(reset_type: usize) -> ! {
 
 /// This function is called on panic.
 #[cfg_attr(not(test), panic_handler)]
-fn panic(_info: &PanicInfo) -> ! {
-    loop {} // todo
+fn panic(info: &PanicInfo) -> ! {
+    if let Some(location) = info.location() {
+        print!("panic in '{}' line {}\n", location.file(), location.line(),);
+        print!("{:?}", info.message());
+    } else {
+        print!("panic at unknown location\n");
+    };
+    loop {
+        core::hint::spin_loop();
+    }
 }
