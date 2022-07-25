@@ -241,6 +241,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
     // TODO: evaluate flash layout
     let payloader_len = 96 * 1024;
     let dtfs_len = 64 * 1024;
+    let bt0_len = 32 * 1024;
 
     let output_file_path = dist_dir.join("oreboot-nezha.bin");
     let mut output_file = File::options()
