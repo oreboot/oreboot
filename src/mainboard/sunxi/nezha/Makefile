@@ -10,6 +10,7 @@ PAYLOADER  ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-main.bin
 # DRAM space starts at 0x40000000, see manual p34
 XFEL       ?= xfel
 MEMADDR    ?= 0x40000000
+RELEASE    ?= --release
 
 # FIXME: Those included Makefiles do not support the xtask build setup.
 # Rework or remove them. We may not even need them at all anymore.
@@ -33,10 +34,10 @@ withpayload:
 		--payload $(PAYLOAD) --dtb $(DTB)
 
 flash:
-	cargo flash --variant $(VARIANT) --memory $(MEMORY)
+	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY)
 
 flashwithpayload:
-	cargo flash --variant $(VARIANT) --memory $(MEMORY) \
+	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
 		--payload $(PAYLOAD) --dtb $(DTB)
 
 objdump:
