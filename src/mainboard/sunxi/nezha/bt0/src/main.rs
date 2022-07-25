@@ -190,8 +190,6 @@ pub unsafe extern "C" fn start() -> ! {
         // enable theadisaee and maee
         "li     t1, 0x1 << 22 | 0x1 << 21",
         "csrs   0x7c0, t1", // MXSTATUS
-        // "li     t1, 0x11ff",
-        // "csrs   0x7c1, t1", // MHCR
         // invalidate ICACHE/DCACHE/BTB/BHT
         "li     t2, 0x30013",
         "csrs   0x7c2, t2", // MCOR
