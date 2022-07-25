@@ -177,6 +177,9 @@ This bit will be reset to 1’b0.
 ///
 /// NOTE: `mxstatus` is a custom T-Head register. Do not confuse with `mstatus`.
 /// It allows for configuring special eXtensions. See further below for details.
+///
+/// See also what mainline U-Boot does
+/// https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75
 #[naked]
 #[export_name = "start"]
 #[link_section = ".text.entry"]
@@ -187,9 +190,13 @@ pub unsafe extern "C" fn start() -> ! {
         // enable theadisaee and maee
         "li     t1, 0x1 << 22 | 0x1 << 21",
         "csrs   0x7c0, t1", // MXSTATUS
+        // "li     t1, 0x11ff",
+        // "csrs   0x7c1, t1", // MHCR
         // invalidate ICACHE/DCACHE/BTB/BHT
         "li     t2, 0x30013",
         "csrs   0x7c2, t2", // MCOR
+        "li     t2, 0x16e30c",
+        "csrs   0x7c5, t2", // MHINT
         // 2. initialize programming langauge runtime
         // clear bss segment
         "la     t0, sbss",
@@ -236,7 +243,8 @@ fn load(
     >,
 ) {
     let chunks = 16;
-    for i in 0..size / chunks {
+    let sz = size >> 2;
+    for i in 0..sz / chunks {
         let off = skip + i * 4 * chunks;
         let buf = f.copy_into([(off >> 16) as u8, (off >> 8) as u8, off as u8]);
 
@@ -429,18 +437,15 @@ extern "C" fn main() -> usize {
 
         // println!("💾");
         let skip = 0x1 << 15; // 32K, the size of boot0
-        let size = ORE_SIZE >> 2;
-        load(skip, ORE_ADDR, size, &mut flash);
+        load(skip, ORE_ADDR, ORE_SIZE, &mut flash);
 
         // 32K + oreboot + dtfs, see oreboot dtfs
         let skip = skip + ORE_SIZE + DTF_SIZE;
-        let size = (LIN_SIZE) >> 2;
-        load(skip, LIN_ADDR, size, &mut flash);
+        load(skip, LIN_ADDR, LIN_SIZE, &mut flash);
 
         // 32K + oreboot + dtfs + payload
         let skip = skip + LIN_SIZE;
-        let size = (DTB_SIZE) >> 2;
-        load(skip, DTB_ADDR, size, &mut flash);
+        load(skip, DTB_ADDR, DTB_SIZE, &mut flash);
 
         let _ = flash.free().free();
     }
