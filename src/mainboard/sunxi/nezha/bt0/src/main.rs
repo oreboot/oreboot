@@ -227,13 +227,11 @@ pub unsafe extern "C" fn start() -> ! {
         // 1. clear cache and processor states
         "csrw   mie, zero",
         // enable theadisaee and maee
-        "li     t1, 0x1 << 22 | 0x1 << 21",
+        "li     t1, 0x1 << 22 | 0x1 << 21 | 0x1 << 17 | 0x1 << 16 | 0x1 << 15",
         "csrs   0x7c0, t1", // MXSTATUS
         // invalidate ICACHE/DCACHE/BTB/BHT
         "li     t2, 0x30013",
         "csrs   0x7c2, t2", // MCOR
-        "li     t2, 0x16e30c",
-        "csrs   0x7c5, t2", // MHINT
         // 2. initialize programming langauge runtime
         // clear bss segment
         "la     t0, sbss",

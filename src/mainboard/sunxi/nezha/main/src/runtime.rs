@@ -65,6 +65,7 @@ impl Generator for Runtime {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
+            Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),

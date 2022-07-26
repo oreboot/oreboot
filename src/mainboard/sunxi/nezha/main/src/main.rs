@@ -18,7 +18,7 @@ mod runtime;
 //mod logging;
 
 use buddy_system_allocator::LockedHeap;
-use core::panic::{self, PanicInfo};
+use core::panic::PanicInfo;
 use core::{
     arch::asm,
     ptr::{read_volatile, write_volatile},
@@ -134,44 +134,48 @@ fn decompress() {
 // are readable and writable in machine mode, that is, non-machine mode access
 // will result in illegal instruction exceptions.
 //
-// IE-Icache enable bit:
+// 0 IE - Icache enable bit:
 // • When IE=0, Icache is closed;
 // • When IE=1, Icache is turned on.
 // This bit will be set to 1’b0 by reset.
 //
-// DE-Dcache enable bit:
+// 1 DE - Dcache enable bit:
 // • When DE=0, Dcache is closed;
-// • When DE=1, Dcache is on. This bit will be set to 1’b0 by reset.
+// • When DE=1, Dcache is on.
+// This bit will be set to 1’b0 by reset.
 //
-// WA - Cache Write Allocation Set Bits:
+// 2 WA - Cache Write Allocation Set Bit:
 // • When WA=0, the data cache is in write non-allocate mode;
 // • When WA=1, the data cache is in write allocate mode.
 // This bit will be set to 1’b0 by reset.
 //
-// WB - Cache Write Back Set Bits:
+// 3 WB - Cache Write Back Set Bits:
 // • When WB=0, the data cache is in write through mode.
 // • When WB=1, the data cache is in write back mode.
 // C906 only supports write back mode, and WB is fixed to 1.
 //
-// RS-Address Return Stack Set Bits:
+// 4 RS - Address Return Stack Set Bit:
 // • When RS=0, the return stack is closed;
 // • When RS=1, the return stack is turned on.
 // This bit will be set to 1’b0 by reset.
 //
-// BPE - Allow Predictive Jump Set bit:
+//
+// 5 BPE - Allow Predictive Jump Set bit:
 // • When BPE=0, predictive jumps are turned off;
 // • When BPE=1, predictive jumps are turned on.
 // This bit will be set to 1’b0 by reset.
 //
-// BTB-Branch Target Prediction Enable Bit:
+// 6 BTB - Branch Target Prediction Enable Bit:
 // • When BTB=0, branch target prediction is turned off.
 // • When BTB=1, branch target prediction is on.
 // This bit will be set to 1’b0 by reset.
 //
-// WBR - Write Burst Enable Bit:
+// 8 WBR - Write Burst Enable Bit:
 // • When WBR=0, write burst transfers are not supported.
 // • When WBR=1, write burst transfers are supported.
 // WBR is fixed to 1 in C906.
+
+// NOTE: D-cache b0rks things
 
 // when handled from BT0 stage, DDR is prepared.
 // this code runs from DDR start
@@ -181,10 +185,19 @@ fn decompress() {
 unsafe extern "C" fn start() -> ! {
     asm!(
         // 1. clear cache and processor states
+        // BT0 stage already handled MXSTATUS for us
+        "csrw   mie, zero",
+        "li     t2, 0x00638000",
+        "csrs   0x7c0, t2", // MXSTATUS
+        // "li     t2, 0x11ff", // from U-Boot
         "li     t2, 0x11ff",
         "csrs   0x7c1, t2", // MHCR
-        // BT0 stage already handled for us
-        // 2. initialize programming langauge runtime
+        // invalidate ICACHE/DCACHE/BTB/BHT
+        "li     t2, 0x30013",
+        "csrs   0x7c2, t2", // MCOR
+        "li     t2, 0x16e30c",
+        "Csrs   0x7c5, t2", // MHINT
+        // 2. initialize programming language runtime
         // clear bss segment
         "la     t0, sbss",
         "la     t1, ebss",
@@ -367,7 +380,7 @@ unsafe fn delegate_interrupt_exception() {
     medeleg::set_instruction_fault();
     // Do not medeleg::set_illegal_instruction();
     // We need to handle sfence.VMA and timer access in SBI.
-    medeleg::set_breakpoint();
+    // medeleg::set_breakpoint();
     medeleg::set_load_misaligned();
     medeleg::set_load_fault(); // PMP violation, shouldn't be hit
     medeleg::set_store_misaligned();
