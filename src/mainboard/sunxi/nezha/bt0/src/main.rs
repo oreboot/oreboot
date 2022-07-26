@@ -149,15 +149,54 @@ Flags – 63:59 bit page attributes
 C906 extended page attribute, exists when the MAEE bit of the MXSTATUS register
 is 1, and the function is as described in the MMU EntryLo register (SMEL).
 
-p582:
+p581 ff:
 
-MAEE - extended MMU address attributes:
+16.1.7 Machine mode processor control and status extension register group
+
+C906 extends some registers for processor and status, including: machine mode
+extended status register (MXSTATUS), machine mode hardware control register
+(MHCR), machine mode hardware operation register ( MCOR), Machine Mode Implicit
+Operation Register (MHINT), Machine Mode Reset Vector Base Address Register
+(MRVBR), Machine Mode Counter Write Enable Authorization Register (MCOUNTERWEN),
+Machine Mode Event Counter Overflow Interrupt Enable Register (MCOUNTERINTEN),
+Machine Mode The Mode Event Counter Overflow Callout Register (MCOUNTEROF).
+
+16.1.7.1 MXSTATUS
+
+15 MM - Unaligned Access Enable Bit:
+ • When MM is 0, unaligned access is not supported, and unaligned access will
+   generate an unaligned exception.
+ • When MM is 1, unaligned accesses are supported, and unaligned accesses are
+   handled by the hardware.
+This bit will be reset to 1’b1.
+
+16 UCME-U state executes extended cache instructions:
+ • When UCME is 0, user mode cannot execute extended cache operation
+   instructions, resulting in an illegal instruction exception.
+ • When UCME is 1, user mode can execute extended
+   DCACHE.CIVA/DCACHE.CVA/ICACHE.IVA instructions.
+This bit will be set to 1’b0 by reset.
+
+17 CLINTEE-CLINT Timer/Software Interrupt Supervisor Extended Enable Bits:
+ • When CLINTEE is 0, supervisor software interrupts and timer interrupts from
+   CLINT will not be serviced.
+ • When CLINTEE is 1, supervisor software interrupts and timer interrupts from
+   CLINT can be serviced.
+This bit will be set to 1’b0 by reset.
+
+18 MHRD - Turn off hardware backfill:
+ • When MHRD is 0, hardware backfill occurs after TLB is missing.
+ • When MHRD is 1, the hardware does not perform hardware backfill after a TLB
+   is missing.
+This bit will be set to 1’b0 by reset.
+
+21 MAEE - extended MMU address attributes:
 • When MAEE is 0, the MMU address attribute is not extended.
 • When MAEE is 1, the address attribute bit in the pte of the MMU is extended,
   and the user can configure the address attribute of the page.
 This bit will be reset to 1’b0.
 
-THEADISAEE - enable extended instruction set:
+22 THEADISAEE - enable extended instruction set:
 • When THEADISAEE is 0, an illegal instruction exception will be triggered when
   the C906 extended instruction is executed.
 • When THEADISAEE is 1, the C906 extended instruction can be executed normally.
