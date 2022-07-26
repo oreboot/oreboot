@@ -186,9 +186,10 @@ unsafe extern "C" fn start() -> ! {
     asm!(
         // 1. clear cache and processor states
         // BT0 stage already handled MXSTATUS for us
+        // NOTE: Doing it here breaks things... why?
         "csrw   mie, zero",
-        "li     t2, 0x00638000",
-        "csrs   0x7c0, t2", // MXSTATUS
+        // "li     t2, 0x00638000",
+        // "csrs   0x7c0, t2", // MXSTATUS
         // "li     t2, 0x11ff", // from U-Boot
         "li     t2, 0x11ff",
         "csrs   0x7c1, t2", // MHCR
@@ -229,7 +230,7 @@ unsafe extern "C" fn start() -> ! {
 // stack which the bootloader environment would make use of.
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-const STACK_SIZE: usize = 8 * 1024; // 1KiB
+const STACK_SIZE: usize = 8 * 1024; // 8KiB
 
 extern "C" fn heap_init() {
     unsafe {
