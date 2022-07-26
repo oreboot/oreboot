@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use riscv::register::{
-    medeleg, mideleg,
+    medeleg, mideleg, mie,
     misa::{self, MXL},
     pmpaddr0, pmpaddr1, pmpaddr10, pmpaddr11, pmpaddr12, pmpaddr13, pmpaddr14, pmpaddr15, pmpaddr2,
     pmpaddr3, pmpaddr4, pmpaddr5, pmpaddr6, pmpaddr7, pmpaddr8, pmpaddr9, pmpcfg0, pmpcfg2,
@@ -22,6 +22,7 @@ pub fn print_hart_csrs() {
     print_misa();
     print_mideleg();
     print_medeleg();
+    print_mie();
 }
 #[inline]
 fn ctz(mut x: usize) -> usize {
@@ -56,29 +57,63 @@ fn print_misa() {
 fn print_mideleg() {
     let mideleg = mideleg::read();
     let mut delegs = Vec::new();
-    if mideleg.usoft() {
-        delegs.push("usoft")
-    }
-    if mideleg.utimer() {
-        delegs.push("utimer")
-    }
-    if mideleg.uext() {
-        delegs.push("uext")
-    }
     if mideleg.ssoft() {
         delegs.push("ssoft")
+    }
+    if mideleg.usoft() {
+        delegs.push("usoft")
     }
     if mideleg.stimer() {
         delegs.push("stimer")
     }
+    if mideleg.utimer() {
+        delegs.push("utimer")
+    }
     if mideleg.sext() {
         delegs.push("sext")
+    }
+    if mideleg.uext() {
+        delegs.push("uext")
     }
     println!(
         "[rustsbi] mideleg: {} ({:#x})\r",
         delegs.join(", "),
         mideleg.bits()
     );
+}
+
+#[inline]
+fn print_mie() {
+    let mie = mie::read();
+    let mut en = Vec::new();
+    if mie.msoft() {
+        en.push("msoft")
+    }
+    if mie.ssoft() {
+        en.push("ssoft")
+    }
+    if mie.usoft() {
+        en.push("usoft")
+    }
+    if mie.mtimer() {
+        en.push("mtimer")
+    }
+    if mie.stimer() {
+        en.push("stimer")
+    }
+    if mie.utimer() {
+        en.push("utimer")
+    }
+    if mie.mext() {
+        en.push("mext")
+    }
+    if mie.sext() {
+        en.push("sext")
+    }
+    if mie.uext() {
+        en.push("uext")
+    }
+    println!("[rustsbi] mie: {} ({:08x})\r", en.join(", "), mie.bits());
 }
 
 #[inline]
