@@ -107,7 +107,7 @@ fn decompress() {
     }
 }
 
-// MCHR - Machine mode hardware configuration register
+// MHCR - Machine mode hardware configuration register
 // MCOR - Machine mode cache operation register
 //
 // Cache Enable and Mode Configuration: The Machine Mode Hardware Configuration
@@ -119,11 +119,59 @@ fn decompress() {
 // Register (mcor) can perform dirty entry and invalidation operations on the
 // instruction and data caches.
 //
-// Brother cache read operation: machine mode cache access instruction register
-// (mcins), cache access index register (mcindex) and cache access data register
-// 0/1 (mcdata0/1). and data cache read operations. The specific control
-// register description can refer to the machine mode processor control and
-// status extension register group.
+// Cache read operation: machine mode cache access instruction register (mcins),
+// cache access index register (mcindex) and cache access data register  0/1
+// (mcdata0/1). and data cache read operations. The specific control register
+// description can refer to the machine mode processor control and status
+// extension register group.
+//
+// p 583:
+// 16.1.7.2 Machine Mode Hardware Configuration Register (MHCR)
+//
+// The Machine Mode Hardware Configuration Register (MHCR) is used to configure
+// the processor, including capabilities and functionality. The bit length of
+// this register is 64 bits, and the read and write permissions of the register
+// are readable and writable in machine mode, that is, non-machine mode access
+// will result in illegal instruction exceptions.
+//
+// IE-Icache enable bit:
+// • When IE=0, Icache is closed;
+// • When IE=1, Icache is turned on.
+// This bit will be set to 1’b0 by reset.
+//
+// DE-Dcache enable bit:
+// • When DE=0, Dcache is closed;
+// • When DE=1, Dcache is on. This bit will be set to 1’b0 by reset.
+//
+// WA - Cache Write Allocation Set Bits:
+// • When WA=0, the data cache is in write non-allocate mode;
+// • When WA=1, the data cache is in write allocate mode.
+// This bit will be set to 1’b0 by reset.
+//
+// WB - Cache Write Back Set Bits:
+// • When WB=0, the data cache is in write through mode.
+// • When WB=1, the data cache is in write back mode.
+// C906 only supports write back mode, and WB is fixed to 1.
+//
+// RS-Address Return Stack Set Bits:
+// • When RS=0, the return stack is closed;
+// • When RS=1, the return stack is turned on.
+// This bit will be set to 1’b0 by reset.
+//
+// BPE - Allow Predictive Jump Set bit:
+// • When BPE=0, predictive jumps are turned off;
+// • When BPE=1, predictive jumps are turned on.
+// This bit will be set to 1’b0 by reset.
+//
+// BTB-Branch Target Prediction Enable Bit:
+// • When BTB=0, branch target prediction is turned off.
+// • When BTB=1, branch target prediction is on.
+// This bit will be set to 1’b0 by reset.
+//
+// WBR - Write Burst Enable Bit:
+// • When WBR=0, write burst transfers are not supported.
+// • When WBR=1, write burst transfers are supported.
+// WBR is fixed to 1 in C906.
 
 // when handled from BT0 stage, DDR is prepared.
 // this code runs from DDR start
