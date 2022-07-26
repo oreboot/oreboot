@@ -8,6 +8,10 @@ use core::{
 use riscv::register::scause::{Exception, Trap};
 use rustsbi::println;
 
+// not 0x00100073 as described in
+// https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
+const EBREAK: u16 = 0x9002;
+
 pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
     loop {
@@ -29,7 +33,14 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             GeneratorState::Yielded(MachineTrap::IllegalInstruction()) => {
                 let ctx = rt.context_mut();
                 let ins = unsafe { get_vaddr_u32(ctx.mepc) } as usize;
-                if !emulate_illegal_instruction(ctx, ins) {
+                let ins16 = ins as u16;
+                // inform on breakpoints
+                if ins16 == EBREAK {
+                    println!("[rustsbi] Take an EBREAK! 0x{:x}\r {:#04X?}\r", ins16, ctx);
+                }
+                if
+                /* ins16 != EBREAK && */
+                !emulate_illegal_instruction(ctx, ins) {
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
