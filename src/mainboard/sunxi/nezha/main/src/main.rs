@@ -187,7 +187,7 @@ unsafe extern "C" fn start() -> ! {
         // 1. clear cache and processor states
         // BT0 stage already handled MXSTATUS for us
         // NOTE: Doing it here breaks things... why?
-        "csrw   mie, zero",
+        // "csrw   mie, zero",
         // "li     t2, 0x00638000",
         // "csrs   0x7c0, t2", // MXSTATUS
         // "li     t2, 0x11ff", // from U-Boot
