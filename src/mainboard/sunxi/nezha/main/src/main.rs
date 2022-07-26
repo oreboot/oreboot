@@ -332,9 +332,7 @@ extern "C" fn main() -> usize {
         "Implementation: oreboot version {}\n",
         env!("CARGO_PKG_VERSION")
     );
-    unsafe {
-        delegate_interrupt_exception();
-    }
+    delegate_interrupt_exception();
     hart_csr_utils::print_hart_csrs();
     hart_csr_utils::print_hart_pmp();
 
@@ -402,27 +400,31 @@ fn init_pmp() {
     pmpaddr4::write(0xffffffffusize >> 2);
 }
 
-unsafe fn delegate_interrupt_exception() {
+fn delegate_interrupt_exception() {
     use riscv::register::{medeleg, mideleg, mie};
-    mideleg::set_sext();
-    mideleg::set_stimer();
-    mideleg::set_ssoft();
-    // p 35, table 3.6
-    medeleg::set_instruction_misaligned();
-    medeleg::set_instruction_fault();
-    // Do not medeleg::set_illegal_instruction();
-    // We need to handle sfence.VMA and timer access in SBI.
-    // medeleg::set_breakpoint();
-    medeleg::set_load_misaligned();
-    medeleg::set_load_fault(); // PMP violation, shouldn't be hit
-    medeleg::set_store_misaligned();
-    medeleg::set_store_fault();
-    medeleg::set_user_env_call();
-    // Do not delegate env call from S-mode nor M-mode
-    medeleg::set_instruction_page_fault();
-    medeleg::set_load_page_fault();
-    medeleg::set_store_page_fault();
-    mie::set_msoft();
+    unsafe {
+        mideleg::set_sext();
+        mideleg::set_stimer();
+        mideleg::set_ssoft();
+        // p 35, table 3.6
+        medeleg::set_instruction_misaligned();
+        medeleg::set_instruction_fault();
+        // Do not medeleg::set_illegal_instruction();
+        // We need to handle sfence.VMA and timer access in SBI.
+        medeleg::set_breakpoint();
+        medeleg::set_load_misaligned();
+        medeleg::set_load_fault(); // PMP violation, shouldn't be hit
+        medeleg::set_store_misaligned();
+        medeleg::set_store_fault();
+        medeleg::set_user_env_call();
+        // Do not delegate env call from S-mode nor M-mode
+        medeleg::set_instruction_page_fault();
+        medeleg::set_load_page_fault();
+        medeleg::set_store_page_fault();
+        mie::set_mext();
+        mie::set_mtimer();
+        mie::set_msoft();
+    }
 }
 
 extern "C" fn finish(reset_type: usize) -> ! {
