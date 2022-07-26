@@ -170,14 +170,14 @@ Machine Mode The Mode Event Counter Overflow Callout Register (MCOUNTEROF).
    handled by the hardware.
 This bit will be reset to 1’b1.
 
-16 UCME-U state executes extended cache instructions:
+16 UCME - U state executes extended cache instructions:
  • When UCME is 0, user mode cannot execute extended cache operation
    instructions, resulting in an illegal instruction exception.
  • When UCME is 1, user mode can execute extended
    DCACHE.CIVA/DCACHE.CVA/ICACHE.IVA instructions.
 This bit will be set to 1’b0 by reset.
 
-17 CLINTEE-CLINT Timer/Software Interrupt Supervisor Extended Enable Bits:
+17 CLINTEE - CLINT Timer/Software Interrupt Supervisor Extended Enable Bit:
  • When CLINTEE is 0, supervisor software interrupts and timer interrupts from
    CLINT will not be serviced.
  • When CLINTEE is 1, supervisor software interrupts and timer interrupts from

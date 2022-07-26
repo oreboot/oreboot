@@ -186,18 +186,6 @@ unsafe extern "C" fn start() -> ! {
     asm!(
         // 1. clear cache and processor states
         // BT0 stage already handled MXSTATUS for us
-        // NOTE: Doing it here breaks things... why?
-        // "csrw   mie, zero",
-        // "li     t2, 0x00638000",
-        // "csrs   0x7c0, t2", // MXSTATUS
-        // "li     t2, 0x11ff", // from U-Boot
-        "li     t2, 0x11ff",
-        "csrs   0x7c1, t2", // MHCR
-        // invalidate ICACHE/DCACHE/BTB/BHT
-        "li     t2, 0x30013",
-        "csrs   0x7c2, t2", // MCOR
-        "li     t2, 0x16e30c",
-        "Csrs   0x7c5, t2", // MHINT
         // 2. initialize programming language runtime
         // clear bss segment
         "la     t0, sbss",
@@ -247,6 +235,45 @@ static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 
 static PLATFORM: &str = "T-HEAD Xuantie Platform";
 
+fn dump_csrs() {
+    let mut v: usize;
+    // MXSTATUS  c0408000
+    // MHCR      0000017f
+    // MCOR      00000003
+    // MHINT     0000610c
+    unsafe {
+        print!("==== platform CSRs ====\r\n");
+        asm!("csrr {}, 0x7c0", out(reg) v);
+        print!("   MXSTATUS  {:08x}\r\n", v);
+        asm!("csrr {}, 0x7c1", out(reg) v);
+        print!("   MHCR      {:08x}\r\n", v);
+        asm!("csrr {}, 0x7c2", out(reg) v);
+        print!("   MCOR      {:08x}\r\n", v);
+        asm!("csrr {}, 0x7c5", out(reg) v);
+        print!("   MHINT     {:08x}\r\n", v);
+        print!("see C906 manual p581 ff\r\n");
+        print!("=======================\r\n");
+    }
+}
+
+fn init_csrs() {
+    unsafe {
+        // MXSTATUS: T-Head ISA extension enable, MM, UCME, CLINTEE
+        // NOTE: setting bit 21 (MAEE) here breaks Linux; it won't come up...?
+        // We had that before...
+        // NOTE: We already set this in bt0, but it seems to have gotten lost?
+        //       from dump: MXSTATUS  c0408000
+        // asm!("csrs 0x7c0, {}", in(reg) 0x00638000); // from U-Boot
+        asm!("csrs 0x7c0, {}", in(reg) 0x00438000);
+        // MHCR
+        asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
+        // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
+        asm!("csrw 0x7c2, {}", in(reg) 0x00030013);
+        // MHINT
+        asm!("csrw 0x7c5, {}", in(reg) 0x0016e30c);
+    }
+}
+
 fn init_plic() {
     let mut addr: usize;
     unsafe {
@@ -289,6 +316,10 @@ extern "C" fn main() -> usize {
     init_pmp();
     rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal(serial);
     print!("oreboot: serial uart0 initialized\n");
+    dump_csrs();
+    print!("Set up extension CSRs\n");
+    init_csrs();
+    dump_csrs();
 
     runtime::init();
     init_plic();
