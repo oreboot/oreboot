@@ -177,6 +177,49 @@ fn decompress() {
 
 // NOTE: D-cache b0rks things
 
+// 16.1.7.4 Machine Mode Implicit Operation Register (MHINT)
+// The Machine Mode Implicit Operation Register (MHINT) is used to cache various
+// function switch controls.
+// The bit length of this register is 64 bits, and the read and write
+// permissions of the register are readable and writable in machine mode, that
+// is, non-machine mode access will result in illegal instruction exceptions.
+//
+// DPLD - DCACHE Prefetch Enable Bit:
+// • When DPLD is 0, DCACHE prefetch is disabled;
+// • When DPLD is 1, DCACHE prefetch is on.
+// This bit will be set to 1’b0 by reset.
+//
+// AMR - L1 DCache Write Allocation Policy Auto Adjust Enable Bits:
+// • When AMR is 0, the write allocation strategy is determined by the page
+//   attribute WA of the access address;
+// • When AMR is 1, when a storage operation of three consecutive cache lines
+//   occurs, subsequent storage operations of consecutive addresses are no
+//   longer written to the L1 Cache;
+// • When AMR is 2, when a storage operation of 64 consecutive cache lines
+//   occurs, subsequent storage operations of consecutive addresses are no
+//   longer written to the L1 Cache;
+// • When AMR is 3, when a store operation of 128 consecutive cache lines
+//   occurs, subsequent store operations of consecutive addresses are no longer
+//   written to the L1 Cache.
+// These bits will be reset to 2’b0.
+//
+// IPLD - ICACHE Prefetch Enable Bit:
+// • When IPLD is 0, ICACHE prefetching is disabled;
+// • When IPLD is 1, ICACHE prefetch is on.
+// This bit will be reset to 1’b0.
+//
+// IWPE - ICACHE Road Prediction Enable Bit:
+// • When IWPE is 0, ICACHE road prediction is turned off;
+// • When IWPE is 1, ICACHE road prediction is on.
+// This bit will be set to 1’b0 by reset.
+//
+// D_DIS - DCACHE Number of prefetch cache lines:
+// • When DPLD is 0, prefetch 2 cache lines;
+// • When DPLD is 1, prefetch 4 cache lines;
+// • When DPLD is 2, prefetch 8 cache lines;
+// • When DPLD is 3, 16 cache lines are prefetched.
+// These bits will be reset to 2’b10.
+
 // when handled from BT0 stage, DDR is prepared.
 // this code runs from DDR start
 #[naked]
