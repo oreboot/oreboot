@@ -430,16 +430,17 @@ extern "C" fn main() -> usize {
  * PMP2    : 0x0000000000000000-0x0000000007ffffff (A,R,W)
  * PMP3    : 0x0000000009000000-0x000000000901ffff (
  */
-// TODO: protect oreboot; this is an all-accessible config
+// see privileged spec v1.10 p44 ff
+// https://riscv.org/wp-content/uploads/2017/05/riscv-privileged-v1.10.pdf
 fn init_pmp() {
     use riscv::register::*;
-    let cfg = 0x0f0f0f0f0fusize;
+    let cfg = 0x0f090f090fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
     pmpcfg0::write(cfg);
-    // pmpcfg2::write(0);
+    pmpcfg2::write(0); // nothing active here
     pmpaddr0::write(0x40000000usize >> 2);
     pmpaddr1::write(0x40200000usize >> 2);
     pmpaddr2::write(0x80000000usize >> 2);
-    pmpaddr3::write(0xc0000000usize >> 2);
+    pmpaddr3::write(0x80200000usize >> 2);
     pmpaddr4::write(0xffffffffusize >> 2);
 }
 
