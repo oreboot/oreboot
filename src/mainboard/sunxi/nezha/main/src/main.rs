@@ -308,10 +308,10 @@ fn init_csrs() {
         //       from dump: MXSTATUS  c0408000
         // asm!("csrs 0x7c0, {}", in(reg) 0x00638000); // from U-Boot
         asm!("csrs 0x7c0, {}", in(reg) 0x00438000);
-        // MHCR
-        asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
         // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
         asm!("csrw 0x7c2, {}", in(reg) 0x00030013);
+        // MHCR
+        asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
         // MHINT
         asm!("csrw 0x7c5, {}", in(reg) 0x0016e30c);
     }
