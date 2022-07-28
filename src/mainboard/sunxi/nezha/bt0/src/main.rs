@@ -8,6 +8,7 @@ use core::intrinsics::transmute;
 use core::ptr::{read_volatile, write_volatile};
 use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::blocking::OutputPin;
+use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::{portc, Function, Gpio, Pin},
@@ -314,7 +315,10 @@ const SOC_VER_REG: u32 = SUNXI_SID_BASE + 0x200;
 const BANDGAP_TRIM_REG: u32 = SUNXI_SID_BASE + 0x228;
 
 const CCU_BASE: usize = 0x0200_1000;
+const CCMU_PLL_PERI0_CTRL_REG: usize = CCU_BASE + 0x0020;
+const CCMU_DMA_BGR_REG: usize = CCU_BASE + 0x070c;
 const CCU_AUDIO_SMTH: usize = CCU_BASE + 0x0a5c;
+const CCMU_CPUX_AXI_CFG_REG: usize = CCU_BASE + 0x0d00;
 const RISCV_CFG_BGR: usize = CCU_BASE + 0x0d0c;
 const RISCV_CFG_BASE: usize = 0x0601_0000;
 const WAKEUP_MASK_REG0: usize = RISCV_CFG_BASE + 0x0024;
@@ -436,6 +440,42 @@ extern "C" fn main() -> usize {
     cpu_pll &= 0xFFFF_00FF;
     cpu_pll |= PLL_EN | PLL_N;
     unsafe { write_volatile(PLL_CPU_CTRL as *mut u32, cpu_pll) };
+
+    // dma_bgr::RST_W::set_bit(dma_bgr::RST_A::ASSERT);
+    //  DMA_BGR::write(|w| w.reset().set_bit());
+    let dma_bgr = unsafe { read_volatile(CCMU_DMA_BGR_REG as *mut u32) };
+    unsafe { write_volatile(CCMU_DMA_BGR_REG as *mut u32, dma_bgr | 1 << 16) };
+    let dma_bgr = unsafe { read_volatile(CCMU_DMA_BGR_REG as *mut u32) };
+    unsafe { write_volatile(CCMU_DMA_BGR_REG as *mut u32, dma_bgr | 1 << 0) };
+
+    for _ in 0..1000 {
+        core::hint::spin_loop();
+    }
+    let mut cpu_axi = unsafe { read_volatile(CCMU_CPUX_AXI_CFG_REG as *mut u32) };
+    println!("cpu_axi {:x}", cpu_axi); // 0xFA00_1000
+    cpu_axi &= 0x07 << 24 | 0x3 << 8 | 0xf << 0;
+    cpu_axi |= 0x05 << 24 | 0x1 << 8;
+    unsafe { write_volatile(CCMU_CPUX_AXI_CFG_REG as *mut u32, cpu_axi) };
+    for _ in 0..1000 {
+        core::hint::spin_loop();
+    }
+    println!("cpu_axi {:x}", cpu_axi); // 0xFA00_1000
+
+    let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
+    println!("peri0_ctrl was: {:x}", peri0_ctrl); // f8216300
+
+    // unsafe { write_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32, 0x63 << 8) };
+    // println!("peri0_ctrl default");
+    // enable lock
+    let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
+    unsafe { write_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32, peri0_ctrl | 1 << 29) };
+    println!("peri0_ctrl lock en");
+    // enabe PLL: 600M(1X)  1200M(2x)
+    let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
+    unsafe { write_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32, peri0_ctrl | 1 << 31) };
+    println!("peri0_ctrl PLLs");
+    let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
+    println!("peri0_ctrl set: {:x}", peri0_ctrl);
 
     /* Initialize RISCV_CFG. */
     unsafe {
