@@ -29,10 +29,6 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
-const PLL_CPU_CTRL: u32 = 0x0200_1000;
-const PLL_EN: u32 = 1 << 31;
-const PLL_N: u32 = 42 << 8; // frequency: input_freq * (PLL_N+1)
-
 // taken from oreboot
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, r1: usize);
 
@@ -231,8 +227,8 @@ pub unsafe extern "C" fn start() -> ! {
         "csrs   0x7c0, t1", // MXSTATUS
         // invalidate ICACHE/DCACHE/BTB/BHT
         "li     t2, 0x30013",
-        "csrs   0x7c2, t2", // MCOR
-        // 2. initialize programming langauge runtime
+        "csrw   0x7c2, t2", // MCOR
+        // 2. initialize programming language runtime
         // clear bss segment
         "la     t0, sbss",
         "la     t1, ebss",
@@ -318,9 +314,14 @@ const SOC_VER_REG: u32 = SUNXI_SID_BASE + 0x200;
 const BANDGAP_TRIM_REG: u32 = SUNXI_SID_BASE + 0x228;
 
 const CCU_BASE: usize = 0x0200_1000;
+const CCU_AUDIO_SMTH: usize = CCU_BASE + 0x0a5c;
 const RISCV_CFG_BGR: usize = CCU_BASE + 0x0d0c;
 const RISCV_CFG_BASE: usize = 0x0601_0000;
 const WAKEUP_MASK_REG0: usize = RISCV_CFG_BASE + 0x0024;
+
+const PLL_CPU_CTRL: usize = CCU_BASE;
+const PLL_EN: u32 = 1 << 31;
+const PLL_N: u32 = 42 << 8; // frequency: input_freq * (PLL_N+1)
 
 fn clrbits_le32(reg: u32, val: u32) {
     unsafe {
@@ -357,7 +358,7 @@ fn trim_bandgap_ref_voltage() {
         bg_trim = 0x19;
     }
 
-    let reg = (CCU_BASE + 0xA5C) as u32;
+    let reg = CCU_AUDIO_SMTH as u32;
     clrbits_le32(reg, GATING_BIT);
     udelay(2);
     clrbits_le32(reg, RST_BIT);
@@ -431,7 +432,7 @@ extern "C" fn main() -> usize {
     trim_bandgap_ref_voltage();
 
     let mut cpu_pll = unsafe { read_volatile(PLL_CPU_CTRL as *mut u32) };
-    // println!("cpu_pll {:x}", cpu_pll); // 0xFA00_1000
+    println!("cpu_pll {:x}", cpu_pll); // 0xFA00_1000
     cpu_pll &= 0xFFFF_00FF;
     cpu_pll |= PLL_EN | PLL_N;
     unsafe { write_volatile(PLL_CPU_CTRL as *mut u32, cpu_pll) };
