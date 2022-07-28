@@ -302,7 +302,8 @@ fn dump_csrs() {
 fn init_csrs() {
     unsafe {
         // MXSTATUS: T-Head ISA extension enable, MM, UCME, CLINTEE
-        // NOTE: setting bit 21 (MAEE) here breaks Linux; it won't come up...?
+        // NOTE: setting bit 21 (MAEE, Memory Attribute Extension Enable) breaks
+        // Linux; it won't come up... and eventually cause illegal instructions.
         // We had that before...
         // NOTE: We already set this in bt0, but it seems to have gotten lost?
         //       from dump: MXSTATUS  c0408000

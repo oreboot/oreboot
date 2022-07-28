@@ -5,10 +5,12 @@ use core::{
 };
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
+    mepc,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
 };
+use rustsbi::print;
 
 pub fn init() {
     let mut addr = from_supervisor_save as usize;
@@ -52,15 +54,22 @@ impl Runtime {
     }
 }
 
+// best debugging function on the planet
+fn crap() {
+    print!(
+        "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
+        mtval::read(),
+        mepc::read(),
+        mcause::read().cause()
+    );
+}
+
 impl Generator for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> GeneratorState<Self::Yield, Self::Return> {
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
-        // if mcause::read().cause() != Trap::Exception(Exception::SupervisorEnvCall){
-        //     print!("[rustsbi] 0x{:x} 0x{:x} {:?}",mtval,mepc::read(),mcause::read().cause());
-        // }
         let trap = match mcause::read().cause() {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
