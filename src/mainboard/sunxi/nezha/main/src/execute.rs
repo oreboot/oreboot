@@ -12,6 +12,8 @@ use rustsbi::{println, SbiRet};
 // https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
 const EBREAK: u16 = 0x9002;
 
+const LETS_DEBUG: bool = true;
+
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     let dbg = true;
     match method {
@@ -63,9 +65,8 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 let ans = match ctx.a7 {
                     0x0A023B00 => ore_sbi(ctx.a6, param),
                     _ => {
-                        let lets_debug = false;
                         // if not sbi putchar
-                        if ctx.a7 != 0x1 && lets_debug {
+                        if ctx.a7 != 0x1 && LETS_DEBUG {
                             println!("[rustsbi] ecall {:x}\r", ctx.a6);
                         }
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
@@ -136,7 +137,9 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
 
 fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
     if feature::emulate_rdtime(ctx, ins) {
-        // println!("[rustsbi] rdtime\r");
+        if LETS_DEBUG {
+            println!("[rustsbi] rdtime\r");
+        }
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {
