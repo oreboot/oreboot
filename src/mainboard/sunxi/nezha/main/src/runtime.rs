@@ -78,7 +78,11 @@ impl Generator for Runtime {
             Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
-            Trap::Interrupt(Interrupt::MachineTimer) => MachineTrap::MachineTimer(),
+            Trap::Interrupt(Interrupt::MachineTimer) => {
+                print!("mtimer traaaaap\r\n");
+                crap();
+                MachineTrap::MachineTimer()
+            }
             Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
             Trap::Exception(Exception::InstructionPageFault) => {
                 MachineTrap::InstructionPageFault(mtval)

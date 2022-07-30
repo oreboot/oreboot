@@ -41,7 +41,7 @@ impl rustsbi::Timer for Timer {
         mtimecmp::write(stime_value);
         unsafe {
             // clear the pending timer interrupt bit as well.
-            mip::set_mtimer();
+            // mip::set_mtimer();
             if time > stime_value {
                 mip::set_stimer();
             } else {
