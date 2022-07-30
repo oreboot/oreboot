@@ -31,7 +31,9 @@ impl rustsbi::Ipi for Ipi {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        print!("[rustsbi] setTimer");
+        // FIXME: This is an attempt to see if the timer is an issue; remove!
+        let stime_value = stime_value >> 8;
+        print!("[rustsbi] setTimer {}\n", stime_value);
         mtimecmp::write(stime_value);
         unsafe {
             // clear the pending timer interrupt bit as well.

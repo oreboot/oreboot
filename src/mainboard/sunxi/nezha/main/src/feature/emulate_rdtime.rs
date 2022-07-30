@@ -3,6 +3,7 @@ use core::arch::asm;
 
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
+    // TODO: IS THIS CORRECT? Linux calls rdtime a *lot*.
     if ins & 0xFFFFF07F == 0xC0102073 {
         // rdtime is actually a csrrw instruction
         let rd = ((ins >> 7) & 0b1_1111) as u8;

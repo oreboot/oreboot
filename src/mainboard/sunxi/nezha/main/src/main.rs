@@ -42,6 +42,7 @@ const CACHED_MEM: usize = 0x8000_0000;
 // see ../fixed-dtfs.dts
 const PAYLOAD_OFFSET: usize = 0x2_0000;
 const PAYLOAD_SIZE: usize = 0x1e_0000;
+const PAYLOAD_ADDR: usize = MEM + PAYLOAD_OFFSET;
 
 // compressed image
 const LINUXBOOT_TMP_OFFSET: usize = 0x0400_0000;
@@ -356,33 +357,33 @@ extern "C" fn main() -> usize {
     let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
 
     // logging::set_logger(serial);
-
-    init_pmp();
     rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal(serial);
     print!("oreboot: serial uart0 initialized\n");
-    dump_csrs();
-    print!("Set up extension CSRs\n");
-    init_csrs();
-    dump_csrs();
-
-    runtime::init();
-    init_plic();
-    peripheral::init_peripheral();
-
-    print!("RustSBI version {}\n", rustsbi::VERSION);
-    print!("{}\n", rustsbi::LOGO);
-    print!("Platform Name: {}\n", PLATFORM);
-    print!(
-        "Implementation: oreboot version {}\n",
-        env!("CARGO_PKG_VERSION")
-    );
-    delegate_interrupt_exception();
-    hart_csr_utils::print_hart_csrs();
-    hart_csr_utils::print_hart_pmp();
 
     // TODO: Get this from configuration
     let use_sbi = true;
     if use_sbi {
+        init_pmp();
+        dump_csrs();
+        print!("Set up extension CSRs\n");
+        init_csrs();
+        dump_csrs();
+
+        runtime::init();
+        init_plic();
+        peripheral::init_peripheral();
+
+        print!("RustSBI version {}\n", rustsbi::VERSION);
+        print!("{}\n", rustsbi::LOGO);
+        print!("Platform Name: {}\n", PLATFORM);
+        print!(
+            "Implementation: oreboot version {}\n",
+            env!("CARGO_PKG_VERSION")
+        );
+        delegate_interrupt_exception();
+        hart_csr_utils::print_hart_csrs();
+        hart_csr_utils::print_hart_pmp();
+
         decompress();
         print!(
             "Handing over to SBI, will continue at 0x{:x}\r\n",
@@ -397,28 +398,8 @@ extern "C" fn main() -> usize {
         print!("oreboot: reset reason = {}", reset_reason);
         reset_type
     } else {
-        // TODO; This payload structure should be loaded from boot medium rather
-        // than hardcoded.
-        let entry = MEM + PAYLOAD_OFFSET;
-        let segs = &[payload::Segment {
-            typ: payload::stype::PAYLOAD_SEGMENT_ENTRY,
-            base: CACHED_MEM,
-            data: &mut SectionReader::new(&Memory {}, entry, PAYLOAD_SIZE),
-        }];
-        let mut payload: payload::Payload = payload::Payload {
-            typ: payload::ftype::CBFS_TYPE_RAW,
-            compression: payload::ctype::CBFS_COMPRESS_NONE,
-            offset: 0,
-            entry,
-            dtb: 0,
-            // TODO: These two length fields are not used.
-            rom_len: 0,
-            mem_len: 0,
-            segs,
-        };
-        payload.load();
-        print!("Running payload entry 0x{:x}\r\n", entry);
-        payload.run();
+        print!("Running payload at 0x{:x}\r\n", PAYLOAD_ADDR);
+        // TODO: Load and run payload...
         print!("Unexpected return from payload\r");
         0
     }
@@ -456,7 +437,7 @@ fn delegate_interrupt_exception() {
         medeleg::set_instruction_fault();
         // Do not medeleg::set_illegal_instruction();
         // We need to handle sfence.VMA and timer access in SBI.
-        medeleg::set_breakpoint();
+        // medeleg::set_breakpoint();
         medeleg::set_load_misaligned();
         medeleg::set_load_fault(); // PMP violation, shouldn't be hit
         medeleg::set_store_misaligned();
