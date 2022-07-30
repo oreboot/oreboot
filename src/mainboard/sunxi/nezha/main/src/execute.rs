@@ -5,6 +5,7 @@ use core::{
     ops::{Generator, GeneratorState},
     pin::Pin,
 };
+use riscv::register::mip;
 use riscv::register::scause::{Exception, Trap};
 use rustsbi::{println, SbiRet};
 
@@ -12,7 +13,7 @@ use rustsbi::{println, SbiRet};
 // https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
 const EBREAK: u16 = 0x9002;
 
-const LETS_DEBUG: bool = false;
+const LETS_DEBUG: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     let dbg = true;
@@ -104,7 +105,13 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             }
             // NOTE: These are all delegated.
             GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
-            GeneratorState::Yielded(MachineTrap::MachineTimer()) => {}
+            GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
+                println!("M timer int\r");
+                unsafe {
+                    mip::clear_mtimer();
+                    mip::set_stimer();
+                }
+            }
             GeneratorState::Yielded(MachineTrap::MachineSoft()) => {}
             GeneratorState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
@@ -137,9 +144,6 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
 
 fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
     if feature::emulate_rdtime(ctx, ins) {
-        if LETS_DEBUG {
-            println!("[rustsbi] rdtime\r");
-        }
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {
