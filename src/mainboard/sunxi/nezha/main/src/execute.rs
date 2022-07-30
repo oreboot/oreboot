@@ -6,11 +6,50 @@ use core::{
     pin::Pin,
 };
 use riscv::register::scause::{Exception, Trap};
-use rustsbi::println;
+use rustsbi::{println, SbiRet};
 
 // not 0x00100073 as described in
 // https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
 const EBREAK: u16 = 0x9002;
+
+fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
+    let dbg = true;
+    match method {
+        0x023A_DC52 => {
+            let mut val = 0;
+            let mut err = 0;
+            let csr = args[0];
+            if dbg {
+                println!("[rustsbi] read CSR {:x}\r", csr);
+            }
+            match csr {
+                0x7c0 => unsafe {
+                    asm!("csrr {0}, 0x7c0", out(reg) val);
+                },
+                0x7c1 => unsafe {
+                    asm!("csrr {0}, 0x7c1", out(reg) val);
+                },
+                0x7c2 => unsafe {
+                    asm!("csrr {0}, 0x7c2", out(reg) val);
+                },
+                0x7c5 => unsafe {
+                    asm!("csrr {0}, 0x7c5", out(reg) val);
+                },
+                _ => {
+                    err = 1;
+                }
+            }
+            if dbg {
+                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}\r", csr, val, err);
+            }
+            SbiRet {
+                value: val,
+                error: err,
+            }
+        }
+        _ => SbiRet { value: 0, error: 1 },
+    }
+}
 
 pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
@@ -21,7 +60,17 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 // specific for 1.9.1; see document for details
                 feature::preprocess_supervisor_external(ctx);
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
-                let ans = rustsbi::ecall(ctx.a7, ctx.a6, param);
+                let ans = match ctx.a7 {
+                    0x0A023B00 => ore_sbi(ctx.a6, param),
+                    _ => {
+                        let lets_debug = false;
+                        // if not sbi putchar
+                        if ctx.a7 != 0x1 && lets_debug {
+                            println!("[rustsbi] ecall {:x}\r", ctx.a6);
+                        }
+                        rustsbi::ecall(ctx.a7, ctx.a6, param)
+                    }
+                };
                 if ans.error & (0xFFFFFFFF << 32) == 0x114514 << 32 {
                     // magic value to exit execution loop
                     break (ans.error & 0xFFFFFFFF, ans.value);
@@ -38,9 +87,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 if ins16 == EBREAK {
                     println!("[rustsbi] Take an EBREAK! 0x{:x}\r {:#04X?}\r", ins16, ctx);
                 }
-                if
-                /* ins16 != EBREAK && */
-                !emulate_illegal_instruction(ctx, ins) {
+                if !emulate_illegal_instruction(ctx, ins) {
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
@@ -89,9 +136,17 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
 
 fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
     if feature::emulate_rdtime(ctx, ins) {
+        // println!("[rustsbi] rdtime\r");
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {
+        return true;
+    }
+
+    // ignore breakpoints
+    let ins16 = ins as u16;
+    if ins16 == EBREAK {
+        ctx.mepc = ctx.mepc.wrapping_add(2); // skip instruction
         return true;
     }
     false
