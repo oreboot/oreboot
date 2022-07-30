@@ -1,5 +1,6 @@
 use crate::runtime::SupervisorContext;
 use core::arch::asm;
+use rustsbi::println;
 
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
@@ -14,6 +15,10 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         let time_usize = mtime as usize;
         set_register_xi(ctx, rd, time_usize);
         ctx.mepc = ctx.mepc.wrapping_add(4); // skip current instruction
+        let x = time_usize / 0x1000;
+        if x > 1 && x % 200 == 0 {
+            println!("[rustsbi] rdtime {:x}\r", time_usize);
+        }
         true
     } else {
         false // is not a rdtime instruction
