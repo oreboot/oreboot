@@ -12,7 +12,7 @@ use rustsbi::{println, SbiRet};
 // https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
 const EBREAK: u16 = 0x9002;
 
-const LETS_DEBUG: bool = true;
+const LETS_DEBUG: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     let dbg = true;
