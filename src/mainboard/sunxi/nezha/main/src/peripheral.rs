@@ -36,15 +36,14 @@ impl rustsbi::Timer for Timer {
         unsafe {
             asm!("csrr {}, time", out(reg) time);
         }
-        // FIXME: This is an attempt to see if the timer is an issue; remove!
-        print!("[rustsbi] setTimer {}\n", stime_value);
+        // print!("[rustsbi] setTimer {}\n", stime_value);
         mtimecmp::write(stime_value);
         unsafe {
-            // clear the pending timer interrupt bit as well.
-            // mip::set_mtimer();
+            mip::set_mtimer();
             if time > stime_value {
                 mip::set_stimer();
             } else {
+                // clear any pending timer and reenable the interrupt
                 mip::clear_stimer();
                 mie::set_mtimer();
             }
