@@ -128,6 +128,38 @@ original document is in Chinese, translated by Google here for reference
 
 p19:
 
+The C906 supports two types of memory storage, namely memory and peripherals
+(distinguished by the SO bit). Among them, the memory type is further divided
+into cacheable memory (Cacheable memory) and non-cacheable memory (Non-cacheable
+memory) according to whether it can be cached (Cacheable, C). The feature of
+device type is that speculative execution is not allowed, so device must have
+the property of not being cached. device is divided into bufferable device
+(Bufferable device) and non-bufferable device (Non-bufferable device)
+according to whether it can be buffered (Bufferable, B). The node returns the
+write response quickly; non-cacheable means that it will only return after the
+slave device is actually written. Write the response.
+
+Table 3.11 shows the page attributes corresponding to each memory type. There
+are two ways to configure page properties: . Where cacheable means that the
+slave is allowed to be in an intermediate
+
+1. In all cases without virtual address and physical address translation:
+machine mode permissions or MMU off, the page attribute of the address is
+determined by the macro definition in the sysmap.h file. sysmap.h is an address
+attribute configuration file extended by C906, which is open to users. Users can
+define page attributes of different address segments according to their own
+needs. The upper limit of the number of address areas is 8.
+
+2. In all cases of virtual address and physical address translation: non-machine
+mode permissions and MMU open, the page attribute of the address can be
+configured in two ways: the sysmap.h file and the page attribute extended by
+C906 in pte. Which configuration method is used depends on the value of the MAEE
+field in the C906 extended register MXSTATUS.
+If the MAEE field value is 1, the page attribute of the address is determined by
+the extended page attribute in the corresponding pte.
+If the MAEE field value is 0, the page attribute of the address is determined by
+sysmap.h.
+
 2. In all cases where virtual address and physical address conversion are
 performed: when the authority is not in machine mode and the MMU is turned on,
 there are two ways to configure the page properties of the address.
@@ -224,7 +256,7 @@ pub unsafe extern "C" fn start() -> ! {
         // 1. clear cache and processor states
         "csrw   mie, zero",
         // enable theadisaee and maee
-        "li     t1, 0x1 << 22 | 0x1 << 21 | 0x1 << 17 | 0x1 << 16 | 0x1 << 15",
+        "li     t1, 0x1 << 22 | 0x1 << 21",
         "csrs   0x7c0, t1", // MXSTATUS
         // invalidate ICACHE/DCACHE/BTB/BHT
         "li     t2, 0x30013",
