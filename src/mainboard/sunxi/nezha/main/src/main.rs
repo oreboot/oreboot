@@ -360,6 +360,16 @@ extern "C" fn main() -> usize {
     rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal(serial);
     print!("oreboot: serial uart0 initialized\n");
 
+    // how we figured out https://github.com/rust-embedded/riscv/pull/107
+    // TODO: bump riscv when patch is merged and a new release out
+    if false {
+        use riscv::register::{marchid, mimpid, mvendorid};
+        let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
+        let arch = marchid::read().map(|r| r.bits()).unwrap_or(0);
+        let imp = mimpid::read().map(|r| r.bits()).unwrap_or(0);
+        print!("RISC-V vendor {:x} arch {:x} imp {:x}\r\n", vid, arch, imp);
+    }
+
     // TODO: Get this from configuration
     let use_sbi = true;
     if use_sbi {
