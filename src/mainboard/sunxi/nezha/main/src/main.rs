@@ -228,6 +228,9 @@ fn decompress() {
 #[link_section = ".text.entry"]
 unsafe extern "C" fn start() -> ! {
     asm!(
+        // MCOR: disable caches
+        "li     t1, 0x22",
+        "csrw   0x7c2, t1",
         // 1. clear cache and processor states
         // BT0 stage already handled MXSTATUS for us
         // 2. initialize programming language runtime
@@ -302,16 +305,15 @@ fn dump_csrs() {
 
 fn init_csrs() {
     unsafe {
-        // MXSTATUS: T-Head ISA extension enable, MM, UCME, CLINTEE
-        // NOTE: setting bit 21 (MAEE, Memory Attribute Extension Enable) breaks
-        // Linux; it won't come up... and eventually cause illegal instructions.
-        // We had that before...
+        // MXSTATUS: T-Head ISA extension enable, MAEE, MM, UCME, CLINTEE
+        // NOTE: Linux relies on detecting errata via mvendorid, marchid and
+        // mipmid. If that detection fails, and we enable MAEE, Linux won't come
+        // up. When D-cache is enabled, and the detection fails, we run into
+        // cache coherency issues. Welcome to the minefield! :)
         // NOTE: We already set this in bt0, but it seems to have gotten lost?
-        //       from dump: MXSTATUS  c0408000
-        // asm!("csrs 0x7c0, {}", in(reg) 0x00638000); // from U-Boot
-        asm!("csrs 0x7c0, {}", in(reg) 0x00438000);
+        asm!("csrs 0x7c0, {}", in(reg) 0x00638000);
         // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
-        asm!("csrw 0x7c2, {}", in(reg) 0x00030013);
+        asm!("csrw 0x7c2, {}", in(reg) 0x00070013);
         // MHCR
         asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
         // MHINT
@@ -322,8 +324,13 @@ fn init_csrs() {
 fn init_plic() {
     let mut addr: usize;
     unsafe {
-        asm!("csrr {}, 0xfc1", out(reg) addr);
-        let a = addr + 0x001ffffc;
+        // What? 0xfc1 is BADADDR as per C906 manual; this seems to work though
+        asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
+        let a = addr + 0x001ffffc; // 0x101f_fffc
+        if false {
+            print!("BADADDR {:x} SOME ADDR {:x}", addr, a);
+        }
+        // allow S-mode to access PLIC regs, D1 manual p210
         write_volatile(a as *mut u8, 0x1);
     }
 }
@@ -460,6 +467,9 @@ fn delegate_interrupt_exception() {
         mie::set_mext();
         mie::set_mtimer();
         mie::set_msoft();
+        mie::set_sext();
+        mie::set_stimer();
+        mie::set_ssoft();
     }
 }
 
