@@ -1,11 +1,23 @@
 use crate::runtime::SupervisorContext;
 use core::arch::asm;
+use riscv::register::cycle;
 use rustsbi::println;
+
+const DEBUG_THIS: bool = false;
 
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
+    //  c0002573     rdcycle a0
+    if ins & 0xFFFFF07F == 0xC0002073 {
+        let rd = ((ins >> 7) & 0b1_1111) as u8;
+        let cycle_usize = cycle::read64() as usize;
+        set_register_xi(ctx, rd, cycle_usize);
+        ctx.mepc = ctx.mepc.wrapping_add(4); // skip current instruction
+        println!("[rustsbi] rdcycle {:x}\r", cycle_usize);
+        true
+    }
     // TODO: IS THIS CORRECT? Linux calls rdtime a *lot*.
-    if ins & 0xFFFFF07F == 0xC0102073 {
+    else if ins & 0xFFFFF07F == 0xC0102073 {
         // rdtime is actually a csrrw instruction
         let rd = ((ins >> 7) & 0b1_1111) as u8;
         let mtime: u64;
@@ -16,7 +28,7 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         set_register_xi(ctx, rd, time_usize);
         ctx.mepc = ctx.mepc.wrapping_add(4); // skip current instruction
         let x = time_usize / 0x1000;
-        if x > 1 && x % 200 == 0 {
+        if DEBUG_THIS && x > 1 && x % 0x200 == 0 {
             println!("[rustsbi] rdtime {:x}\r", time_usize);
         }
         true
