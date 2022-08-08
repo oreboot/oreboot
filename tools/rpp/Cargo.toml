@@ -5,7 +5,7 @@ authors = ["Jordan Hand <jhand@google.com>"]
 edition = "2021"
 
 [dependencies]
-regex = "1.5.4"
+regex = "1.5.5"
 
 [dev-dependencies]
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
