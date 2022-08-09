@@ -27,10 +27,10 @@ citest: nop
 checkformat: nop
 
 mainboard:
-	cargo make --variant $(VARIANT) --memory $(MEMORY)
+	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY)
 
 withpayload:
-	cargo make --variant $(VARIANT) --memory $(MEMORY) \
+	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
 		--payload $(PAYLOAD) --dtb $(DTB)
 
 flash:

@@ -7,7 +7,8 @@ use core::{
 };
 use riscv::register::mip;
 use riscv::register::scause::{Exception, Trap};
-use rustsbi::{println, SbiRet};
+use rustsbi::println;
+use rustsbi::spec::binary::SbiRet;
 
 // not 0x00100073 as described in
 // https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?

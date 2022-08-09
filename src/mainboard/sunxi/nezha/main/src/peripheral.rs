@@ -1,25 +1,26 @@
 use core::arch::asm;
-use riscv::register::{mie, mip};
-use rustsbi::{print, HartMask, SbiRet};
-
 use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
+use riscv::register::{mie, mip};
+use rustsbi::spec::binary::SbiRet;
+use rustsbi::{print, HartMask};
 
 pub fn init_peripheral() {
     print!("timer init\n");
-    rustsbi::init_timer(Timer);
+    rustsbi::init_timer(&Timer);
     print!("reset init\n");
-    rustsbi::init_reset(Reset);
+    rustsbi::init_reset(&Reset);
     print!("ipi init\n");
-    rustsbi::init_ipi(Ipi);
+    rustsbi::init_ipi(&Ipi);
 }
 struct Ipi;
 
 impl rustsbi::Ipi for Ipi {
-    fn max_hart_id(&self) -> usize {
-        1
-    }
     fn send_ipi_many(&self, hart_mask: HartMask) -> SbiRet {
-        for i in 0..=self.max_hart_id() {
+        // TODO: This was a member function in previous RustSBI
+        fn max_hart_id() -> usize {
+            1
+        }
+        for i in 0..=max_hart_id() {
             if hart_mask.has_bit(i) {
                 msip::set_ipi(i);
                 msip::clear_ipi(i);
@@ -52,11 +53,14 @@ impl rustsbi::Timer for Timer {
 }
 pub struct Reset;
 
+// magic value to exit execution loop
+const RESET_MAGIC: usize = 0x114514 << 32;
+
 impl rustsbi::Reset for Reset {
-    fn system_reset(&self, reset_type: usize, reset_reason: usize) -> rustsbi::SbiRet {
+    fn system_reset(&self, reset_type: u32, reset_reason: u32) -> SbiRet {
         SbiRet {
-            error: reset_type | (0x114514 << 32), // magic value to exit execution loop
-            value: reset_reason,
+            error: reset_type as usize | RESET_MAGIC,
+            value: reset_reason as usize,
         }
     }
 }

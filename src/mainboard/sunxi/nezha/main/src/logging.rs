@@ -16,7 +16,7 @@ use spin::{Mutex, Once};
 #[doc(hidden)]
 pub(crate) static LOGGER: Once<LockedLogger> = Once::new();
 
-type S = Wrap<Serial<UART0, (PB8<Function<6>>, PB9<Function<6>>)>>;
+type S<'a> = Wrap<Serial<'a, UART0, (PB8<Function<6>>, PB9<Function<6>>)>>;
 
 // type `Serial` is declared out of this crate, avoid orphan rule
 pub(crate) struct Wrap<T>(T);
