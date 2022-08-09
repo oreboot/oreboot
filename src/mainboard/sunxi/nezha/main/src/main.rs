@@ -25,6 +25,7 @@ use core::{
     slice,
 };
 use embedded_hal::digital::blocking::OutputPin;
+use embedded_hal::serial::nb::Write;
 use oreboot_drivers::wrappers::{Memory, SectionReader};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
@@ -34,7 +35,7 @@ use oreboot_soc::sunxi::d1::{
     uart::{Config, Parity, Serial, StopBits, WordLength},
 };
 use payloads::payload;
-use rustsbi::print;
+use rustsbi::{legacy_stdio::LegacyStdio, print};
 
 const MEM: usize = 0x4000_0000;
 const CACHED_MEM: usize = 0x8000_0000;
@@ -335,6 +336,30 @@ fn init_plic() {
     }
 }
 
+use oreboot_soc::sunxi::d1::gpio::Function;
+use oreboot_soc::sunxi::d1::pac::UART0;
+
+type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
+type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
+
+// struct Cereal(Serial<UART0, (TX, RX)>);
+struct Cereal(core::cell::UnsafeCell<Serial<UART0, (TX, RX)>>);
+
+impl LegacyStdio for Cereal {
+    fn getchar(&self) -> u8 {
+        0
+    }
+    fn putchar(&self, ch: u8) {
+        unsafe {
+            (*self.0.get()).write(ch);
+        }
+    }
+}
+
+// YOLO :)
+unsafe impl Send for Cereal {}
+unsafe impl Sync for Cereal {}
+
 // Function `main`. It would initialize an environment for the kernel.
 // The environment does not exit when bootloading stage is finished;
 // it remains in background to provide environment features which the
@@ -361,10 +386,15 @@ extern "C" fn main() -> usize {
         parity: Parity::None,
         stopbits: StopBits::One,
     };
+
     let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
+    let cereal = Cereal(core::cell::UnsafeCell::new(serial));
 
     // logging::set_logger(serial);
-    rustsbi::legacy_stdio::init_legacy_stdio_embedded_hal(serial);
+    rustsbi::legacy_stdio::init_legacy_stdio(unsafe {
+        core::mem::transmute::<_, &'static _>(&cereal as &dyn LegacyStdio)
+    });
+
     print!("oreboot: serial uart0 initialized\n");
 
     // how we figured out https://github.com/rust-embedded/riscv/pull/107
@@ -391,7 +421,7 @@ extern "C" fn main() -> usize {
         peripheral::init_peripheral();
 
         print!("RustSBI version {}\n", rustsbi::VERSION);
-        print!("{}\n", rustsbi::LOGO);
+        print!("{}\n", rustsbi::logo());
         print!("Platform Name: {}\n", PLATFORM);
         print!(
             "Implementation: oreboot version {}\n",
@@ -474,13 +504,15 @@ fn delegate_interrupt_exception() {
 }
 
 extern "C" fn finish(reset_type: usize) -> ! {
-    use rustsbi::reset::*;
+    // use rustsbi::reset::*;
     match reset_type {
+        /*
         RESET_TYPE_SHUTDOWN => loop {
             unsafe { asm!("wfi") }
         },
         RESET_TYPE_COLD_REBOOT => todo!(),
         RESET_TYPE_WARM_REBOOT => todo!(),
+        */
         _ => unimplemented!(),
     }
 }
