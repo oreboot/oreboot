@@ -342,7 +342,6 @@ use oreboot_soc::sunxi::d1::pac::UART0;
 type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
 type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
 
-// struct Cereal(Serial<UART0, (TX, RX)>);
 struct Cereal(core::cell::UnsafeCell<Serial<UART0, (TX, RX)>>);
 
 impl LegacyStdio for Cereal {
@@ -350,9 +349,7 @@ impl LegacyStdio for Cereal {
         0
     }
     fn putchar(&self, ch: u8) {
-        unsafe {
-            (*self.0.get()).write(ch);
-        }
+        while let Err(nb::Error::WouldBlock) = unsafe { (*self.0.get()).write(ch) } {}
     }
 }
 
