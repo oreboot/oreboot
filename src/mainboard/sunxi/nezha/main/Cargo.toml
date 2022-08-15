@@ -7,11 +7,13 @@ edition = "2021"
 
 [dependencies]
 nb = "1"
-rustsbi = { version = "=0.3.0-alpha.2", features = ["legacy"] }
+# rustsbi = { path = "../rustsbi", features =["legacy"] }
+# rustsbi = { version = "=0.3.0-alpha.2", features = ["legacy"] }
+rustsbi = { git = "https://github.com/rustsbi/rustsbi", commit = "b468de3", features = ["legacy"] }
 bitflags = "1"
 buddy_system_allocator = "0.8"
 lazy_static = { version = "1", features = ["spin_no_std"] }
-riscv = { version = "0.7.0", features = ["inline-asm"] }
+riscv = { git = "https://github.com/rust-embedded/riscv", commit = "e38a68d" }
 embedded-hal = "1.0.0-alpha.8"
 vcell = "0.1.3"
 lzss = { version = "0.8", default-features = false }

@@ -178,9 +178,9 @@ fn pmp_get(n: usize) -> Option<(usize, usize, usize)> {
     let pmpcfg_shift = (n & 7) << 3;
     let cfgmask = 0xff << pmpcfg_shift;
     let pmpcfg = if n <= 8 {
-        pmpcfg0::read() & cfgmask
+        pmpcfg0::read().bits & cfgmask
     } else {
-        pmpcfg2::read() & cfgmask
+        pmpcfg2::read().bits & cfgmask
     };
     let port = pmpcfg >> pmpcfg_shift;
     let mut addr = match n {
