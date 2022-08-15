@@ -5,6 +5,8 @@ use rustsbi::println;
 
 const DEBUG_THIS: bool = false;
 
+// 0x4102573
+
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
     //  c0002573     rdcycle a0
