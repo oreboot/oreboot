@@ -396,7 +396,7 @@ extern "C" fn main() -> usize {
 
     // how we figured out https://github.com/rust-embedded/riscv/pull/107
     // TODO: bump riscv when patch is merged and a new release out
-    if false {
+    if true {
         use riscv::register::{marchid, mimpid, mvendorid};
         let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
         let arch = marchid::read().map(|r| r.bits()).unwrap_or(0);
