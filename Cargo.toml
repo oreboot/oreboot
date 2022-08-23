@@ -8,17 +8,7 @@ members = [
     "payloads",
 
     "src/lib/*",
-    "src/mainboard/aaeon/*",
-    "src/mainboard/amd/*",
-    "src/mainboard/asrock/*",
-    "src/mainboard/ast/*",
-    "src/mainboard/emulation/*",
-    "src/mainboard/google/*",
-    "src/mainboard/nuvoton/*",
-    "src/mainboard/opentitan/*",
-    "src/mainboard/seeed/*",
-    "src/mainboard/sifive/*",
-    "src/mainboard/sunxi/*",
+    "src/mainboard/*/*",
 
     "tools/layoutflash",
 
