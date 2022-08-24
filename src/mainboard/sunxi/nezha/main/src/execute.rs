@@ -10,11 +10,8 @@ use riscv::register::scause::{Exception, Trap};
 use rustsbi::println;
 use rustsbi::spec::binary::SbiRet;
 
-// not 0x00100073 as described in
-// https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html#ebreak ?
 const EBREAK: u16 = 0x9002;
-
-const LETS_DEBUG: bool = false;
+const DEBUG: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     let dbg = true;
@@ -68,7 +65,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     0x0A023B00 => ore_sbi(ctx.a6, param),
                     _ => {
                         // if not sbi putchar
-                        if ctx.a7 != 0x1 && LETS_DEBUG {
+                        if ctx.a7 != 0x1 && DEBUG {
                             println!("[rustsbi] ecall {:x}\r", ctx.a6);
                         }
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
@@ -85,12 +82,17 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             GeneratorState::Yielded(MachineTrap::IllegalInstruction()) => {
                 let ctx = rt.context_mut();
                 let ins = unsafe { get_vaddr_u32(ctx.mepc) } as usize;
-                let ins16 = ins as u16;
-                // inform on breakpoints
-                if ins16 == EBREAK {
-                    println!("[rustsbi] Take an EBREAK! 0x{:x}\r {:#04X?}\r", ins16, ctx);
-                }
-                if !emulate_illegal_instruction(ctx, ins) {
+                // NOTE: Not all instructions are 32 bit
+                if ins as u16 == EBREAK {
+                    // dump context on breakpoints for debugging
+                    // TODO: how would we allow for "real" debugging?
+                    if DEBUG {
+                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}\r", ctx);
+                    }
+                    // skip instruction; this will likely cause the OS to crash
+                    // use DEBUG to get actual information
+                    ctx.mepc = ctx.mepc.wrapping_add(2);
+                } else if !emulate_illegal_instruction(ctx, ins) {
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
@@ -107,7 +109,10 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             // NOTE: These are all delegated.
             GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
-                println!("M timer int\r");
+                // TODO: Check if this actually works
+                if DEBUG {
+                    println!("M timer int\r");
+                }
                 unsafe {
                     mip::clear_mtimer();
                     mip::set_stimer();
@@ -148,13 +153,6 @@ fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool 
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {
-        return true;
-    }
-
-    // ignore breakpoints
-    let ins16 = ins as u16;
-    if ins16 == EBREAK {
-        ctx.mepc = ctx.mepc.wrapping_add(2); // skip instruction
         return true;
     }
     false
