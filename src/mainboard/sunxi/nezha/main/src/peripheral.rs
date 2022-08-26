@@ -40,7 +40,6 @@ impl rustsbi::Timer for Timer {
         // print!("[rustsbi] setTimer {}\n", stime_value);
         mtimecmp::write(stime_value);
         unsafe {
-            mip::set_mtimer();
             if time > stime_value {
                 mip::set_stimer();
             } else {

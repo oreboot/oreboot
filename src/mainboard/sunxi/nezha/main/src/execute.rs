@@ -114,7 +114,6 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     println!("M timer int\r");
                 }
                 unsafe {
-                    mip::clear_mtimer();
                     mip::set_stimer();
                 }
             }
