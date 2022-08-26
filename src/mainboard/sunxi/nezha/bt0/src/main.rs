@@ -465,6 +465,7 @@ extern "C" fn main() -> usize {
 
     println!("oreboot 🦀");
 
+    // FIXME: Much of the below can be removed or moved over to the main stage.
     trim_bandgap_ref_voltage();
 
     let mut cpu_pll = unsafe { read_volatile(PLL_CPU_CTRL as *mut u32) };
