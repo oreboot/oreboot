@@ -285,10 +285,6 @@ static PLATFORM: &str = "T-HEAD Xuantie Platform";
 
 fn dump_csrs() {
     let mut v: usize;
-    // MXSTATUS  c0408000
-    // MHCR      0000017f
-    // MCOR      00000003
-    // MHINT     0000610c
     unsafe {
         print!("==== platform CSRs ====\r\n");
         asm!("csrr {}, 0x7c0", out(reg) v);
@@ -311,7 +307,7 @@ fn init_csrs() {
         // mipmid. If that detection fails, and we enable MAEE, Linux won't come
         // up. When D-cache is enabled, and the detection fails, we run into
         // cache coherency issues. Welcome to the minefield! :)
-        // NOTE: We already set this in bt0, but it seems to have gotten lost?
+        // NOTE: We already set part of this in bt0, but it seems to get lost?
         asm!("csrs 0x7c0, {}", in(reg) 0x00638000);
         // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
         asm!("csrw 0x7c2, {}", in(reg) 0x00070013);
@@ -336,14 +332,18 @@ fn init_plic() {
     }
 }
 
+// To work around Rust's orphan rule, wrap Serial in a new local struct
+// See also https://blog.mgattozzi.dev/orphan-rules/
 use oreboot_soc::sunxi::d1::gpio::Function;
 use oreboot_soc::sunxi::d1::pac::UART0;
 
 type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
 type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
 
+// Serial is a driver implementing embedded HAL; external
 struct Cereal(core::cell::UnsafeCell<Serial<UART0, (TX, RX)>>);
 
+// LegacyStdio from RustSBI
 impl LegacyStdio for Cereal {
     fn getchar(&self) -> u8 {
         0
@@ -395,7 +395,6 @@ extern "C" fn main() -> usize {
     print!("oreboot: serial uart0 initialized\n");
 
     // how we figured out https://github.com/rust-embedded/riscv/pull/107
-    // TODO: bump riscv when patch is merged and a new release out
     if true {
         use riscv::register::{marchid, mimpid, mvendorid};
         let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
