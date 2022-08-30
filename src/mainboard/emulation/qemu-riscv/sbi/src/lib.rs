@@ -13,45 +13,49 @@ mod runtime;
 
 extern crate alloc;
 extern crate bitflags;
+extern crate rustsbi;
 
-use crate::{hal::write_reg, hart_csr_utils::print_hart_pmp};
+use crate::hart_csr_utils::print_hart_pmp;
 use buddy_system_allocator::LockedHeap;
-use core::arch::asm;
 use riscv::register::{medeleg, mideleg, mie};
 use rustsbi::println;
 
-const SBI_HEAP_SIZE: usize = 8 * 1024; // 8KiB
-
+const SBI_HEAP_SIZE: usize = 64 * 1024; // 64KiB
+#[link_section = ".bss.uninit"]
 static mut HEAP_SPACE: [u8; SBI_HEAP_SIZE] = [0; SBI_HEAP_SIZE];
-static PLATFORM: &str = "T-HEAD Xuantie Platform";
+static PLATFORM: &str = "QEMU RISC-V";
 #[global_allocator]
 static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 
 pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
+    runtime::init();
     let hartid = riscv::register::mhartid::read();
     if hartid == 0 {
         init_bss();
-    }
-    init_pmp();
-    runtime::init();
-    if hartid == 0 {
         init_heap();
-        unsafe {
-            init_plic();
-        }
         peripheral::init_peripheral();
         println!("[rustsbi] RustSBI version {}\r", rustsbi::VERSION);
         println!("{}", rustsbi::LOGO);
         println!("[rustsbi] Platform Name: {}\r", PLATFORM);
         println!(
-            "[rustsbi] Implementation: RustSBI-NeZha Version {}\r",
+            "[rustsbi] Implementation: RustSBI-QEMU Version {}\r",
             env!("CARGO_PKG_VERSION")
         );
     }
+    println!("[rustsbi] init_pmp\r");
+    init_pmp();
+    if hartid == 0 {
+        unsafe {
+            println!("[rustsbi] init_plic\r");
+            init_plic();
+        }
+    }
+    println!("[rustsbi] delegate_int_exc\r");
     unsafe {
         delegate_interrupt_exception();
     }
     if hartid == 0 {
+        println!("[rustsbi] hart_csrs\r");
         hart_csr_utils::print_hart_csrs();
         println!("[rustsbi] enter supervisor 0x{:x}\r", payload_offset);
         println!("[rustsbi] dtb handed over from 0x{:x}\r", dtb_offset);
@@ -62,14 +66,14 @@ pub fn sbi_init(payload_offset: usize, dtb_offset: usize) -> ! {
 
 fn init_bss() {
     extern "C" {
-        // static mut __bss_start: u32;
-        // static mut __bss_end: u32;
+        static mut __bss_start: u32;
+        static mut __bss_end: u32;
         static mut edata: u32;
         static mut sdata: u32;
         static sidata: u32;
     }
     unsafe {
-        // r0::zero_bss(&mut __bss_start, &mut __bss_end);
+        r0::zero_bss(&mut __bss_start, &mut __bss_end);
         r0::init_data(&mut sdata, &mut edata, &sidata);
     }
 }
@@ -94,12 +98,16 @@ fn init_pmp() {
     pmpaddr4::write(0xffffffffusize >> 2);
 }
 
+// TODO: What do we need to do in QEMU? Anything?
 unsafe fn init_plic() {
     let mut addr: usize;
-    // 0xfc1 is MAPBADDR in C906; Machine Mode Read Only,
-    // Machine Mode Peripheral Address High Register Bank
-    asm!("csrr {}, 0xfc1", out(reg) addr);
-    write_reg(addr, 0x001ffffc, 0x1)
+    // NOTE: 0xfc1 is MAPBADDR in C906
+    // for Andes, it is CSR_MDCM_CFG
+    // https://patchew.org/QEMU/20210805175626.11573-1-ruinland@andestech.com/20210805175626.11573-5-ruinland@andestech.com/
+    // println!("csrr {:x}", 0xfc1);
+    // asm!("csrr {}, 0xfc1", out(reg) addr);
+    // println!("plic_reg {:x}", addr);
+    // write_reg(addr, 0x001ffffc, 0x1)
 }
 
 /*

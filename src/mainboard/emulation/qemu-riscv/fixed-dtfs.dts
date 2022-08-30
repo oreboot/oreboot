@@ -23,8 +23,21 @@
             };
             area@2 {
                 description = "Empty Space";
-                offset = <0x180000>;
-                size = <0x1e80000>; // 1.9MiB
+                size = <0x80000>; // 512KiB
+            };
+            area@3 {
+                description = "Payload A";
+                offset = <0x200000>;
+                // TODO: reduce when support compressed payloads
+                size = <0x1200000>; // 18MiB, enough for Linux + initramfs
+                file = "$(PAYLOAD_A)";
+            };
+            area@4 {
+                description = "space";
+                offset = <0x1400000>;
+                // TODO: reduce when support compressed payloads
+                size = <0x0c00000>; // 18MiB, enough for Linux + initramfs
+                file = "$(PAYLOAD_X)";
             };
         };
     };

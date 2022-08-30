@@ -26,7 +26,7 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x20000000;
+    . = 0x80000000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));
@@ -38,6 +38,22 @@ SECTIONS
     .rodata :
     {
         KEEP(*(.rodata .rodata.*));
+    }
+
+    .data :
+    {
+        sidata = LOADADDR(.data);
+        sdata = .;
+        *(.sdata* .data .data.*)
+        edata = .;
+    }
+
+    .bss :
+    {
+        PROVIDE(__bss_start = .);
+        KEEP(*(.bss .bss.* .sbss .sbss.*));
+        . = ALIGN(4K);
+        PROVIDE(__bss_end = .);
     }
 
     .stack_sizes (INFO) :

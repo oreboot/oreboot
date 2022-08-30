@@ -76,4 +76,4 @@ abort: j abort
 
 .section ".bootblock.stack", "aw", %progbits
 _stack:
-.space 65536
+.space 262144
