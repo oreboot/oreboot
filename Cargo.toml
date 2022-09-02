@@ -1,16 +1,16 @@
 [workspace]
+# in general, avoid wildcards, to make sure we get only what we want.
 members = [
     "src/arch",
-    "src/drivers",
     "src/console",
     "src/cpu",
     "src/soc",
-    "payloads",
 
-    "src/lib/*",
+    "src/lib/consts",
+    "src/lib/device_tree",
+    "src/lib/util",
+
     "src/mainboard/sunxi/nezha/*",
-
-    "tools/layoutflash",
 
     "xtask",
 ]

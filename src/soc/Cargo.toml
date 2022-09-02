@@ -21,20 +21,7 @@ nb = "1"
 
 [features]
 amd = [
-    "oreboot-arch/x86_64", "oreboot-cpu/amd",
     "util", "raw-cpuid", "heapless", "vcell",
 ]
-amd_picasso = ["amd"]
-amd_rome = ["amd"]
-# asrock/a300m-stx requires to use own bootblock.S; exclude bundled bootblock.S file if not necessary
-amd_exclude_bootblock = []
-aspeed = []
-aspeed_ast25x0 = ["aspeed"]
-opentitan = []
-opentitan_earlgrey = ["opentitan", "oreboot-cpu/lowrisc_ibex"]
-sifive = []
-sifive_fu540 = ["sifive", "oreboot-arch/riscv64", ]
-starfive = []
-starfive_jh7100 = ["starfive", "oreboot-arch/riscv64", ]
 sunxi = []
 sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal"]
