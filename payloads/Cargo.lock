@@ -164,19 +164,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "546c37ac5d9e56f55e73b677106873d9d9f5190605e41a856503623648488cae"
 
 [[package]]
-name = "oreboot-drivers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "tock-registers",
- "vcell",
-]
-
-[[package]]
 name = "payloads"
 version = "0.1.0"
 dependencies = [
- "oreboot-drivers",
  "postcard",
  "serde",
 ]
