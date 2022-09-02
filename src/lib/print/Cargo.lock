@@ -7,19 +7,9 @@ name = "consts"
 version = "0.1.0"
 
 [[package]]
-name = "oreboot-drivers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "tock-registers",
- "vcell",
-]
-
-[[package]]
 name = "print"
 version = "0.1.0"
 dependencies = [
- "oreboot-drivers",
 ]
 
 [[package]]
