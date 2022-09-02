@@ -38,7 +38,6 @@ dependencies = [
  "heapless",
  "num-derive",
  "num-traits",
- "oreboot-drivers",
 ]
 
 [[package]]
@@ -108,15 +107,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ba9a427cfca2be13aa6f6403b0b7e7368fe982bfa16fccc450ce74c46cd9b32"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "oreboot-drivers"
-version = "0.1.0"
-dependencies = [
- "consts",
- "tock-registers",
- "vcell",
 ]
 
 [[package]]
