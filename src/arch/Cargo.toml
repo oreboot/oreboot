@@ -6,7 +6,6 @@ edition = "2021"
 
 [dependencies]
 consts = { path= "../lib/consts" }
-oreboot-drivers = { path = "../drivers" }
 print = { path = "../lib/print" }
 util = { path = "../lib/util" }
 vcell = "0.1.3"
