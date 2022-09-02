@@ -33,7 +33,6 @@ use oreboot_soc::sunxi::d1::{
     time::U32Ext,
     uart::{Config, Parity, Serial, StopBits, WordLength},
 };
-use payloads::payload;
 use rustsbi::{legacy_stdio::LegacyStdio, print};
 
 const MEM: usize = 0x4000_0000;
@@ -41,7 +40,7 @@ const CACHED_MEM: usize = 0x8000_0000;
 
 // see ../fixed-dtfs.dts
 const PAYLOAD_OFFSET: usize = 0x2_0000;
-const PAYLOAD_SIZE: usize = 0x1e_0000;
+//const PAYLOAD_SIZE: usize = 0x1e_0000;
 const PAYLOAD_ADDR: usize = MEM + PAYLOAD_OFFSET;
 
 // compressed image
