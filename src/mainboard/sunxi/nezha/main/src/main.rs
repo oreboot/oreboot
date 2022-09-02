@@ -26,7 +26,6 @@ use core::{
 };
 use embedded_hal::digital::blocking::OutputPin;
 use embedded_hal::serial::nb::Write;
-use oreboot_drivers::wrappers::{Memory, SectionReader};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::Gpio,

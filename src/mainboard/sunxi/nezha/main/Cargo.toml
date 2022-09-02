@@ -20,7 +20,6 @@ lzss = { version = "0.8", default-features = false }
 payloads = { path = "../../../../../payloads"}
 # todo: a new package oreboot-console
 spin = "0.9" # todo: remove when we have a console package
-oreboot-drivers = { path = "../../../../drivers" }
 
 [dependencies.oreboot-soc]
 path = "../../../../soc"
