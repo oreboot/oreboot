@@ -66,6 +66,13 @@ struct Env {
         long_help = None,
     )]
     release: bool,
+    #[clap(
+        long = "supervisor",
+        global = true,
+        help = "Build with arch-specific supervisor support",
+        long_help = None,
+    )]
+    supervisor: bool,
     #[clap(long, global = true, help = "Mainboard to build")]
     mainboard: Option<String>,
     #[clap(long, global = true, help = "Target memory description")]

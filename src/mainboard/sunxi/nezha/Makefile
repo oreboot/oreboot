@@ -27,21 +27,31 @@ citest: nop
 checkformat: nop
 
 mainboard:
-	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY)
+	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) --supervisor
 
 withpayload:
 	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
-		--payload $(PAYLOAD) --dtb $(DTB)
+		--supervisor --payload $(PAYLOAD) --dtb $(DTB)
+
+nosbi:
+	cargo make $(RELEASE) --variant $(VARIANT) --memory $(MEMORY)
 
 flash:
+	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) --supervisor
+
+nosbiflash:
 	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY)
 
 flashwithpayload:
 	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
-		--payload $(PAYLOAD) --dtb $(DTB)
+		--supervisor --payload $(PAYLOAD) --dtb $(DTB)
+
+nosbiflashwithpayload:
+	cargo flash $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
+		--payload $(PAYLOAD)
 
 objdump:
-	cargo asm --variant $(VARIANT) --memory $(MEMORY)
+	cargo asm --variant $(VARIANT) --memory $(MEMORY) --supervisor
 
 raminitandboot:
 	$(XFEL) ddr d1

@@ -309,6 +309,8 @@ fn load(
 ) {
     let chunks = 16;
     let sz = size >> 2;
+    // println!("load {:x} bytes from {:x} to {:x}", size, skip, base);
+    print!("load {:08x} bytes to {:x}: ", size, base);
     for i in 0..sz / chunks {
         let off = skip + i * 4 * chunks;
         let buf = f.copy_into([(off >> 16) as u8, (off >> 8) as u8, off as u8]);
