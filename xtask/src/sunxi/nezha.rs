@@ -104,6 +104,10 @@ fn xtask_build_d1_flash_main(env: &Env) {
     if env.release {
         command.arg("--release");
     }
+    if env.supervisor {
+        command.arg("--features");
+        command.arg("supervisor");
+    }
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
@@ -255,7 +259,11 @@ fn xtask_concat_flash_binaries(env: &Env) {
     let mut img_size = bt0_len + payloader_len + dtfs_len;
     match env.payload.as_deref() {
         Some(_) => {
-            img_size = IMG_SIZE;
+            img_size = if cfg!(supervisor) {
+                IMG_SIZE
+            } else {
+                img_size + 2 * 1024 * 1024
+            };
         }
         None => {
             println!("no payload");
@@ -272,6 +280,9 @@ fn xtask_concat_flash_binaries(env: &Env) {
 
     match env.payload.as_deref() {
         Some(payload_file) => {
+            if env.supervisor {
+                env.dtb.as_deref().expect("provide a dtb");
+            }
             println!("adding payload {}", payload_file);
             let payload = std::fs::read(payload_file).expect("open payload file");
             println!("payload size: 0x{:x} bytes", payload.len());
@@ -298,23 +309,20 @@ fn xtask_concat_flash_binaries(env: &Env) {
                     process::exit(1);
                 }
             };
-
-            let dtb = match env.dtb.as_deref() {
-                Some(d) => d,
-                None => {
-                    error!("provide a dtb");
-                    process::exit(1);
+            match env.dtb.as_deref() {
+                Some(dtb) => {
+                    println!("adding dtb {}", dtb);
+                    let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
+                    let dtb_len = 64 * 1024;
+                    output_file
+                        .seek(SeekFrom::Start(IMG_SIZE - dtb_len))
+                        .expect("seek after payload copy");
+                    io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
+                    let dtb_len = dtb_file.metadata().unwrap().len();
+                    println!("dtb size: 0x{:x} bytes", dtb_len);
                 }
+                _ => {}
             };
-            println!("adding dtb {}", dtb);
-            let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
-            let dtb_len = 64 * 1024;
-            output_file
-                .seek(SeekFrom::Start(IMG_SIZE - dtb_len))
-                .expect("seek after payload copy");
-            io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
-            let dtb_len = dtb_file.metadata().unwrap().len();
-            println!("dtb size: 0x{:x} bytes", dtb_len);
         }
         _ => {}
     };

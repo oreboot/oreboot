@@ -26,6 +26,7 @@ use core::{
 };
 use embedded_hal::digital::blocking::OutputPin;
 use embedded_hal::serial::nb::Write;
+use oreboot_compression::decompress;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::Gpio,
@@ -36,12 +37,11 @@ use oreboot_soc::sunxi::d1::{
 use rustsbi::{legacy_stdio::LegacyStdio, print};
 
 const MEM: usize = 0x4000_0000;
-const CACHED_MEM: usize = 0x8000_0000;
 
 // see ../fixed-dtfs.dts
 const PAYLOAD_OFFSET: usize = 0x2_0000;
-//const PAYLOAD_SIZE: usize = 0x1e_0000;
-const PAYLOAD_ADDR: usize = MEM + PAYLOAD_OFFSET;
+const PAYLOAD_SIZE: usize = 0x20_0000; // 2 MB
+const PAYLOAD_ADDR: usize = MEM + 0x20_0000;
 
 // compressed image
 const LINUXBOOT_TMP_OFFSET: usize = 0x0400_0000;
@@ -56,10 +56,15 @@ const LINUXBOOT_SIZE: usize = 0x0180_0000;
 const DTB_OFFSET: usize = 0x01a0_0000;
 const DTB_ADDR: usize = MEM + DTB_OFFSET;
 
-const EI: usize = 12;
-type MyLzss = lzss::Lzss<EI, 4, 0x00, { 1 << EI }, { 2 << EI }>;
+struct Standout;
+impl core::fmt::Write for Standout {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        print!("{s}");
+        Ok(())
+    }
+}
 
-fn decompress() {
+fn decompress_lb() {
     // check for Device Tree header, d00dfeed
     let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
     if dtb != 0xedfe0dd0 {
@@ -68,36 +73,16 @@ fn decompress() {
         print!("DTB looks fine, yay!\n");
     }
 
-    // first four bytes are the compressed size
-    let in_ptr = (LINUXBOOT_TMP_ADDR + 4) as *const u8;
-    let out_ptr = LINUXBOOT_ADDR as *mut u8;
-    let compressed_size = unsafe { read_volatile(LINUXBOOT_TMP_ADDR as *const u32) };
-    print!(
-        "Decompress {} bytes from {:?} to {:?}\n",
-        compressed_size, &in_ptr, &out_ptr
-    );
+    decompress(Standout, LINUXBOOT_TMP_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
 
-    let input = unsafe { slice::from_raw_parts(in_ptr, compressed_size as usize) };
-    let output = unsafe { slice::from_raw_parts_mut(out_ptr, LINUXBOOT_SIZE) };
-
-    let result = MyLzss::decompress(
-        lzss::SliceReader::new(input),
-        lzss::SliceWriter::new(output),
-    );
-    match result {
-        Ok(r) => {
-            print!("Success, decompressed {r} bytes :)\n");
-            let a = LINUXBOOT_ADDR + 0x30;
-            let r = unsafe { read_volatile(a as *mut u32) };
-            if r == u32::from_le_bytes(*b"RISC") {
-                print!("Payload looks like Linux Image, yay!\n");
-            } else {
-                panic!("Payload does not look like Linux Image: {:x}\n", r);
-            }
-        }
-        Err(e) => panic!("Decompression error {e}\n"),
+    // check for kernel to be okay
+    let a = LINUXBOOT_ADDR + 0x30;
+    let r = unsafe { read_volatile(a as *mut u32) };
+    if r == u32::from_le_bytes(*b"RISC") {
+        print!("Payload looks like Linux Image, yay!\n");
+    } else {
+        panic!("Payload does not look like Linux Image: {:x}\n", r);
     }
-
     // Recheck on DTB, kernel should not run into it
     let dtb = unsafe { read_volatile(DTB_ADDR as *mut u32) };
     if dtb != 0xedfe0dd0 {
@@ -401,8 +386,7 @@ extern "C" fn main() -> usize {
         print!("RISC-V vendor {:x} arch {:x} imp {:x}\r\n", vid, arch, imp);
     }
 
-    // TODO: Get this from configuration
-    let use_sbi = true;
+    let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
         init_pmp();
         dump_csrs();
@@ -425,7 +409,7 @@ extern "C" fn main() -> usize {
         hart_csr_utils::print_hart_csrs();
         hart_csr_utils::print_hart_pmp();
 
-        decompress();
+        decompress_lb();
         print!(
             "Handing over to SBI, will continue at 0x{:x}\r\n",
             LINUXBOOT_ADDR
@@ -439,8 +423,17 @@ extern "C" fn main() -> usize {
         print!("oreboot: reset reason = {}", reset_reason);
         reset_type
     } else {
+        // TODO: Do we need more stuff here?
+        unsafe {
+            asm!("csrs 0x7c0, {}", in(reg) 0x00018000);
+        }
+        print!("You are NOT MY SUPERVISOR!\r\n");
+        decompress(Standout, LINUXBOOT_TMP_ADDR, PAYLOAD_ADDR, PAYLOAD_SIZE);
         print!("Running payload at 0x{:x}\r\n", PAYLOAD_ADDR);
-        // TODO: Load and run payload...
+        unsafe {
+            let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
+            f();
+        }
         print!("Unexpected return from payload\r");
         0
     }
@@ -497,13 +490,14 @@ fn delegate_interrupt_exception() {
     }
 }
 
-extern "C" fn finish(reset_type: usize) -> ! {
-    // use rustsbi::reset::*;
+extern "C" fn finish(reset_type: u32) -> ! {
+    use sbi_spec::srst::*;
     match reset_type {
-        /*
         RESET_TYPE_SHUTDOWN => loop {
-            unsafe { asm!("wfi") }
+            print!("🦀");
+            // unsafe { asm!("wfi") }
         },
+        /*
         RESET_TYPE_COLD_REBOOT => todo!(),
         RESET_TYPE_WARM_REBOOT => todo!(),
         */
