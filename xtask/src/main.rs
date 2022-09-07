@@ -1,6 +1,7 @@
 mod gdb_detect;
 mod target;
 
+mod starfive;
 mod sunxi;
 
 use std::{

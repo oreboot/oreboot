@@ -2,6 +2,7 @@ use crate::project_root;
 use log::{error, trace};
 use std::path::{Component, Path};
 
+use crate::starfive;
 use crate::sunxi;
 
 pub(crate) struct Target {
@@ -11,6 +12,7 @@ pub(crate) struct Target {
 
 #[derive(Debug, Clone, Copy)]
 enum Vendor {
+    StarFive(crate::starfive::Board),
     Sunxi(crate::sunxi::Board),
 }
 
@@ -18,6 +20,7 @@ impl Target {
     pub(crate) fn execute_command(self, command: &crate::Cli) {
         match self.vendor_board {
             Vendor::Sunxi(sunxi) => sunxi.execute_command(command, self.features),
+            Vendor::StarFive(starfive) => starfive.execute_command(command, self.features),
         };
     }
 }
@@ -35,6 +38,7 @@ pub(crate) fn parse_target(
     if let Some((vendor, board)) = parse_target_str(cur_path, param_mainboard) {
         let vendor_board = match (vendor.as_ref(), board.as_ref()) {
             ("sunxi", "nezha") => Vendor::Sunxi(sunxi::Board::Nezha),
+            ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
             _ => return None,
         };
         return Some(Target {
