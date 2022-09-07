@@ -9,6 +9,7 @@ members = [
   "src/lib/consts",
   "src/lib/util",
 
+  "src/mainboard/starfive/visionfive1/*",
   "src/mainboard/sunxi/nezha/*",
   "src/mainboard/emulation/*",
 
