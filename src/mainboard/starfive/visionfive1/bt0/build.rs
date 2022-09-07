@@ -5,14 +5,14 @@ use std::path::PathBuf;
 
 const FLASH: &[u8] = b"
 OUTPUT_ARCH(riscv)
-ENTRY(head_jump)
+ENTRY(boot)
 MEMORY {
     SRAM : ORIGIN = 0x18000000, LENGTH = 16K
 }
 SECTIONS {
     .head : {
         *(.head.text)
-        KEEP(*(.head.main))
+        KEEP(*(.debug))
     } > SRAM
     .text : {
         KEEP(*(.text.entry))
