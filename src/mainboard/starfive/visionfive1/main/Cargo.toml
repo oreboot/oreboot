@@ -1,7 +1,7 @@
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package]
-name = "starfive-visionfive1-bt0"
+name = "starfive-visionfive1-main"
 version = "0.1.0"
 authors = [
   "Daniel Maslowski <info@orangecms.org>",
@@ -12,10 +12,8 @@ edition = "2021"
 embedded-hal = "1.0.0-alpha.9"
 embedded-hal-nb = "1.0.0-alpha.1"
 nb = "1"
-riscv = { version = "0.10.1" }
+riscv = "0.10.1"
 spin = "0.9"
-
-log = { path = "../../../../lib/log" }
 
 # TODO
 # [dependencies.oreboot-soc]

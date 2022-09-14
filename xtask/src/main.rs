@@ -13,7 +13,7 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
-use log::error;
+use log::{error, info, trace};
 
 #[derive(Parser)]
 #[clap(name = "xtask")]
@@ -27,7 +27,7 @@ struct Cli {
     verbose: Verbosity,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum Commands {
     /// Make this project
     Make,
