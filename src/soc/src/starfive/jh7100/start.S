@@ -50,9 +50,11 @@ _debug:
 
 .globl _boot
 _boot:
-# j _debug
+  j _debug
 
 _start:
+  j _debug
+
 	csrwi 0x7c1, 0
 	// This has to be four byted aligned so make our own and call trap_entry
 	la t0, aligned_trap_entry
