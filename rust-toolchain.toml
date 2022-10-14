@@ -1,5 +1,5 @@
 [toolchain]
-channel = "nightly-2022-12-13"
+channel = "nightly-2022-12-15"
 components = ["rust-src", "llvm-tools-preview", "rustfmt", "clippy"]
 targets = [
   "aarch64-unknown-none-softfloat",
