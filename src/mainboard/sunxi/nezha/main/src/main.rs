@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(default_alloc_error_handler)]
 #![feature(naked_functions)]
-#![feature(asm_sym, asm_const)]
+#![feature(asm_const)]
 #![feature(generator_trait)]
 #![feature(panic_info_message)]
 
