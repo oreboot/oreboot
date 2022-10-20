@@ -1848,14 +1848,14 @@ pub fn init() -> usize {
         dram_odt_en: 0x0000_0001,
         #[cfg(feature="nezha")]
         dram_para1:  0x0000_10f2,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_para1:  0x0000_10d2,
         dram_para2:  0x0000_0000,
         dram_mr0:    0x0000_1c70,
         dram_mr1:    0x0000_0042,
         #[cfg(feature="nezha")]
         dram_mr2:    0x0000_0000,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_mr2:    0x0000_0018,
         dram_mr3:    0x0000_0000,
         dram_tpr0:   0x004a_2195,
@@ -1871,15 +1871,15 @@ pub fn init() -> usize {
         dram_tpr10:  0x0000_0000,
         #[cfg(feature="nezha")]
         dram_tpr11:  0x0076_0000,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr11:  0x0087_0000,
         #[cfg(feature="nezha")]
         dram_tpr12:  0x0000_0035,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr12:  0x0000_0024,
         #[cfg(feature="nezha")]
         dram_tpr13:  0x3405_0101,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr13:  0x3405_0100,
     };
 

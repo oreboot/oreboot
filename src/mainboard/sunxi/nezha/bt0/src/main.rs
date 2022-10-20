@@ -528,7 +528,7 @@ extern "C" fn main() -> usize {
     let ram_size = mctl::init();
     println!("{}M 🐏", ram_size);
 
-    #[cfg(feature = "nor")]
+    #[cfg(any(feature = "nor", feature = "mmc"))]
     let spi_speed = 48_000_000.hz();
     #[cfg(feature = "nand")]
     let spi_speed = 100_000_000.hz();
@@ -539,6 +539,11 @@ extern "C" fn main() -> usize {
     let mosi = gpio.portc.pc4.into_function_2();
     let miso = gpio.portc.pc5.into_function_2();
     let spi = Spi::new(p.SPI0, (sck, scs, mosi, miso), MODE_3, spi_speed, &clocks);
+
+    #[cfg(feature = "mmc")]
+    {
+        println!("TODO: load from SD card");
+    }
 
     #[cfg(feature = "nor")]
     {

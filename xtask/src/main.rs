@@ -39,6 +39,8 @@ enum Commands {
 }
 
 enum Memory {
+    /// MMC, including SD card
+    MMC,
     /// Operate on NAND flash
     Nand,
     /// Operate on NOR flash
@@ -50,6 +52,7 @@ impl FromStr for Memory {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
+            "mmc" => Ok(Self::MMC),
             "nand" => Ok(Self::Nand),
             "nor" => Ok(Self::Nor),
             others => Err(format!("unknown memory type {}", others)),

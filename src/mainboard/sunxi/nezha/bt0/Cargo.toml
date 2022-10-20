@@ -25,6 +25,8 @@ default = ["nezha"]
 
 nezha = ["nand"]
 lichee = ["nor"]
+clockworkpi = ["mmc"]
 
 nand = []
 nor = []
+mmc = []

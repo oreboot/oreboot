@@ -51,7 +51,8 @@ nosbiflashwithpayload:
 		--payload $(PAYLOAD)
 
 objdump:
-	cargo asm --variant $(VARIANT) --memory $(MEMORY) --supervisor
+	cargo asm $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
+		--supervisor
 
 raminitandboot:
 	$(XFEL) ddr d1
