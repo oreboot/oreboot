@@ -320,11 +320,15 @@ fn init_plic() {
 use oreboot_soc::sunxi::d1::gpio::Function;
 use oreboot_soc::sunxi::d1::pac::UART0;
 
-type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
-type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
+use oreboot_soc::sunxi::d1::gpio::{
+    portb::{PB8, PB9},
+    portg::{PG17, PG18},
+};
+type PBUART = (PB8<Function<6>>, PB9<Function<6>>);
+type PGUART = (PG17<Function<7>>, PG18<Function<7>>);
 
 // Serial is a driver implementing embedded HAL; external
-struct Cereal(core::cell::UnsafeCell<Serial<UART0, (TX, RX)>>);
+struct Cereal(core::cell::UnsafeCell<Serial<UART0, PGUART>>);
 
 // LegacyStdio from RustSBI
 impl LegacyStdio for Cereal {
@@ -358,8 +362,10 @@ extern "C" fn main() -> usize {
     pb5.set_low().unwrap();
 
     // prepare serial port logger
-    let tx = gpio.portb.pb8.into_function_6();
-    let rx = gpio.portb.pb9.into_function_6();
+    //  let tx = gpio.portb.pb8.into_function_6();
+    //  let rx = gpio.portb.pb9.into_function_6();
+    let tx = gpio.portg.pg17.into_function_7();
+    let rx = gpio.portg.pg18.into_function_7();
     let config = Config {
         baudrate: 115200.bps(),
         wordlength: WordLength::Eight,

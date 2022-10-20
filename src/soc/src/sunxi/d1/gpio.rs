@@ -162,6 +162,8 @@ define_gpio! {
         PB5: (pb5, 5, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
         PB8: (pb8, 8, Disabled), ("PB8", "G15"), ("DMIC-DATA3", "PWM5", "TWI2-SCK", "SPI1-HOLD/DBI-DCX/DBI-WRX", "UART0-TX", "UART1-TX", x),
         PB9: (pb9, 9, Disabled), ("PB9", "G16"), ("DMIC-DATA2", "PWM6", "TWI2-SDA", "SPI1-MISO/DBI-SDI/DBI-TE/DBI-DCX", "UART0-RX", "UART1-RX", x),
+        PB10: (pb10, 10, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
+        PB11: (pb11, 11, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
     ]
     PortC, portc, 'C', [
         PC1: (pc1, 1, Disabled), ("PC1", "F1"), ("UART2-RX", "TWI2-SDA", x, x, x, x, x),
@@ -177,6 +179,10 @@ define_gpio! {
         PF1: (pf1, 1, Disabled), ("PF1", "C1"), ("SDC0-D0", "JTAG-DI", "R-JTAG-DI", "I2S2-DOUT0", "I2S2-DIN1", x, x),
         PF3: (pf3, 3, Disabled), ("PF3", "D1"), ("SDC0-CMD", "JTAG-DO", "R-JTAG-DO", "I2S2-BCLK", x, x, x),
         PF5: (pf5, 5, Disabled), ("PF5", "E2"), ("SDC0-D2", "JTAG-CK", "R-JTAG-CK", "I2S2-LRCK", x, x, x),
+    ]
+    PortG, portg, 'G', [
+        PG17: (pg17, 17, Disabled), ("PG17", "G15"), ("DMIC-DATA3", "PWM5", "TWI2-SCK", "SPI1-HOLD/DBI-DCX/DBI-WRX", "UART0-TX", "UART1-TX", x),
+        PG18: (pg18, 18, Disabled), ("PG18", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
     ]
 }
 

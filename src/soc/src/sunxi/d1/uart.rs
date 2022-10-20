@@ -2,6 +2,7 @@
 use super::ccu::{Clocks, Gating, Reset};
 use super::gpio::{
     portb::{PB8, PB9},
+    portg::{PG17, PG18},
     Function,
 };
 use super::time::Bps;
@@ -166,6 +167,7 @@ impl<UART: Instance, PINS> Drop for Serial<UART, PINS> {
 
 pub trait Instance: Gating + Reset + Deref<Target = RegisterBlock> {}
 
+type PGUART = (PG17<Function<7>>, PG18<Function<7>>);
 impl Instance for d1_pac::UART0 {}
 
 // note: if we want to assert RTS and/or CTS, implement Pins<UARTi> for them
@@ -174,7 +176,7 @@ impl Instance for d1_pac::UART0 {}
 
 pub trait Pins<UART> {}
 
-impl Pins<d1_pac::UART0> for (PB8<Function<6>>, PB9<Function<6>>) {}
+impl Pins<d1_pac::UART0> for PGUART {}
 
 /// Error types that may happen when serial transfer
 #[derive(Debug)]

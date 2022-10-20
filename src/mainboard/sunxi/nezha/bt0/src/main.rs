@@ -437,26 +437,30 @@ extern "C" fn main() -> usize {
     // light up led
     let mut pb5 = gpio.portb.pb5.into_output();
     pb5.set_high().unwrap();
+    let mut pb10 = gpio.portb.pb10.into_output();
+    pb10.set_low().unwrap();
+    let mut pb11 = gpio.portb.pb11.into_output();
+    pb11.set_high().unwrap();
     let mut pc1 = gpio.portc.pc1.into_output();
     pc1.set_high().unwrap();
 
-    /*
     // blinky
     for _ in 0..2 {
         for _ in 0..1000_0000 {
             core::hint::spin_loop();
         }
-        pc1.set_low().unwrap();
+        pb10.set_low().unwrap();
         for _ in 0..1000_0000 {
             core::hint::spin_loop();
         }
-        pc1.set_high().unwrap();
+        pb10.set_high().unwrap();
     }
-    */
 
     // prepare serial port logger
-    let tx = gpio.portb.pb8.into_function_6();
-    let rx = gpio.portb.pb9.into_function_6();
+    //  let tx = gpio.portb.pb8.into_function_6();
+    //  let rx = gpio.portb.pb9.into_function_6();
+    let tx = gpio.portg.pg17.into_function_7();
+    let rx = gpio.portg.pg18.into_function_7();
     let config = Config {
         baudrate: 115200.bps(),
         wordlength: WordLength::Eight,
