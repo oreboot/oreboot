@@ -162,8 +162,9 @@ define_gpio! {
         PB5: (pb5, 5, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
         PB8: (pb8, 8, Disabled), ("PB8", "G15"), ("DMIC-DATA3", "PWM5", "TWI2-SCK", "SPI1-HOLD/DBI-DCX/DBI-WRX", "UART0-TX", "UART1-TX", x),
         PB9: (pb9, 9, Disabled), ("PB9", "G16"), ("DMIC-DATA2", "PWM6", "TWI2-SDA", "SPI1-MISO/DBI-SDI/DBI-TE/DBI-DCX", "UART0-RX", "UART1-RX", x),
-        PB10: (pb10, 10, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
-        PB11: (pb11, 11, Disabled), ("PB5", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
+        PB10: (pb10, 10, Disabled), ("PB10", "F17"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
+        PB11: (pb11, 11, Disabled), ("PB11", "F15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
+        PB12: (pb12, 12, Disabled), ("PB12", "F16"), ("DMIC-CLK", "PWM0", "SPDIF-IN", "SPI1-CS", "DBI-CSX", "CLK-FANOUT2", "IR-RX"),
     ]
     PortC, portc, 'C', [
         PC1: (pc1, 1, Disabled), ("PC1", "F1"), ("UART2-RX", "TWI2-SDA", x, x, x, x, x),
@@ -177,12 +178,32 @@ define_gpio! {
     PortF, portf, 'F', [
         PF0: (pf0, 0, Disabled), ("PF0", "C2"), ("SDC0-D1", "JTAG-MS", "R-JTAG-MS", "I2S2-DOUT1", "I2S2-DIN0", x, x),
         PF1: (pf1, 1, Disabled), ("PF1", "C1"), ("SDC0-D0", "JTAG-DI", "R-JTAG-DI", "I2S2-DOUT0", "I2S2-DIN1", x, x),
+        PF2: (pf2, 2, Disabled), ("PF2", "D2"), ("SDC0-CLK", "UART0-TX", "TWI0-SCK", "LEDC-DO", "SPDIF-IN", x, x),
         PF3: (pf3, 3, Disabled), ("PF3", "D1"), ("SDC0-CMD", "JTAG-DO", "R-JTAG-DO", "I2S2-BCLK", x, x, x),
+        PF4: (pf4, 4, Disabled), ("PF4", "E3"), ("SDC0-D3", "UART0-RX", "TWI0-SDA", "PWM6", "IR-TX", x, x),
         PF5: (pf5, 5, Disabled), ("PF5", "E2"), ("SDC0-D2", "JTAG-CK", "R-JTAG-CK", "I2S2-LRCK", x, x, x),
+        PF6: (pf6, 6, Disabled), ("PF6", "D3"), ("SPDIF-OUT", "IR-RX", "I2S2-MCLK", "PWM5", x, x, x),
     ]
     PortG, portg, 'G', [
-        PG17: (pg17, 17, Disabled), ("PG17", "G15"), ("DMIC-DATA3", "PWM5", "TWI2-SCK", "SPI1-HOLD/DBI-DCX/DBI-WRX", "UART0-TX", "UART1-TX", x),
-        PG18: (pg18, 18, Disabled), ("PG18", "K15"), ("LCD0-D9", "I2S2-BCLK", "TWI1-SDA", "PWM0", "LCD0-D21", "UART5-RX", x),
+        PG0: (pg0, 0, Disabled), ("PG0", "B2"), ("SDC1-CLK", "UART3-TX", "RGMII-RXCTRL", "RMII-CRS-DV", "PWM7", x, x),
+        PG1: (pg1, 1, Disabled), ("PG1", "B3"), ("SDC1-CMD", "UART3-RX", "RGMII-RXD0", "RMII-RXD0", "PWM6", x, x),
+        PG2: (pg2, 2, Disabled), ("PG2", "A3"), ("SDC1-D0", "UART3-RTS", "RGMII-RXD1", "RMII-RXD1", "UART4-TX", x, x),
+        PG3: (pg3, 3, Disabled), ("PG3", "C3"), ("SDC1-D1", "UART3-CTS", "RGMII-TXCK", "RMII-TXCK", "UART4-RX", x, x),
+        PG4: (pg4, 4, Disabled), ("PG4", "A4"), ("SDC1-D2", "UART5-TX", "RGMII-TXD0", "RMII-TXD0", "PWM5", x, x),
+        PG5: (pg5, 5, Disabled), ("PG5", "B4"), ("SDC1-D3", "UART5-RX", "RGMII-TXD1", "RMII-TXD1", "PWM4", x, x),
+        PG6: (pg6, 6, Disabled), ("PG6", "B5"), ("UART1-TX", "TWI2-SCK", "RGMII-TXD2", "PWM1", x, x, x),
+        PG7: (pg7, 7, Disabled), ("PG7", "C6"), ("UART1-RX", "TWI2-SDA", "RGMII-TXD3", "SPDIF-IN", x, x, x),
+        PG8: (pg8, 8, Disabled), ("PG8", "A6"), ("UART1-RTS", "TWI1-SCK", "RGMII-RXD2", "UART3-TX", x, x, x),
+        PG9: (pg9, 9, Disabled), ("PG9", "B6"), ("UART1-CTS", "TWI1-SDA", "RGMII-RXD3", "UART3-RX", x, x, x),
+        PG10: (pg10, 10, Disabled), ("PG10", "C6"), ("PWM3", "TWI3-SCK", "RGMII-RXCK", "CLK-FANOUT0", "IR-RX", x, x),
+        PG11: (pg11, 11, Disabled), ("PG11", "D4"), ("I2S1-MCLK", "TWI3-SDA", "EPHY-25M", "CLK-FANOUT1", "TCON-TRIG", x, x),
+        PG12: (pg12, 12, Disabled), ("PG12", "D5"), ("I2S1-LRCK", "TWI0-SCK", "RGMII-TXCTRL", "RMII-TXEN", "CLK-FANOUT2", "PWM0", "UART1-TX"),
+        PG13: (pg13, 13, Disabled), ("PG13", "D6"), ("I2S1-BCLK", "TWI0-SDA", "RGMII-CLKIN", "RMII-RXER", "PWM2", "LEDC-DO", "UART1-RX"),
+        PG14: (pg14, 14, Disabled), ("PG14", "E6"), ("I2S1-DIN0", "TWI2-SCK", "MDC", "I2S1-DOUT1", "SPI0-WP", "UART1-RTS", x),
+        PG15: (pg15, 15, Disabled), ("PG15", "F6"), ("I2S1-DOUT0", "TWI2-SDA", "MDIO", "I2S1-DIN1", "SPI0-HOLD", "UART1-CTS", x),
+        PG16: (pg16, 16, Disabled), ("PG16", "F7"), ("IR-RX", "TCON-TRIG", "PWM5", "CLK-FANOUT2", "SPDIF-IN", "LEDC-DO", x),
+        PG17: (pg17, 17, Disabled), ("PG17", "E7"), ("TWI3-SCK", "PWM7", "CLK-FANOUT0", "IR-TX", "UART0-TX", x, x),
+        PG18: (pg18, 18, Disabled), ("PG18", "D7"), ("TWI3-SDA", "PWM6", "CLK-FANOUT1", "SPDIF-OUT", "UART0-RX", x, x),
     ]
 }
 
