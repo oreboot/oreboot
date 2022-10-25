@@ -20,7 +20,7 @@ pub(crate) static LOGGER: Once<LockedLogger> = Once::new();
 type PBUART = (PB8<Function<6>>, PB9<Function<6>>);
 type PGUART = (PG17<Function<7>>, PG18<Function<7>>);
 
-type S = Wrap<Serial<UART0, PGUART>>;
+type S = Wrap<Serial<UART0, PBUART>>;
 
 // type `Serial` is declared out of this crate, avoid orphan rule
 pub(crate) struct Wrap<T>(T);
@@ -42,7 +42,7 @@ impl fmt::Write for S {
 }
 
 #[inline]
-pub fn set_logger(serial: Serial<UART0, PGUART>) {
+pub fn set_logger(serial: Serial<UART0, PBUART>) {
     LOGGER.call_once(|| LockedLogger {
         inner: Mutex::new(Wrap(serial)),
     });

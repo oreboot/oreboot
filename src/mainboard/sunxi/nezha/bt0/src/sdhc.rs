@@ -1,3 +1,5 @@
+// adapted from https://gitlab.com/pnru/xv6-d1
+
 const MMC_STATUS_MASK: u32 = (!0x0206BF7F);
 const MMC_STATUS_RDY_FOR_DATA: u32 = (1 << 8);
 
