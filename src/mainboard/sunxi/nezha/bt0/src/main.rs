@@ -9,7 +9,7 @@ use core::intrinsics::transmute;
 use core::ptr::{read_volatile, write_volatile};
 use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::blocking::OutputPin;
-use oreboot_soc::sunxi::d1::pac::{ccu::smhc0_clk, smhc::smhc_clkdiv, CCU};
+use oreboot_soc::sunxi::d1::pac::{ccu::smhc0_clk, CCU};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::{portc, Function, Gpio, Pin},
@@ -427,73 +427,78 @@ extern "C" fn main() -> usize {
     };
     let gpio = Gpio::new(p.GPIO);
 
-    // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
-    gpio.portf.pf0.into_function_2();
-    gpio.portf.pf1.into_function_2();
-    gpio.portf.pf2.into_function_2();
-    gpio.portf.pf3.into_function_2();
-    gpio.portf.pf4.into_function_2();
-    gpio.portf.pf5.into_function_2();
-
-    // let smhc = Smhc::new(p.SMHC0);
+    #[cfg(feature = "jtag")]
+    {
+        // configure jtag interface
+        let tms = gpio.portf.pf0.into_function_4();
+        let tck = gpio.portf.pf5.into_function_4();
+        let tdi = gpio.portf.pf1.into_function_4();
+        let tdo = gpio.portf.pf3.into_function_4();
+        let _jtag = Jtag::new((tms, tck, tdi, tdo));
+    }
 
     let smhc0 = p.SMHC0;
 
-    // STEP 1: reset gating, set up clock
-    let ccu = unsafe { &*CCU::ptr() };
-    ccu.smhc_bgr
-        .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
-    // TODO: optimize based on speed
-    let factor_n = smhc0_clk::FACTOR_N_A::N2;
-    let factor_m = 1;
-    ccu.smhc0_clk.write(|w| {
-        w.clk_src_sel()
-            .pll_peri_1x()
-            .factor_n()
-            .variant(factor_n)
-            .factor_m()
-            .variant(factor_m)
-            .clk_gating()
-            .set_bit()
-    });
+    #[cfg(not(feature = "jtag"))]
+    {
+        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
+        gpio.portf.pf0.into_function_2();
+        gpio.portf.pf1.into_function_2();
+        gpio.portf.pf2.into_function_2();
+        gpio.portf.pf3.into_function_2();
+        gpio.portf.pf4.into_function_2();
+        gpio.portf.pf5.into_function_2();
 
-    // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
-    // TODO: register interrupt function; how about simple write!() ?
-    smhc0
-        .smhc_ctrl
-        .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
-    smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
+        // let smhc = Smhc::new(p.SMHC0);
 
-    // STEP3: set clock divider for devices (what devices?) and change clock command
-    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
+        // STEP 1: reset gating, set up clock
+        let ccu = unsafe { &*CCU::ptr() };
+        ccu.smhc_bgr
+            .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
+        // TODO: optimize based on speed
+        let factor_n = smhc0_clk::FACTOR_N_A::N2;
+        let factor_m = 1;
+        ccu.smhc0_clk.write(|w| {
+            w.clk_src_sel()
+                .pll_peri_1x()
+                .factor_n()
+                .variant(factor_n)
+                .factor_m()
+                .variant(factor_m)
+                .clk_gating()
+                .set_bit()
+        });
 
-    // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
-    // CMD_LOAD | PRG_CLK | WAIT_PRE_OVER
-    unsafe {
-        smhc0.smhc_cmd.write(|w| w.bits(0x80202000));
+        // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
+        // TODO: register interrupt function; how about simple write!() ?
+        smhc0
+            .smhc_ctrl
+            .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
+        smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
+
+        // STEP3: set clock divider for devices (what devices?) and change clock command
+        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
+
+        // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
+        // CMD_LOAD | PRG_CLK | WAIT_PRE_OVER
+        unsafe {
+            smhc0.smhc_cmd.write(|w| w.bits(0x80202000));
+        }
+
+        // turn clock back on
+        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
+        // bus width: 4 data pins
+        smhc0.smhc_ctype.write(|w| w.card_wid().b4());
+
+        // identify card
+        const MMC_RSP_PRESENT: u32 = 1 << 6;
+        const MMC_RSP_136: u32 = 1 << 7;
+        const MMC_RSP_CRC: u32 = 1 << 8;
+        let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
+        unsafe {
+            smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
+        }
     }
-
-    // turn clock back on
-    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
-    // bus width: 4 data pins
-    smhc0.smhc_ctype.write(|w| w.card_wid().b4());
-
-    // identify card
-    const MMC_RSP_PRESENT: u32 = 1 << 6;
-    const MMC_RSP_136: u32 = 1 << 7;
-    const MMC_RSP_CRC: u32 = 1 << 8;
-    let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
-    unsafe {
-        smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
-    }
-    // configure jtag interface
-    /*
-    let tms = gpio.portf.pf0.into_function_4();
-    let tck = gpio.portf.pf5.into_function_4();
-    let tdi = gpio.portf.pf1.into_function_4();
-    let tdo = gpio.portf.pf3.into_function_4();
-    let _jtag = Jtag::new((tms, tck, tdi, tdo));
-    */
 
     // light up led
     let mut pb5 = gpio.portb.pb5.into_output();
@@ -533,16 +538,23 @@ extern "C" fn main() -> usize {
 
     println!("oreboot 🦀");
 
-    for _ in 0..10_000 {
-        core::hint::spin_loop();
+    #[cfg(not(feature = "jtag"))]
+    {
+        let card_present = smhc0.smhc_status.read().card_present().is_present();
+        println!("SD card present? {}", card_present);
+
+        while smhc0.smhc_status.read().card_busy().is_busy() {}
+        for _ in 0..1_000_000 {
+            core::hint::spin_loop();
+        }
+
+        let r0 = smhc0.smhc_resp0.read().bits();
+        let r1 = smhc0.smhc_resp1.read().bits();
+        let r2 = smhc0.smhc_resp2.read().bits();
+        let r3 = smhc0.smhc_resp3.read().bits();
+
+        println!("SD card {:02x}{:02x}{:02x}{:02x}", r0, r1, r2, r3);
     }
-
-    let r0 = smhc0.smhc_resp0.read().bits();
-    let r1 = smhc0.smhc_resp1.read().bits();
-    let r2 = smhc0.smhc_resp2.read().bits();
-    let r3 = smhc0.smhc_resp3.read().bits();
-
-    println!("SD card {:02x}{:02x}{:02x}{:02x}", r0, r1, r2, r3);
 
     // FIXME: Much of the below can be removed or moved over to the main stage.
     trim_bandgap_ref_voltage();
