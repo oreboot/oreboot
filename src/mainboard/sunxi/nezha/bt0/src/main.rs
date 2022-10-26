@@ -247,7 +247,7 @@ This bit will be reset to 1’b0.
 /// It allows for configuring special eXtensions. See further below for details.
 ///
 /// See also what mainline U-Boot does
-/// https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75
+/// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
 #[naked]
 #[export_name = "start"]
 #[link_section = ".text.entry"]
