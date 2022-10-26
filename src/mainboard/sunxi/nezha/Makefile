@@ -7,10 +7,14 @@ MEMORY		 ?= nor
 # outputs: full image and main part (can be run from DRAM)
 IMAGE      ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha.bin
 PAYLOADER  ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-main.bin
+# NOTE: bt0 includes the eGON header
+BOOT0		   ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-bt0.bin
 # DRAM space starts at 0x40000000, see manual p34
 XFEL       ?= xfel
 MEMADDR    ?= 0x40000000
 RELEASE    ?= --release
+SDCARD     ?= /dev/mmcblk0
+DD         ?= sudo dd
 
 # FIXME: Those included Makefiles do not support the xtask build setup.
 # Rework or remove them. We may not even need them at all anymore.
@@ -53,6 +57,11 @@ nosbiflashwithpayload:
 objdump:
 	cargo asm $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
 		--supervisor
+
+sdcard: mainboard
+	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=1
+	# redundant copy
+	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=16
 
 raminitandboot:
 	$(XFEL) ddr d1
