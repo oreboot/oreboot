@@ -30,15 +30,19 @@ make flashwithpayload \
   DTB="$_LINUX_BOOT/dts/allwinner/sun20i-d1-$_BOARD.dtb"
 ```
 
-**Note**
+#### Notes on Device Tree Blob (DTB)
 
-The DTB (device tree blob) is built together with Linux for the respective board
-and to be found within Linux in the directory `arch/riscv/boot/dts/allwinner/`.
-We currently do not patch it at runtime, so you need to hardcode your board's
-memory size into it.
+* The DTB is built together with Linux for the respective board
+and to be found within Linux in the directory [`arch/riscv/boot/dts/allwinner/`](
+https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts/arch/riscv/boot/dts/allwinner)
 
-For a work-in-progress Linux 5.19 (not all patches are upstream yet), see:
-https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts
+* We currently do not patch it at runtime, so you need to hardcode your board's memory size into it
+
+* For a work-in-progress Linux 5.19 see:
+<https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts>
+
+  * Not all patches are upstream yet. Our fork Contains work in addition to DTB patches:
+<https://github.com/torvalds/linux/compare/v5.19...orangecms:linux:5.19-smaeul-plus-dts>
 
 ### From DRAM
 
