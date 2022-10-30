@@ -437,91 +437,6 @@ extern "C" fn main() -> usize {
         let _jtag = Jtag::new((tms, tck, tdi, tdo));
     }
 
-    let smhc0 = p.SMHC0;
-
-    #[cfg(not(feature = "jtag"))]
-    {
-        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
-        gpio.portf.pf0.into_function_2();
-        gpio.portf.pf1.into_function_2();
-        gpio.portf.pf2.into_function_2();
-        gpio.portf.pf3.into_function_2();
-        gpio.portf.pf4.into_function_2();
-        gpio.portf.pf5.into_function_2();
-
-        // let smhc = Smhc::new(p.SMHC0);
-
-        // STEP 1: reset gating, set up clock
-        let ccu = unsafe { &*CCU::ptr() };
-        ccu.smhc_bgr
-            .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
-        // TODO: optimize based on speed
-        let factor_n = smhc0_clk::FACTOR_N_A::N2;
-        let factor_m = 1;
-        ccu.smhc0_clk.write(|w| {
-            w.clk_src_sel()
-                .pll_peri_1x()
-                .factor_n()
-                .variant(factor_n)
-                .factor_m()
-                .variant(factor_m)
-                .clk_gating()
-                .set_bit()
-        });
-
-        // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
-        // TODO: register interrupt function; how about simple write!() ?
-        smhc0
-            .smhc_ctrl
-            .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
-        smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
-
-        // STEP3: set clock divider for devices (what devices?) and change clock command
-        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
-
-        // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
-        // CMD_LOAD | PRG_CLK | WAIT_PRE_OVER
-        unsafe {
-            smhc0.smhc_cmd.write(|w| w.bits(0x80202000));
-        }
-
-        // turn clock back on
-        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
-        // bus width: 4 data pins
-        smhc0.smhc_ctype.write(|w| w.card_wid().b4());
-
-        // identify card
-        const MMC_RSP_PRESENT: u32 = 1 << 6;
-        const MMC_RSP_136: u32 = 1 << 7;
-        const MMC_RSP_CRC: u32 = 1 << 8;
-        let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
-        unsafe {
-            smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
-        }
-    }
-
-    // light up led
-    let mut pb5 = gpio.portb.pb5.into_output();
-    pb5.set_high().unwrap();
-    let mut pb10 = gpio.portb.pb10.into_output();
-    pb10.set_low().unwrap();
-    let mut pb11 = gpio.portb.pb11.into_output();
-    pb11.set_high().unwrap();
-    let mut pc1 = gpio.portc.pc1.into_output();
-    pc1.set_high().unwrap();
-
-    // blinky
-    for _ in 0..2 {
-        for _ in 0..1000_0000 {
-            core::hint::spin_loop();
-        }
-        pb10.set_low().unwrap();
-        for _ in 0..1000_0000 {
-            core::hint::spin_loop();
-        }
-        pb10.set_high().unwrap();
-    }
-
     // prepare serial port logger
     let tx = gpio.portb.pb8.into_function_6();
     let rx = gpio.portb.pb9.into_function_6();
@@ -536,7 +451,87 @@ extern "C" fn main() -> usize {
     let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
     crate::logging::set_logger(serial);
 
+    println!("");
     println!("oreboot 🦀");
+
+    let smhc0 = p.SMHC0;
+    #[cfg(not(feature = "jtag"))]
+    {
+        println!("configure pins for SD Card");
+        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
+        gpio.portf.pf0.into_function_2();
+        gpio.portf.pf1.into_function_2();
+        gpio.portf.pf2.into_function_2();
+        gpio.portf.pf3.into_function_2();
+        gpio.portf.pf4.into_function_2();
+        gpio.portf.pf5.into_function_2();
+
+        // let smhc = Smhc::new(p.SMHC0);
+
+        // STEP 1: reset gating, set up clock
+        print!("setup SDHCI gates");
+        let ccu = unsafe { &*CCU::ptr() };
+        ccu.smhc_bgr
+            .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
+        // TODO: optimize based on speed
+        println!("...done");
+        print!("setup SDHCI clock");
+        let factor_n = smhc0_clk::FACTOR_N_A::N2;
+        let factor_m = 1;
+        ccu.smhc0_clk.write(|w| {
+            w.clk_src_sel()
+                .pll_peri_1x()
+                .factor_n()
+                .variant(factor_n)
+                .factor_m()
+                .variant(factor_m)
+                .clk_gating()
+                .set_bit()
+        });
+        println!("...done");
+
+        // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
+        // TODO: register interrupt function; how about simple write!() ?
+        print!("reset FIFO, enable SIDO vector");
+        smhc0
+            .smhc_ctrl
+            .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
+        smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
+        println!("...done");
+
+        // STEP3: set clock divider for devices (what devices?) and change clock command
+        print!("set clock divider and issue change clock command");
+        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
+        println!("...Issued");
+
+        // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
+        // CMD_LOAD | PRG_CLK | WAIT_PRE_OVER
+        print!("send command with 0x80202000");
+        unsafe {
+            smhc0.smhc_cmd.write(|w| w.bits(0x80202000));
+        }
+        println!("...Sent");
+
+        // turn clock back on
+        print!("Enable clock");
+        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
+        println!("...done");
+        // bus width: 4 data pins
+        print!("Set Bus Width to 4");
+        smhc0.smhc_ctype.write(|w| w.card_wid().b4());
+        println!("...done");
+
+        // identify card
+        const MMC_RSP_PRESENT: u32 = 1 << 6;
+        const MMC_RSP_136: u32 = 1 << 7;
+        const MMC_RSP_CRC: u32 = 1 << 8;
+        let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
+        print!("Issue command to ID Card with 0x80000002");
+        unsafe {
+            smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
+        }
+        println!("...done");
+    }
 
     #[cfg(not(feature = "jtag"))]
     {
