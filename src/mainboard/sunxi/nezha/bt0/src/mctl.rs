@@ -1,7 +1,7 @@
 use core::ptr::{read_volatile, write_volatile};
 
 // for verbose prints
-const VERBOSE: bool = false;
+const VERBOSE: bool = true;
 
 pub const RAM_BASE: usize = 0x40000000;
 

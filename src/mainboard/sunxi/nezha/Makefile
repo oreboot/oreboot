@@ -13,8 +13,9 @@ BOOT0		   ?= $(OREBOOT)/target/$(TARGET)/release/oreboot-nezha-bt0.bin
 XFEL       ?= xfel
 MEMADDR    ?= 0x40000000
 RELEASE    ?= --release
-SDCARD     ?= /dev/disk/by-id/usb-Generic_MassStorageClass_000000001536-0:1
-DD         ?= dd status=progress conv=fdatasync
+// SDCARD     ?= /dev/disk/by-id/usb-Generic_MassStorageClass_000000001536-0:1
+SDCARD     ?= /dev/disk/by-id/usb-Generic-_USB3.0_CRW_-SD_201510191731-0:1
+DD         ?= dd status=progress conv=fdatasync conv=nocreat
 
 # FIXME: Those included Makefiles do not support the xtask build setup.
 # Rework or remove them. We may not even need them at all anymore.
@@ -63,10 +64,17 @@ sdcardacl:
 	[ -w $(SDCARD) ] || sudo -k sdcard='$(SDCARD)' sh -c 'setfacl -m u:"$${SUDO_USER:?}":rw "$${sdcard:?}"'
 	[ -w $(SDCARD) ]
 
+sdcardclean: sdcardacl
+	blkdiscard -v $(SDCARD) || $(DD) conv=noerror if=/dev/zero of=$(SDCARD) iflag=fullblock bs=4K
+
 sdcard: mainboard sdcardacl
+	[ -b $(SDCARD) ]
 	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=1
 	# redundant copy
 	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=16
+	sync
+	sync
+	eject -v $(SDCARD)
 
 raminitandboot:
 	$(XFEL) ddr d1
