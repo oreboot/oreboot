@@ -2,19 +2,19 @@ OREBOOT=$(abspath $(CURDIR)/../../../../)
 # architecture
 TARGET     = riscv64imac-unknown-none-elf
 # config: board variant and storage memory type
-VARIANT    ?= lichee
+VARIANT    ?= clockworkpi
 MEMORY		 ?= nor
 # outputs: full image and main part (can be run from DRAM)
 IMAGE      ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha.bin
 PAYLOADER  ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-main.bin
 # NOTE: bt0 includes the eGON header
-BOOT0		   ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-bt0.bin
+BOOT0		   ?= $(OREBOOT)/target/$(TARGET)/release/oreboot-nezha-bt0.bin
 # DRAM space starts at 0x40000000, see manual p34
 XFEL       ?= xfel
 MEMADDR    ?= 0x40000000
 RELEASE    ?= --release
-SDCARD     ?= /dev/mmcblk0
-DD         ?= sudo dd
+SDCARD     ?= /dev/disk/by-id/usb-Generic_MassStorageClass_000000001536-0:1
+DD         ?= dd status=progress conv=fdatasync
 
 # FIXME: Those included Makefiles do not support the xtask build setup.
 # Rework or remove them. We may not even need them at all anymore.
@@ -58,7 +58,12 @@ objdump:
 	cargo asm $(RELEASE) --variant $(VARIANT) --memory $(MEMORY) \
 		--supervisor
 
-sdcard: mainboard
+sdcardacl:
+	[ -b $(SDCARD) ]
+	[ -w $(SDCARD) ] || sudo -k sdcard='$(SDCARD)' sh -c 'setfacl -m u:"$${SUDO_USER:?}":rw "$${sdcard:?}"'
+	[ -w $(SDCARD) ]
+
+sdcard: mainboard sdcardacl
 	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=1
 	# redundant copy
 	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=16
