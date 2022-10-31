@@ -457,6 +457,22 @@ extern "C" fn main() -> usize {
     let smhc0 = p.SMHC0;
     #[cfg(not(feature = "jtag"))]
     {
+        /*
+         # SDHCI and SDC bring up. Links:
+
+         * https://docs.tockos.org/capsules/sdcard/index.html
+         * https://github.com/tock/tock/blob/master/capsules/src/sdcard.rs
+         * https://github.com/rust-embedded-community/embedded-sdmmc-rs#using-the-crate
+         * https://docs.rs/embedded-sdmmc/latest/embedded_sdmmc/
+
+         ## D1 Specific:
+
+         * https://dev.to/xphoniex/how-to-call-c-code-from-rust-56do
+         * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdhost.c
+         * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdcard.c
+         * In linux there's a specific driver for sunxi-mmc
+           https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
+        */
         println!("configure pins for SD Card");
         // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
         gpio.portf.pf0.into_function_2();
@@ -531,10 +547,7 @@ extern "C" fn main() -> usize {
             smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
         }
         println!("...done");
-    }
 
-    #[cfg(not(feature = "jtag"))]
-    {
         let card_present = smhc0.smhc_status.read().card_present().is_present();
         println!("SD card present? {}", card_present);
 
