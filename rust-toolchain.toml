@@ -1,6 +1,6 @@
 [toolchain]
 channel = "nightly-2022-10-12"
-components = [ "rust-src", "llvm-tools-preview", "rustfmt", "clippy" ]
+components = ["rust-src", "llvm-tools-preview", "rustfmt", "clippy"]
 targets = [
   "aarch64-unknown-none-softfloat",
   "armv7a-none-eabi",
