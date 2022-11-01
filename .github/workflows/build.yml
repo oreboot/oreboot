@@ -12,6 +12,14 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  QuickFormat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: git-checkout-action
+        uses: actions/checkout@v3
+      - name: dprint-check-action
+        uses: dprint/check@v2.1
+
   LintAndFormat:
     runs-on: ubuntu-latest
     steps:
