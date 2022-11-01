@@ -3,11 +3,9 @@
 The Allwinner (aka sunxi) Nezha board features a D1 SoC, based on the XuanTie
 C906 core. It has a 256 MB NAND flash, large enough for oreboot and LinuxBoot.
 
-More comprehensive information can be found in the [linux-sunxi wiki](
-https://linux-sunxi.org/index.php?title=Allwinner_Nezha).
+More comprehensive information can be found in the [linux-sunxi wiki](https://linux-sunxi.org/index.php?title=Allwinner_Nezha).
 
-There is a [multitude of other boards based on the D1](
-https://linux-sunxi.org/Category:D1_Boards).
+There is a [multitude of other boards based on the D1](https://linux-sunxi.org/Category:D1_Boards).
 
 ## Running oreboot
 
@@ -32,17 +30,16 @@ make flashwithpayload \
 
 #### Notes on Device Tree Blob (DTB)
 
-* The DTB is built together with Linux for the respective board
-and to be found within Linux in the directory [`arch/riscv/boot/dts/allwinner/`](
-https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts/arch/riscv/boot/dts/allwinner)
+- The DTB is built together with Linux for the respective board
+  and to be found within Linux in the directory [`arch/riscv/boot/dts/allwinner/`](https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts/arch/riscv/boot/dts/allwinner)
 
-* We currently do not patch it at runtime, so you need to hardcode your board's memory size into it
+- We currently do not patch it at runtime, so you need to hardcode your board's memory size into it
 
-* For a work-in-progress Linux 5.19 see:
-<https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts>
+- For a work-in-progress Linux 5.19 see:
+  <https://github.com/orangecms/linux/tree/5.19-smaeul-plus-dts>
 
-  * Not all patches are upstream yet. Our fork Contains work in addition to DTB patches:
-<https://github.com/torvalds/linux/compare/v5.19...orangecms:linux:5.19-smaeul-plus-dts>
+  - Not all patches are upstream yet. Our fork Contains work in addition to DTB patches:
+    <https://github.com/torvalds/linux/compare/v5.19...orangecms:linux:5.19-smaeul-plus-dts>
 
 ### From DRAM
 
@@ -73,8 +70,7 @@ With oreboot, there are two possibilities to run a payload:
 
 Useful example M-mode payloads:
 
-- [D1 UART C example](
-  https://github.com/bigmagic123/d1-nezha-baremeta/tree/main/src/3.uart)
+- [D1 UART C example](https://github.com/bigmagic123/d1-nezha-baremeta/tree/main/src/3.uart)
 - [xv6-d1](https://github.com/michaelengel/xv6-d1)
 
 Both of these examples would need to be compiled using a C toolchain such as the
