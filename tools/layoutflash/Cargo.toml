@@ -5,6 +5,6 @@ authors = ["Ryan O'Leary <ryanoleary@google.com>"]
 edition = "2021"
 
 [dependencies]
+clap = { version = "3", features = ["derive"] }
 device_tree = { path = "../../src/lib/device_tree" }
 oreboot-drivers = { path = "../../src/drivers" }
-clap = { version = "3", features = ["derive"] }
