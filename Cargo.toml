@@ -1,28 +1,28 @@
 [workspace]
 # in general, avoid wildcards, to make sure we get only what we want.
 members = [
-    "src/arch",
-    "src/console",
-    "src/cpu",
-    "src/soc",
+  "src/arch",
+  "src/console",
+  "src/cpu",
+  "src/soc",
 
-    "src/lib/consts",
-    "src/lib/util",
+  "src/lib/consts",
+  "src/lib/util",
 
-    "src/mainboard/sunxi/nezha/*",
+  "src/mainboard/sunxi/nezha/*",
 
-    "xtask",
+  "xtask",
 ]
 default-members = ["xtask"]
 
 [profile.release]
-opt-level = 'z'  # Optimize for size.
+opt-level = 'z' # Optimize for size.
 lto = true
 # Leave debug symbol information on release compilation mode
 # That's okay, these symbols won't appear on flash binary
 debug = true
 
 [profile.dev]
-opt-level = 1               # Use slightly better optimizations.
-overflow-checks = false     # Disable integer overflow checks.
+opt-level = 1 # Use slightly better optimizations.
+overflow-checks = false # Disable integer overflow checks.
 lto = true
