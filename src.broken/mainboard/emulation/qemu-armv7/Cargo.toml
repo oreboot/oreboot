@@ -7,8 +7,8 @@ edition = "2021"
 [dependencies]
 console = { path = "../../../console" }
 device_tree = { path = "../../../lib/device_tree" }
+payloads = { path = "../../../../payloads" }
 print = { path = "../../../lib/print" }
-payloads = { path = "../../../../payloads"}
 
 [dependencies.oreboot-cpu]
 path = "../../../cpu"
