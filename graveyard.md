@@ -1,5 +1,4 @@
-oreboot Graveyard
-==============
+# oreboot Graveyard
 
 ```
 Path                               Deleting Commit
