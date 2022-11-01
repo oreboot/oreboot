@@ -7,8 +7,8 @@ code reuse and macro definitions.
 rpp uses the same syntax as GNU cpp and supports the following preprocessor
 directives:
 
-* `#define`
-* `#include`
+- `#define`
+- `#include`
 
 Note, rpp does not support function macro definitions. For example:
 
