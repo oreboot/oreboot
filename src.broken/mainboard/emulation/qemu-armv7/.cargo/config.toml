@@ -3,5 +3,8 @@ target = "arm-none-eabihf"
 
 [target.arm-none-eabihf]
 rustflags = [
-  "-C", "link-arg=-Tlink.ld", "-Z", "emit-stack-sizes",
+  "-C",
+  "link-arg=-Tlink.ld",
+  "-Z",
+  "emit-stack-sizes",
 ]
