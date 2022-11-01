@@ -6,12 +6,12 @@ edition = "2021"
 
 [dependencies]
 console = { path = "../../../console" }
+payloads = { path = "../../../../payloads" }
 print = { path = "../../../lib/print" }
-payloads = { path = "../../../../payloads"}
 
 heapless = "0.6.1"
-tock-registers = "0.7.0"
 static-ref = "0.1.1"
+tock-registers = "0.7.0"
 
 [dependencies.oreboot-arch]
 path = "../../../arch"
