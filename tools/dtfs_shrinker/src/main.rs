@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::env;
-use std::fs::OpenOptions;
 use std::fs;
+use std::fs::OpenOptions;
 use std::io::Write;
 use std::io::{self, BufRead, Seek, SeekFrom};
 use std::path::PathBuf;
@@ -12,7 +12,9 @@ lazy_static! {
 }
 
 fn find_hex(line: &str) -> &str {
-    let caps = HEX_REGEX.captures(&line).expect("Invalid line format, expected a hex value");
+    let caps = HEX_REGEX
+        .captures(&line)
+        .expect("Invalid line format, expected a hex value");
     return caps.get(0).map_or("", |m| m.as_str());
 }
 
@@ -24,7 +26,7 @@ fn write_dtfs(dtfs_in: &str, dtfs_out: &str) -> std::io::Result<()> {
     // Round up to the nearest megabyte, but otherwise make the
     // payload area as small as needed to fit the payload itself.
     let payload = PathBuf::from(env::var("PAYLOAD_A").expect("PAYLOAD_A not in environment"));
-    let payload_file_size : u32 = fs::metadata(payload)?.len().try_into().unwrap();
+    let payload_file_size: u32 = fs::metadata(payload)?.len().try_into().unwrap();
     let payload_area_size = (payload_file_size + 0x100000) & !0xFFFFF;
 
     let mut dtfs_file = fs::File::open(dtfs_in)?;
@@ -52,7 +54,6 @@ fn write_dtfs(dtfs_in: &str, dtfs_out: &str) -> std::io::Result<()> {
         }
     }
 
-
     let mut current_area_index = 0;
     let mut current_area_offset = 0;
     let mut current_area_size = 0;
@@ -68,16 +69,14 @@ fn write_dtfs(dtfs_in: &str, dtfs_out: &str) -> std::io::Result<()> {
             if current_area_index > payload_area_index {
                 line_to_print = line.replace(hex, &format!("{:#x}", current_area_offset));
             }
-        }
-        else if line.contains(&"size = ") {
+        } else if line.contains(&"size = ") {
             let hex = find_hex(&line);
             current_area_size = parse_hex(hex);
             if current_area_index == payload_area_index {
                 current_area_size = payload_area_size;
                 line_to_print = line.replace(hex, &format!("{:#x}", current_area_size));
             }
-        }
-        else if line.contains(&"file = ") && line.contains(&"fixed-dtfs.dtb") {
+        } else if line.contains(&"file = ") && line.contains(&"fixed-dtfs.dtb") {
             line_to_print = line.replace("fixed-dtfs.dtb", "fixed-dtfs-shrunk.dtb");
         }
 
