@@ -13,6 +13,8 @@ members = [
   "src/mainboard/emulation/*",
 
   "xtask",
+
+  "tools/layoutflash",
 ]
 default-members = ["xtask"]
 

@@ -1,6 +1,5 @@
 use clap::Parser;
 use device_tree::area::{read_areas, Area};
-use oreboot_drivers::wrappers::SliceReader;
 use std::io::{self, Seek, SeekFrom, Write};
 use std::process::exit;
 use std::{
