@@ -6,8 +6,8 @@ edition = "2021"
 
 [dependencies]
 console = { path = "../../../console" }
+payloads = { path = "../../../../payloads" }
 print = { path = "../../../lib/print" }
-payloads = { path = "../../../../payloads"}
 
 heapless = "0.6.1"
 postcard = "0.7.3"
