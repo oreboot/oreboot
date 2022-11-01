@@ -8,5 +8,5 @@ There's a video here: https://www.lowrisc.org/blog/2019/11/get-started-with-open
 
 Pre-built bitstream can be found here:
 
-* Releases: https://github.com/lowRISC/opentitan/releases
-* For newer bitstreams, look at Azure pipelines, for example: https://dev.azure.com/lowrisc/opentitan/_build/results?buildId=6401&view=logs&j=a8b61b66-4668-57fb-dcc3-ba755ef807ae
+- Releases: https://github.com/lowRISC/opentitan/releases
+- For newer bitstreams, look at Azure pipelines, for example: https://dev.azure.com/lowrisc/opentitan/_build/results?buildId=6401&view=logs&j=a8b61b66-4668-57fb-dcc3-ba755ef807ae
