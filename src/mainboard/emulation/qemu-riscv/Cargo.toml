@@ -6,3 +6,4 @@ edition = "2021"
 
 [dependencies]
 
+uart_16550 = "0.2.18"
