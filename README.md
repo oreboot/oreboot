@@ -1,9 +1,6 @@
-oreboot README
-==============
+# oreboot README
 
-[![Build Status](
-https://github.com/oreboot/oreboot/actions/workflows/build.yml/badge.svg)
-](https://github.com/oreboot/oreboot/actions/workflows/build.yml)
+[![Build Status](https://github.com/oreboot/oreboot/actions/workflows/build.yml/badge.svg)](https://github.com/oreboot/oreboot/actions/workflows/build.yml)
 
 ![oreboot logo](Documentation/img/logo-small.png)
 
@@ -13,14 +10,13 @@ oreboot is mostly written in Rust, with assembly where needed.
 
 oreboot currently only plans to support LinuxBoot payloads.
 
-
-Demos
------
+## Demos
 
 - [oreboot for ARM in QEMU](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
 - [oreboot for RISC-V HiFive Unleashed in QEMU](https://asciinema.org/a/XnWkMWTABuajsbGPMMTefjuZ2)
 
 ### Output sample from the RISC-V demo
+
 ```
 Testing DDR...                                                                                              
 Starting to fill with data                                                                                  
@@ -45,18 +41,16 @@ Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
 Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)                                      
 mem auto-init: stack:off, heap alloc:off, heap free:off                                                     
 Memory: 1031428K/1048576K available (814K kernel code, 80K rwdata, 98K rodata, 64K init, 171K bss, 17148K re
-served, 0K cma-reserved) 
+served, 0K cma-reserved)
 ```
 
-Boot Flow and Setup
--------------------
+## Boot Flow and Setup
 
 To get a general understanding of how oreboot and firmware in general works,
 have a look at the [boot flow documentation](Documentation/boot-flow.md). It
 describes how firmware is stored and boots up on a platform / SoC.
 
-Getting oreboot
----------------
+## Getting oreboot
 
 Clone this repo and enter its directory, i.e.:
 
@@ -65,8 +59,7 @@ git clone git://github.com/oreboot/oreboot
 cd oreboot
 ```
 
-Prerequisites
--------------
+## Prerequisites
 
 In general, you will need the following packages installed:
 
@@ -84,8 +77,7 @@ make debiansysprepare
 
 Otherwise, install the package through your system package manager.
 
-Setting up the toolchain
-------------------------
+## Setting up the toolchain
 
 Regardless of your OS, you will need to install the toolchain for oreboot.
 This command only needs to be done once but it is safe to do it repeatedly.
@@ -94,9 +86,7 @@ This command only needs to be done once but it is safe to do it repeatedly.
 make firsttime
 ```
 
-
-Keeping build tools up to date
-------------------------------
+## Keeping build tools up to date
 
 Each time you start to work with oreboot, or even daily:
 
@@ -107,8 +97,7 @@ make update
 
 You should definitely do this before reporting any issues.
 
-Developing oreboot
-------------------
+## Developing oreboot
 
 There are two different things in the project:
 
@@ -116,7 +105,7 @@ There are two different things in the project:
    can be drivers, SoC init code, and similar. For mainboards, `Cargo.lock`
    **must** be tracked.
 2. `src/*` everything else; these are the aforementioned crates, for which, we
-    do not track the `Cargo.lock` files.
+   do not track the `Cargo.lock` files.
 
 Checking in a mainboard's `Cargo.lock` file records the state of its dependencies
 at the time of a successful build, enabling reproducibility. Ideally, a lock file
@@ -128,8 +117,7 @@ When creating a new mainboard, looking at how others are set up for the same
 architecture is a good start. Be aware that oreboot is targeting bare metal, so
 there is no standard library available.
 
-Building oreboot
-----------------
+## Building oreboot
 
 To build oreboot for a specific platform, do this:
 
@@ -157,9 +145,7 @@ make mainboards
 make -j mainboards
 ```
 
-
-QEMU
-----
+## QEMU
 
 ```
 # Install QEMU for your target platform, e.g. x86
@@ -190,40 +176,35 @@ make -j$(nproc)
 # QEMU binary is at aarch64-softmmu/qemu-system-aarch64
 ```
 
-Oreboot Mainboards
-------------------
+## Oreboot Mainboards
 
-* Emulation
-  * qemu-armv7
-  * qemu-aarch64
-  * qemu-q35
-  * qemu-riscv
-* Hardware
-  * Aspeed ast25x0
-  * Nuvoton npcm7xx
-  * OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
-  * SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
-  * Sipeed Lichee RV / Pro (Allwinner D1 SoC)
-  * DongshanPi Nezha STU (Allwinner D1 SoC)
+- Emulation
+  - qemu-armv7
+  - qemu-aarch64
+  - qemu-q35
+  - qemu-riscv
+- Hardware
+  - Aspeed ast25x0
+  - Nuvoton npcm7xx
+  - OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
+  - SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
+  - Sipeed Lichee RV / Pro (Allwinner D1 SoC)
+  - DongshanPi Nezha STU (Allwinner D1 SoC)
 
+## Ground Rules
 
-Ground Rules
-------------
-
-* Makefile must be simple. They cannot contain control flow.
-* Cargo.toml files are located in the src/mainboard/x/y directories. which will
+- Makefile must be simple. They cannot contain control flow.
+- Cargo.toml files are located in the src/mainboard/x/y directories. which will
   allow us to build all boards in parallel.
-* All code is auto-formatted with rustfmt with no exceptions. There are no
+- All code is auto-formatted with rustfmt with no exceptions. There are no
   vestiges of the 19th century such as line length limits.
-* There will be no C.
-* We will not run our own Gerrit. We are using Github for now, and the github
+- There will be no C.
+- We will not run our own Gerrit. We are using Github for now, and the github
   Pull Request review mechanism.
-* We will not run our own Jenkins. We will use the most appropriate CI; for
+- We will not run our own Jenkins. We will use the most appropriate CI; for
   now, that is Azure but we will be flexible.
 
-
-Copyright and License
----------------------
+## Copyright and License
 
 The copyright on oreboot is owned by quite a large number of individual
 developers and companies. Please check the individual source files for details.
