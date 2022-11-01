@@ -41,20 +41,19 @@ Let's go over above steps in a little more details.
 This is the code inside `src/mainboard/*/*/src/main.rs`. It starts with a tiny
 bit of assembler (that is included inside `main.rs`, it performs minimal
 amount of initialization and then calls into the Rust program. Compared to
-other Rust binaries, there is no `main` method, instead you will see `pub
-extern "C" fn ...` methods that are being called from assembler to start the
+other Rust binaries, there is no `main` method, instead you will see `pub extern "C" fn ...` methods that are being called from assembler to start the
 program. The Rust binary then initializes more of the hardware, prepares the
 actual payload and runs it.
 
-Mainboard code only uses `core` library and does not use `std`.  This means no
+Mainboard code only uses `core` library and does not use `std`. This means no
 heap allocated structures like `Box` or `Vec` and arrays have to have
 statically allocated size.
 
 The binary is generated in two steps:
 
-* Build ELF (Executable and Linkable Format) binary, with
-`cargo build --target $(TARGET) -Z build-std=core,alloc` command.
-* Convert it to binary format with `rust-objcopy` into `bootblob.bin` file.
+- Build ELF (Executable and Linkable Format) binary, with
+  `cargo build --target $(TARGET) -Z build-std=core,alloc` command.
+- Convert it to binary format with `rust-objcopy` into `bootblob.bin` file.
 
 This `bootblob.bin` is then used to construct the image that will be written
 into the device.
@@ -73,13 +72,13 @@ which is converted inside Makefile using `dtc` command).
 
 Most images include following parts:
 
-* oreboot (`bootblob.bin`) - this is what hardware starts first. It often is a
+- oreboot (`bootblob.bin`) - this is what hardware starts first. It often is a
   first thing in the image (though it not always starts at offset 0).
-* `oreboot device tree` - binary form of `fixed-dtfs.dts` file. I believe
+- `oreboot device tree` - binary form of `fixed-dtfs.dts` file. I believe
   currently it is included mostly for debugging purposes (though my guess is
   that it should be used to find where the payload is located that should be
   executed, but currently the offsets are hardcoded inside the oreboot binary).
-* payload - actual binary that will be executed. It is configured with
+- payload - actual binary that will be executed. It is configured with
   environment variables, which is why the `make run` method starts with
   `PAYLOAD_A=...`.
 
@@ -90,14 +89,14 @@ Once image is created, qemu is invoked to emulate given hardware. It takes
 
 ## Important crates / types
 
-* `src/drivers/model/` - defines the `Device` trait, that is the main
+- `src/drivers/model/` - defines the `Device` trait, that is the main
   type to read and write data (often to actual serial devices)
-* `src/drivers/wrappers/` - defines few simple implementation of
+- `src/drivers/wrappers/` - defines few simple implementation of
   `Device` tree (e.g. `SliceReader` for exposing slice of binary data as
   `Driver` trait, or `Memory` for reading the data directly from memory).
-* `src/lib/device_tree/` - library for reading device tree binary format.
-* `payloads` - library for loading a payload and executing it.
-* `tools/layoutflash` - tool for creating an image from binary blobs.
+- `src/lib/device_tree/` - library for reading device tree binary format.
+- `payloads` - library for loading a payload and executing it.
+- `tools/layoutflash` - tool for creating an image from binary blobs.
 
 Note: There are probably more important types and crates, but those are the
 ones I got to so far in my exploration.
@@ -106,20 +105,18 @@ ones I got to so far in my exploration.
 
 Those commands are invoked from the top level `oreboot` directory:
 
-* `make format` - format all Rust files in the project.
-* `make clippy` - run clippy linter on all Rust files in the project.
-* `make test` - run all Rust tests in the project.
-* `make flash` - flash to hardware, specify programmer for flashrom with
+- `make format` - format all Rust files in the project.
+- `make clippy` - run clippy linter on all Rust files in the project.
+- `make test` - run all Rust tests in the project.
+- `make flash` - flash to hardware, specify programmer for flashrom with
   `FLASHROM_PROGRAMMER`.
-
 
 ## Next steps
 
-* I highly recommend starting with either a tool like `layoutflash` or a
+- I highly recommend starting with either a tool like `layoutflash` or a
   mainboards `main.rs` file, and reading its code. When something is not clear,
   try to improve the comments, write unit tests or refactor.
-* Look at open Issues in github, especially the ones with `good first issue`
+- Look at open Issues in github, especially the ones with `good first issue`
   label.
 
-[^1]: logo by Susanne Nähler, taken from [linuxboot/stickers](
-https://github.com/linuxboot/stickers#oreboot)
+[^1]: logo by Susanne Nähler, taken from [linuxboot/stickers](https://github.com/linuxboot/stickers#oreboot)
