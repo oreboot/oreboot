@@ -9,10 +9,7 @@ pub const MSIP0: usize = 0;
 pub const MTIMECMPL: usize = 0x4000;
 
 pub mod mtimecmp {
-    use super::{
-        CLINT_BASE, MTIMECMPL,
-        write_reg,
-    };
+    use super::{write_reg, CLINT_BASE, MTIMECMPL};
     pub fn write(word: u64) {
         unsafe {
             let mask = u64::MAX;
@@ -22,10 +19,7 @@ pub mod mtimecmp {
     }
 }
 pub mod msip {
-    use super::{
-        CLINT_BASE, MSIP0,
-        write_reg,
-    };
+    use super::{write_reg, CLINT_BASE, MSIP0};
 
     pub fn set_ipi(_word: usize) {
         unsafe { write_reg(CLINT_BASE, MSIP0, 1u64) }
