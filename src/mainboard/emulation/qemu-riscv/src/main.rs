@@ -13,7 +13,7 @@ const SERIAL_PORT_BASE_ADDRESS: usize = 0x1000_0000;
 //let data = serial_port.receive();
 
 #[no_mangle]
-pub extern "C" fn _start(fdt_address: usize) -> ! {
+pub extern "C" fn _start(_fdt_address: usize) -> ! {
     loop {
         let mut serial_port = unsafe { MmioSerialPort::new(SERIAL_PORT_BASE_ADDRESS) };
         serial_port.init();
@@ -24,6 +24,6 @@ pub extern "C" fn _start(fdt_address: usize) -> ! {
 }
 
 #[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
