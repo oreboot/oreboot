@@ -37,8 +37,7 @@ processor modes. The x86 is still starting up in a 16bit mode as of 2022.
 In the first stage, we initialize the main clocks, some GPIOs, a serial port,
 and potentially light up LEDs to get early feedback. Then we initialize the DRAM
 controller and make the large DRAM available. The only memory we have up to that
-point is SRAM plus registers. Depending on the platform, [XIP (eXecute in-place)
-](https://en.wikipedia.org/wiki/Execute_in_place) may be possible, e.g., when
+point is SRAM plus registers. Depending on the platform, [XIP (eXecute in-place)](https://en.wikipedia.org/wiki/Execute_in_place) may be possible, e.g., when
 the boot storage (NOR flash) is mapped to memory.
 
 The final step in this early stage is to copy the next stage to DRAM and run it.
@@ -50,14 +49,11 @@ already run the final OS, a hypervisor, or any other payload. However, some
 platforms require extra steps. For this example, we will look at RISC-V.
 
 RISC-V describes [SBI](https://github.com/riscv-non-isa/riscv-sbi-doc), the
-Supervisor Binary Interface, in the [privileged spec](
-https://riscv.org/technical/specifications/). The role of SBI is to set up or
+Supervisor Binary Interface, in the [privileged spec](https://riscv.org/technical/specifications/). The role of SBI is to set up or
 delegate exception and interrupt handling, register functions for the OS to call
-into, and drop into a lower privileged mode named S-mode which makes an [MMU](
-https://en.wikipedia.org/wiki/Memory_management_unit) available, and finally
+into, and drop into a lower privileged mode named S-mode which makes an [MMU](https://en.wikipedia.org/wiki/Memory_management_unit) available, and finally
 execute the operating system. This is where we hand over to LinuxBoot, our
-boot loader environment. In oreboot, we implement SBI via [RustSBI](
-https://github.com/rustsbi/rustsbi), a Rust crate offering all the necessary
+boot loader environment. In oreboot, we implement SBI via [RustSBI](https://github.com/rustsbi/rustsbi), a Rust crate offering all the necessary
 functions we need as a library.
 
 ### Stage 3: Payload (LinuxBoot)
@@ -67,11 +63,10 @@ familiar commands, such as `ls`, `cat`, etc, as well as boot loaders, we choose
 [u-root](https://u-root.org) to build our initramfs. However, you may as well
 embed [cpud](https://github.com/u-root/cpu) directly, or your own custom app.
 
-###  DTB (Device Tree Blob)
+### DTB (Device Tree Blob)
 
 There are components on a compute platform that can be scanned for and detected
 by the operating system, and others that need a fixed description instead. Those
-can be passed to Linux and some other systems in the aforementioned [Device Tree
-format](https://www.devicetree.org/). On RISC-V, the DTB needs to sit _behind_
+can be passed to Linux and some other systems in the aforementioned [Device Treeformat](https://www.devicetree.org/). On RISC-V, the DTB needs to sit _behind_
 the Linux kernel, and its memory location passed via defined registers. On some
 platforms, e.g., x86, [ACPI](https://uefi.org/specs/ACPI/6.4/) is used instead.
