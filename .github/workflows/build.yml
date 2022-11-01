@@ -1,10 +1,12 @@
+---
+
 name: build
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,35 +15,35 @@ jobs:
   LintAndFormat:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: 'Install Dependencies'
-      run: sudo apt-get update && make ciprepare
-    - name: 'clippy linter'
-      run: make --keep-going clippy
-    - name: 'Check formatting'
-      run: make --keep-going checkformat
+      - uses: actions/checkout@v2
+      - name: 'Install Dependencies'
+        run: sudo apt-get update && make ciprepare
+      - name: 'clippy linter'
+        run: make --keep-going clippy
+      - name: 'Check formatting'
+        run: make --keep-going checkformat
 
   Test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: 'Install Dependencies'
-      run: |
-        sudo apt-get update && make ciprepare
-    - name: 'Create coverage file'
-      run: make --keep-going citest
-    - name: 'upload the coverage file to server'
-      uses: codecov/codecov-action@v2.1.0
-      with:
-        files: ./coverall/lcov.txt
+      - uses: actions/checkout@v2
+      - name: 'Install Dependencies'
+        run: |
+          sudo apt-get update && make ciprepare
+      - name: 'Create coverage file'
+        run: make --keep-going citest
+      - name: 'upload the coverage file to server'
+        uses: codecov/codecov-action@v2.1.0
+        with:
+          files: ./coverall/lcov.txt
 
   Build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: 'Install Dependencies'
-      run: sudo apt-get update && make ciprepare
-    - name: 'Build all mainboards'
-      run: make --keep-going mainboards
-    - name: 'Generate report of binary sizes'
-      run: ./scripts/generate-size-report.sh
+      - uses: actions/checkout@v2
+      - name: 'Install Dependencies'
+        run: sudo apt-get update && make ciprepare
+      - name: 'Build all mainboards'
+        run: make --keep-going mainboards
+      - name: 'Generate report of binary sizes'
+        run: ./scripts/generate-size-report.sh
