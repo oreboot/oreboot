@@ -5,7 +5,7 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-consts = { path= "../lib/consts" }
+consts = { path = "../lib/consts" }
 util = { path = "../lib/util" }
 vcell = "0.1.3"
 
