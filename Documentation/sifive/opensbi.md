@@ -1,5 +1,4 @@
-OpenSBI
--------
+## OpenSBI
 
 OpenSBI is used in the `FW_JUMP` mode. This jumps to 0x80200000 with a device
 tree at 0x88000000.
