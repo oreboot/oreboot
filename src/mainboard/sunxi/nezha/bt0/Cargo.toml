@@ -1,12 +1,12 @@
 [package]
 name = "oreboot-nezha-bt0"
 version = "0.1.0"
-edition = "2021"
 authors = [
-    "Luo Jia <me@luojia.cc>",
-    "Daniel Maslowski <info@orangecms.org>",
-    "YdrMaster <ydrml@hotmail.com>",
+  "Luo Jia <me@luojia.cc>",
+  "Daniel Maslowski <info@orangecms.org>",
+  "YdrMaster <ydrml@hotmail.com>",
 ]
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
