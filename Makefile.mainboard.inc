@@ -14,7 +14,7 @@ $(shell echo "BOARD        = $(BOARD)" 1>&2)
 
 $(IMAGE): $(BOOTBLOB) $(FIXED_DTFS)
 # These two environment variable parameters are used in fixed-dtfs.dts
-	BOOTBLOB=$(BOOTBLOB) FIXED_DTFS=$(FIXED_DTFS) cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(FIXED_DTFS) $@
+	BOOTBLOB=$(BOOTBLOB) FIXED_DTFS=$(FIXED_DTFS) echo NOT doing 'cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(FIXED_DTFS) $@'
 	@printf "**\n** Output: $@\n**\n"
 
 $(BOOTBLOB): $(ELF)
