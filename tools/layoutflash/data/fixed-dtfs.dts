@@ -1,0 +1,31 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "QEMU RISC-V VIRT";
+        category = "Emulation";
+        areas {
+            area@0 {
+                description = "Boot Blob and Romstage";
+                compatible = "ore-bootblob";
+                size = <0x10>;
+                file = "$(BOOTBLOB)";
+            };
+            area@1 {
+                description = "Fixed DTFS";
+                compatible = "ore-dtfs";
+                size = <1024>;
+                file = "$(FIXED_DTFS)";
+            };
+            area@2 {
+                description = "Empty Space";
+                offset = <1040>;
+                size = <0x10>;
+            };
+        };
+    };
+};
