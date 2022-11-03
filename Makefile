@@ -54,14 +54,6 @@ ciprepare: debiansysprepare firsttime
 update:
 	rustup update
 
-# Option used for formatting. If set, the command will only verify if
-# formatting is correct (without actually changing the formatting).
-# Returns 0 only if all files are properly formatted.
-# Usage:
-# 	$ make --keep-going format
-# 	$ make --keep-going checkformat
-check ?=
-
 # NOTE: do NOT use the cargo command in targets below.
 # ALWAYS USE MAKE!
 
@@ -84,17 +76,13 @@ $(TEST_ALL_MAKE_DEFAULT):
 .PHONY: testdefault $(TEST_ALL_MAKE_DEFAULT)
 testdefault: $(TEST_ALL_MAKE_DEFAULT)
 
-CRATES_TO_FORMAT := $(patsubst %/Makefile,%/Makefile.format,$(ALLMAKEFILE))
-$(CRATES_TO_FORMAT):
-	cd $(dir $@) && make format -- $(if $(check),--check,)
-.PHONY: format $(CRATES_TO_FORMAT)
-format: $(CRATES_TO_FORMAT)
+.PHONY: format
+format:
+	dprint fmt
 
-CRATES_TO_CHECKFORMAT := $(patsubst %/Makefile,%/Makefile.checkformat,$(ALLMAKEFILE))
-$(CRATES_TO_CHECKFORMAT):
-	cd $(dir $@) && make checkformat
-.PHONY: checkformat $(CRATES_TO_CHECKFORMAT)
-checkformat: $(CRATES_TO_CHECKFORMAT)
+.PHONY: checkformat
+checkformat:
+	dprint check
 
 # There are a number of targets which can not test.
 # Once those are fixed, we can just use a test target.
