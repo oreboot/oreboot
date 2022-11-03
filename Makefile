@@ -22,7 +22,7 @@ BINUTILS_VER := 0.3.4
 STACK_SIZES_VER := 0.4.0
 TARPAULIN_VER := 0.19.1
 
-CARGOINST := rustup run --install nightly cargo install
+CARGOINST := rustup run --install 1.65 cargo install
 
 .PHONY: $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
