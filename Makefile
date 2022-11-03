@@ -21,6 +21,7 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 BINUTILS_VER := 0.3.4
 STACK_SIZES_VER := 0.4.0
 TARPAULIN_VER := 0.19.1
+DPRINT_VER := 0.32.2
 
 CARGOINST := rustup run --install 1.65 cargo install
 
@@ -33,11 +34,14 @@ firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 	$(CARGOINST) $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
+	$(CARGOINST) $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 nexttime:
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) --force $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 	$(CARGOINST) --force $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
+	$(CARGOINST) --force $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
+
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
