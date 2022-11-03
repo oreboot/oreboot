@@ -6,9 +6,8 @@ edition = "2021"
 
 [dependencies]
 consts = { path = "../lib/consts" }
-oreboot-arch = { path = "../arch", optional = true }
 oreboot-cpu = { path = "../cpu", optional = true }
-tock-registers = "0.7.0"
+tock-registers = { version = "0.7.0", optional = true }
 
 heapless = { version = "0.7.16", optional = true }
 raw-cpuid = { version = "9.0.0", optional = true }
