@@ -18,7 +18,6 @@ help:
 # Turn them all off. We'll turn them back on to try to get to working tests.
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
-TOOLCHAIN_VER := $(shell grep channel rust-toolchain.toml | grep -e '".*"' -o)
 BINUTILS_VER := 0.3.4
 STACK_SIZES_VER := 0.4.0
 TARPAULIN_VER := 0.19.1
@@ -34,25 +33,16 @@ firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 	$(CARGOINST) $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
-	rustup target add riscv64imac-unknown-none-elf
-	rustup target add riscv64gc-unknown-none-elf
-	rustup target add aarch64-unknown-none-softfloat
-	rustup target add riscv32imc-unknown-none-elf
 
 nexttime:
-	rustup toolchain install $(TOOLCHAIN_VER)
-	rustup component add llvm-tools-preview rust-src --toolchain $(TOOLCHAIN_VER)
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) --force $(if $(STACK_SIZES_VER),--version $(STACK_SIZES_VER),) stack-sizes
 	$(CARGOINST) --force $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
-	rustup target add riscv64imac-unknown-none-elf
-	rustup target add riscv64gc-unknown-none-elf
 
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
-	# --default-toolchain is purely an optimization to avoid downloading stable Rust first.
 	# -y makes it non-interactive.
-	curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(TOOLCHAIN_VER)
+	curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 .PHONY: ciprepare debiansysprepare firsttime
 ciprepare: debiansysprepare firsttime
