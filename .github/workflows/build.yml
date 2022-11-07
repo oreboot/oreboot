@@ -41,7 +41,7 @@ jobs:
       - name: 'Create coverage file'
         run: make --keep-going citest
       - name: 'upload the coverage file to server'
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v3
         with:
           files: ./coverall/lcov.txt
 
