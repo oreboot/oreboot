@@ -504,7 +504,10 @@ fn smhc_init(smhc0: SMHC0) {
     const MMC_RSP_136: u32 = 1 << 7;
     const MMC_RSP_CRC: u32 = 1 << 8;
     let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
-    print!("Issue command to ID Card to 0x80000002. Flags {:08x}", flags);
+    print!(
+        "Issue command to ID Card to 0x80000002. Flags {:08x}",
+        flags
+    );
     unsafe {
         smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
     }
