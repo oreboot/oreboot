@@ -31,10 +31,10 @@ default::
 
 # format things
 format:
-	cargo fmt
+	dprint fmt
 
 checkformat:
-	cargo fmt -- --check
+	dprint check
 
 # Clippy is the standard rule
 clippy:
