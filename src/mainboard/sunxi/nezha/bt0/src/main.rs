@@ -417,6 +417,114 @@ fn trim_bandgap_ref_voltage() {
     unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
 }
 
+/*
+ # SDHCI and SDC bring up. Links:
+
+ * https://docs.tockos.org/capsules/sdcard/index.html
+ * https://github.com/tock/tock/blob/master/capsules/src/sdcard.rs
+ * https://github.com/rust-embedded-community/embedded-sdmmc-rs#using-the-crate
+ * https://docs.rs/embedded-sdmmc/latest/embedded_sdmmc/
+
+ ## D1 Specific:
+
+ * https://dev.to/xphoniex/how-to-call-c-code-from-rust-56do
+ * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdhost.c
+ * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdcard.c
+ * In linux there's a specific driver for sunxi-mmc
+   https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
+*/
+fn smhc_init(smhc0: SMHC0) {
+    let div = smhc0.smhc_clkdiv.read().cclk_div().bits();
+    println!("smhc0 clk div {:x}", div);
+    // STEP 0: celebration of calibration
+    // delay software enable
+    const DSE: u32 = 1 << 7;
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(DSE) });
+    // clear
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(0) });
+    // start calibration
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(0x8000) });
+
+    // STEP 1: reset gating, set up clock
+    let ccu = unsafe { &*CCU::ptr() };
+    print!("setup SDHCI gates");
+    ccu.smhc_bgr
+        .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
+    // TODO: optimize based on speed; manual recommends 200MHz
+    // let factor_n = smhc0_clk::FACTOR_N_A::N1;
+    // let factor_m = 0;
+    ccu.smhc0_clk.write(|w| {
+        w.clk_src_sel()
+            .pll_peri_1x()
+            //        .factor_n()
+            //        .variant(factor_n)
+            //        .factor_m()
+            //        .variant(factor_m)
+            .clk_gating()
+            .set_bit()
+    });
+    println!("...done");
+
+    // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
+    // TODO: register interrupt function; how about simple write!() ?
+    print!("reset FIFO, enable SIDO vector");
+    smhc0
+        .smhc_ctrl
+        .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
+    smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
+    println!("...done");
+
+    // STEP3: set clock divider for devices (what devices?) and change clock command
+    print!("set clock divider and issue change clock command");
+    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
+    println!("...Issued");
+
+    // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
+    const CMD_LOAD: u32 = 1 << 31;
+    const PRG_CLK: u32 = 1 << 21;
+    const WAIT_PRE_OVER: u32 = 1 << 13;
+    let cmd: u32 = CMD_LOAD | PRG_CLK | WAIT_PRE_OVER;
+    print!("send command: {:08x}", cmd);
+    unsafe {
+        smhc0.smhc_cmd.write(|w| w.bits(cmd));
+    }
+    println!("...Sent");
+
+    // turn clock back on
+    print!("Enable clock");
+    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
+    println!("...done");
+    // bus width: 4 data pins
+    print!("Set Bus Width to 4");
+    smhc0.smhc_ctype.write(|w| w.card_wid().b4());
+    println!("...done");
+
+    // identify card
+    const MMC_RSP_PRESENT: u32 = 1 << 6;
+    const MMC_RSP_136: u32 = 1 << 7;
+    const MMC_RSP_CRC: u32 = 1 << 8;
+    let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
+    print!("Issue command to ID Card to 0x80000002. Flags {:08x}", flags);
+    unsafe {
+        smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
+    }
+    println!("...done");
+    let card_present = smhc0.smhc_status.read().card_present().is_present();
+    println!("SD card present? {}", card_present);
+
+    while smhc0.smhc_status.read().card_busy().is_busy() {}
+    for _ in 0..100_000_000 {
+        core::hint::spin_loop();
+    }
+
+    let r0 = smhc0.smhc_resp0.read().bits();
+    let r1 = smhc0.smhc_resp1.read().bits();
+    let r2 = smhc0.smhc_resp2.read().bits();
+    let r3 = smhc0.smhc_resp3.read().bits();
+
+    println!("SD card {:02x}{:02x}{:02x}{:02x}", r0, r1, r2, r3);
+}
+
 extern "C" fn main() -> usize {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();
@@ -437,6 +545,28 @@ extern "C" fn main() -> usize {
         let _jtag = Jtag::new((tms, tck, tdi, tdo));
     }
 
+    // light up led
+    let mut pb5 = gpio.portb.pb5.into_output();
+    pb5.set_high().unwrap();
+    let mut pb10 = gpio.portb.pb10.into_output();
+    pb10.set_low().unwrap();
+    let mut pb11 = gpio.portb.pb11.into_output();
+    pb11.set_high().unwrap();
+    let mut pc1 = gpio.portc.pc1.into_output();
+    pc1.set_high().unwrap();
+
+    // blinky
+    for _ in 0..2 {
+        for _ in 0..1000_0000 {
+            core::hint::spin_loop();
+        }
+        pb10.set_low().unwrap();
+        for _ in 0..1000_0000 {
+            core::hint::spin_loop();
+        }
+        pb10.set_high().unwrap();
+    }
+
     // prepare serial port logger
     let tx = gpio.portb.pb8.into_function_6();
     let rx = gpio.portb.pb9.into_function_6();
@@ -451,118 +581,7 @@ extern "C" fn main() -> usize {
     let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
     crate::logging::set_logger(serial);
 
-    println!("");
     println!("oreboot 🦀");
-
-    let smhc0 = p.SMHC0;
-    #[cfg(not(feature = "jtag"))]
-    {
-        /*
-         # SDHCI and SDC bring up. Links:
-
-         * https://docs.tockos.org/capsules/sdcard/index.html
-         * https://github.com/tock/tock/blob/master/capsules/src/sdcard.rs
-         * https://github.com/rust-embedded-community/embedded-sdmmc-rs#using-the-crate
-         * https://docs.rs/embedded-sdmmc/latest/embedded_sdmmc/
-
-         ## D1 Specific:
-
-         * https://dev.to/xphoniex/how-to-call-c-code-from-rust-56do
-         * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdhost.c
-         * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdcard.c
-         * In linux there's a specific driver for sunxi-mmc
-           https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
-        */
-        println!("configure pins for SD Card");
-        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
-        gpio.portf.pf0.into_function_2();
-        gpio.portf.pf1.into_function_2();
-        gpio.portf.pf2.into_function_2();
-        gpio.portf.pf3.into_function_2();
-        gpio.portf.pf4.into_function_2();
-        gpio.portf.pf5.into_function_2();
-
-        // let smhc = Smhc::new(p.SMHC0);
-
-        // STEP 1: reset gating, set up clock
-        print!("setup SDHCI gates");
-        let ccu = unsafe { &*CCU::ptr() };
-        ccu.smhc_bgr
-            .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
-        // TODO: optimize based on speed
-        println!("...done");
-        print!("setup SDHCI clock");
-        let factor_n = smhc0_clk::FACTOR_N_A::N2;
-        let factor_m = 1;
-        ccu.smhc0_clk.write(|w| {
-            w.clk_src_sel()
-                .pll_peri_1x()
-                .factor_n()
-                .variant(factor_n)
-                .factor_m()
-                .variant(factor_m)
-                .clk_gating()
-                .set_bit()
-        });
-        println!("...done");
-
-        // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
-        // TODO: register interrupt function; how about simple write!() ?
-        print!("reset FIFO, enable SIDO vector");
-        smhc0
-            .smhc_ctrl
-            .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
-        smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
-        println!("...done");
-
-        // STEP3: set clock divider for devices (what devices?) and change clock command
-        print!("set clock divider and issue change clock command");
-        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
-        println!("...Issued");
-
-        // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
-        // CMD_LOAD | PRG_CLK | WAIT_PRE_OVER
-        print!("send command with 0x80202000");
-        unsafe {
-            smhc0.smhc_cmd.write(|w| w.bits(0x80202000));
-        }
-        println!("...Sent");
-
-        // turn clock back on
-        print!("Enable clock");
-        smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
-        println!("...done");
-        // bus width: 4 data pins
-        print!("Set Bus Width to 4");
-        smhc0.smhc_ctype.write(|w| w.card_wid().b4());
-        println!("...done");
-
-        // identify card
-        const MMC_RSP_PRESENT: u32 = 1 << 6;
-        const MMC_RSP_136: u32 = 1 << 7;
-        const MMC_RSP_CRC: u32 = 1 << 8;
-        let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
-        print!("Issue command to ID Card with 0x80000002");
-        unsafe {
-            smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
-        }
-        println!("...done");
-
-        let card_present = smhc0.smhc_status.read().card_present().is_present();
-        println!("SD card present? {}", card_present);
-
-        while smhc0.smhc_status.read().card_busy().is_busy() {}
-        for _ in 0..1_000_000 {
-            core::hint::spin_loop();
-        }
-
-        let r0 = smhc0.smhc_resp0.read().bits();
-        let r1 = smhc0.smhc_resp1.read().bits();
-        let r2 = smhc0.smhc_resp2.read().bits();
-        let r3 = smhc0.smhc_resp3.read().bits();
-
-        println!("SD card {:02x}{:02x}{:02x}{:02x}", r0, r1, r2, r3);
-    }
 
     // FIXME: Much of the below can be removed or moved over to the main stage.
     trim_bandgap_ref_voltage();
@@ -635,6 +654,25 @@ extern "C" fn main() -> usize {
     #[cfg(feature = "mmc")]
     {
         println!("TODO: load from SD card");
+    }
+
+    #[cfg(not(feature = "jtag"))]
+    {
+        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
+        println!("configure pins for SD Card");
+        let cfg_gpios = false;
+        if cfg_gpios {
+            gpio.portf.pf0.into_function_2();
+            gpio.portf.pf1.into_function_2();
+            gpio.portf.pf2.into_function_2();
+            gpio.portf.pf3.into_function_2();
+            gpio.portf.pf4.into_function_2();
+            gpio.portf.pf5.into_function_2();
+        }
+
+        // TODO: refactor
+        // let smhc = Smhc::new(p.SMHC0);
+        smhc_init(p.SMHC0);
     }
 
     #[cfg(feature = "nor")]
