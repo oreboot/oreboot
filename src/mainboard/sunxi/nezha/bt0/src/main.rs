@@ -432,6 +432,100 @@ fn trim_bandgap_ref_voltage() {
  * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdcard.c
  * In linux there's a specific driver for sunxi-mmc
    https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
+
+  # SD Card for D1
+
+  ## D1 Specific
+
+  * Datasheet says: "SD v3.0, SDIO v3.0, eMMC v5.0"
+  * 3 Host Controller interfaces
+    * SMHC0 => SD mem-version v3.0 (for SD Card) Base Address is 0x0402_0000 (SMHC0_BASE)
+      * SDC0-CMD
+      * SDC0-CLK
+      * SDC0-D[3:0]
+      * SDC0-RST
+    * SMHC1 => SDIO v3 (SDIO WiFi)
+      * SDC1-CMD
+      * SDC1-CLK
+      * SDC1-D[3:0]
+    * SMHC2 => eMMC v5 (eMMC)
+      * SDC2-CMD
+      * SDC2-CLK
+      * SDC2-D[3:0]
+  * Performance:
+    * SDR => 150 Mhz @ 1.8 volt IO Pad
+    * DDR => 100 Mhz @ 1.8 volt IO Pad
+    * DDR =>  50 Mhz @ 3.3 volt IO Pad
+  * 1 or 4 bit data width
+  * 1-65535 bytes block size
+  *  1024 bytes Rx & TX FIFO
+  * Interrupts => card insert/remove
+  * CRC generation + checking
+  * descriptor-based DMA controller (DMAC aka IDMAC). See 7.2.3.9.
+   * A patch for DMA is not yet upstream:
+<https://github.com/orangecms/linux/commit/512f5679c938d09eb623ef629e1a9ddc9b15a587>
+
+  ## ClockworkPi Specific
+
+  * D1
+    * Clockwork Core R01
+      * Clockwork Main
+        * TF-Card (SMHC0)
+        * On/Off
+        * GPIOs
+        * (etc)
+        * Clockwork Ext
+          * UART
+          * Printer
+          * Camera
+          * 2x USB
+          * Fan
+          * (etc)
+
+  ## Actors
+
+  * memory card
+  * memory card slot
+  * host controller interface
+    *
+  *
+
+  ## FSM:
+
+  Host Controller <- Reset
+
+  Card Eject -> Stop Polling
+  Card Insert -> Start Polling
+
+  Poll ->
+    * Card Info capacity
+    * Detect Capacity
+
+
+  # References
+  * <https://github.com/DongshanPI/Awesome_RISCV-AllwinnerD1/blob/master/Tina-SDK/Hardware%E7%A1%AC%E4%BB%B6%E7%B1%BB%E6%96%87%E6%A1%A3/%E8%8A%AF%E7%89%87%E6%89%8B%E5%86%8C/D1-H_Datasheet_V1.0.pdf>
+  * <https://github.com/DongshanPI/Awesome_RISCV-AllwinnerD1/blob/master/Tina-SDK/Hardware%E7%A1%AC%E4%BB%B6%E7%B1%BB%E6%96%87%E6%A1%A3/%E8%8A%AF%E7%89%87%E6%89%8B%E5%86%8C/D1-H_User%20Manual_V1.0.pdf>
+  * <https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c>
+  * <https://gitlab.com/pnru/xv6-d1>
+
+*/
+
+/* ======= General SD stuff ===========
+
+/// Constuct a new HCI
+fn hci_new();
+
+/// Bring up a host controller from unknown state
+fn hci_init() {};
+
+/// Issue a command to the host controller
+fn issue_command();
+
+///
+fn read();
+
+/// Card Detect
+///
 */
 fn smhc_init(smhc0: SMHC0) {
     let div = smhc0.smhc_clkdiv.read().cclk_div().bits();
