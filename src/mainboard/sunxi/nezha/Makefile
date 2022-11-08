@@ -2,7 +2,7 @@ OREBOOT=$(abspath $(CURDIR)/../../../../)
 # architecture
 TARGET     = riscv64imac-unknown-none-elf
 # config: board variant and storage memory type
-VARIANT    ?= clockworkpi
+VARIANT    ?= lichee
 MEMORY		 ?= nor
 # outputs: full image and main part (can be run from DRAM)
 IMAGE      ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha.bin
@@ -68,6 +68,15 @@ sdcardclean: sdcardacl
 	blkdiscard -v $(SDCARD) || $(DD) conv=noerror if=/dev/zero of=$(SDCARD) iflag=fullblock bs=4K
 
 sdcard: mainboard sdcardacl
+	[ -b $(SDCARD) ]
+	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=1
+	# redundant copy
+	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=16
+	sync
+	sync
+	eject -v $(SDCARD)
+
+sdcardwithpayload: withpayload sdcardacl
 	[ -b $(SDCARD) ]
 	$(DD) if=$(BOOT0) of=$(SDCARD) bs=8192 seek=1
 	# redundant copy
