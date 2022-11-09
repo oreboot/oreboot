@@ -20,6 +20,12 @@ ufmt = "0.1"
 path = "../../../../soc"
 features = ["sunxi_d1"]
 
+# FIXME: Use v0.10.0 once released
+[dependencies.riscv]
+git = "https://github.com/rust-embedded/riscv.git"
+rev = "refs/pull/120/merge"
+features = ["critical-section-single-hart"]
+
 [features]
 default = ["nezha"]
 
