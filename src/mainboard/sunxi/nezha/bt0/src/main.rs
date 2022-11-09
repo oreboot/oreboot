@@ -19,6 +19,7 @@ use oreboot_soc::sunxi::d1::{
     time::U32Ext,
     uart::{Config, Parity, Serial, StopBits, WordLength},
 };
+use riscv as _;
 
 #[macro_use]
 mod logging;

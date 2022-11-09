@@ -20,6 +20,10 @@ ufmt = "0.1"
 path = "../../../../soc"
 features = ["sunxi_d1"]
 
+[dependencies.riscv]
+version = "0.10.0"
+features = ["critical-section-single-hart"]
+
 [features]
 default = ["nezha"]
 
