@@ -11,7 +11,6 @@ buddy_system_allocator = "0.8"
 embedded-hal = "=1.0.0-alpha.8"
 lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"
-riscv = "0.9.0"
 # rustsbi = { path = "../rustsbi", features =["legacy"] }
 rustsbi = { version = "=0.3.0-alpha.4", features = ["legacy"] }
 sbi-spec = "0.0.2"
@@ -25,6 +24,10 @@ path = "../compression"
 [dependencies.oreboot-soc]
 path = "../../../../soc"
 features = ["sunxi_d1"]
+
+[dependencies.riscv]
+version = "0.10.0"
+features = ["critical-section-single-hart"]
 
 [features]
 default = []
