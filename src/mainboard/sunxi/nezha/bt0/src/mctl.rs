@@ -1,7 +1,7 @@
 use core::ptr::{read_volatile, write_volatile};
 
 // for verbose prints
-const VERBOSE: bool = false;
+const VERBOSE: bool = true;
 
 pub const RAM_BASE: usize = 0x40000000;
 
@@ -274,9 +274,9 @@ static mut PHY_CFG7: [u32; 22] = [
 unsafe fn mctl_phy_ac_remapping(para: &mut dram_parameters) {
     // read SID info @ 0x228
     let fuse = (readl(SID_INFO) >> 8) & 0x4;
-    // println!("ddr_efuse_type: 0x{:x}", fuse);
+    println!("ddr_efuse_type: 0x{:x}", fuse);
     if (para.dram_tpr13 >> 18) & 0x3 > 0 {
-        // println!("phy cfg 7");
+        println!("phy cfg 7");
         memcpy_self(&mut PHY_CFG0, &mut PHY_CFG7, 22);
     } else {
         match fuse {
@@ -382,7 +382,7 @@ fn ccm_set_pll_ddr_clk(para: &mut dram_parameters) -> u32 {
         para.dram_clk
     };
     let n = (clk * 2) / 24;
-    // println!("clk {} / div {}", clk, n);
+    println!("clk {} / div {}", clk, n);
 
     // set VCO clock divider
     let mut val = readl(PLL_DDR_CTRL);
@@ -576,8 +576,8 @@ fn auto_set_timing_para(para: &mut dram_parameters) {
     let dtype = para.dram_type;
     let tpr13 = para.dram_tpr13;
 
-    //println!("type  = {}\n", dtype);
-    //println!("tpr13 = {}\n", tpr13);
+    println!("type  = {}\n", dtype);
+    println!("tpr13 = {}\n", tpr13);
 
     // FIXME: Half of this is unused, wat?!
     let mut tccd: u32 = 0; // 88(sp)
@@ -1339,7 +1339,7 @@ fn dramc_get_dram_size() -> u32 {
     temp += (low >> 2) & 0x3; // bank count - 2
     temp -= 14; // 1MB = 20 bits, minus above 6 = 14
     let size0 = 1 << temp;
-    // println!("low {} size0 {}", low, size0);
+    println!("low {} size0 {}", low, size0);
 
     temp = low & 0x3; // rank count = 0? -> done
     if temp == 0 {
@@ -1360,7 +1360,7 @@ fn dramc_get_dram_size() -> u32 {
     temp += (high >> 2) & 0x3; // bank number - 2
     temp -= 14; // 1MB = 20 bits, minus above 6 = 14
     let size1 = 1 << temp;
-    // println!("high {} size1 {}", high, size1);
+    println!("high {} size1 {}", high, size1);
 
     return size0 + size1; // add size of each rank
 }
@@ -1395,8 +1395,8 @@ fn dqs_gate_detect(para: &mut dram_parameters) -> Result<&'static str, &'static 
         } else {
             if para.dram_tpr13 & (1 << 29) != 0 {
                 // l 7935
-                // println!("DX0 {}", dx0);
-                // println!("DX1 {}", dx1);
+                println!("DX0 {}", dx0);
+                println!("DX1 {}", dx1);
             }
             return Err("dqs gate detect");
         }
@@ -1425,13 +1425,13 @@ fn dramc_simple_wr_test(mem_mb: u32, len: u32) -> Result<(), &'static str> {
         let val = readl(addr);
         let exp = patt1 + i;
         if val != exp {
-            // println!("{:x} != {:x} at address {:x}", val, exp, addr);
+            println!("{:x} != {:x} at address {:x}", val, exp, addr);
             return Err("base");
         }
         let val = readl(addr + offs);
         let exp = patt2 + i;
         if val != exp {
-            // println!("{:x} != {:x} at address {:x}", val, exp, addr + offs);
+            println!("{:x} != {:x} at address {:x}", val, exp, addr + offs);
             return Err("offs");
         }
     }
@@ -1783,7 +1783,7 @@ pub fn init_dram(para: &mut dram_parameters) -> usize {
         writel(UNKNOWN11, if rc == 0 { 0x10000200 } else { rc });
         writel(UNKNOWN10, 0x40a);
         writel(UNKNOWN15, readl(UNKNOWN15) | 1);
-        // println!("Enable Auto SR");
+        println!("Enable Auto SR");
     } else {
         writel(UNKNOWN11, readl(UNKNOWN11) & 0xffff0000);
         writel(UNKNOWN15, readl(UNKNOWN15) & (!0x1));
@@ -1848,14 +1848,14 @@ pub fn init() -> usize {
         dram_odt_en: 0x0000_0001,
         #[cfg(feature="nezha")]
         dram_para1:  0x0000_10f2,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_para1:  0x0000_10d2,
         dram_para2:  0x0000_0000,
         dram_mr0:    0x0000_1c70,
         dram_mr1:    0x0000_0042,
         #[cfg(feature="nezha")]
         dram_mr2:    0x0000_0000,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_mr2:    0x0000_0018,
         dram_mr3:    0x0000_0000,
         dram_tpr0:   0x004a_2195,
@@ -1871,18 +1871,17 @@ pub fn init() -> usize {
         dram_tpr10:  0x0000_0000,
         #[cfg(feature="nezha")]
         dram_tpr11:  0x0076_0000,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr11:  0x0087_0000,
         #[cfg(feature="nezha")]
         dram_tpr12:  0x0000_0035,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr12:  0x0000_0024,
         #[cfg(feature="nezha")]
         dram_tpr13:  0x3405_0101,
-        #[cfg(feature="lichee")]
+        #[cfg(any(feature="lichee", feature="clockworkpi"))]
         dram_tpr13:  0x3405_0100,
     };
 
-    // println!("DRAM INIT");
     return init_dram(&mut dram_para);
 }

@@ -162,9 +162,11 @@ unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
-    asm!( // sp:机器栈顶
-        "addi   sp, sp, -15*8", // sp:机器栈顶
+    asm!(
+        "addi   sp, sp, -15*8", // sp:机器栈顶 sp: machine stack
         // 进入函数之前，已经保存了调用者寄存器，应当保存被调用者寄存器
+        // Before entering the function, the caller register has been saved,
+        // and the callee register should be saved
         "sd     ra, 0*8(sp)
         sd      gp, 1*8(sp)
         sd      tp, 2*8(sp)
@@ -191,11 +193,11 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
 #[link_section = ".text"]
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
-        // a0:特权级上下文
-        "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文
-        "csrw   mscratch, a0", // 新mscratch:特权级上下文
-        // mscratch:特权级上下文
-        "mv     sp, a0", // 新sp:特权级上下文
+        // a0:特权级上下文 // Privilege level context
+        "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文 The top of the machine stack is placed in a privileged context
+        "csrw   mscratch, a0", // 新mscratch:特权级上下文  New mscratch: Privilege level context
+        // mscratch:特权级上下文 // Privileged context
+        "mv     sp, a0", // 新sp:特权级上下文 // New SP: Privilege level context
         "ld     t0, 31*8(sp)
         ld      t1, 32*8(sp)
         csrw    mstatus, t0
@@ -230,7 +232,7 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
         ld      t4, 28*8(sp)
         ld      t5, 29*8(sp)
         ld      t6, 30*8(sp)",
-        "ld     sp, 1*8(sp)", // 新sp:特权级栈
+        "ld     sp, 1*8(sp)", // 新sp:特权级栈 New SP: Privilege level stack
         // sp:特权级栈, mscratch:特权级上下文
         "mret",
         options(noreturn)
@@ -292,9 +294,9 @@ pub unsafe extern "C" fn from_supervisor_save() -> ! {
 #[link_section = ".text"]
 unsafe extern "C" fn to_machine_restore() -> ! {
     asm!(
-        // mscratch:特权级上下文
-        "csrr   sp, mscratch", // sp:特权级上下文
-        "ld     sp, 33*8(sp)", // sp:机器栈
+        // mscratch:特权级上下文 // mscratch: Privilege level context
+        "csrr   sp, mscratch", // sp:特权级上下文 sp: Privilege level context
+        "ld     sp, 33*8(sp)", // sp:机器栈 sp: machine stack
         "ld     ra, 0*8(sp)
         ld      gp, 1*8(sp)
         ld      tp, 2*8(sp)
@@ -310,8 +312,8 @@ unsafe extern "C" fn to_machine_restore() -> ! {
         ld      s9, 12*8(sp)
         ld      s10, 13*8(sp)
         ld      s11, 14*8(sp)",
-        "addi   sp, sp, 15*8", // sp:机器栈顶
-        "jr     ra",           // 其实就是ret
+        "addi   sp, sp, 15*8", // sp:机器栈顶 sp: machine stack top
+        "jr     ra",           // 其实就是ret // in fact, it is ret
         options(noreturn)
     )
 }

@@ -9,12 +9,12 @@ use core::intrinsics::transmute;
 use core::ptr::{read_volatile, write_volatile};
 use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::blocking::OutputPin;
-use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
+use oreboot_soc::sunxi::d1::pac::{ccu::smhc0_clk, CCU};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::{portc, Function, Gpio, Pin},
     jtag::Jtag,
-    pac::{Peripherals, SPI0},
+    pac::{Peripherals, SMHC0, SPI0},
     spi::{Spi, MODE_3},
     time::U32Ext,
     uart::{Config, Parity, Serial, StopBits, WordLength},
@@ -417,6 +417,347 @@ fn trim_bandgap_ref_voltage() {
     unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
 }
 
+/*
+ # SDHCI and SDC bring up. Links:
+
+ * https://docs.tockos.org/capsules/sdcard/index.html
+ * https://github.com/tock/tock/blob/master/capsules/src/sdcard.rs
+ * https://github.com/rust-embedded-community/embedded-sdmmc-rs#using-the-crate
+ * https://docs.rs/embedded-sdmmc/latest/embedded_sdmmc/
+
+ ## D1 Specific:
+
+ * https://dev.to/xphoniex/how-to-call-c-code-from-rust-56do
+ * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdhost.c
+ * https://gitlab.com/pnru/xv6-d1/-/blob/master/boot0/sdcard.c
+ * In linux there's a specific driver for sunxi-mmc
+   https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
+
+  # SD Card for D1
+
+  ## D1 Specific
+
+  * Datasheet says: "SD v3.0, SDIO v3.0, eMMC v5.0"
+  * 3 Host Controller interfaces
+    * SMHC0 => SD mem-version v3.0 (for SD Card) Base Address is 0x0402_0000 (SMHC0_BASE)
+      * SDC0-CMD
+      * SDC0-CLK
+      * SDC0-D[3:0]
+      * SDC0-RST
+    * SMHC1 => SDIO v3 (SDIO WiFi)
+      * SDC1-CMD
+      * SDC1-CLK
+      * SDC1-D[3:0]
+    * SMHC2 => eMMC v5 (eMMC)
+      * SDC2-CMD
+      * SDC2-CLK
+      * SDC2-D[3:0]
+  * Performance:
+    * SDR => 150 Mhz @ 1.8 volt IO Pad
+    * DDR => 100 Mhz @ 1.8 volt IO Pad
+    * DDR =>  50 Mhz @ 3.3 volt IO Pad
+  * 1 or 4 bit data width
+  * 1-65535 bytes block size
+  *  1024 bytes Rx & TX FIFO
+  * Interrupts => card insert/remove
+  * CRC generation + checking
+  * descriptor-based DMA controller (DMAC aka IDMAC). See 7.2.3.9.
+   * A patch for DMA is not yet upstream:
+<https://github.com/orangecms/linux/commit/512f5679c938d09eb623ef629e1a9ddc9b15a587>
+
+  ## ClockworkPi Specific
+
+  * D1
+    * Clockwork Core R01
+      * Clockwork Main
+        * TF-Card (SMHC0)
+        * On/Off
+        * GPIOs
+        * (etc)
+        * Clockwork Ext
+          * UART
+          * Printer
+          * Camera
+          * 2x USB
+          * Fan
+          * (etc)
+
+  ## Actors
+
+  * memory card
+  * memory card slot
+  * host controller interface
+    *
+  *
+
+  ## FSM:
+
+  Host Controller <- Reset
+
+  Card Eject -> Stop Polling
+  Card Insert -> Start Polling
+
+  Poll ->
+    * Card Info capacity
+    * Detect Capacity
+
+
+  # References
+  * <https://github.com/DongshanPI/Awesome_RISCV-AllwinnerD1/blob/master/Tina-SDK/Hardware%E7%A1%AC%E4%BB%B6%E7%B1%BB%E6%96%87%E6%A1%A3/%E8%8A%AF%E7%89%87%E6%89%8B%E5%86%8C/D1-H_Datasheet_V1.0.pdf>
+  * <https://github.com/DongshanPI/Awesome_RISCV-AllwinnerD1/blob/master/Tina-SDK/Hardware%E7%A1%AC%E4%BB%B6%E7%B1%BB%E6%96%87%E6%A1%A3/%E8%8A%AF%E7%89%87%E6%89%8B%E5%86%8C/D1-H_User%20Manual_V1.0.pdf>
+  * <https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c>
+  * <https://gitlab.com/pnru/xv6-d1>
+
+*/
+
+/* ======= General SD stuff ===========
+
+/// Constuct a new HCI
+fn hci_new();
+
+/// Bring up a host controller from unknown state
+fn hci_init() {};
+
+/// Issue a command to the host controller
+fn issue_command();
+
+///
+fn read();
+
+/// Card Detect
+///
+*/
+
+/// Implementation Switch
+fn smhc_init(smhc0: SMHC0) {
+    unsafe { sunxi_mmc_init_host(smhc0) }
+    //smhc_init_old(smhc0)
+}
+
+/// Prior work from Danial and Ben hacking
+fn smhc_init_old(smhc0: SMHC0) {
+    let div = smhc0.smhc_clkdiv.read().cclk_div().bits();
+    println!("smhc0 clk div {:x}", div);
+    // STEP 0: celebration of calibration
+    // delay software enable
+    const DSE: u32 = 1 << 7;
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(DSE) });
+    // clear
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(0) });
+    // start calibration
+    smhc0.smhc_drv_dl.write(|w| unsafe { w.bits(0x8000) });
+
+    // STEP 1: reset gating, set up clock
+    let ccu = unsafe { &*CCU::ptr() };
+    print!("setup SDHCI gates");
+    ccu.smhc_bgr
+        .write(|w| w.smhc0_rst().deassert().smhc0_gating().set_bit());
+    // TODO: optimize based on speed; manual recommends 200MHz
+    // let factor_n = smhc0_clk::FACTOR_N_A::N1;
+    // let factor_m = 0;
+    ccu.smhc0_clk.write(|w| {
+        w.clk_src_sel()
+            .pll_peri_1x()
+            //        .factor_n()
+            //        .variant(factor_n)
+            //        .factor_m()
+            //        .variant(factor_m)
+            .clk_gating()
+            .set_bit()
+    });
+    println!("...done");
+
+    // STEP2: reset FIFO, enable interrupt; enable SDIO interrupt
+    // TODO: register interrupt function; how about simple write!() ?
+    print!("reset FIFO, enable SIDO vector");
+    smhc0
+        .smhc_ctrl
+        .write(|w| w.fifo_rst().set_bit().ine_enb().enable());
+    smhc0.smhc_intmask.write(|w| w.sdio_int_en().set_bit());
+    println!("...done");
+
+    // STEP3: set clock divider for devices (what devices?) and change clock command
+    print!("set clock divider and issue change clock command");
+    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().off());
+    println!("...Issued");
+
+    // see boot0/sdhost.c l98 (cmd in host_update_clk); manual p615
+    const CMD_LOAD: u32 = 1 << 31;
+    const PRG_CLK: u32 = 1 << 21;
+    const WAIT_PRE_OVER: u32 = 1 << 13;
+    let cmd: u32 = CMD_LOAD | PRG_CLK | WAIT_PRE_OVER;
+    print!("send command: {:08x}", cmd);
+    unsafe {
+        smhc0.smhc_cmd.write(|w| w.bits(cmd));
+    }
+    println!("...Sent");
+
+    // turn clock back on
+    print!("Enable clock");
+    smhc0.smhc_clkdiv.write(|w| w.cclk_enb().on());
+    println!("...done");
+    // bus width: 4 data pins
+    print!("Set Bus Width to 4");
+    smhc0.smhc_ctype.write(|w| w.card_wid().b4());
+    println!("...done");
+
+    // identify card
+    const MMC_RSP_PRESENT: u32 = 1 << 6;
+    const MMC_RSP_136: u32 = 1 << 7;
+    const MMC_RSP_CRC: u32 = 1 << 8;
+    let flags = MMC_RSP_PRESENT | MMC_RSP_136 | MMC_RSP_CRC;
+    print!(
+        "Issue command to ID Card to 0x80000002. Flags {:08x}",
+        flags
+    );
+    unsafe {
+        smhc0.smhc_cmd.write(|w| w.bits(0x80000002 | flags));
+    }
+    println!("...done");
+    let card_present = smhc0.smhc_status.read().card_present().is_present();
+    println!("SD card present? {}", card_present);
+
+    while smhc0.smhc_status.read().card_busy().is_busy() {}
+    for _ in 0..100_000_000 {
+        core::hint::spin_loop();
+    }
+
+    let r0 = smhc0.smhc_resp0.read().bits();
+    let r1 = smhc0.smhc_resp1.read().bits();
+    let r2 = smhc0.smhc_resp2.read().bits();
+    let r3 = smhc0.smhc_resp3.read().bits();
+
+    println!("SD card {:02x}{:02x}{:02x}{:02x}", r0, r1, r2, r3);
+}
+
+// ************** Begin port *******
+// Port from https://github.com/orangecms/linux/blob/5.19-smaeul-plus-dts/drivers/mmc/host/sunxi-mmc.c
+// at 1875b10fc1e966475949782610ca578a87ee3d06
+
+/// Read from a host at register
+/// TODO: lock down type to enum registers/offsets
+fn mmc_readl(host: SMHC0, reg: u32) {
+    /*
+     #define mmc_readl(host, reg) \
+      readl((host)->reg_base + SDXC_##reg)
+    */
+}
+
+fn mmc_writel(host: SMHC0, reg: u32, value: u32) {
+    /*
+       #define mmc_writel(host, reg, value) \
+       writel((value), (host)->reg_base + SDXC_##reg)
+    */
+}
+
+unsafe fn sunxi_mmc_reset_host(host: SMHC0) -> Result<(), &'static str> {
+    host.smhc_ctrl
+        .write(|w| w.soft_rst().reset().fifo_rst().reset().dma_rst().set_bit());
+    while host.smhc_ctrl.read().soft_rst().is_reset()
+        || host.smhc_ctrl.read().fifo_rst().is_reset()
+        || host.smhc_ctrl.read().dma_rst().bit_is_set()
+    {
+        println!("Print shit or whatevere");
+    }
+
+    Ok(())
+    /*
+    unsigned long expire = jiffies + msecs_to_jiffies(250);
+    u32 rval;
+
+    #define SDXC_HARDWARE_RESET \
+    (SDXC_SOFT_RESET | SDXC_FIFO_RESET | SDXC_DMA_RESET)
+    #define SDXC_SOFT_RESET			BIT(0)
+    #define SDXC_FIFO_RESET			BIT(1)
+    #define SDXC_DMA_RESET			BIT(2)
+
+    mmc_writel(host, REG_GCTRL, SDXC_HARDWARE_RESET);
+    do {
+        rval = mmc_readl(host, REG_GCTRL);
+    } while (time_before(jiffies, expire) && (rval & SDXC_HARDWARE_RESET));
+
+    if (rval & SDXC_HARDWARE_RESET) {
+        dev_err(mmc_dev(host->mmc), "fatal err reset timeout\n");
+        return -EIO;
+    }
+
+    return 0
+    */
+}
+
+unsafe fn sunxi_mmc_init_host(host: SMHC0) {
+    print!("=========== init smhc ...");
+    /*
+    if let Err(msg) = sunxi_mmc_reset_host(host) {
+        println!("failed to reset smhc host: {}", msg);
+    }
+    */
+    host.smhc_ctrl
+        .write(|w| w.soft_rst().reset().fifo_rst().reset().dma_rst().set_bit());
+    while host.smhc_ctrl.read().soft_rst().is_reset()
+        || host.smhc_ctrl.read().fifo_rst().is_reset()
+        || host.smhc_ctrl.read().dma_rst().bit_is_set()
+    {
+        println!("...Resetting controller");
+    }
+    println!("Done!");
+
+    /* SMC FIFO Threshold Watermark Register
+     *
+     * From linux we have:
+     * /*
+     *  * Burst 8 transfers, RX trigger level: 7, TX trigger level: 8
+     *  *
+     *  * TODO: sun9i has a larger FIFO and supports higher trigger values
+     *  */
+     *  mmc_writel(host, REG_FTRGL, 0x20070008)
+     *
+     * D1 has 1024 bytes Rx & TX FIFO
+     *
+     * Decode of magic value from linux:
+     * 0x20070008 = 0010 0000     0000 0111    0000 0000    0000 1000
+     *              x    xxxx                  xxxx xxxx                Reserved
+     *               yyy                                                BSIZE_OF_TRANS = 8 transfers
+     *                            zzzz zzzz                             RX_TL (Trigger Level)
+     *                                                      aaaa aaaa = TX_TL TX Trigger Level
+     */
+    host.smhc_fifoth
+        .write(|w| w.bsize_of_trans().t8().rx_tl().bits(7).tx_tl().bits(8));
+
+    /* Maximum timeout value */
+    // mmc_writel(host, REG_TMOUT, 0xffffffff);
+    host.smhc_tmout.write(|w| w.dto_lmt().bits(0xffffffff));
+
+    /* Unmask SDIO interrupt if needed */
+    //mmc_writel(host, REG_IMASK, host->sdio_imask);
+    //skip for now.
+
+    /* Clear all pending interrupts */
+    //mmc_writel(host, REG_RINTR, 0xffffffff);
+
+    /* Debug register? undocumented */
+    // mmc_writel(host, REG_DBGC, 0xdeb);
+
+    /* Enable CEATA support */
+    //mmc_writel(host, REG_FUNS, SDXC_CEATA_ON);
+
+    /* Set DMA descriptor list base address */
+    //mmc_writel(host, REG_DLBA, host->sg_dma >> host->cfg->idma_des_shift);
+    //skip for now.
+
+    /*
+    rval = mmc_readl(host, REG_GCTRL);
+    rval |= SDXC_INTERRUPT_ENABLE_BIT;
+    /* Undocumented, but found in Allwinner code */
+    rval &= ~SDXC_ACCESS_DONE_DIRECT;
+    mmc_writel(host, REG_GCTRL, rval);
+
+    return 0;
+    */
+}
+
+// ************** End port *******
+
 extern "C" fn main() -> usize {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();
@@ -427,36 +768,43 @@ extern "C" fn main() -> usize {
     };
     let gpio = Gpio::new(p.GPIO);
 
-    // configure jtag interface
-    let tms = gpio.portf.pf0.into_function_4();
-    let tck = gpio.portf.pf5.into_function_4();
-    let tdi = gpio.portf.pf1.into_function_4();
-    let tdo = gpio.portf.pf3.into_function_4();
-    let _jtag = Jtag::new((tms, tck, tdi, tdo));
+    #[cfg(feature = "jtag")]
+    {
+        // configure jtag interface
+        let tms = gpio.portf.pf0.into_function_4();
+        let tck = gpio.portf.pf5.into_function_4();
+        let tdi = gpio.portf.pf1.into_function_4();
+        let tdo = gpio.portf.pf3.into_function_4();
+        let _jtag = Jtag::new((tms, tck, tdi, tdo));
+    }
 
     // light up led
     let mut pb5 = gpio.portb.pb5.into_output();
     pb5.set_high().unwrap();
+    let mut pb10 = gpio.portb.pb10.into_output();
+    pb10.set_low().unwrap();
+    let mut pb11 = gpio.portb.pb11.into_output();
+    pb11.set_high().unwrap();
     let mut pc1 = gpio.portc.pc1.into_output();
     pc1.set_high().unwrap();
 
-    /*
     // blinky
     for _ in 0..2 {
         for _ in 0..1000_0000 {
             core::hint::spin_loop();
         }
-        pc1.set_low().unwrap();
+        pb10.set_low().unwrap();
         for _ in 0..1000_0000 {
             core::hint::spin_loop();
         }
-        pc1.set_high().unwrap();
+        pb10.set_high().unwrap();
     }
-    */
 
     // prepare serial port logger
     let tx = gpio.portb.pb8.into_function_6();
     let rx = gpio.portb.pb9.into_function_6();
+    //  let tx = gpio.portg.pg17.into_function_7();
+    //  let rx = gpio.portg.pg18.into_function_7();
     let config = Config {
         baudrate: 115200.bps(),
         wordlength: WordLength::Eight,
@@ -524,7 +872,7 @@ extern "C" fn main() -> usize {
     let ram_size = mctl::init();
     println!("{}M 🐏", ram_size);
 
-    #[cfg(feature = "nor")]
+    #[cfg(any(feature = "nor", feature = "mmc"))]
     let spi_speed = 48_000_000.hz();
     #[cfg(feature = "nand")]
     let spi_speed = 100_000_000.hz();
@@ -535,6 +883,30 @@ extern "C" fn main() -> usize {
     let mosi = gpio.portc.pc4.into_function_2();
     let miso = gpio.portc.pc5.into_function_2();
     let spi = Spi::new(p.SPI0, (sck, scs, mosi, miso), MODE_3, spi_speed, &clocks);
+
+    #[cfg(feature = "mmc")]
+    {
+        println!("TODO: load from SD card");
+    }
+
+    #[cfg(not(feature = "jtag"))]
+    {
+        // turn GPIOs into SD card mode; 1 for clock, 1 for cmd, 4 data pins
+        println!("configure pins for SD Card");
+        let cfg_gpios = false;
+        if cfg_gpios {
+            gpio.portf.pf0.into_function_2();
+            gpio.portf.pf1.into_function_2();
+            gpio.portf.pf2.into_function_2();
+            gpio.portf.pf3.into_function_2();
+            gpio.portf.pf4.into_function_2();
+            gpio.portf.pf5.into_function_2();
+        }
+
+        // TODO: refactor
+        // let smhc = Smhc::new(p.SMHC0);
+        smhc_init(p.SMHC0);
+    }
 
     #[cfg(feature = "nor")]
     {

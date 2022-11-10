@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::Write;
 use std::io::{self, ErrorKind, Seek, SeekFrom};
 use std::process::{self, Command, Stdio};
+use std::str::FromStr;
 
 pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     match args.command {
@@ -68,8 +69,15 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
 
 const DEFAULT_TARGET: &'static str = "riscv64imac-unknown-none-elf";
 
+fn mem2str<'a>(mem: Memory) -> &'a str {
+    match mem {
+        _ => "x",
+    }
+}
+
 fn xtask_build_d1_flash_bt0(env: &Env, features: &Vec<String>) {
     trace!("build D1 flash bt0");
+    //  trace!("for {:?}", mem2str(env.memory.unwrap()));
     let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     trace!("found cargo at {}", cargo);
     let mut command = Command::new(cargo);
@@ -336,6 +344,10 @@ fn xtask_burn_d1_flash_bt0(xfel: &str, env: &Env) {
     let mut command = Command::new(xfel);
     command.current_dir(dist_dir(env, DEFAULT_TARGET));
     match env.memory {
+        Some(Memory::MMC) => {
+            error!("TODO: writing SD card not yet implemented");
+            process::exit(1);
+        }
         Some(Memory::Nand) => command.arg("spinand"),
         Some(Memory::Nor) => command.arg("spinor"),
         None => {

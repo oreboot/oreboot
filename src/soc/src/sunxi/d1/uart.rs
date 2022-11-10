@@ -2,6 +2,7 @@
 use super::ccu::{Clocks, Gating, Reset};
 use super::gpio::{
     portb::{PB8, PB9},
+    portg::{PG17, PG18},
     Function,
 };
 use super::time::Bps;
@@ -13,6 +14,9 @@ use d1_pac::{
     },
     CCU,
 };
+
+type PBUART = (PB8<Function<6>>, PB9<Function<6>>);
+type PGUART = (PG17<Function<7>>, PG18<Function<7>>);
 
 /// D1 serial peripheral
 #[derive(Debug)]
@@ -174,7 +178,7 @@ impl Instance for d1_pac::UART0 {}
 
 pub trait Pins<UART> {}
 
-impl Pins<d1_pac::UART0> for (PB8<Function<6>>, PB9<Function<6>>) {}
+impl Pins<d1_pac::UART0> for PBUART {}
 
 /// Error types that may happen when serial transfer
 #[derive(Debug)]
