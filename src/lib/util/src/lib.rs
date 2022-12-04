@@ -7,6 +7,7 @@ pub mod fw_config;
 pub mod helpers;
 pub mod nvramtool;
 pub mod region;
+pub mod timer;
 
 #[inline]
 pub fn round_up_4k(num: usize) -> usize {
