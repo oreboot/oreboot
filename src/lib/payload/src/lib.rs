@@ -4,4 +4,6 @@
 
 extern crate alloc;
 
+pub mod drivers;
 pub mod oreboot_tables;
+pub mod pci;
