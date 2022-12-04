@@ -4,6 +4,7 @@ members = [
   "src/arch",
   "src/console",
   "src/cpu",
+  "src/drivers",
   "src/ec",
   "src/soc",
 
