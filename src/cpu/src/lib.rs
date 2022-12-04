@@ -8,3 +8,6 @@ pub mod armltd;
 
 #[cfg(feature = "lowrisc")]
 pub mod lowrisc;
+
+#[cfg(feature = "intel")]
+pub mod x86;

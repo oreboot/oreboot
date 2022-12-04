@@ -9,3 +9,4 @@ oreboot-arch = { path = "../arch", optional = true }
 raw-cpuid = { version = "9.0.0", optional = true }
 
 [features]
+intel = []
