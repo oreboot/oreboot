@@ -3,6 +3,7 @@
 #![no_std]
 
 pub mod cpuio;
+pub mod fw_config;
 
 #[inline]
 pub fn round_up_4k(num: usize) -> usize {
