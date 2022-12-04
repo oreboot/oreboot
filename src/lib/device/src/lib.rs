@@ -5,6 +5,7 @@
 pub mod device_util;
 pub mod path;
 pub mod resource;
+pub mod soundwire;
 
 use bitfield::bitfield;
 use util::fw_config::FwConfig;
