@@ -11,3 +11,4 @@ vcell = "0.1.3"
 
 [features]
 riscv64 = []
+x86_64 = []
