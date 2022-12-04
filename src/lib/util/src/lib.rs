@@ -5,6 +5,7 @@
 pub mod cpuio;
 pub mod fw_config;
 pub mod helpers;
+pub mod nvramtool;
 
 #[inline]
 pub fn round_up_4k(num: usize) -> usize {
