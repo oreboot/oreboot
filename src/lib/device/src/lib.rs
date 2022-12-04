@@ -2,6 +2,7 @@
 #![deny(warnings)]
 #![no_std]
 
+pub mod device_util;
 pub mod path;
 pub mod resource;
 
