@@ -18,6 +18,8 @@ members = [
   "src/vendorcode/fsp/build-utils",
   "src/vendorcode/fsp/common",
 
+  "src/security",
+
   "xtask",
 
   "tools/layoutflash",
