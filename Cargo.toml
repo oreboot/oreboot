@@ -10,6 +10,7 @@ members = [
 
   "src/lib/consts",
   "src/lib/device",
+  "src/lib/payload",
   "src/lib/types",
   "src/lib/util",
 
