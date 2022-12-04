@@ -8,6 +8,7 @@ members = [
   "src/soc",
 
   "src/lib/consts",
+  "src/lib/device",
   "src/lib/util",
 
   "src/mainboard/sunxi/nezha/*",
