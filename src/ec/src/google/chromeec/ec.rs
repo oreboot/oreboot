@@ -1,4 +1,4 @@
-use crate::google::chromeec::ec_commands::*;
+use crate::google::chromeec::{ec_commands::*, ec_spi::google_chromeec_command};
 use core::mem::size_of;
 use drivers::{
     context::Context,
@@ -383,3 +383,28 @@ impl ECResponseV3 {
 }
 
 pub type CrosECIO = fn(usize, usize, &mut dyn Context) -> Result<(), Error>;
+
+/**
+ * google_chromeec_get_board_version() - Get the board version
+ * @version: Out parameter to retrieve the board Version
+ *
+ * Return: 0 on success or -1 on failure/error.
+ *
+ * This function is used to get the board version information from EC.
+ */
+pub fn google_chromeec_get_board_version(
+    _version: u32,
+    spi_map: &[SPICtrlrBuses],
+) -> Result<u32, Error> {
+    let resp = ECResponseBoardVersion::new();
+    let mut cmd = ChromeECCommand::new();
+    cmd.set_cmd_code(EC_CMD_GET_BOARD_VERSION);
+    cmd.set_size_out(resp.len() as u16);
+    unsafe {
+        cmd.data_out_mut().copy_from_slice(&resp.as_bytes());
+    }
+
+    google_chromeec_command(&mut cmd, spi_map)?;
+
+    Ok(resp.board_version() as u32)
+}
