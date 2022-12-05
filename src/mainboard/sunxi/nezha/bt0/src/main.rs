@@ -1,7 +1,6 @@
 #![doc = include_str!("README.md")]
 #![feature(naked_functions, asm_sym, asm_const)]
 #![feature(default_alloc_error_handler)]
-#![feature(int_abs_diff)]
 #![no_std]
 #![no_main]
 
