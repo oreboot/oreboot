@@ -1,4 +1,5 @@
 pub mod apollolake;
+pub mod common;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
