@@ -1,6 +1,16 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-use crate::intel::apollolake::pcr_ids::{PID_GPIO_AUDIO, PID_GPIO_N, PID_GPIO_NW, PID_GPIO_SCC};
+use crate::intel::{
+    apollolake::pcr_ids::{PID_GPIO_AUDIO, PID_GPIO_N, PID_GPIO_NW, PID_GPIO_SCC},
+    common::block::gpio::{
+        gpio_defs::{
+            PAD_CFG0_LOGICAL_RESET_DEEP, PAD_CFG0_LOGICAL_RESET_PLTRST,
+            PAD_CFG0_LOGICAL_RESET_PWROK,
+        },
+        PadCommunity, PadGroup, ResetMapping,
+    },
+};
+use alloc::vec::Vec;
 use util::nvramtool::cbfs::align_up;
 
 /* North West community pads */
@@ -464,3 +474,161 @@ pub const GPIO_155_IRQ: u16 = 0x72;
 pub const PAD_CFG_BASE: u16 = 0x600;
 
 pub const GPIO_NUM_PAD_CFG_REGS: usize = 4;
+
+pub const RST_MAP: [ResetMapping; 3] = [
+    ResetMapping {
+        logical: PAD_CFG0_LOGICAL_RESET_PWROK,
+        chipset: 0 << 30,
+    },
+    ResetMapping {
+        logical: PAD_CFG0_LOGICAL_RESET_DEEP,
+        chipset: 1 << 30,
+    },
+    ResetMapping {
+        logical: PAD_CFG0_LOGICAL_RESET_PLTRST,
+        chipset: 2 << 30,
+    },
+];
+
+pub const GLK_COMMUNITY_AUDIO_GROUPS: [PadGroup; 1] = [PadGroup::intel_gpp(
+    AUDIO_OFFSET as i32,
+    AUDIO_OFFSET as u32,
+    GPIO_175 as u32,
+)];
+
+pub const GLK_COMMUNITY_NW_GROUPS: [PadGroup; 3] = [
+    // NORTHWEST 0
+    PadGroup::intel_gpp(NW_OFFSET as i32, NW_OFFSET as u32, GPIO_31 as u32),
+    // NORTHWEST 1
+    PadGroup::intel_gpp(NW_OFFSET as i32, GPIO_32 as u32, GPIO_63 as u32),
+    // NORTHWEST 2
+    PadGroup::intel_gpp(NW_OFFSET as i32, GPIO_64 as u32, GPIO_214 as u32),
+];
+
+pub const GLK_COMMUNITY_SCC_GROUPS: [PadGroup; 2] = [
+    // SCC 0
+    PadGroup::intel_gpp(SCC_OFFSET as i32, SCC_OFFSET as u32, GPIO_206 as u32),
+    // SCC 1
+    PadGroup::intel_gpp(SCC_OFFSET as i32, GPIO_207 as u32, GPIO_209 as u32),
+];
+
+pub const GLK_COMMUNITY_N_GROUPS: [PadGroup; 3] = [
+    // NORTH 0
+    PadGroup::intel_gpp(N_OFFSET as i32, N_OFFSET as u32, GPIO_107 as u32),
+    // NORTH 1
+    PadGroup::intel_gpp(N_OFFSET as i32, GPIO_108 as u32, GPIO_139 as u32),
+    // NORTH 2
+    PadGroup::intel_gpp(N_OFFSET as i32, GPIO_140 as u32, GPIO_155 as u32),
+];
+
+pub const GLK_GPIO_COMMUNITIES: [PadCommunity; GPIO_NUM_PAD_CFG_REGS] = [
+    PadCommunity {
+        port: PID_GPIO_NW as u8,
+        first_pad: NW_OFFSET as u32,
+        last_pad: GPIO_214 as u32,
+        num_gpi_regs: NUM_NW_GPI_REGS as usize,
+        gpi_status_offset: 0,
+        pad_cfg_base: PAD_CFG_BASE,
+        host_own_reg_0: HOSTSW_OWN_REG_0,
+        gpi_int_sts_reg_0: GPI_INT_STS_0,
+        gpi_int_en_reg_0: GPI_INT_EN_0,
+        gpi_smi_sts_reg_0: GPI_SMI_STS_0,
+        gpi_smi_en_reg_0: GPI_SMI_EN_0,
+        max_pads_per_group: GPIO_MAX_NUM_PER_GROUP as usize,
+        name: "GPIO_NORTHWEST",
+        acpi_path: "\\_SB.GPO0",
+        reset_map: &RST_MAP,
+        groups: &GLK_COMMUNITY_NW_GROUPS,
+        vw_entries: Vec::new(),
+        vw_base: 0,
+        cpu_port: 0,
+        gpi_gpe_en_reg_0: 0,
+        gpi_gpe_sts_reg_0: 0,
+        gpi_nmi_en_reg_0: 0,
+        gpi_nmi_sts_reg_0: 0,
+        pad_cfg_lock_offset: 0,
+    },
+    PadCommunity {
+        port: PID_GPIO_N as u8,
+        first_pad: N_OFFSET as u32,
+        last_pad: GPIO_155 as u32,
+        num_gpi_regs: NUM_N_GPI_REGS as usize,
+        gpi_status_offset: NUM_NW_GPI_REGS as u8,
+        pad_cfg_base: PAD_CFG_BASE,
+        host_own_reg_0: HOSTSW_OWN_REG_0,
+        gpi_int_sts_reg_0: GPI_INT_STS_0,
+        gpi_int_en_reg_0: GPI_INT_EN_0,
+        gpi_smi_sts_reg_0: GPI_SMI_STS_0,
+        gpi_smi_en_reg_0: GPI_SMI_EN_0,
+        max_pads_per_group: GPIO_MAX_NUM_PER_GROUP as usize,
+        name: "GPIO_NORTH",
+        acpi_path: "\\_SB.GPO1",
+        reset_map: &RST_MAP,
+        groups: &GLK_COMMUNITY_N_GROUPS,
+        vw_entries: Vec::new(),
+        vw_base: 0,
+        cpu_port: 0,
+        gpi_gpe_en_reg_0: 0,
+        gpi_gpe_sts_reg_0: 0,
+        gpi_nmi_en_reg_0: 0,
+        gpi_nmi_sts_reg_0: 0,
+        pad_cfg_lock_offset: 0,
+    },
+    PadCommunity {
+        port: PID_GPIO_AUDIO as u8,
+        first_pad: AUDIO_OFFSET as u32,
+        last_pad: GPIO_175 as u32,
+        num_gpi_regs: NUM_AUDIO_GPI_REGS as usize,
+        gpi_status_offset: (NUM_NW_GPI_REGS + NUM_N_GPI_REGS) as u8,
+        pad_cfg_base: PAD_CFG_BASE,
+        host_own_reg_0: HOSTSW_OWN_REG_0,
+        gpi_int_sts_reg_0: GPI_INT_STS_0,
+        gpi_int_en_reg_0: GPI_INT_EN_0,
+        gpi_smi_sts_reg_0: GPI_SMI_STS_0,
+        gpi_smi_en_reg_0: GPI_SMI_EN_0,
+        max_pads_per_group: GPIO_MAX_NUM_PER_GROUP as usize,
+        name: "GPIO_AUDIO",
+        acpi_path: "\\_SB.GPO2",
+        reset_map: &RST_MAP,
+        groups: &GLK_COMMUNITY_AUDIO_GROUPS,
+        vw_entries: Vec::new(),
+        vw_base: 0,
+        cpu_port: 0,
+        gpi_gpe_en_reg_0: 0,
+        gpi_gpe_sts_reg_0: 0,
+        gpi_nmi_en_reg_0: 0,
+        gpi_nmi_sts_reg_0: 0,
+        pad_cfg_lock_offset: 0,
+    },
+    PadCommunity {
+        port: PID_GPIO_SCC as u8,
+        first_pad: SCC_OFFSET as u32,
+        last_pad: GPIO_209 as u32,
+        num_gpi_regs: NUM_SCC_GPI_REGS as usize,
+        gpi_status_offset: (NUM_NW_GPI_REGS + NUM_N_GPI_REGS + NUM_AUDIO_GPI_REGS) as u8,
+        pad_cfg_base: PAD_CFG_BASE,
+        host_own_reg_0: HOSTSW_OWN_REG_0,
+        gpi_int_sts_reg_0: GPI_INT_STS_0,
+        gpi_int_en_reg_0: GPI_INT_EN_0,
+        gpi_smi_sts_reg_0: GPI_SMI_STS_0,
+        gpi_smi_en_reg_0: GPI_SMI_EN_0,
+        max_pads_per_group: GPIO_MAX_NUM_PER_GROUP as usize,
+        name: "GPIO_SCC",
+        acpi_path: "\\_SB.GPO3",
+        reset_map: &RST_MAP,
+        groups: &GLK_COMMUNITY_SCC_GROUPS,
+        vw_entries: Vec::new(),
+        vw_base: 0,
+        cpu_port: 0,
+        gpi_gpe_en_reg_0: 0,
+        gpi_gpe_sts_reg_0: 0,
+        gpi_nmi_en_reg_0: 0,
+        gpi_nmi_sts_reg_0: 0,
+        pad_cfg_lock_offset: 0,
+    },
+];
+
+pub fn soc_gpio_get_community(
+) -> [PadCommunity<'static, 'static, 'static, 'static>; GPIO_NUM_PAD_CFG_REGS] {
+    GLK_GPIO_COMMUNITIES
+}
