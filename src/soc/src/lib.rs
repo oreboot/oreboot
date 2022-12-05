@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(int_abs_diff)]
 
 #[cfg(feature = "amd")]
 pub mod amd;
