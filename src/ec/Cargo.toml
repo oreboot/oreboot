@@ -11,4 +11,5 @@ log = "0.4"
 spin = "0.9.4"
 device = { path = "../lib/device" }
 drivers = { path = "../drivers" }
+types = { path = "../lib/types" }
 util = { path = "../lib/util" }
