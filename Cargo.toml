@@ -13,6 +13,7 @@ members = [
   "src/lib/consts",
   "src/lib/device",
   "src/lib/payload",
+  "src/lib/romstage_handoff",
   "src/lib/types",
   "src/lib/util",
 
