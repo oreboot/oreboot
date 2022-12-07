@@ -9,6 +9,7 @@ members = [
   "src/soc",
   "src/southbridge",
 
+  "src/lib/cbmem",
   "src/lib/consts",
   "src/lib/device",
   "src/lib/payload",
