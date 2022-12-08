@@ -4,6 +4,8 @@ use drivers::{
     context::Context,
     spi::spi_generic::{Error as SPIError, SPICtrlrBuses},
 };
+use log::debug;
+use spin::rwlock::RwLock;
 
 pub const EC_HOST_PARAM_SIZE: usize = 0xfc;
 pub const HEADER_BYTES: usize = 8;
@@ -16,6 +18,61 @@ pub const EC_HOST_REQUEST_HEADER_BYTES: usize = 8;
 pub const EC_HOST_RESPONSE_HEADER_BYTES: usize = 8;
 pub const EC_HOST_REQUEST_VERSION: u8 = 3;
 pub const EC_HOST_RESPONSE_VERSION: u8 = 3;
+pub const INVALID_HCMD: u8 = 0xff;
+
+pub struct EventMap {
+    pub set_cmd: u8,
+    pub clear_cmd: u8,
+    pub get_cmd: u8,
+}
+
+pub const EVENT_MAP: [EventMap; 9] = [
+    EventMap {
+        set_cmd: INVALID_HCMD,
+        clear_cmd: EC_CMD_HOST_EVENT_CLEAR as u8,
+        get_cmd: INVALID_HCMD,
+    },
+    EventMap {
+        set_cmd: INVALID_HCMD,
+        clear_cmd: EC_CMD_HOST_EVENT_CLEAR_B as u8,
+        get_cmd: EC_CMD_HOST_EVENT_GET_B as u8,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_SCI_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_SCI_MASK as u8,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_SMI_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_SMI_MASK as u8,
+    },
+    EventMap {
+        set_cmd: INVALID_HCMD,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: INVALID_HCMD,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_WAKE_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_WAKE_MASK as u8,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_WAKE_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_WAKE_MASK as u8,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_WAKE_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_WAKE_MASK as u8,
+    },
+    EventMap {
+        set_cmd: EC_CMD_HOST_EVENT_SET_WAKE_MASK as u8,
+        clear_cmd: INVALID_HCMD,
+        get_cmd: EC_CMD_HOST_EVENT_GET_WAKE_MASK as u8,
+    },
+];
 
 #[derive(Debug)]
 pub enum Error {
@@ -27,25 +84,27 @@ pub enum Error {
     ECResError,
     ECSPIError(SPIError),
     ECFailedContextDowncast,
+    UnsupportedCommand,
+    UnsupportedFeature,
 }
 
 /* internal structure to send a command to the EC and wait for response. */
 #[repr(C, packed)]
 pub struct ChromeECCommand {
     /// command code in, status out
-    cmd_code: u16,
+    pub cmd_code: u16,
     /// command version
-    cmd_version: u8,
+    pub cmd_version: u8,
     /// command_data, if any
-    cmd_data_in: *const u8,
+    pub cmd_data_in: *const u8,
     /// command response, if any
-    cmd_data_out: *mut u8,
+    pub cmd_data_out: *mut u8,
     /// size of command data
-    cmd_size_in: u16,
+    pub cmd_size_in: u16,
     /// expected size of command response in, actual received size out
-    cmd_size_out: u16,
+    pub cmd_size_out: u16,
     /// device index for passthru
-    cmd_dev_index: i32,
+    pub cmd_dev_index: i32,
 }
 
 impl ChromeECCommand {
@@ -407,4 +466,154 @@ pub fn google_chromeec_get_board_version(
     google_chromeec_command(&mut cmd, spi_map)?;
 
     Ok(resp.board_version() as u32)
+}
+
+/// Query the EC for specified mask indicating enabled events.
+/// The EC maintains separate event masks for SMI, SCI and WAKE.
+pub fn uhepi_cmd(
+    mask: u8,
+    action: u8,
+    value: &mut u64,
+    spi_map: &[SPICtrlrBuses],
+) -> Result<(), Error> {
+    let mut params = EcParamsHostEvent {
+        action: action,
+        mask_type: mask,
+        reserved: 0,
+        value: 0,
+    };
+
+    let mut resp = EcResponseHostEvent::new();
+
+    let mut cmd = ChromeECCommand {
+        cmd_code: EC_CMD_HOST_EVENT,
+        cmd_version: 0,
+        cmd_data_in: params.as_byte_ptr(),
+        cmd_size_in: params.len() as u16,
+        cmd_data_out: resp.as_mut_byte_ptr(),
+        cmd_size_out: resp.len() as u16,
+        cmd_dev_index: 0,
+    };
+
+    if action != EcHostEventAction::Get as u8 {
+        params.value = *value;
+    } else {
+        *value = 0;
+    }
+
+    let ret = google_chromeec_command(&mut cmd, spi_map);
+    if action != EcHostEventAction::Get as u8 {
+        return ret;
+    }
+    if ret.is_ok() {
+        *value = resp.value;
+    }
+    ret
+}
+
+pub fn is_uhepi_supported(spi_map: &[SPICtrlrBuses]) -> Result<bool, Error> {
+    static UHEPI_SUPPORT: RwLock<u32> = RwLock::new(0);
+    const UHEPI_SUPPORTED: u32 = 1;
+    const UHEPI_NOT_SUPPORTED: u32 = 2;
+
+    if *UHEPI_SUPPORT.read() == 0 {
+        (*UHEPI_SUPPORT.write()) = if check_feature(EcFeatureCode::UnifiedWakeMasks, spi_map)? > 0 {
+            UHEPI_SUPPORTED
+        } else {
+            UHEPI_NOT_SUPPORTED
+        };
+        debug!(
+            "Chrome EC: UHEPI {}",
+            if *UHEPI_SUPPORT.read() == UHEPI_SUPPORTED {
+                "supported"
+            } else {
+                "not supported"
+            }
+        );
+    }
+
+    Ok(*UHEPI_SUPPORT.read() == UHEPI_SUPPORTED)
+}
+
+pub fn check_feature(feature: EcFeatureCode, spi_map: &[SPICtrlrBuses]) -> Result<u32, Error> {
+    let mut resp = EcResponseGetFeatures::new();
+    let mut cmd = ChromeECCommand {
+        cmd_code: EC_CMD_GET_FEATURES,
+        cmd_version: 0,
+        cmd_data_in: core::ptr::null(),
+        cmd_size_in: 0,
+        cmd_data_out: resp.as_mut_byte_ptr(),
+        cmd_size_out: resp.len() as u16,
+        cmd_dev_index: 0,
+    };
+
+    google_chromeec_command(&mut cmd, spi_map)?;
+
+    if feature as usize >= 8 * resp.flags.len() {
+        return Err(Error::UnsupportedFeature);
+    }
+
+    Ok(resp.flags[(feature as usize) / 32] & ec_feature_mask_0(feature as u32) as u32)
+}
+
+pub fn get_events_b(spi_map: &[SPICtrlrBuses]) -> Result<u64, Error> {
+    get_mask(EcHostEventMaskType::B as u8, spi_map)
+}
+
+pub fn get_mask(type_: u8, spi_map: &[SPICtrlrBuses]) -> Result<u64, Error> {
+    let mut value = 0u64;
+
+    if is_uhepi_supported(spi_map)? {
+        uhepi_cmd(type_, EcHostEventAction::Get as u8, &mut value, spi_map)?;
+    } else {
+        assert!((type_ as usize) < EVENT_MAP.len());
+        handle_non_uhepi_cmd(
+            EVENT_MAP[type_ as usize].get_cmd,
+            EcHostEventAction::Get,
+            &mut value,
+            spi_map,
+        )?;
+    }
+    Ok(value)
+}
+
+pub fn handle_non_uhepi_cmd(
+    hcmd: u8,
+    action: EcHostEventAction,
+    value: &mut u64,
+    spi_map: &[SPICtrlrBuses],
+) -> Result<(), Error> {
+    let mut params = EcParamsHostEventMask::new();
+    let mut resp = EcResponseHostEventMask::new();
+    let mut cmd = ChromeECCommand {
+        cmd_code: hcmd as u16,
+        cmd_version: 0,
+        cmd_data_in: params.as_byte_ptr(),
+        cmd_size_in: params.len() as u16,
+        cmd_data_out: resp.as_mut_byte_ptr(),
+        cmd_size_out: resp.len() as u16,
+        cmd_dev_index: 0,
+    };
+
+    if hcmd == INVALID_HCMD {
+        return Err(Error::UnsupportedCommand);
+    }
+
+    if action != EcHostEventAction::Get {
+        params.mask = *value as u32;
+    } else {
+        *value = 0;
+    }
+
+    let ret = google_chromeec_command(&mut cmd, spi_map);
+
+    if action != EcHostEventAction::Get {
+        return ret;
+    }
+
+    if ret.is_ok() {
+        *value = resp.mask as u64;
+    }
+
+    ret
 }
