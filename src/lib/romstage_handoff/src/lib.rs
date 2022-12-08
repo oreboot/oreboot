@@ -8,11 +8,11 @@ use spin::rwlock::RwLock;
 
 #[repr(C)]
 pub struct RomstageHandoff {
-	/// Indicate if the current boot is an S3 resume. If
-	/// CONFIG_RELOCATABLE_RAMSTAGE is enabled the chipset code is
-	/// responsible for initializing this variable. Otherwise, ramstage
-	/// will be re-loaded from cbfs (which can be slower since it lives
-	/// in flash).
+    /// Indicate if the current boot is an S3 resume. If
+    /// CONFIG_RELOCATABLE_RAMSTAGE is enabled the chipset code is
+    /// responsible for initializing this variable. Otherwise, ramstage
+    /// will be re-loaded from cbfs (which can be slower since it lives
+    /// in flash).
     pub s3_resume: u8,
     pub reboot_required: u8,
     pub reserved: [u8; 2],
@@ -20,7 +20,11 @@ pub struct RomstageHandoff {
 
 impl RomstageHandoff {
     pub const fn new() -> Self {
-        Self { s3_resume: 0, reboot_required: 0, reserved: [0u8; 2] }
+        Self {
+            s3_resume: 0,
+            reboot_required: 0,
+            reserved: [0u8; 2],
+        }
     }
 }
 

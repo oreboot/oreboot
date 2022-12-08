@@ -9,4 +9,33 @@ edition = "2021"
 bitfield = "0.14.0"
 downcast-rs = "1.2.0"
 log = "0.4"
+mainboard = { path = "../mainboard" }
+rules = { path = "../lib/rules" }
+spin = "0.9"
 util = { path = "../lib/util" }
+
+[features]
+adesto = []
+amic = []
+atmel = []
+eon = []
+gigadevice = []
+macronix = []
+spansion = []
+sst = []
+stmicro = []
+winbond = []
+
+romsize_kb_256 = ["mainboard/romsize_kb_256"]
+romsize_kb_512 = ["mainboard/romsize_kb_512"]
+romsize_kb_1024 = ["mainboard/romsize_kb_1024"]
+romsize_kb_2048 = ["mainboard/romsize_kb_2048"]
+romsize_kb_4096 = ["mainboard/romsize_kb_4096"]
+romsize_kb_5120 = ["mainboard/romsize_kb_5120"]
+romsize_kb_6144 = ["mainboard/romsize_kb_6144"]
+romsize_kb_8192 = ["mainboard/romsize_kb_8192"]
+romsize_kb_10240 = ["mainboard/romsize_kb_10240"]
+romsize_kb_12288 = ["mainboard/romsize_kb_12288"]
+romsize_kb_16384 = ["mainboard/romsize_kb_16384"]
+romsize_kb_32768 = ["mainboard/romsize_kb_32768"]
+romsize_kb_65536 = ["mainboard/romsize_kb_65536"]

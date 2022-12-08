@@ -9,6 +9,6 @@
 
 #[repr(C)]
 pub struct Region {
-    offset: usize,
-    size: usize,
+    pub offset: usize,
+    pub size: usize,
 }

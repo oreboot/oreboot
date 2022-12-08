@@ -2,4 +2,8 @@
 #![deny(warnings)]
 #![no_std]
 
+#[cfg(feature = "intel")]
+extern crate alloc;
+
+#[cfg(feature = "intel")]
 pub mod intel;

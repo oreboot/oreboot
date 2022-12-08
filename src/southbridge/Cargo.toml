@@ -7,5 +7,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+arch = { package = "oreboot-arch", path = "../arch" }
+drivers = { path = "../drivers" }
 log = "0.4"
+payload = { path = "../lib/payload" }
+spin = "0.9"
+types = { path = "../lib/types" }
 util = { path = "../lib/util" }
+
+[features]
+intel = ["arch/x86_64"]
+adesto = ["drivers/adesto"]
+amic = ["drivers/amic"]
+atmel = ["drivers/atmel"]
+eon = ["drivers/eon"]
+gigadevice = ["drivers/gigadevice"]
+macronix = ["drivers/macronix"]
+spansion = ["drivers/spansion"]
+sst = ["drivers/sst"]
+stmicro = ["drivers/stmicro"]
+winbond = ["drivers/winbond"]

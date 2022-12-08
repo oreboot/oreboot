@@ -1,3 +1,5 @@
+pub const KIB: usize = 1 << 10;
+
 pub fn is_aligned(x: u32, a: u32) -> bool {
     (x & (a - 1)) == 0
 }

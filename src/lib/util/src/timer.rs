@@ -10,6 +10,8 @@ pub const USECS_PER_MSEC: u64 = USECS_PER_SEC / MSECS_PER_SEC;
  * structures. In other words, accessing any field within this structure
  * outside of the core timer code is not supported. */
 
+#[repr(C)]
+#[derive(PartialEq)]
 pub struct MonoTime {
     pub microseconds: u64,
 }
@@ -52,6 +54,10 @@ impl MonoTime {
 
     pub fn before(&self, oth: &Self) -> bool {
         self.cmp(oth) < 0
+    }
+
+    pub fn diff_microseconds(&self, oth: &Self) -> i64 {
+        (self.microseconds as i64) - (oth.microseconds as i64)
     }
 }
 
@@ -112,6 +118,23 @@ impl Stopwatch {
                 break;
             }
         }
+    }
+
+    /// Return number of microseconds since starting the stopwatch.
+    pub fn duration_usecs(&mut self) -> i64 {
+        /*
+         * If the stopwatch hasn't been ticked (current == start) tick
+         * the stopwatch to gather the accumulated time.
+         */
+        if self.start == self.current {
+            self.tick();
+        }
+
+        self.start.diff_microseconds(&self.current)
+    }
+
+    pub fn duration_msecs(&mut self) -> i64 {
+        self.duration_usecs() / (USECS_PER_MSEC as i64)
     }
 }
 
