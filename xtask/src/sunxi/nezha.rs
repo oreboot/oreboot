@@ -66,7 +66,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     }
 }
 
-const DEFAULT_TARGET: &'static str = "riscv64imac-unknown-none-elf";
+const DEFAULT_TARGET: &str = "riscv64imac-unknown-none-elf";
 
 fn xtask_build_d1_flash_bt0(env: &Env, features: &Vec<String>) {
     trace!("build D1 flash bt0");
@@ -78,11 +78,11 @@ fn xtask_build_d1_flash_bt0(env: &Env, features: &Vec<String>) {
     if env.release {
         command.arg("--release");
     }
-    if features.len() != 0 {
+    if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {}", command_line_features);
         command.arg("--no-default-features");
-        command.args(&["--features", &command_line_features]);
+        command.args(["--features", &command_line_features]);
     } else {
         trace!("no command line features appended");
     }
@@ -118,12 +118,12 @@ fn xtask_build_d1_flash_main(env: &Env) {
 
 fn xtask_binary_d1_flash_bt0(prefix: &str, env: &Env) {
     trace!("objcopy binary, prefix: '{}'", prefix);
-    let status = Command::new(format!("{}objcopy", prefix))
+    let status = Command::new(format!("{prefix}objcopy"))
         .current_dir(dist_dir(env, DEFAULT_TARGET))
         .arg("oreboot-nezha-bt0")
         .arg("--binary-architecture=riscv64")
         .arg("--strip-all")
-        .args(&["-O", "binary", "oreboot-nezha-bt0.bin"])
+        .args(["-O", "binary", "oreboot-nezha-bt0.bin"])
         .status()
         .unwrap();
 
@@ -136,12 +136,12 @@ fn xtask_binary_d1_flash_bt0(prefix: &str, env: &Env) {
 
 fn xtask_binary_d1_flash_main(prefix: &str, env: &Env) {
     trace!("objcopy binary, prefix: '{}'", prefix);
-    let status = Command::new(format!("{}objcopy", prefix))
+    let status = Command::new(format!("{prefix}objcopy"))
         .current_dir(dist_dir(env, DEFAULT_TARGET))
         .arg("oreboot-nezha-main")
         .arg("--binary-architecture=riscv64")
         .arg("--strip-all")
-        .args(&["-O", "binary", "oreboot-nezha-main.bin"])
+        .args(["-O", "binary", "oreboot-nezha-main.bin"])
         .status()
         .unwrap();
 
@@ -196,7 +196,7 @@ fn xtask_finialize_d1_flash(env: &Env) {
         error!("wrong stamp value; check your generated blob and try again")
     }
     let mut checksum: u32 = 0;
-    bt0_file.seek(SeekFrom::Start(0)).unwrap();
+    bt0_file.rewind().unwrap();
     loop {
         match bt0_file.read_u32::<LittleEndian>() {
             Ok(val) => checksum = checksum.wrapping_add(val),
@@ -276,14 +276,14 @@ fn xtask_concat_flash_binaries(env: &Env) {
         .seek(SeekFrom::Start(bt0_len))
         .expect("seek after bt0 copy");
     io::copy(&mut main_file, &mut output_file).expect("copy main binary");
-    println!("payloader stage: 0x{:x} bytes", main_len);
+    println!("payloader stage: 0x{main_len:x} bytes");
 
     match env.payload.as_deref() {
         Some(payload_file) => {
             if env.supervisor {
                 env.dtb.as_deref().expect("provide a dtb");
             }
-            println!("adding payload {}", payload_file);
+            println!("adding payload {payload_file}");
             let payload = std::fs::read(payload_file).expect("open payload file");
             println!("payload size: 0x{:x} bytes", payload.len());
             output_file
@@ -311,7 +311,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
             };
             match env.dtb.as_deref() {
                 Some(dtb) => {
-                    println!("adding dtb {}", dtb);
+                    println!("adding dtb {dtb}");
                     let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
                     let dtb_len = 64 * 1024;
                     output_file
@@ -319,7 +319,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
                         .expect("seek after payload copy");
                     io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
                     let dtb_len = dtb_file.metadata().unwrap().len();
-                    println!("dtb size: 0x{:x} bytes", dtb_len);
+                    println!("dtb size: 0x{dtb_len:x} bytes");
                 }
                 _ => {}
             };
@@ -354,7 +354,7 @@ fn xtask_burn_d1_flash_bt0(xfel: &str, env: &Env) {
 }
 
 fn xtask_dump_d1_flash_bt0(prefix: &str, env: &Env) {
-    Command::new(format!("{}objdump", prefix))
+    Command::new(format!("{prefix}objdump"))
         .current_dir(dist_dir(env, DEFAULT_TARGET))
         .arg("oreboot-nezha-bt0")
         .arg("-d")
@@ -365,11 +365,11 @@ fn xtask_dump_d1_flash_bt0(prefix: &str, env: &Env) {
 fn xtask_debug_gdb(gdb_path: &str, gdb_server: &str, env: &Env) {
     let mut command = Command::new(gdb_path);
     command.current_dir(dist_dir(env, DEFAULT_TARGET));
-    command.args(&["--eval-command", "file oreboot-nezha-bt0"]);
-    command.args(&["--eval-command", "set architecture riscv:rv64"]);
-    command.args(&["--eval-command", "mem 0x0 0xffff ro"]);
-    command.args(&["--eval-command", "mem 0x20000 0x27fff rw"]);
-    command.args(&["--eval-command", &format!("target remote {}", gdb_server)]);
+    command.args(["--eval-command", "file oreboot-nezha-bt0"]);
+    command.args(["--eval-command", "set architecture riscv:rv64"]);
+    command.args(["--eval-command", "mem 0x0 0xffff ro"]);
+    command.args(["--eval-command", "mem 0x20000 0x27fff rw"]);
+    command.args(["--eval-command", &format!("target remote {gdb_server}")]);
     command.arg("-q");
     ctrlc::set_handler(move || {
         // when ctrl-c, don't exit gdb
@@ -421,7 +421,7 @@ fn xfel_find_connected_device(xfel: &str) {
 
 fn find_binutils_prefix() -> Option<&'static str> {
     for prefix in ["rust-", "riscv64-unknown-elf-", "riscv64-linux-gnu-"] {
-        let mut command = Command::new(format!("{}objcopy", prefix));
+        let mut command = Command::new(format!("{prefix}objcopy"));
         command.arg("--version");
         command.stdout(Stdio::null());
         let status = command.status().unwrap();
