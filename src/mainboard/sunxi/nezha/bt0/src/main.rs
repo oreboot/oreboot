@@ -687,7 +687,7 @@ unsafe fn sunxi_mmc_reset_host(host: SMHC0) -> Result<(), &'static str> {
 }
 
 unsafe fn sunxi_mmc_init_host(host: SMHC0) {
-    print!("=========== init smhc ...");
+    print!("reset smhc ...");
     /*
     if let Err(msg) = sunxi_mmc_reset_host(host) {
         println!("failed to reset smhc host: {}", msg);
@@ -732,29 +732,58 @@ unsafe fn sunxi_mmc_init_host(host: SMHC0) {
     /* Unmask SDIO interrupt if needed */
     //mmc_writel(host, REG_IMASK, host->sdio_imask);
     //skip for now.
+    //host.smhc_intmask.sdio_int_en()
 
+    /* SMC Raw Interrupt Status Register */
     /* Clear all pending interrupts */
     //mmc_writel(host, REG_RINTR, 0xffffffff);
+    host.smhc_rintsts.write(|w| w.bits(0xffffffff));
 
+    /* SMC Debug Enable Register */
     /* Debug register? undocumented */
     // mmc_writel(host, REG_DBGC, 0xdeb);
+    host.smhc_dbgc.write(|w| w.bits(0xdeb));
 
-    /* Enable CEATA support */
+    /* SMC Function Select Register */
+    /* Enable CEATA support
+     * SDXC_CEATA_ON			(0xceaa << 16)
+     * 0xceaa = 1100 1110 1010 1010
+     *          xxxx xxxx xxxx x
+     *                          a   Abort Read Data
+     *                           b  Read Wait
+     *                            c Host Send MMC IRQ Response
+     */
     //mmc_writel(host, REG_FUNS, SDXC_CEATA_ON);
-
-    /* Set DMA descriptor list base address */
-    //mmc_writel(host, REG_DLBA, host->sg_dma >> host->cfg->idma_des_shift);
-    //skip for now.
+    host.smhc_funs.write(|w| w.read_wait().assert());
 
     /*
-    rval = mmc_readl(host, REG_GCTRL);
-    rval |= SDXC_INTERRUPT_ENABLE_BIT;
-    /* Undocumented, but found in Allwinner code */
-    rval &= ~SDXC_ACCESS_DONE_DIRECT;
-    mmc_writel(host, REG_GCTRL, rval);
+     * /* SMC IDMAC Descriptor List Base Address */
+     * /* Set DMA descriptor list base address */
+     * mmc_writel(host, REG_DLBA, host->sg_dma >> host->cfg->idma_des_shift);
+     */
+    //skip for now.
+    //host.smhc_dlba.write(|w| w.bits(0x00000000);
 
-    return 0;
-    */
+    /*
+     * /* SMC Global Control Register */
+     *
+     * rval = mmc_readl(host, REG_GCTRL);
+     * //#define SDXC_INTERRUPT_ENABLE_BIT	BIT(4) -> Global Interrupt Enable
+     * rval |= SDXC_INTERRUPT_ENABLE_BIT;
+     * Undocumented, but found in Allwinner code
+     * #define SDXC_ACCESS_DONE_DIRECT		BIT(30) -> "/"
+     * rval &= ~SDXC_ACCESS_DONE_DIRECT;
+     * mmc_writel(host, REG_GCTRL, rval);
+     * return 0;
+     */
+    /*
+     * Skipping for now.
+     * * "Supports Command Completion signals and interrupts to host processor, and
+     *    Command Completion signal disable feature"
+     * * Pretty sure we can't take interrupts while anything has "Peripherals::take()":
+     * * riscv: critical-section-single-hart: For bare-metal single core, disabling interrupts globally.
+     * host.smhc_ctrl.read()
+     */
 }
 
 // ************** End port *******
