@@ -89,7 +89,7 @@ pub fn save_gdb_path_to_file(gdb_path: &str) {
                 .join("gdb-path.txt"),
         )
         .expect("create and open file");
-    file.write(gdb_path.as_bytes()).expect("write file");
+    file.write_all(gdb_path.as_bytes()).expect("write file");
 }
 
 pub fn load_gdb_path_from_file() -> io::Result<String> {
@@ -114,7 +114,7 @@ pub fn save_gdb_server_to_file(gdb_server: &str) {
                 .join("gdb-server.txt"),
         )
         .expect("create and open file");
-    file.write(gdb_server.as_bytes()).expect("write file");
+    file.write_all(gdb_server.as_bytes()).expect("write file");
 }
 
 pub fn load_gdb_server_from_file() -> io::Result<String> {
