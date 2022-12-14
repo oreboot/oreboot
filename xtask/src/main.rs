@@ -52,7 +52,7 @@ impl FromStr for Memory {
         match s.to_lowercase().as_str() {
             "nand" => Ok(Self::Nand),
             "nor" => Ok(Self::Nor),
-            others => Err(format!("unknown memory type {}", others)),
+            others => Err(format!("unknown memory type {others}")),
         }
     }
 }

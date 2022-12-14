@@ -17,7 +17,7 @@ pub fn detect_gdb_path() -> String {
         );
         stdout.flush().unwrap();
         stdin.read_line(&mut input).expect("read line");
-        let mut command = Command::new(&input.trim());
+        let mut command = Command::new(input.trim());
         command.arg("--version");
         let output = match command.output() {
             Ok(output) => output,
@@ -57,8 +57,8 @@ pub(crate) fn detect_gdb_server(gdb_path: &str) -> String {
         stdin.read_line(&mut input).expect("read line");
         println!("trying gdb connect...");
         let mut command = Command::new(gdb_path);
-        command.args(&["--eval-command", "set tcp connect-timeout 5"]);
-        command.args(&["--eval-command", &format!("target remote {}", input.trim())]);
+        command.args(["--eval-command", "set tcp connect-timeout 5"]);
+        command.args(["--eval-command", &format!("target remote {}", input.trim())]);
         command.arg("--batch-silent");
         let status = match command.status() {
             Ok(status) => status,

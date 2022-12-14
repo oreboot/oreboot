@@ -63,7 +63,7 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
             trace!("no input board");
             return None;
         };
-        if split.next() != None {
+        if split.next().is_some() {
             trace!("there is unexpected remaining string");
             return None;
         }
