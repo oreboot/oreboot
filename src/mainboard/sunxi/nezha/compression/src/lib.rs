@@ -15,9 +15,9 @@ pub fn decompress(
     let in_ptr = (compressed_addr + 4) as *const u8;
     let out_ptr = target_addr as *mut u8;
     let compressed_size = unsafe { read_volatile(compressed_addr as *const u32) };
-    write!(
+    writeln!(
         w,
-        "Decompress {} bytes from {:?} to {:?}, reserved {:?} bytes\n",
+        "Decompress {} bytes from {:?} to {:?}, reserved {:?} bytes",
         compressed_size, &in_ptr, &out_ptr, payload_size
     )
     .ok();
@@ -30,8 +30,8 @@ pub fn decompress(
         lzss::SliceWriter::new(output),
     );
     match result {
-        Ok(r) => write!(w, "Success, decompressed {r} bytes :)\n"),
-        Err(e) => write!(w, "Decompression error {e}\n"),
+        Ok(r) => writeln!(w, "Success, decompressed {r} bytes :)"),
+        Err(e) => writeln!(w, "Decompression error {e}"),
     }
     .ok();
 }
