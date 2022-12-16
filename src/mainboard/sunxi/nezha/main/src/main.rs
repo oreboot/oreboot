@@ -22,7 +22,6 @@ use core::panic::PanicInfo;
 use core::{
     arch::asm,
     ptr::{read_volatile, write_volatile},
-    slice,
 };
 use embedded_hal::digital::blocking::OutputPin;
 use embedded_hal::serial::nb::Write;
