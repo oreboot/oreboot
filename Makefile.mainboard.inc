@@ -27,7 +27,7 @@ $(FIXED_DTFS): fixed-dtfs.dts
 # Re-run cargo every time.
 .PHONY: $(ELF)
 $(ELF):
-	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo build --target "$(TARGET)" -Z build-std=core,alloc $(CARGO_FLAGS)
+	RUST_TARGET_PATH=$(TOP)/src/custom_targets cargo build --target "$(TARGET)" $(CARGO_FLAGS)
 
 # The default target: build the board.
 default:: mainboard
