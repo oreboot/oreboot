@@ -38,7 +38,7 @@ use rustsbi::{legacy_stdio::LegacyStdio, print};
 const MEM: usize = 0x4000_0000;
 
 // see ../fixed-dtfs.dts
-const PAYLOAD_OFFSET: usize = 0x2_0000;
+// const PAYLOAD_OFFSET: usize = 0x2_0000;
 const PAYLOAD_SIZE: usize = 0x20_0000; // 2 MB
 const PAYLOAD_ADDR: usize = MEM + 0x20_0000;
 
