@@ -1,6 +1,6 @@
 ---
 
-name: build
+name: toolchain-1.66
 
 on:  # yamllint disable-line rule:truthy
   push:
