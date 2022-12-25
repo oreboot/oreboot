@@ -15,6 +15,7 @@ members = [
   "src/lib/device",
   "src/lib/payload",
   "src/lib/romstage_handoff",
+  "src/lib/rules",
   "src/lib/types",
   "src/lib/util",
 
