@@ -19,6 +19,7 @@ members = [
   "src/lib/types",
   "src/lib/util",
 
+  "src/mainboard",
   "src/mainboard/sunxi/nezha/*",
   "src/mainboard/emulation/*",
   "src/vendorcode/fsp/build-utils",

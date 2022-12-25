@@ -1,0 +1,25 @@
+[package]
+name = "mainboard"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[features]
+romsize_kb_256 = []
+romsize_kb_512 = []
+romsize_kb_1024 = []
+romsize_kb_2048 = []
+romsize_kb_4096 = []
+romsize_kb_5120 = []
+romsize_kb_6144 = []
+romsize_kb_8192 = []
+romsize_kb_10240 = []
+romsize_kb_12288 = []
+romsize_kb_16384 = []
+romsize_kb_32768 = []
+romsize_kb_65536 = []
+
+default = ["romsize_kb_16384"]
