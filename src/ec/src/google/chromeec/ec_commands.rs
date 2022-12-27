@@ -15,6 +15,14 @@ pub const EC_CMD_HOST_EVENT_CLEAR_B: u16 = 0x008F;
 
 pub const EC_CMD_GET_FEATURES: u16 = 0x000D;
 
+pub fn bit_ull(nr: u64) -> u64 {
+    1 << nr
+}
+
+pub fn ec_host_event_mask(event_code: u32) -> u64 {
+    bit_ull((event_code as u64) - 1)
+}
+
 pub fn ec_feature_mask_0(event_code: u32) -> u64 {
     bit((event_code as u64) % 32)
 }
@@ -199,7 +207,7 @@ pub enum EcFeatureCode {
 }
 
 #[repr(C)]
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum EcHostEventAction {
     /// params.value is ignored. Value of mask_type populated
     /// in response.value
@@ -211,6 +219,7 @@ pub enum EcHostEventAction {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum EcHostEventMaskType {
     /// Main host event copy
     Main,
@@ -260,10 +269,10 @@ impl ECResponseBoardVersion {
 #[repr(C, align(4))]
 pub struct EcParamsHostEvent {
     /// Action requested by host - one of enum ec_host_event_action.
-    pub action: u8,
+    pub action: EcHostEventAction,
     /// Mask type that the host requested the action on - one of
     /// enum ec_host_event_mask_type.
-    pub mask_type: u8,
+    pub mask_type: EcHostEventMaskType,
     /// Set to 0, ignore on read
     pub reserved: u16,
     /// Value to be used in case of set operations.

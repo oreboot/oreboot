@@ -4,4 +4,5 @@
 extern crate alloc;
 
 pub mod context;
+pub mod elog;
 pub mod spi;

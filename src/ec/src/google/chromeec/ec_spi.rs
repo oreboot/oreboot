@@ -6,7 +6,7 @@ use crate::google::chromeec::{
 };
 use drivers::{
     context::Context,
-    spi::spi_generic::{SPICtrlrBuses, SPISlave},
+    spi::spi_generic::{SpiCtrlr, SpiSlave},
 };
 use log::error;
 use util::timer::{Stopwatch, USECS_PER_SEC};
@@ -30,16 +30,16 @@ pub fn crosec_spi_io(
     ctx: &mut dyn Context,
 ) -> Result<(), Error> {
     const FUNC_NAME: &'static str = "crosec_spi_io";
-    if let Some(slave) = ctx.as_any_mut().downcast_mut::<SPISlave>() {
-        let out = |slave: &SPISlave| -> Result<(), Error> {
-            slave.release_bus().map_err(|e| Error::ECSPIError(e))?;
+    if let Some(slave) = ctx.as_any_mut().downcast_mut::<SpiSlave>() {
+        let out = |spi: &SpiSlave| -> Result<(), Error> {
+            spi.release_bus().map_err(|e| Error::EcSpiError(e))?;
             (*CS_COOLDOWN_SW.write()).init_usecs_expire(CS_COOLDOWN_US);
             Ok(())
         };
 
         /* Wait minimum delay between CS assertions. */
         (*CS_COOLDOWN_SW.write()).wait_until_expired();
-        slave.claim_bus().map_err(|e| Error::ECSPIError(e))?;
+        slave.claim_bus().map_err(|e| Error::EcSpiError(e))?;
 
         /* Allow EC to ramp up clock after being awaken.
          * See chrome-os-partner:32223 for more details. */
@@ -81,26 +81,23 @@ pub fn crosec_spi_io(
 
         out(&slave)
     } else {
-        Err(Error::ECFailedContextDowncast)
+        Err(Error::EcFailedContextDowncast)
     }
 }
 
-pub fn google_chromeec_command(
-    cec_command: &mut ChromeECCommand,
-    spi_map: &[SPICtrlrBuses],
-) -> Result<(), Error> {
+pub fn google_chromeec_command(cec_command: &mut ChromeECCommand) -> Result<(), Error> {
     static DONE: RwLock<bool> = RwLock::new(false);
-    static SLAVE: RwLock<SPISlave> = RwLock::new(SPISlave::new());
+    static SPI: RwLock<SpiSlave> = RwLock::new(SpiSlave::new());
 
     if !*DONE.read() {
-        (*SLAVE.write())
-            .setup(SPI_BUS, SPI_CHIP, spi_map)
-            .map_err(|e| Error::ECSPIError(e))?;
+        (*SPI.write())
+            .setup(SPI_BUS, SPI_CHIP)
+            .map_err(|e| Error::EcSpiError(e))?;
         (*CS_COOLDOWN_SW.write()).init();
         (*DONE.write()) = true;
     }
 
-    crosec_command_proto(cec_command, crosec_spi_io, &mut (*SLAVE.write()))?;
+    crosec_command_proto(cec_command, crosec_spi_io, &mut (*SPI.write()))?;
 
     Ok(())
 }

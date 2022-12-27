@@ -1,9 +1,6 @@
 use crate::google::chromeec::{ec_commands::*, ec_spi::google_chromeec_command};
 use core::mem::size_of;
-use drivers::{
-    context::Context,
-    spi::spi_generic::{Error as SPIError, SPICtrlrBuses},
-};
+use drivers::{context::Context, elog, spi::Error as SpiError};
 use log::debug;
 use spin::rwlock::RwLock;
 
@@ -44,34 +41,34 @@ impl EventInfo {
         }
     }
 
-    pub fn init(&self, is_s3_wakeup: bool, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+    pub fn init(&self, is_s3_wakeup: bool) -> Result<(), Error> {
         if is_s3_wakeup {
-            log_events(self.log_events | self.s3_wake_events);
+            let _ = log_events(self.log_events | self.s3_wake_events);
 
             /* Log and clear device events that may wake the system. */
             log_device_events(self.s3_device_events);
 
             /* Disable SMI and wake events. */
-            set_smi_mask(0, spi_map);
+            set_smi_mask(0)?;
 
             /* Restore SCI event mask. */
-            set_sci_mask(self.sci_events, spi_map);
+            set_sci_mask(self.sci_events)?;
         } else {
-            set_smi_mask(self.smi_events, spi_map);
+            set_smi_mask(self.smi_events)?;
 
-            log_events(self.log_events | self.s5_wake_events);
+            let _ = log_events(self.log_events | self.s5_wake_events);
 
             if is_uhepi_supported()? {
                 set_lazy_wake_masks(
                     self.s5_wake_events,
                     self.s3_wake_events,
                     self.s0ix_wake_events,
-                );
+                )?;
             }
         }
 
         /* Clear wake event mask. */
-        set_wake_mask(0);
+        set_wake_mask(0)?;
 
         Ok(())
     }
@@ -134,16 +131,17 @@ pub const EVENT_MAP: [EventMap; 9] = [
 
 #[derive(Debug)]
 pub enum Error {
-    ECResRequestTruncated,
-    ECResResponseTooBig,
-    ECResInvalidResponse,
-    ECResInvalidChecksum,
-    ECResResponse(i32),
-    ECResError,
-    ECSPIError(SPIError),
-    ECFailedContextDowncast,
+    EcResRequestTruncated,
+    EcResResponseTooBig,
+    EcResInvalidResponse,
+    EcResInvalidChecksum,
+    EcResResponse(i32),
+    EcResError,
+    EcSpiError(SpiError),
+    EcFailedContextDowncast,
     UnsupportedCommand,
     UnsupportedFeature,
+    Unimplemented,
 }
 
 /* internal structure to send a command to the EC and wait for response. */
@@ -509,10 +507,7 @@ pub type CrosECIO = fn(usize, usize, &mut dyn Context) -> Result<(), Error>;
  *
  * This function is used to get the board version information from EC.
  */
-pub fn google_chromeec_get_board_version(
-    _version: u32,
-    spi_map: &[SPICtrlrBuses],
-) -> Result<u32, Error> {
+pub fn google_chromeec_get_board_version(_version: u32) -> Result<u32, Error> {
     let resp = ECResponseBoardVersion::new();
     let mut cmd = ChromeECCommand::new();
     cmd.set_cmd_code(EC_CMD_GET_BOARD_VERSION);
@@ -521,18 +516,20 @@ pub fn google_chromeec_get_board_version(
         cmd.data_out_mut().copy_from_slice(&resp.as_bytes());
     }
 
-    google_chromeec_command(&mut cmd, spi_map)?;
+    google_chromeec_command(&mut cmd)?;
 
     Ok(resp.board_version() as u32)
 }
 
+// FIXME: implement
+pub fn log_device_events(_mask: u64) {}
+
 /// Query the EC for specified mask indicating enabled events.
 /// The EC maintains separate event masks for SMI, SCI and WAKE.
 pub fn uhepi_cmd(
-    mask: u8,
-    action: u8,
+    mask: EcHostEventMaskType,
+    action: EcHostEventAction,
     value: &mut u64,
-    spi_map: &[SPICtrlrBuses],
 ) -> Result<(), Error> {
     let mut params = EcParamsHostEvent {
         action: action,
@@ -553,14 +550,14 @@ pub fn uhepi_cmd(
         cmd_dev_index: 0,
     };
 
-    if action != EcHostEventAction::Get as u8 {
+    if action != EcHostEventAction::Get {
         params.value = *value;
     } else {
         *value = 0;
     }
 
-    let ret = google_chromeec_command(&mut cmd, spi_map);
-    if action != EcHostEventAction::Get as u8 {
+    let ret = google_chromeec_command(&mut cmd);
+    if action != EcHostEventAction::Get {
         return ret;
     }
     if ret.is_ok() {
@@ -569,13 +566,13 @@ pub fn uhepi_cmd(
     ret
 }
 
-pub fn is_uhepi_supported(spi_map: &[SPICtrlrBuses]) -> Result<bool, Error> {
+pub fn is_uhepi_supported() -> Result<bool, Error> {
     static UHEPI_SUPPORT: RwLock<u32> = RwLock::new(0);
     const UHEPI_SUPPORTED: u32 = 1;
     const UHEPI_NOT_SUPPORTED: u32 = 2;
 
     if *UHEPI_SUPPORT.read() == 0 {
-        (*UHEPI_SUPPORT.write()) = if check_feature(EcFeatureCode::UnifiedWakeMasks, spi_map)? > 0 {
+        (*UHEPI_SUPPORT.write()) = if check_feature(EcFeatureCode::UnifiedWakeMasks)? > 0 {
             UHEPI_SUPPORTED
         } else {
             UHEPI_NOT_SUPPORTED
@@ -593,7 +590,7 @@ pub fn is_uhepi_supported(spi_map: &[SPICtrlrBuses]) -> Result<bool, Error> {
     Ok(*UHEPI_SUPPORT.read() == UHEPI_SUPPORTED)
 }
 
-pub fn check_feature(feature: EcFeatureCode, spi_map: &[SPICtrlrBuses]) -> Result<u32, Error> {
+pub fn check_feature(feature: EcFeatureCode) -> Result<u32, Error> {
     let mut resp = EcResponseGetFeatures::new();
     let mut cmd = ChromeECCommand {
         cmd_code: EC_CMD_GET_FEATURES,
@@ -605,7 +602,7 @@ pub fn check_feature(feature: EcFeatureCode, spi_map: &[SPICtrlrBuses]) -> Resul
         cmd_dev_index: 0,
     };
 
-    google_chromeec_command(&mut cmd, spi_map)?;
+    google_chromeec_command(&mut cmd)?;
 
     if feature as usize >= 8 * resp.flags.len() {
         return Err(Error::UnsupportedFeature);
@@ -614,32 +611,10 @@ pub fn check_feature(feature: EcFeatureCode, spi_map: &[SPICtrlrBuses]) -> Resul
     Ok(resp.flags[(feature as usize) / 32] & ec_feature_mask_0(feature as u32) as u32)
 }
 
-pub fn get_events_b(spi_map: &[SPICtrlrBuses]) -> Result<u64, Error> {
-    get_mask(EcHostEventMaskType::B as u8, spi_map)
-}
-
-pub fn get_mask(type_: u8, spi_map: &[SPICtrlrBuses]) -> Result<u64, Error> {
-    let mut value = 0u64;
-
-    if is_uhepi_supported(spi_map)? {
-        uhepi_cmd(type_, EcHostEventAction::Get as u8, &mut value, spi_map)?;
-    } else {
-        assert!((type_ as usize) < EVENT_MAP.len());
-        handle_non_uhepi_cmd(
-            EVENT_MAP[type_ as usize].get_cmd,
-            EcHostEventAction::Get,
-            &mut value,
-            spi_map,
-        )?;
-    }
-    Ok(value)
-}
-
 pub fn handle_non_uhepi_cmd(
     hcmd: u8,
     action: EcHostEventAction,
     value: &mut u64,
-    spi_map: &[SPICtrlrBuses],
 ) -> Result<(), Error> {
     let mut params = EcParamsHostEventMask::new();
     let mut resp = EcResponseHostEventMask::new();
@@ -663,7 +638,7 @@ pub fn handle_non_uhepi_cmd(
         *value = 0;
     }
 
-    let ret = google_chromeec_command(&mut cmd, spi_map);
+    let ret = google_chromeec_command(&mut cmd);
 
     if action != EcHostEventAction::Get {
         return ret;
@@ -676,56 +651,51 @@ pub fn handle_non_uhepi_cmd(
     ret
 }
 
-pub fn set_mask(type_: u8, mut mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_mask(type_: EcHostEventMaskType, mut mask: u64) -> Result<(), Error> {
     if is_uhepi_supported()? {
-        return uhepi_cmd(type_, EcHostEventAction::Set, &mut mask, spi_map);
+        return uhepi_cmd(type_, EcHostEventAction::Set, &mut mask);
     }
 
     assert!((type_ as usize) < EVENT_MAP.len());
 
     handle_non_uhepi_cmd(
-        (*EVENT_MAP.read())[type_ as usize].set_cmd,
+        EVENT_MAP[type_ as usize].set_cmd,
         EcHostEventAction::Set,
         &mut mask,
     )
 }
 
-pub fn set_sci_mask(mut mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_sci_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set SCI mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::SciMask as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::SciMask, mask)
 }
 
-pub fn set_smi_mask(mut mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_smi_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set SMI mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::SmiMask as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::SmiMask, mask)
 }
 
-pub fn set_wake_mask(mut mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_wake_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set WAKE mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::WakeMask as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::ActiveWakeMask, mask)
 }
 
-pub fn set_s3_lazy_wake_mask(mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_s3_lazy_wake_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set S3 LAZY WAKE mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::LazyWakeMaskS3 as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::LazyWakeMaskS3, mask)
 }
 
-pub fn set_s5_lazy_wake_mask(mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_s5_lazy_wake_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set S5 LAZY WAKE mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::LazyWakeMaskS5 as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::LazyWakeMaskS5, mask)
 }
 
-pub fn set_s0ix_lazy_wake_mask(mask: u64, spi_map: &[SPICtrlrBuses]) -> Result<(), Error> {
+pub fn set_s0ix_lazy_wake_mask(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: Set S0iX LAZY WAKE mask to 0x{:16x}", mask);
-    set_mask(EcHostEventMaskType::LazyWakeMaskS0ix as u8, mask, spi_map)
+    set_mask(EcHostEventMaskType::LazyWakeMaskS0ix, mask)
 }
 
-pub fn set_lazy_wake_masks(
-    s5_mask: u64,
-    s3_mask: u64,
-    s0ix_mask: u64,
-    spi_map: &[SPICtrlrBuses],
-) -> Result<(), Error> {
+pub fn set_lazy_wake_masks(s5_mask: u64, s3_mask: u64, s0ix_mask: u64) -> Result<(), Error> {
     if set_s5_lazy_wake_mask(s5_mask).is_err() {
         debug!("Error: Set S5 LAZY WAKE mask failed");
     }
@@ -741,10 +711,10 @@ pub fn set_lazy_wake_masks(
     Ok(())
 }
 
-pub fn get_mask(type_: EcHostEventMaskType, spi_map: &[SPICtrlrMapBuses]) -> Result<u64, Error> {
-    let mut value = 0;
+pub fn get_mask(type_: EcHostEventMaskType) -> Result<u64, Error> {
+    let mut value = 0u64;
 
-    if is_uhepi_supported(spi_map)? {
+    if is_uhepi_supported()? {
         uhepi_cmd(type_, EcHostEventAction::Get, &mut value)?;
     } else {
         assert!((type_ as usize) < EVENT_MAP.len());
@@ -754,17 +724,12 @@ pub fn get_mask(type_: EcHostEventMaskType, spi_map: &[SPICtrlrMapBuses]) -> Res
             &mut value,
         )?;
     }
-
     Ok(value)
 }
 
-pub fn clear_mask(
-    type_: EcHostEventMaskType,
-    mut mask: u64,
-    spi_map: &[SPICtrlrMapBuses],
-) -> Result<(), Error> {
-    if is_uhepi_supported(spi_map)? {
-        uhepi_cmd(type_, EcHostEventAction::Clear, &mut mask, spi_map);
+pub fn clear_mask(type_: EcHostEventMaskType, mut mask: u64) -> Result<(), Error> {
+    if is_uhepi_supported()? {
+        uhepi_cmd(type_, EcHostEventAction::Clear, &mut mask)?;
     }
 
     assert!((type_ as usize) < EVENT_MAP.len());
@@ -773,31 +738,33 @@ pub fn clear_mask(
         EVENT_MAP[type_ as usize].clear_cmd,
         EcHostEventAction::Clear,
         &mut mask,
-        spi_map,
     )
 }
 
-pub fn get_events_b(spi_map: &[SPICtrlrMapBuses]) -> Result<u64, Error> {
-    get_mask(EcHostEventMaskType::B, spi_map)
+pub fn get_events_b() -> Result<u64, Error> {
+    get_mask(EcHostEventMaskType::B)
 }
 
-pub fn clear_events_b(spi_map: &[SPICtrlrMapBuses]) -> Result<u64, Error> {
+pub fn clear_events_b(mask: u64) -> Result<(), Error> {
     debug!("Chrome EC: clear events_b mask to 0x{:16x}", mask);
-    clear_mask(EcHostEventMaskType::B, mask, spi_map)
+    clear_mask(EcHostEventMaskType::B, mask)
 }
 
-pub fn log_events(mask: u64, spi_map: &[SPICtrlrMapBuses]) -> Result<(), Error> {
-    if cfg!(ELOG) {
-        return Ok(());
+pub fn log_events(mask: u64) -> Result<u64, Error> {
+    if cfg!(feature = "elog") {
+        return Ok(0);
     }
 
-    let events = get_events_b(spi_map)? & mask;
+    let events = get_events_b()? & mask;
 
     for i in 1..size_of::<u64>() * 8 {
-        if (ec_host_event_mask(i) & events) != 0 {
-            elog_add_event_byte(ELOG_TYPE_EC_EVENT, i);
+        if (ec_host_event_mask(i as u32) & events) != 0 {
+            let _ = elog::add_event_byte(elog::ELOG_TYPE_EC_EVENT, i as u8)
+                .map_err(|_| Error::Unimplemented);
         }
     }
 
-    clear_events_b(events, spi_map)
+    clear_events_b(events)?;
+
+    Ok(0)
 }

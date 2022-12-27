@@ -58,7 +58,7 @@ pub fn create_proto3_request(cec_command: &ChromeECCommand) -> Result<ECCommandV
             "create_proto3_request",
             cec_command.size_in()
         );
-        return Err(Error::ECResRequestTruncated);
+        return Err(Error::EcResRequestTruncated);
     }
 
     {
@@ -109,7 +109,7 @@ pub fn prepare_proto3_response_buffer(
             "prepare_proto3_response_buffer",
             cec_command.size_out()
         );
-        return Err(Error::ECResResponseTooBig);
+        return Err(Error::EcResResponseTooBig);
     }
 
     /* Return expected size of response packet */
@@ -136,17 +136,17 @@ pub fn handle_proto3_response(
     /* Check input data */
     if rs.struct_version() != EC_HOST_RESPONSE_VERSION {
         error!("{}: EC response version mismatch", "handle_proto3_response");
-        return Err(Error::ECResInvalidResponse);
+        return Err(Error::EcResInvalidResponse);
     }
 
     if rs.reserved() != 0 {
         error!("{}: EC response reserved != 0", "handle_proto3_response");
-        return Err(Error::ECResInvalidResponse);
+        return Err(Error::EcResInvalidResponse);
     }
 
     if rs.data_len() as usize > resp.raw_data().len() || rs.data_len() > cec_command.size_out() {
         error!("{}: EC returned too much data\n", "handle_proto3_response");
-        return Err(Error::ECResResponseTooBig);
+        return Err(Error::EcResResponseTooBig);
     }
 
     cros_ec_dump_data("in-data", -1, resp.data());
@@ -161,7 +161,7 @@ pub fn handle_proto3_response(
             "{}: EC response checksum invalid: 0x{:02x}\n",
             "handle_proto3_response", csum
         );
-        return Err(Error::ECResInvalidChecksum);
+        return Err(Error::EcResInvalidChecksum);
     }
 
     /* Return raw response. */
@@ -178,7 +178,7 @@ pub fn handle_proto3_response(
             "handle_proto3_response",
             rs.result()
         );
-        return Err(Error::ECResResponse(-(rs.result() as i32)));
+        return Err(Error::EcResResponse(-(rs.result() as i32)));
     }
 
     Ok(rs.data_len() as usize)
@@ -209,7 +209,7 @@ pub fn send_command_proto3(
             "{}: failed to complete I/O: Err = {:?}",
             "send_command_proto3", rv
         );
-        return Err(Error::ECResError);
+        return Err(Error::EcResError);
     }
 
     /* Process the response */
