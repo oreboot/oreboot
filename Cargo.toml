@@ -10,6 +10,7 @@ members = [
   "src/southbridge",
 
   "src/lib/acpi",
+  "src/lib/bootmode",
   "src/lib/cbmem",
   "src/lib/consts",
   "src/lib/device",
@@ -22,6 +23,7 @@ members = [
   "src/mainboard",
   "src/mainboard/sunxi/nezha/*",
   "src/mainboard/emulation/*",
+  "src/mainboard/google/octopus/*",
   "src/vendorcode/fsp/build-utils",
   "src/vendorcode/fsp/common",
   "src/vendorcode/fsp/apollolake",

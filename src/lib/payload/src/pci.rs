@@ -5,25 +5,29 @@ use crate::drivers::pci_map_bus_ops::{
     pci_write_config8,
 };
 
+// FIXME: where is this defined in coreboot
+pub const ESPI: u8 = 0;
+pub const PCI_DEV_ESPI: u32 = pci_dev(0, ESPI, 0);
+
 pub type PciDevT = u32;
 
-pub fn pci_bus(d: u32) -> u8 {
+pub const fn pci_bus(d: u32) -> u8 {
     ((d >> 16) & 0xff) as u8
 }
 
-pub fn pci_func(d: u32) -> u8 {
+pub const fn pci_func(d: u32) -> u8 {
     ((d >> 8) & 0x7) as u8
 }
 
-pub fn pci_slot(d: u32) -> u8 {
+pub const fn pci_slot(d: u32) -> u8 {
     ((d >> 11) & 0x1f) as u8
 }
 
-pub fn pci_dev(bus: u8, dev: u8, func: u8) -> u32 {
+pub const fn pci_dev(bus: u8, dev: u8, func: u8) -> u32 {
     0x80000000 | (bus as u32) << 16 | (dev as u32) << 11 | (func as u32) << 8
 }
 
-pub fn pci_addr(bus: u8, dev: u8, func: u8, reg: u8) -> u32 {
+pub const fn pci_addr(bus: u8, dev: u8, func: u8, reg: u8) -> u32 {
     pci_dev(bus, dev, func) | (reg & !3) as u32
 }
 

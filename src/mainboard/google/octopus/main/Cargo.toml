@@ -1,0 +1,15 @@
+[package]
+name = "main"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+acpi = { path = "../../../../lib/acpi" }
+bootmode = { path = "../../../../lib/bootmode" }
+ec = { path = "../../../../ec" }
+log = "0.4"
+payload = { path = "../../../../lib/payload" }
+soc = { path = "../../../../soc", package = "oreboot-soc", featuers = ["intel", "geminilake"] }
+variants = { path = "../variants" }

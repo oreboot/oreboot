@@ -12,6 +12,9 @@ use util::{
     timer::Stopwatch,
 };
 
+mod gpmr;
+pub use gpmr::*;
+
 // FIXME: needs proper Kconfig
 pub const CONFIG_PCR_BASE_ADDRESS: usize = 0xd0000000;
 pub const PCR_PORTID_SHIFT: usize = 16;

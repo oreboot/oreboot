@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use core::mem::size_of;
 
 pub const OB_GPIO_ACTIVE_LOW: usize = 0;
 pub const OB_GPIO_ACTIVE_HIGH: usize = 1;
@@ -149,6 +150,13 @@ impl LbGpio {
             name: [0; OB_GPIO_MAX_NAME_LENGTH],
         }
     }
+
+    pub fn create(port: u32, polarity: u32, value: u32, name: &[u8]) -> Self {
+        assert!(name.len() < OB_GPIO_MAX_NAME_LENGTH);
+        let mut n = [0; OB_GPIO_MAX_NAME_LENGTH];
+        n[..name.len()].copy_from_slice(name);
+        Self { port, polarity, value, name: n } 
+    }
 }
 
 #[repr(C)]
@@ -168,5 +176,11 @@ impl LbGpios {
             count: 0,
             gpios: Vec::new(),
         }
+    }
+
+    pub fn add_gpios(&mut self, gpios: &[LbGpio]) {
+        self.gpios.extend_from_slice(gpios);
+        self.count += gpios.len() as u32;
+        self.size += (gpios.len() * size_of::<LbGpio>()) as u32;
     }
 }

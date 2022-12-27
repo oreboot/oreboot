@@ -1,11 +1,16 @@
 [package]
 name = "device"
 version = "0.1.0"
+authors = ["Oreboot Authors"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+arch = { path = "../../arch", package = "oreboot-arch" }
 bitfield = "0.14.0"
 spin = "0.9.4"
 util = { path = "../util" }
+
+[features]
+x86_64 = ["arch/x86_64"]

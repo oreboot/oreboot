@@ -3,6 +3,7 @@
 #![no_std]
 
 pub mod device_util;
+pub mod mmio;
 pub mod path;
 pub mod resource;
 pub mod soundwire;
