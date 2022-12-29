@@ -13,3 +13,7 @@ pub fn add_event(_event_type: u8) -> Result<(), Error> {
 pub fn add_event_byte(_event_type: u8, _data: u8) -> Result<(), Error> {
     Err(Error::Unimplemented)
 }
+
+pub fn gsmi_add_event_byte(_event_type: u8, _data: u8) -> Result<(), Error> {
+    Ok(())
+}

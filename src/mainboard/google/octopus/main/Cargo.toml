@@ -7,9 +7,15 @@ edition = "2021"
 
 [dependencies]
 acpi = { path = "../../../../lib/acpi" }
+cpu = { path = "../../../../cpu", package = "oreboot-cpu" }
+consts = { path = "../../../../lib/consts" }
 bootmode = { path = "../../../../lib/bootmode" }
-ec = { path = "../../../../ec" }
-log = "0.4"
+buddy_system_allocator = "0.8"
+ec = { path = "../../../../ec", features = ["intel"] }
+fsp = { path = "../../../../vendorcode/fsp/apollolake", package = "fsp-apl-sys" }
 payload = { path = "../../../../lib/payload" }
-soc = { path = "../../../../soc", package = "oreboot-soc", featuers = ["intel", "geminilake"] }
+soc = { path = "../../../../soc", package = "oreboot-soc", features = ["intel", "geminilake"] }
 variants = { path = "../variants" }
+
+[features]
+bobba = ["variants/bobba"]

@@ -1,7 +1,18 @@
 use acpi::acpi_is_wakeup_s3;
+use consts::{ENV_BOOTBLOCK, ENV_RAMSTAGE};
+use ec::google::chromeec::{
+    ec::{Error, EventInfo},
+    ec_lpc::ioport_range,
+};
 use log::info;
-use soc::intel::common::block::lpc::{lpc_enable_fixed_io_ranges, lpc_open_pmio_window};
-use variants::baseboard::ec::{MAINBOARD_EC_LOG_EVENTS, MAINBOARD_EC_SCI_EVENTS,  MAINBOARD_EC_SMI_EVENTS, MAINBOARD_EC_S0IX_WAKE_EVENTS, MAINBOARD_EC_S3_WAKE_EVENTS, MAINBOARD_EC_S5_WAKE_EVENTS};
+use soc::intel::common::block::lpc::{
+    lpc_enable_fixed_io_ranges, lpc_open_mmio_window, LPC_IOE_EC_62_66, LPC_IOE_KBC_60_64,
+    LPC_IOE_LGE_200,
+};
+use variants::baseboard::ec::{
+    MAINBOARD_EC_LOG_EVENTS, MAINBOARD_EC_S0IX_WAKE_EVENTS, MAINBOARD_EC_S3_WAKE_EVENTS,
+    MAINBOARD_EC_S5_WAKE_EVENTS, MAINBOARD_EC_SCI_EVENTS, MAINBOARD_EC_SMI_EVENTS,
+};
 
 pub fn ramstage_ec_init() -> Result<(), Error> {
     let info = EventInfo {
@@ -20,14 +31,12 @@ pub fn ramstage_ec_init() -> Result<(), Error> {
 }
 
 pub fn bootblock_ec_init() {
-    let mut ec_ioport_base = [0u16];
-    let mut ec_ioport_size = [0usize];
-	// Set up LPC decoding for the ChromeEC I/O port ranges:
-	// - Ports 62/66, 60/64, and 200->208
-	// - ChromeEC specific communication I/O ports.
+    // Set up LPC decoding for the ChromeEC I/O port ranges:
+    // - Ports 62/66, 60/64, and 200->208
+    // - ChromeEC specific communication I/O ports.
     let _ = lpc_enable_fixed_io_ranges(LPC_IOE_EC_62_66 | LPC_IOE_KBC_60_64 | LPC_IOE_LGE_200);
-    ioport_range(ec_ioport_base.as_mut(), ec_ioport_size.as_mut());
-    lpc_open_pmio_window(ec_ioport_base[0], ec_ioport_size[0]);
+    let (ec_ioport_base, ec_ioport_size) = ioport_range();
+    lpc_open_mmio_window(ec_ioport_base, ec_ioport_size);
 }
 
 pub fn mainboard_ec_init() {

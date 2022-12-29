@@ -6,5 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+acpi = { path = "../../../../lib/acpi" }
 ec = { path = "../../../../ec" }
+gpio = { path = "../../../../lib/gpio", features = ["intel"] }
 soc = { path = "../../../../soc", package = "oreboot-soc", features = ["intel", "geminilake"] }
+spin = "0.9" 
+util = { path = "../../../../lib/util" }
+
+[features]
+bobba = []

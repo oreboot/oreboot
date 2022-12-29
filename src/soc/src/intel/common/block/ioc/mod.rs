@@ -1,5 +1,5 @@
-use device::mmio::write32p;
 use crate::intel::apollolake::iomap::MCH_BASE_ADDRESS;
+use device::mmio::write32p;
 
 mod gpmr;
 pub use gpmr::*;

@@ -14,9 +14,22 @@ pub const EC_CMD_HOST_EVENT_SET_WAKE_MASK: u16 = 0x008E;
 pub const EC_CMD_HOST_EVENT_CLEAR_B: u16 = 0x008F;
 
 pub const EC_CMD_GET_FEATURES: u16 = 0x000D;
+pub const EC_CMD_GET_CROS_BOARD_INFO: u16 = 0x011F;
+pub const EC_CMD_GET_NEXT_EVENT: u16 = 0x0067;
 
+pub const EC_CMD_ACPI_QUERY_EVENT: u16 = 0x0084;
+
+pub const EC_LPC_ADDR_ACPI_CMD: u16 = 0x66;
+pub const EC_LPC_ADDR_ACPI_DATA: u16 = 0x62;
 pub const EC_LPC_ADDR_MEMMAP: u16 = 0x900;
+pub const EC_LPC_CMDR_DATA: u16 = bit(0) as u16;
+pub const EC_LPC_CMDR_PENDING: u16 = bit(1) as u16;
+pub const EC_LPC_CMDR_BUSY: u16 = bit(2) as u16;
 pub const EC_MEMMAP_SWITCHES: u16 = 0x30;
+pub const EC_HOST_CMD_REGION_SIZE: usize = 0x80;
+pub const EC_HOST_CMD_REGION0: u16 = 0x0800;
+/// ACPI IO buffer max is 255 bytes
+pub const EC_MEMMAP_SIZE: usize = 255;
 
 pub const fn bit_ull(nr: u64) -> u64 {
     1 << nr
@@ -35,6 +48,7 @@ pub const fn ec_feature_mask_1(event_code: u32) -> u64 {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum HostEventCode {
     None = 0,
     LidClosed = 1,
@@ -100,8 +114,50 @@ pub enum HostEventCode {
     Invalid = 32,
 }
 
+impl From<u8> for HostEventCode {
+    fn from(b: u8) -> Self {
+        match b {
+            0 => Self::None,
+            1 => Self::LidClosed,
+            2 => Self::LidOpen,
+            3 => Self::PowerButton,
+            4 => Self::AcConnected,
+            5 => Self::AcDisconnected,
+            6 => Self::BatteryLow,
+            7 => Self::BatteryCritical,
+            8 => Self::Battery,
+            9 => Self::ThermalThreshold,
+            10 => Self::Device,
+            11 => Self::Thermal,
+            12 => Self::UsbCharger,
+            13 => Self::KeyPressed,
+            14 => Self::InterfaceReady,
+            15 => Self::KeyboardRecovery,
+            16 => Self::ThermalShutdown,
+            17 => Self::BatteryShutdown,
+            18 => Self::ThrottleStart,
+            19 => Self::ThrottleStop,
+            20 => Self::HangDetect,
+            21 => Self::HangReboot,
+            22 => Self::PdMcu,
+            23 => Self::BatteryStatus,
+            24 => Self::Panic,
+            25 => Self::KeyboardFastboot,
+            26 => Self::Rtc,
+            27 => Self::Mkbp,
+            28 => Self::UsbMux,
+            29 => Self::ModeChange,
+            30 => Self::KeyboardRecoveryHWReinit,
+            31 => Self::Wov,
+            32 => Self::Invalid,
+            _ => Self::Invalid,
+        }
+    }
+}
+
 /// Supported features
 #[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum EcFeatureCode {
     /// This image contains a limited set of features. Another image
     /// in RW partition may support more features.
@@ -417,6 +473,181 @@ impl EcResponseHostEventMask {
     }
 
     pub const fn len(&self) -> usize {
+        size_of::<Self>()
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub enum CbiDataTag {
+    /// uint32_t or smaller
+    BoardVersion = 0,
+    /// uint32_t or smaller
+    OemId = 1,
+    /// uint32_t or smaller
+    SkuId = 2,
+    /// variable length ascii, nul terminated.
+    DramPartNum = 3,
+    /// variable length ascii, nul terminated.
+    OemName = 4,
+    /// uint32_t or smaller
+    ModelId = 5,
+    /// uint32_t bit field
+    FwConfig = 6,
+    /// uint32_t or smaller
+    PcbSupplier = 7,
+    // Second Source Factory Cache
+    /// uint32_t bit field
+    TagSsfc = 8,
+    /// uint64_t or smaller
+    TagReworkId = 9,
+    TagCount,
+    Invalid,
+}
+
+impl From<u32> for CbiDataTag {
+    fn from(t: u32) -> Self {
+        match t {
+            0 => Self::BoardVersion,
+            1 => Self::OemId,
+            2 => Self::SkuId,
+            3 => Self::DramPartNum,
+            4 => Self::OemName,
+            5 => Self::ModelId,
+            6 => Self::FwConfig,
+            7 => Self::PcbSupplier,
+            8 => Self::TagSsfc,
+            9 => Self::TagReworkId,
+            10 => Self::TagCount,
+            _ => Self::Invalid,
+        }
+    }
+}
+
+#[repr(C, align(4))]
+#[derive(Clone, Copy)]
+pub struct EcParamsGetCbi {
+    tag: CbiDataTag,
+    flag: u32,
+}
+
+impl EcParamsGetCbi {
+    pub const fn new() -> Self {
+        Self {
+            tag: CbiDataTag::BoardVersion,
+            flag: 0,
+        }
+    }
+
+    pub const fn create(tag: CbiDataTag, flag: u32) -> Self {
+        Self { tag, flag }
+    }
+
+    pub fn tag(&self) -> CbiDataTag {
+        self.tag
+    }
+
+    pub fn flag(&self) -> u32 {
+        self.flag
+    }
+
+    pub fn as_byte_ptr(&self) -> *const u8 {
+        self as *const _ as *const u8
+    }
+
+    pub fn as_byte_ptr_mut(&mut self) -> *mut u8 {
+        self as *mut _ as *mut u8
+    }
+
+    pub fn len(&self) -> usize {
+        size_of::<Self>()
+    }
+}
+
+/// Note: used in EcResponseGetNextData
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct EcResponseMotionSenseFifoInfo {
+    /// Size of the fifo
+    size: u16,
+    /// Amount of space used in the fifo
+    count: u16,
+    /// Timestamp recorded in us.
+    /// aka accurate timestamp when host event was triggered.
+    timestamp: u32,
+    /// Total amount of vector lost
+    total_lost: u16,
+    /// Lost events since the last fifo_info, per sensors
+    lost: [u16; 0],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SensorFifo {
+    reserved: [u8; 3],
+    info: EcResponseMotionSenseFifoInfo,
+}
+
+/// Events from CEC to AP
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub enum MkbpCecEvent {
+    SendOk = bit(0) as isize,
+    SendFailed = bit(1) as isize,
+}
+
+#[repr(C, align(1))]
+#[derive(Clone, Copy)]
+pub union EcResponseGetNextData {
+    key_matrix: [u8; 13],
+    host_event: u32,
+    host_event64: u64,
+    sensor_fifo: SensorFifo,
+    buttons: u32,
+    switches: u32,
+    fp_events: u32,
+    sysrq: u32,
+    cec_events: MkbpCecEvent,
+}
+
+impl EcResponseGetNextData {
+    pub const fn new() -> Self {
+        Self { host_event: 0 }
+    }
+}
+
+#[repr(C, align(1))]
+#[derive(Clone, Copy)]
+pub struct EcResponseGetNextEvent {
+    event_type: u8,
+    data: EcResponseGetNextData,
+}
+
+impl EcResponseGetNextEvent {
+    pub const fn new() -> Self {
+        Self {
+            event_type: 0,
+            data: EcResponseGetNextData::new(),
+        }
+    }
+
+    pub fn event_type(&self) -> u8 {
+        self.event_type
+    }
+
+    pub fn data(&self) -> &EcResponseGetNextData {
+        &self.data
+    }
+
+    pub fn as_byte_ptr(&self) -> *const u8 {
+        self as *const _ as *const u8
+    }
+
+    pub fn as_byte_ptr_mut(&mut self) -> *mut u8 {
+        self as *mut _ as *mut u8
+    }
+
+    pub fn len(&self) -> usize {
         size_of::<Self>()
     }
 }

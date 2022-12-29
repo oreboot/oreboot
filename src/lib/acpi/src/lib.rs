@@ -7,6 +7,37 @@ use southbridge::intel::i82371eb::wakeup::acpi_get_sleep_type;
 
 use romstage_handoff;
 
+pub const SLP_EN: u32 = 1 << 13;
+pub const SLP_TYP_S5: u32 = 7;
+pub const SLP_TYP_SHIFT: u32 = 10;
+
+/// AcpiSn assignments are defined to always equal the sleep state numbers
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
+pub enum AcpiSn {
+    S0 = 0,
+    S1 = 1,
+    S2 = 2,
+    S3 = 3,
+    S4 = 4,
+    S5 = 5,
+    Invalid,
+}
+
+impl From<u8> for AcpiSn {
+    fn from(a: u8) -> Self {
+        match a {
+            0 => Self::S0,
+            1 => Self::S1,
+            2 => Self::S2,
+            3 => Self::S3,
+            4 => Self::S4,
+            5 => Self::S5,
+            _ => Self::Invalid,
+        }
+    }
+}
+
 #[cfg(not(feature = "intel"))]
 pub fn acpi_get_sleep_type() -> u8 {
     0

@@ -3,6 +3,9 @@ pub mod cpu;
 pub mod gpio_glk;
 pub mod iomap;
 pub mod itss;
+pub mod meminit;
+#[cfg(feature = "geminilake")]
+pub mod meminit_glk;
 pub mod msr;
 pub mod pci_devs;
 pub mod pcr_ids;

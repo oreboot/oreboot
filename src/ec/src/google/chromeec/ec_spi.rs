@@ -102,7 +102,7 @@ pub fn google_chromeec_command(cec_command: &mut ChromeECCommand) -> Result<(), 
     Ok(())
 }
 
-pub fn google_chromeec_get_event() -> HostEventCode {
+pub fn get_event() -> HostEventCode {
     error!("{}: Not supported.", "google_chromeec_get_event");
     HostEventCode::None
 }

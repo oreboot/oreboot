@@ -155,3 +155,15 @@ pub fn udelay(mut usec: u32) {
     sw.init_usecs_expire(usec as u64);
     sw.wait_until_expired();
 }
+
+pub fn mdelay(msecs: u32) {
+    for _ in 0..msecs {
+        udelay(1000);
+    }
+}
+
+pub fn delay(secs: u32) {
+    for _ in 0..secs {
+        mdelay(1000);
+    }
+}

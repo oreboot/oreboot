@@ -155,7 +155,12 @@ impl LbGpio {
         assert!(name.len() < OB_GPIO_MAX_NAME_LENGTH);
         let mut n = [0; OB_GPIO_MAX_NAME_LENGTH];
         n[..name.len()].copy_from_slice(name);
-        Self { port, polarity, value, name: n } 
+        Self {
+            port,
+            polarity,
+            value,
+            name: n,
+        }
     }
 }
 

@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #![no_std]
-#[allow(non_upper_case_globals)]
+#![allow(non_upper_case_globals)]
+
+pub mod memory_info;
 
 pub mod units {
     pub const KiB: usize = 1 << 10;

@@ -1,26 +1,21 @@
-use crate::intel::{
-    apollolake::{
-        cpu::cpu_soc_is_in_untrusted_mode,
-        gpio_glk::{soc_gpio_get_community, GPIO_NUM_PAD_CFG_REGS, NUM_GPI_STATUS_REGS},
-    },
-    common::block::{
-        gpio::gpio_defs::{
-            pad_cfg_gpo_deep, PAD_CFG0_MODE_MASK, PAD_CFG0_NAFVWE_ENABLE, PAD_CFG0_PREGFRXSEL,
-            PAD_CFG0_RESET_MASK, PAD_CFG0_ROUTE_IOAPIC, PAD_CFG0_ROUTE_MASK, PAD_CFG0_ROUTE_NMI,
-            PAD_CFG0_ROUTE_SCI, PAD_CFG0_ROUTE_SMI, PAD_CFG0_RXINV_MASK, PAD_CFG0_RXPADSTSEL_MASK,
-            PAD_CFG0_RXRAW1_MASK, PAD_CFG0_RXTENCFG_MASK, PAD_CFG0_RX_DISABLE,
-            PAD_CFG0_RX_POL_INVERT, PAD_CFG0_RX_STATE, PAD_CFG0_TRIG_MASK, PAD_CFG0_TX_DISABLE,
-            PAD_CFG0_TX_STATE, PAD_CFG1_IOSSTATE_MASK, PAD_CFG1_IOSTERM_MASK, PAD_CFG1_IRQ_MASK,
-            PAD_CFG1_PULL_MASK, PAD_CFG2_DEBOUNCE_MASK, PAD_CFG_OWN_GPIO_DRIVER,
+use crate::{
+    pad_cfg_gpi, pad_iosstate, pad_pull, pad_buf, pad_reset, pad_func,
+    intel::{
+        apollolake::{
+            cpu::cpu_soc_is_in_untrusted_mode,
+            gpio_glk::{soc_gpio_get_community, GPIO_NUM_PAD_CFG_REGS, NUM_GPI_STATUS_REGS},
         },
-        itss::itss_set_irq_polarity,
-        p2sb::{p2sb_hide, p2sb_unhide, PCH_DEV_P2SB},
-        pcr::{
-            pcr_execute_sideband_msg, pcr_or32, pcr_read32, pcr_rmw32, pcr_write32, PcrSbiMsg,
-            PcrSbiOpcode,
+        common::block::{
+            gpio::gpio_defs::*,
+            itss::itss_set_irq_polarity,
+            p2sb::{p2sb_hide, p2sb_unhide, PCH_DEV_P2SB},
+            pcr::{
+                pcr_execute_sideband_msg, pcr_or32, pcr_read32, pcr_rmw32, pcr_write32, PcrSbiMsg,
+                PcrSbiOpcode,
+            },
         },
+        Error,
     },
-    Error,
 };
 use alloc::vec::Vec;
 use consts::{ENV_ROMSTAGE_OR_BEFORE, ENV_SMM};
@@ -40,25 +35,30 @@ static GPIO_IOAPIC_IRQS_USED: RwLock<[u32; GPIO_IOAPIC_IRQS_USED_LEN]> =
 pub const GPIO_IOAPIC_IRQS_USED_LEN: usize = 120 / size_of::<u32>() * BITS_PER_BYTE + 1;
 pub const BITS_PER_BYTE: usize = 8;
 pub const PAD_BASE_NONE: i32 = -1;
-pub const PAD_DW0_MASK: i32 = PAD_CFG0_TX_STATE
-    | PAD_CFG0_TX_DISABLE
-    | PAD_CFG0_RX_DISABLE
-    | PAD_CFG0_MODE_MASK
-    | PAD_CFG0_ROUTE_MASK
-    | PAD_CFG0_RXTENCFG_MASK
-    | PAD_CFG0_RXINV_MASK
+pub const PAD_DW0_MASK: u32 = PadCfg0TxState::State as u32
+    | PadCfg0Tx::Disable as u32
+    | PadCfg0Rx::Disable as u32
+    | PadCfg0Mask::Mode as u32
+    | PadCfg0Mask::Route as u32
+    | PadCfg0Mask::RxTenCfg as u32
+    | PadCfg0Mask::RxInv as u32
     | PAD_CFG0_PREGFRXSEL
-    | PAD_CFG0_TRIG_MASK
-    | PAD_CFG0_RXRAW1_MASK
+    | PadCfg0Mask::Trig as u32
+    | PadCfg0Mask::RxRaw1 as u32
     | PAD_CFG0_NAFVWE_ENABLE
-    | PAD_CFG0_RXPADSTSEL_MASK
-    | PAD_CFG0_RESET_MASK;
-pub const PAD_DW1_MASK: i32 =
-    (PAD_CFG1_IOSTERM_MASK | PAD_CFG1_PULL_MASK | PAD_CFG1_IOSSTATE_MASK) as i32;
-pub const PAD_DW2_MASK: i32 = PAD_CFG2_DEBOUNCE_MASK as i32;
-pub const PAD_DW3_MASK: i32 = 0;
+    | PadCfg0Mask::RxPadstsel as u32
+    | PadCfg0Mask::Reset as u32;
+pub const PAD_DW1_MASK: u32 =
+    PadCfg1Mask::Iosterm as u32 | PadCfg1Mask::Pull as u32 | PadCfg1Mask::Iosstate as u32;
+pub const PAD_DW2_MASK: u32 = PadCfg2Mask::Debounce as u32;
+pub const PAD_DW3_MASK: u32 = 0;
 
-pub const MASK: [i32; 4] = [PAD_DW0_MASK, PAD_DW1_MASK, PAD_DW2_MASK, PAD_DW3_MASK];
+pub const MASK: [i32; 4] = [
+    PAD_DW0_MASK as i32,
+    PAD_DW1_MASK as i32,
+    PAD_DW2_MASK as i32,
+    PAD_DW3_MASK as i32,
+];
 
 pub fn gpio_dwx_size(x: u32) -> u32 {
     size_of::<u32>() as u32 * x
@@ -134,6 +134,11 @@ pub fn gpio_lock_pads(pad_list: &[GpioLockConfig]) -> Result<(), Error> {
     p2sb_hide();
 
     Ok(())
+}
+
+pub fn gpio_input_pulldown(gpio: Gpio) {
+    let cfg = pad_cfg_gpi!(gpio, Dn20k, Deep);
+    let _ = cfg.configure_pad();
 }
 
 #[repr(C)]
@@ -238,12 +243,12 @@ impl GpioLockConfig {
         offset += comm.gpio_group_index_scaled(rel_pad as u32, 2 * size_of::<u32>())? as u16;
         let bit_mask = comm.gpio_bitmask_within_group(rel_pad as u32)?;
 
-        if cfg!(SOC_INTEL_COMMON_BLOCK_GPIO_LOCK_USING_PCR) {
+        if cfg!(feature = "lock_using_pcr") {
             if cfg!(DEBUG_GPIO) {
                 debug!("Locking pad configuration using PCR");
             }
             self.gpio_pad_config_lock_using_pcr(comm.port, offset, bit_mask);
-        } else if cfg!(SOC_INTEL_COMMON_BLOCK_GPIO_LOCK_USING_SBI) {
+        } else if cfg!(feature = "lock_using_sbi") {
             if cfg!(DEBUG_GPIO) {
                 debug!("Locking pad configuration using SBI");
             }
@@ -277,14 +282,32 @@ pub fn set_ioapic_used(irq: u32) {
 }
 
 impl PadConfig {
-    pub fn create(pad: Gpio, config0: u32, config1: u32) -> Self {
-        let mut pad_config = [0u32; GPIO_NUM_PAD_CFG_REGS];
-        pad_config[0] = config0;
-        pad_config[1] = config1;
+    pub const fn new() -> Self {
+        Self {
+            pad: 0,
+            pad_config: [0; GPIO_NUM_PAD_CFG_REGS],
+            lock_action: GpioLockAction::Unlock,
+        }
+    }
+
+    pub const fn create(pad: Gpio, config0: u32, config1: u32) -> Self {
         Self {
             pad,
-            pad_config,
+            pad_config: [config0, config1, 0, 0],
             lock_action: GpioLockAction::Unlock,
+        }
+    }
+
+    pub const fn create_lock(
+        pad: Gpio,
+        config0: u32,
+        config1: u32,
+        lock_action: GpioLockAction,
+    ) -> Self {
+        Self {
+            pad,
+            pad_config: [config0, config1, 0, 0],
+            lock_action,
         }
     }
 
@@ -309,7 +332,7 @@ impl PadConfig {
             soc_pad_conf |= pad_conf & (!MASK[i]) as u32;
 
             soc_pad_conf = self.soc_gpio_pad_config_fixup(i as i32, soc_pad_conf);
-            if cfg!(debug_gpio) {
+            if cfg!(feature = "debug_gpio") {
                 debug!(
                     "gpio_padcfg [0x{:02x}, {:02}] DW{} [0x{:08x} : 0x{:08x} : 0x{:08x}]",
                     comm.port, pin, i, pad_conf, self.pad_config[i], soc_pad_conf
@@ -354,21 +377,21 @@ impl PadConfig {
          * in the GPIO pad configuration so that a hardware active low
          * signal looks that way to the APIC (double inversion).
          */
-        if (self.pad_config[0] & PAD_CFG0_ROUTE_IOAPIC as u32) == 0 {
+        if self.pad_config[0] & (PadCfg0Route::Ioapic as u32) == 0 {
             return;
         }
 
         let mut irq = pcr_read32(port as u8, pad_cfg1_offset(pad_cfg_offset as u32) as u16);
-        irq &= PAD_CFG1_IRQ_MASK;
+        irq &= PadCfg1Mask::Irq as u32;
 
         if irq == 0 {
             error!("GPIO {} doesn't support routing.", self.pad);
         }
 
-        if cfg!(soc_intel_common_block_gpio_itss_pol_cfg) {
+        if cfg!(feature = "itss_pol_cfg") {
             itss_set_irq_polarity(
                 irq as i32,
-                !!(self.pad_config[0] as i32 & PAD_CFG0_RX_POL_INVERT),
+                !!(self.pad_config[0] as i32 & PadCfg0RxPol::Invert as i32),
             );
         }
 
@@ -401,7 +424,7 @@ impl PadConfig {
     }
 
     pub fn gpi_enable_smi(&self, comm: &PadCommunity, group: i32, pin: i32) -> Result<(), Error> {
-        if self.pad_config[0] & PAD_CFG0_ROUTE_SMI as u32 != PAD_CFG0_ROUTE_SMI as u32 {
+        if self.pad_config[0] & (PadCfg0Route::Smi as u32) != PadCfg0Route::Smi as u32 {
             return Ok(());
         }
 
@@ -419,7 +442,7 @@ impl PadConfig {
     }
 
     pub fn gpi_enable_nmi(&self, comm: &PadCommunity, group: i32, pin: i32) -> Result<(), Error> {
-        if self.pad_config[0] & PAD_CFG0_ROUTE_NMI as u32 != PAD_CFG0_ROUTE_NMI as u32 {
+        if self.pad_config[0] & (PadCfg0Route::Nmi as u32) != PadCfg0Route::Nmi as u32 {
             return Ok(());
         }
 
@@ -443,7 +466,7 @@ impl PadConfig {
 
     pub fn gpi_enable_gpe(&self, comm: &PadCommunity, group: i32, pin: i32) -> Result<(), Error> {
         /* Do not configure GPE_EN if PAD is not configured for SCI/wake */
-        if self.pad_config[0] & PAD_CFG0_ROUTE_SCI as u32 != PAD_CFG0_ROUTE_SCI as u32 {
+        if self.pad_config[0] & (PadCfg0Route::Sci as u32) != PadCfg0Route::Sci as u32 {
             return Ok(());
         }
 
@@ -491,7 +514,7 @@ pub fn gpio_get(gpio_num: Gpio) -> Result<u32, Error> {
     let config_offset = comm.pad_config_offset(gpio_num);
     let reg = pcr_read32(comm.port, config_offset);
 
-    Ok(!!(reg & PAD_CFG0_RX_STATE as u32))
+    Ok(!!(reg & (PadCfg0RxState::State as u32)))
 }
 
 /// Configuration for raw pads. Some pads are designated as only special function
@@ -648,8 +671,8 @@ impl<'a, 'b, 'c, 'd> PadCommunity<'a, 'b, 'c, 'd> {
         }
 
         for rst in rst_map.iter() {
-            if config_value & PAD_CFG0_RESET_MASK as u32 == rst.logical {
-                let mut ret = config_value & (!PAD_CFG0_RESET_MASK) as u32;
+            if config_value & (PadCfg0Mask::Reset as u32) == rst.logical {
+                let mut ret = config_value & !(PadCfg0Mask::Reset as u32);
                 ret |= rst.chipset;
                 return ret;
             }
@@ -706,12 +729,35 @@ impl<'a, 'b, 'c, 'd> PadCommunity<'a, 'b, 'c, 'd> {
     pub fn gpi_gpe_en_offset(&self, group: u32) -> u32 {
         self.gpi_gpe_en_reg_0 as u32 + (group * size_of::<u32>() as u32)
     }
+
+    pub fn gpi_status_offset(&self) -> u32 {
+        self.gpi_status_offset as u32
+    }
 }
 
 /// Provides storage for all GPI status registers from all communities
 #[repr(C)]
 pub struct GpiStatus {
     pub grp: [u32; NUM_GPI_STATUS_REGS as usize],
+}
+
+impl GpiStatus {
+    pub const fn new() -> Self {
+        Self {
+            grp: [0; NUM_GPI_STATUS_REGS as usize],
+        }
+    }
+
+    pub fn get(&self, mut pad: Gpio) -> Result<u32, Error> {
+        let community = &soc_gpio_get_community();
+        let comm = gpio_get_community(pad, community)?;
+
+        pad = comm.relative_pad_in_comm(pad) as Gpio;
+        let mut sts_index = comm.gpi_status_offset() as usize;
+        sts_index += comm.gpio_group_index(pad)?;
+
+        Ok(!!(self.grp[sts_index] & comm.gpio_bitmask_within_group(pad)?))
+    }
 }
 
 /// Structure provides the pmc to gpio group mapping

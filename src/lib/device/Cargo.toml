@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 arch = { path = "../../arch", package = "oreboot-arch" }
 bitfield = "0.14.0"
+payload = { path = "../payload" }
 spin = "0.9.4"
 util = { path = "../util" }
 

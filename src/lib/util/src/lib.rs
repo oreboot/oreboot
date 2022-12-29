@@ -4,6 +4,7 @@
 
 pub mod cpuio;
 pub mod fw_config;
+pub mod halt;
 pub mod helpers;
 pub mod nvramtool;
 pub mod region;

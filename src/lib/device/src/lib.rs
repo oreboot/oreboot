@@ -2,9 +2,11 @@
 #![deny(warnings)]
 #![no_std]
 
+pub mod device_const;
 pub mod device_util;
 pub mod mmio;
 pub mod path;
+pub mod pci_type;
 pub mod resource;
 pub mod soundwire;
 
@@ -26,6 +28,8 @@ bitfield! {
     pub no_vga16, set_no_vga16: 1, 3;
 }
 
+
+#[derive(Clone, PartialEq)]
 pub struct Bus {
     /// This bridge device
     pub dev: *const Device,
@@ -138,4 +142,13 @@ impl Device {
             prob_list: core::ptr::null::<FwConfig>(),
         }
     }
+}
+
+pub trait ChipOperations {
+    fn enable_dev(&self, dev: &mut Device);
+    fn init(&self, chip_info: &mut ChipInfo);
+    fn finalize(&self, chip_info: &mut ChipInfo);
+    fn initialized(&self) -> bool;
+    fn finalized(&self) -> bool;
+    fn name(&self) -> &str;
 }

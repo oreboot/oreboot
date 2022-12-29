@@ -27,7 +27,7 @@ pub mod winbond;
 pub const BOOT_DEVICE_SPI_FLASH_BUS: u8 = 0;
 
 #[repr(C)]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Error {
     Generic = -1,
     MissingSpiBus,

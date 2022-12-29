@@ -16,6 +16,9 @@ pub const EC_HOST_RESPONSE_HEADER_BYTES: usize = 8;
 pub const EC_HOST_REQUEST_VERSION: u8 = 3;
 pub const EC_HOST_RESPONSE_VERSION: u8 = 3;
 pub const INVALID_HCMD: u8 = 0xff;
+pub const CROS_SKU_UNKNOWN: u32 = 0xffff_ffff;
+pub const MEC_EMI_BASE: u16 = 0x0800;
+pub const MEC_EMI_SIZE: usize = 8;
 
 #[repr(C)]
 pub struct EventInfo {
@@ -129,7 +132,7 @@ pub const EVENT_MAP: [EventMap; 9] = [
     },
 ];
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Error {
     EcResRequestTruncated,
     EcResResponseTooBig,
@@ -142,6 +145,7 @@ pub enum Error {
     UnsupportedCommand,
     UnsupportedFeature,
     Unimplemented,
+    Generic,
 }
 
 /* internal structure to send a command to the EC and wait for response. */
@@ -767,4 +771,68 @@ pub fn log_events(mask: u64) -> Result<u64, Error> {
     clear_events_b(events)?;
 
     Ok(0)
+}
+
+pub fn cbi_get_string(buf: &mut [u8], tag: CbiDataTag) -> Result<(), Error> {
+    let params = EcParamsGetCbi::create(tag, 0);
+
+    let buf_len = buf.len() as u16;
+    let mut cmd = ChromeECCommand {
+        cmd_code: EC_CMD_GET_CROS_BOARD_INFO,
+        cmd_version: 0,
+        cmd_data_in: params.as_byte_ptr(),
+        cmd_size_in: params.len() as u16,
+        cmd_data_out: buf as *mut _ as *mut u8,
+        cmd_size_out: buf_len,
+        cmd_dev_index: 0,
+    };
+
+    google_chromeec_command(&mut cmd)?;
+
+    Ok(())
+}
+
+pub fn cbi_get_uint32(id: u32, tag: CbiDataTag) -> Result<u32, Error> {
+    let params = EcParamsGetCbi::create(tag, 0);
+    let mut r = id.to_le_bytes();
+    let mut cmd = ChromeECCommand {
+        cmd_code: EC_CMD_GET_CROS_BOARD_INFO,
+        cmd_version: 0,
+        cmd_data_in: params.as_byte_ptr(),
+        cmd_size_in: params.len() as u16,
+        cmd_data_out: r.as_mut() as *mut _ as *mut u8,
+        cmd_size_out: r.len() as u16,
+        cmd_dev_index: 0,
+    };
+
+    google_chromeec_command(&mut cmd)?;
+
+    Ok(u32::from_le_bytes(r))
+}
+
+pub fn cbi_get_sku_id(id: u32) -> Result<u32, Error> {
+    cbi_get_uint32(id, CbiDataTag::SkuId)
+}
+
+pub fn get_mkbp_event() -> Result<EcResponseGetNextEvent, Error> {
+    let mut event = EcResponseGetNextEvent::new();
+    let event_len = event.len() as u16;
+
+    let mut cmd = ChromeECCommand {
+        cmd_code: EC_CMD_GET_NEXT_EVENT,
+        cmd_version: 0,
+        cmd_data_in: core::ptr::null(),
+        cmd_size_in: 0,
+        cmd_data_out: event.as_byte_ptr_mut(),
+        cmd_size_out: event_len,
+        cmd_dev_index: 0,
+    };
+
+    google_chromeec_command(&mut cmd)?;
+
+    Ok(event)
+}
+
+pub fn cbi_get_dram_part_num(buf: &mut [u8]) -> Result<(), Error> {
+    cbi_get_string(buf, CbiDataTag::DramPartNum)
 }

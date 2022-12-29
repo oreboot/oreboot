@@ -2,13 +2,7 @@
 
 use crate::intel::{
     apollolake::pcr_ids::{PID_GPIO_AUDIO, PID_GPIO_N, PID_GPIO_NW, PID_GPIO_SCC},
-    common::block::gpio::{
-        gpio_defs::{
-            PAD_CFG0_LOGICAL_RESET_DEEP, PAD_CFG0_LOGICAL_RESET_PLTRST,
-            PAD_CFG0_LOGICAL_RESET_PWROK,
-        },
-        PadCommunity, PadGroup, ResetMapping,
-    },
+    common::block::gpio::{gpio_defs::*, PadCommunity, PadGroup, ResetMapping},
 };
 use alloc::vec::Vec;
 use util::nvramtool::cbfs::align_up;
@@ -477,15 +471,15 @@ pub const GPIO_NUM_PAD_CFG_REGS: usize = 4;
 
 pub const RST_MAP: [ResetMapping; 3] = [
     ResetMapping {
-        logical: PAD_CFG0_LOGICAL_RESET_PWROK,
+        logical: PadCfg0LogicalReset::PwrOk as u32,
         chipset: 0 << 30,
     },
     ResetMapping {
-        logical: PAD_CFG0_LOGICAL_RESET_DEEP,
+        logical: PadCfg0LogicalReset::Deep as u32,
         chipset: 1 << 30,
     },
     ResetMapping {
-        logical: PAD_CFG0_LOGICAL_RESET_PLTRST,
+        logical: PadCfg0LogicalReset::PltRst as u32,
         chipset: 2 << 30,
     },
 ];

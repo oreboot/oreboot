@@ -5,8 +5,10 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
+acpi = { path = "../lib/acpi" }
 consts = { path = "../lib/consts" }
 device = { path = "../lib/device" }
+fsp-apl = { path = "../vendorcode/fsp/apollolake", package = "fsp-apl-sys", optional = true }
 oreboot-arch = { path = "../arch", optional = true }
 oreboot-cpu = { path = "../cpu", optional = true }
 tock-registers = "0.7.0"
@@ -34,6 +36,7 @@ amd = [
   "vcell",
 ]
 intel = ["arch/x86_64", "oreboot-cpu/intel"]
-geminilake = ["intel", "util"]
+apollolake = ["intel", "fsp-apl"]
+geminilake = ["intel", "util", "fsp-apl"]
 sunxi = []
 sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal"]

@@ -14,6 +14,7 @@ members = [
   "src/lib/cbmem",
   "src/lib/consts",
   "src/lib/device",
+  "src/lib/gpio",
   "src/lib/payload",
   "src/lib/romstage_handoff",
   "src/lib/rules",

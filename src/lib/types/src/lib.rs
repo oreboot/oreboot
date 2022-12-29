@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
+#![deny(warnings)]
+#![no_std]
 
 pub mod pci_def;
 pub mod pci_ids;

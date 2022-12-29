@@ -5,3 +5,5 @@ pub mod itss;
 pub mod lpc;
 pub mod p2sb;
 pub mod pcr;
+pub mod pm;
+pub mod pmc;

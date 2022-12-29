@@ -41,7 +41,7 @@ pub const P2SB_CR_SBI_POSTED: u32 = 7;
 pub const P2SB_CR_SBI_ROUTE_IDEN: u32 = 0xda;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PcrSbiOpcode {
     MemRead = 0x00,
     MemWrite = 0x01,

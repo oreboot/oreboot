@@ -1,0 +1,10 @@
+[build]
+target = "x86_64-unknown-none"
+
+[target.x86_64-unknown-none]
+rustflags = [
+  "-C",
+  "link-arg=-Tlink-octopus-main.ld",
+  "-Z",
+  "emit-stack-sizes",
+]
