@@ -11,6 +11,8 @@ members = [
 
   "src/mainboard/sunxi/nezha/*",
   "src/mainboard/emulation/*",
+  "src/vendorcode/fsp/build-utils",
+  "src/vendorcode/fsp/common",
 
   "xtask",
 
