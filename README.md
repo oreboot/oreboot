@@ -119,6 +119,12 @@ there is no standard library available.
 
 ## Building oreboot
 
+If the mainboard uses FSP (Intel platforms), download the blobs with:
+
+```
+git submodule update --init
+```
+
 To build oreboot for a specific platform, do this:
 
 ```
@@ -204,7 +210,30 @@ make -j$(nproc)
 - We will not run our own Jenkins. We will use the most appropriate CI; for
   now, that is Azure but we will be flexible.
 
-## Copyright and License
+Ground Rules for x86
+--------------------
+
+* We prefer all pieces of the firmware to be open-source; but can accept an ME
+  and FSP binary blob for x86 architectures.
+* Blobs must be essential to boot the system and not provide any extraneous
+  functionality which could not be implemented in Oreboot.
+* Blobs must be redistributable and are ideally available on GitHub.
+* Blobs must not be submitted to github.com/oreboot/oreboot. We prefer blobs to
+  be submitted to github.com/oreboot/blobs, github.com/coreboot/blobs or some
+other GitHub repository.
+* The blobs must be in a binary format. No additional C code, assembly files or
+  header files are acceptable.
+* Any compromises to the language safety features of Rust must be explicitly
+  stated.
+
+As a "measure" for how open-source firmware is, use the percentage of the final
+binary size. For example, if 70% of the firmware bytes are closed-source blob
+and 30% built from Oreboot source code, we would say the firmware is 30%
+open-source.
+
+
+Copyright and License
+---------------------
 
 The copyright on oreboot is owned by quite a large number of individual
 developers and companies. Please check the individual source files for details.
