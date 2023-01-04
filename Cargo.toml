@@ -24,6 +24,7 @@ members = [
   "src/mainboard/emulation/*",
   "src/vendorcode/fsp/build-utils",
   "src/vendorcode/fsp/common",
+  "src/vendorcode/fsp/apollolake",
 
   "src/security",
 
