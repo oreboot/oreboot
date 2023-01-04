@@ -52,7 +52,7 @@ SECTIONS {
 
 fn main() {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-    File::create(out.join("link-bl808.ld"))
+    File::create(out.join("link-bl808-e907.ld"))
         .unwrap()
         .write_all(FLASH)
         .unwrap();

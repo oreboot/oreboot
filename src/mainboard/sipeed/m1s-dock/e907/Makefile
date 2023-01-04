@@ -1,4 +1,4 @@
-OREBOOT=$(abspath $(CURDIR)/../../../../)
+OREBOOT=$(abspath $(CURDIR)/../../../../../)
 TARGET := riscv32imac-unknown-none-elf
 RELEASE := release
 IMAGE_NAME := sipeed-m1s-dock-e907
