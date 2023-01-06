@@ -5,7 +5,7 @@ use crate::intel::{
         lpc::{LPC_GENERIC_MEM_RANGE, LPC_IO_ENABLES, LPC_LGMR_ADDR_MASK, LPC_LGMR_EN},
     },
 };
-use log::error;
+
 use payload::drivers::pci_map_bus_ops::{
     pci_read_config16, pci_read_config32, pci_write_config16, pci_write_config32,
 };
@@ -33,19 +33,19 @@ pub fn lpc_open_mmio_window(base: usize, size: usize) {
     let mut lgmr = pci_read_config32(PCH_DEV_LPC, LPC_GENERIC_MEM_RANGE as u16);
 
     if lgmr & (LPC_LGMR_EN as u32) != 0 {
-        error!(
-            "LPC: Cannot open window to resource {:x} size {:x}",
-            base, size
-        );
-        error!("LPC: MMIO window already in use");
+        //error!(
+        //    "LPC: Cannot open window to resource {:x} size {:x}",
+        //    base, size
+        //);
+        //error!("LPC: MMIO window already in use");
         return;
     }
 
     if size > LPC_LGMR_WINDOW_SIZE as usize {
-        error!(
-            "LPC: Resource {:x} size {:x} larger than window({:x})",
-            base, size, LPC_LGMR_WINDOW_SIZE
-        );
+        //error!(
+        //    "LPC: Resource {:x} size {:x} larger than window({:x})",
+        //    base, size, LPC_LGMR_WINDOW_SIZE
+        //);
     }
 
     lgmr = ((base as u32) & LPC_LGMR_ADDR_MASK) | LPC_LGMR_EN as u32;

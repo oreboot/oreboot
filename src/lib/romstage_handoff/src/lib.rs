@@ -3,7 +3,6 @@
 #![no_std]
 
 use cbmem::{cbmem_find, CBMEM_ID_ROMSTAGE_INFO};
-use log::debug;
 use spin::rwlock::RwLock;
 
 #[repr(C)]
@@ -40,9 +39,9 @@ pub fn is_resume() -> bool {
     if let Some(handoff) = cbmem_find::<RomstageHandoff>(CBMEM_ID_ROMSTAGE_INFO) {
         (*S3_RESUME.write()) = handoff.s3_resume;
         if *S3_RESUME.read() != 0 {
-            debug!("S3 Resume");
+            //debug!("S3 Resume");
         } else {
-            debug!("Normal boot");
+            //debug!("Normal boot");
         }
         *S3_RESUME.read() != 0
     } else {

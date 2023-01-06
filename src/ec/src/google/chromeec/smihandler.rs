@@ -6,7 +6,7 @@ use crate::google::chromeec::{
 use acpi::AcpiSn;
 use cpu::x86::smm::{APM_CNT_ACPI_DISABLE, APM_CNT_ACPI_ENABLE};
 use drivers::elog;
-use log::debug;
+
 
 #[cfg(feature = "amd")]
 use soc::amd::common::block::acpi::poweroff;
@@ -21,7 +21,7 @@ pub fn poweroff() {}
 pub fn clear_pending_events() {
     while get_event() != HostEventCode::None {}
 
-    debug!("Clearing pending EC events. Error code EC_RES_UNAVAILABLE(9) is expected.\r\n");
+    //debug!("Clearing pending EC events. Error code EC_RES_UNAVAILABLE(9) is expected.\r\n");
 
     while get_mkbp_event().is_ok() {}
 }
@@ -35,7 +35,7 @@ pub fn process_one_event() -> HostEventCode {
 
     match event {
         HostEventCode::LidClosed => {
-            debug!("LID CLOSED, SHUTDOWN\r\n");
+            //debug!("LID CLOSED, SHUTDOWN\r\n");
             poweroff();
         }
         _ => (),

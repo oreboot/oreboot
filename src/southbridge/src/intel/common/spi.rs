@@ -6,7 +6,7 @@ use drivers::spi::{
     spi_generic::{CtrlrProtType, SpiCtrlr, SpiCtrlrBuses, SpiOp, SpiSlave, VENDOR_ID_SST},
     Error,
 };
-use log::{debug, error};
+
 use payload::drivers::pci_map_bus_ops::{pci_read_config32, pci_read_config8, pci_write_config8};
 use spin::rwlock::RwLock;
 use types::pci_type::{pci_dev, PciDevFnT};
@@ -126,7 +126,7 @@ pub enum HsfcShift {
 pub fn readb_(addr: usize) -> u8 {
     let v = unsafe { read8(addr) };
 
-    debug!("read {:2x} from {:4x}", v, (addr & 0xffff) - 0xf020);
+    //debug!("read {:2x} from {:4x}", v, (addr & 0xffff) - 0xf020);
 
     v
 }
@@ -135,7 +135,7 @@ pub fn readb_(addr: usize) -> u8 {
 pub fn readw_(addr: usize) -> u16 {
     let v = unsafe { read16(addr) };
 
-    debug!("read {:4x} from {:4x}", v, (addr & 0xffff) - 0xf020);
+    //debug!("read {:4x} from {:4x}", v, (addr & 0xffff) - 0xf020);
 
     v
 }
@@ -144,7 +144,7 @@ pub fn readw_(addr: usize) -> u16 {
 pub fn readl_(addr: usize) -> u16 {
     let v = unsafe { read32(addr) };
 
-    debug!("read {:8x} from {:4x}", v, (addr & 0xffff) - 0xf020);
+    //debug!("read {:8x} from {:4x}", v, (addr & 0xffff) - 0xf020);
 
     v
 }
@@ -153,21 +153,21 @@ pub fn readl_(addr: usize) -> u16 {
 pub fn writeb_(b: u8, addr: usize) {
     unsafe { write8(addr, b) };
 
-    debug!("wrote {:2x} to {:4x}", b, (addr & 0xffff) - 0xf020);
+    //debug!("wrote {:2x} to {:4x}", b, (addr & 0xffff) - 0xf020);
 }
 
 #[cfg(DEBUG_SPI_FLASH)]
 pub fn writew_(b: u16, addr: usize) {
     unsafe { write16(addr, b) };
 
-    debug!("wrote {:4x} to {:4x}", b, (addr & 0xffff) - 0xf020);
+    //debug!("wrote {:4x} to {:4x}", b, (addr & 0xffff) - 0xf020);
 }
 
 #[cfg(DEBUG_SPI_FLASH)]
 pub fn writel_(b: u32, addr: usize) {
     unsafe { write32(addr, b) };
 
-    debug!("wrote {:8x} to {:4x}", b, (addr & 0xffff) - 0xf020);
+    //debug!("wrote {:8x} to {:4x}", b, (addr & 0xffff) - 0xf020);
 }
 
 #[cfg(not(DEBUG_SPI_FLASH))]
@@ -253,7 +253,7 @@ pub fn ich_status_poll(bitmask: u16, wait_til_set: i32) -> Result<u16, Error> {
         timeout -= 1;
     }
 
-    debug!(
+    //debug!(
         "ICH SPI: SCIP timeout, read {:x}, bitmask {:x}",
         status, bitmask
     );
@@ -340,7 +340,7 @@ impl<'a, 'b> SpiTransaction<'a, 'b> {
         }
 
         if opcode_index == -1 {
-            debug!("ICH SPI: Opcode {:x} not found", self.opcode);
+            //debug!("ICH SPI: Opcode {:x} not found", self.opcode);
             return Err(Error::Generic);
         }
 
@@ -355,7 +355,7 @@ impl<'a, 'b> SpiTransaction<'a, 'b> {
             self.type_ = optype;
         }
         if optype != self.type_ {
-            debug!("ICH SPI: Transaction doesn't fit type {}", optype as u8);
+            //debug!("ICH SPI: Transaction doesn't fit type {}", optype as u8);
             return Err(Error::Generic);
         }
 
@@ -382,7 +382,7 @@ impl<'a, 'b> SpiTransaction<'a, 'b> {
                 Ok(1)
             }
             _ => {
-                debug!("Unrecognized SPI transaction type {:x}", self.type_ as u8);
+                //debug!("Unrecognized SPI transaction type {:x}", self.type_ as u8);
                 Err(Error::Generic)
             }
         }
@@ -660,7 +660,7 @@ pub fn spi_ctrlr_xfer(_spi: &SpiSlave, dout: &[u8], din: &mut [u8]) -> Result<()
     };
 
     if dout.len() == 0 {
-        debug!("ICH SPI: No opcode for transfer");
+        //debug!("ICH SPI: No opcode for transfer");
         return Err(Error::Generic);
     }
 
@@ -709,7 +709,7 @@ pub fn spi_ctrlr_xfer(_spi: &SpiSlave, dout: &[u8], din: &mut [u8]) -> Result<()
         let status = ich_status_poll((SpiMask::SpisCds as u16) | (SpiMask::SpisFcerr as u16), 1)?;
 
         if (status & (SpiMask::SpisFcerr as u16)) != 0 {
-            debug!("ICH SPI: Command transaction error");
+            //debug!("ICH SPI: Command transaction error");
             return Err(Error::Generic);
         }
 
@@ -724,7 +724,7 @@ pub fn spi_ctrlr_xfer(_spi: &SpiSlave, dout: &[u8], din: &mut [u8]) -> Result<()
      * by the SPI chip driver.
      */
     if trans.out.len() > (*CNTLR.read()).data.len() {
-        debug!("ICH SPI: Too much to write. Does your SPI chip driver use spi_crop_chunk()?");
+        //debug!("ICH SPI: Too much to write. Does your SPI chip driver use spi_crop_chunk()?");
         return Err(Error::Generic);
     }
 
@@ -762,7 +762,7 @@ pub fn spi_ctrlr_xfer(_spi: &SpiSlave, dout: &[u8], din: &mut [u8]) -> Result<()
         let status = ich_status_poll((SpiMask::SpisCds as u16) | (SpiMask::SpisFcerr as u16), 1)?;
 
         if status & (SpiMask::SpisFcerr as u16) != 0 {
-            debug!("ICH SPI: Data transaction error");
+            //debug!("ICH SPI: Data transaction error");
             return Err(Error::Generic);
         }
 
@@ -816,7 +816,7 @@ pub fn ich_hwseq_wait_for_cycle_complete(mut timeout: u32, len: u32) -> Result<(
         let addr = readl_(&unsafe { (*CNTLR.read()).regs.ich9_spi.faddr } as *const u32 as usize)
             & 0x01ff_ffff;
         let hsfc = readw_(&unsafe { (*CNTLR.read()).regs.ich9_spi.hsfc } as *const u16 as usize);
-        error!("Transaction timeout between offset 0x{:8x} and 0x{:8x} (= 0x{:8x} + {}) HSFC={:x} HSFS={:x}!", addr, addr + len - 1, addr, len - 1, hsfc, hsfs);
+        //error!("Transaction timeout between offset 0x{:8x} and 0x{:8x} (= 0x{:8x} + {}) HSFC={:x} HSFS={:x}!", addr, addr + len - 1, addr, len - 1, hsfc, hsfs);
         return Err(Error::Generic);
     }
 
@@ -824,7 +824,7 @@ pub fn ich_hwseq_wait_for_cycle_complete(mut timeout: u32, len: u32) -> Result<(
         let addr = readl_(&unsafe { (*CNTLR.read()).regs.ich9_spi.faddr } as *const u32 as usize)
             & 0x01ff_ffff;
         let hsfc = readw_(&unsafe { (*CNTLR.read()).regs.ich9_spi.hsfc } as *const u16 as usize);
-        error!("Transaction error between offset 0x{:8x} and 0x{:8x} (= 0x{:8x} + {}) HSFC={:x} HSFS={:x}!", addr, addr + len - 1, addr, len - 1, hsfc, hsfs);
+        //error!("Transaction error between offset 0x{:8x} and 0x{:8x} (= 0x{:8x} + {}) HSFC={:x} HSFS={:x}!", addr, addr + len - 1, addr, len - 1, hsfc, hsfs);
     }
 
     Ok(())
@@ -840,12 +840,12 @@ pub fn ich_hwseq_erase(flash: &SpiFlash, mut offset: u32, len: usize) -> Result<
     let erase_size = flash.sector_size;
 
     if (offset % erase_size as u32 != 0) || (len as u32 % erase_size != 0) {
-        error!("SF: Erase offset/length not multiple of erase size");
+        //error!("SF: Erase offset/length not multiple of erase size");
         return Err(Error::Generic);
     }
 
     if let Err(e) = flash.spi.claim_bus() {
-        error!("SF: Unable to claim SPI bus");
+        //error!("SF: Unable to claim SPI bus");
         return Err(e);
     }
 
@@ -873,12 +873,12 @@ pub fn ich_hwseq_erase(flash: &SpiFlash, mut offset: u32, len: usize) -> Result<
             &unsafe { (*CNTLR.read()).regs.ich9_spi.hsfc } as *const u16 as usize,
         );
         if ich_hwseq_wait_for_cycle_complete(timeout as u32, len as u32).is_err() {
-            error!("SF: Erase failed at {:x}", offset - erase_size);
+            //error!("SF: Erase failed at {:x}", offset - erase_size);
             return out(flash, Err(Error::Generic));
         }
     }
 
-    debug!("SF: Successfully erase {} bytes @ {:x}", len, start);
+    //debug!("SF: Successfully erase {} bytes @ {:x}", len, start);
 
     out(flash, Ok(()))
 }
@@ -901,7 +901,7 @@ pub fn ich_hwseq_read(flash: &SpiFlash, mut addr: u32, mut buf: &mut [u8]) -> Re
     let timeout: u16 = 100 * 60;
 
     if addr as usize + len > flash.size as usize {
-        error!(
+        //error!(
             "Attempt to read {:x}-{:x} which is out of chip",
             addr,
             addr + len as u32
@@ -987,7 +987,7 @@ pub fn ich_hwseq_write(flash: &SpiFlash, mut addr: u32, mut buf: &[u8]) -> Resul
     let mut len = buf.len();
 
     if addr + buf.len() as u32 > flash.size {
-        error!(
+        //error!(
             "Attempt to write 0x{:x}-0x{:x} which is out of chip",
             addr,
             addr + len as u32
@@ -1024,7 +1024,7 @@ pub fn ich_hwseq_write(flash: &SpiFlash, mut addr: u32, mut buf: &[u8]) -> Resul
         );
 
         if ich_hwseq_wait_for_cycle_complete(timeout as u32, block_len as u32).is_err() {
-            error!("SF: write failure at {:x}", addr);
+            //error!("SF: write failure at {:x}", addr);
             return Err(Error::Generic);
         }
 
@@ -1032,7 +1032,7 @@ pub fn ich_hwseq_write(flash: &SpiFlash, mut addr: u32, mut buf: &[u8]) -> Resul
         buf = &buf[block_len..];
         len -= block_len;
     }
-    debug!(
+    //debug!(
         "SF: Successfully written {} bytes @ {:x}",
         addr - start,
         start
@@ -1088,7 +1088,7 @@ pub fn spi_flash_programmer_probe(spi: &SpiSlave, flash: &mut SpiFlash) -> Resul
     if ((*CNTLR.read()).hsfs & Hsfs::Fdv as u32) != 0 && (((*CNTLR.read()).flmap0 >> 8) & 3) != 0 {
         flash.size += 1 << (19 + (((*CNTLR.read()).flcomp >> 3) & 7));
     }
-    debug!("flash size 0x{:x} bytes", flash.size);
+    //debug!("flash size 0x{:x} bytes", flash.size);
 
     Ok(())
 }
@@ -1144,7 +1144,7 @@ pub fn spi_flash_protect(
     }
 
     if fpr == (*CNTLR.read()).fpr_max as u32 {
-        error!("No SPI FPR free!");
+        //error!("No SPI FPR free!");
         return Err(Error::Generic);
     }
 
@@ -1170,11 +1170,11 @@ pub fn spi_flash_protect(
     /* Set the FPR register and verify it is protected */
     unsafe { write32((fpr_base + fpr) as usize, reg) };
     if reg != unsafe { read32((fpr_base + fpr) as usize) } {
-        error!("Unable to set SPI FPR {}", fpr);
+        //error!("Unable to set SPI FPR {}", fpr);
         return Err(Error::Generic);
     }
 
-    debug!(
+    //debug!(
         "{}: FPR {} is enabled for range 0x{:8x}-0x{:8x}",
         "spi_flash_protect", fpr, start, end
     );

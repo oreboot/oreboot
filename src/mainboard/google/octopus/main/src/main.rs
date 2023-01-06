@@ -27,10 +27,10 @@ extern "C" fn main() -> usize {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        error!("panic in '{}' line {}\n", location.file(), location.line(),);
-        error!("{:?}", info.message());
+        //error!("panic in '{}' line {}\n", location.file(), location.line(),);
+        //error!("{:?}", info.message());
     } else {
-        error!("panic at unknown location\n");
+        //error!("panic at unknown location\n");
     };
     loop {
         core::hint::spin_loop();

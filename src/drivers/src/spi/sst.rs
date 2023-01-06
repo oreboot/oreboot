@@ -6,7 +6,7 @@ use crate::spi::{
     spi_generic::{SPI_FLASH_PROG_TIMEOUT_MS, VENDOR_ID_SST},
     Error,
 };
-use log::{debug, error};
+
 
 pub const CMD_SST_WREN: u8 = 0x06; /* Write Enable */
 pub const CMD_SST_WRDI: u8 = 0x04; /* Write Disable */
@@ -58,7 +58,7 @@ pub const FLASH_TABLE_PP256: [SpiFlashPartId; 1] = [SpiFlashPartId::create(0x4b,
 impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
     pub fn sst_enable_writing(&self) -> Result<(), Error> {
         if let Err(e) = self.spi.spi_flash_cmd(CMD_SST_WREN, &mut []) {
-            error!("SF: Enabling Write failed");
+            //error!("SF: Enabling Write failed");
             Err(e)
         } else {
             Ok(())
@@ -67,7 +67,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
 
     pub fn sst_enable_writing_status(&self) -> Result<(), Error> {
         if let Err(e) = self.spi.spi_flash_cmd(CMD_SST_EWSR, &mut []) {
-            error!("SF: Enabling Write Status failed");
+            //error!("SF: Enabling Write Status failed");
             Err(e)
         } else {
             Ok(())
@@ -76,7 +76,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
 
     pub fn sst_disable_writing(&self) -> Result<(), Error> {
         if let Err(e) = self.spi.spi_flash_cmd(CMD_SST_WRDI, &mut []) {
-            error!("SF: Disabling Write failed");
+            //error!("SF: Disabling Write failed");
             Err(e)
         } else {
             Ok(())
@@ -92,7 +92,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
         ];
 
         if cfg!(feature = "debug_spi_flash") {
-            debug!(
+            //debug!(
                 "BP[{:2x}]: {} => cmd = ( 0x{:2x} 0x{:6x} )",
                 self.spi.w8r8(CMD_SST_RDSR)?,
                 &buf[0] as *const _ as usize,
@@ -112,7 +112,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
         let done =
             |ret: Result<(), Error>, len: usize, offset: u32, actual: usize| -> Result<(), Error> {
                 if cfg!(feature = "debug_spi_flash") {
-                    debug!(
+                    //debug!(
                         "SF: SST: program {} {} bytes @ 0x{:x}",
                         if ret.is_err() { "failure" } else { "success" },
                         len,
@@ -149,7 +149,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
 
         while actual < len - 1 {
             if cfg!(feature = "debug_spi_flash") {
-                debug!(
+                //debug!(
                     "WP[{:2x}]: {} => cmd = ( 0x{:2x} 0x{:6x} )",
                     self.spi.w8r8(CMD_SST_RDSR)?,
                     &buf[actual] as *const _ as usize,
@@ -159,7 +159,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
             }
 
             if let Err(e) = self.spi.spi_flash_cmd_write(&cmd, &buf[actual..actual + 2]) {
-                error!("SF: SST word program failed");
+                //error!("SF: SST word program failed");
                 ret = Err(e);
                 break;
             }
@@ -192,7 +192,7 @@ impl<'a, 'b, 'c> SpiFlash<'a, 'b, 'c> {
         let mut status = [0; 1];
         self.spi.spi_flash_cmd_write(&[CMD_SST_WRSR], &mut status)?;
 
-        debug!("SF: SST: status = {:x}", self.spi.w8r8(CMD_SST_RDSR)?);
+        //debug!("SF: SST: status = {:x}", self.spi.w8r8(CMD_SST_RDSR)?);
 
         Ok(())
     }

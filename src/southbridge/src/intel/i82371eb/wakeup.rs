@@ -1,5 +1,5 @@
 use crate::intel::i82371eb::{DEFAULT_PMBASE, PMCNTRL};
-use log::debug;
+
 use util::cpuio::inw;
 
 /// Intel 82371EB (PIIX4E) datasheet, section 7.2.3, page 142
@@ -23,7 +23,7 @@ pub fn acpi_get_sleep_type() -> u8 {
     let reg = unsafe { inw(DEFAULT_PMBASE + PMCNTRL) };
     let result = ACPI_SUS_TO_SLP_TYP[((reg >> 10) & 7) as usize];
 
-    debug!(
+    //debug!(
         "Wakeup from ACPI sleep type S{} (PMCNTRL={:04x})",
         result, reg
     );

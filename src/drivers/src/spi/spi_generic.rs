@@ -1,6 +1,6 @@
 use crate::context::Context;
 use crate::spi::{spi_flash::SpiFlash, Error};
-use log::{debug, error};
+
 #[cfg(feature = "intel")]
 use southbridge::intel::common::spi::SPI_CTRLR_BUS_MAP;
 use spin::rwlock::RwLock;
@@ -200,7 +200,7 @@ impl SpiSlave {
 
             c.setup(self)
         } else {
-            error!("Can't find SPI bus {}", bus);
+            //error!("Can't find SPI bus {}", bus);
             Err(Error::MissingSpiBus)
         }
     }
@@ -245,7 +245,7 @@ impl SpiSlave {
                 ctrlr_max -= cmd_len;
             } else {
                 ctrlr_max = 0;
-                debug!("crop_chunk: Command longer than buffer");
+                //debug!("crop_chunk: Command longer than buffer");
             }
         }
 

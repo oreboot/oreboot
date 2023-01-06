@@ -26,7 +26,7 @@ use crate::spi::{
 };
 use alloc::vec;
 use bitfield::bitfield;
-use log::{debug, error, info};
+
 use mainboard::ROM_SIZE;
 use rules::ENV_INITIAL_STAGE;
 use util::{helpers::KIB, region::Region, timer::Stopwatch};
@@ -423,10 +423,10 @@ impl SpiFlash {
             spi_flash_addr(offset, &mut cmd);
 
             if let Err(ret) = do_cmd(&self.spi, &cmd[..cmd_len], &mut data[..xfer_len]) {
-                debug!(
-                    "SF: Failed to send read command {:2x}({:x}, {:x}): {}",
-                    cmd[0], offset, xfer_len, ret as u8
-                );
+                //debug!(
+                //    "SF: Failed to send read command {:2x}({:x}, {:x}): {}",
+                //    cmd[0], offset, xfer_len, ret as u8
+                //);
                 return Err(ret);
             }
 
@@ -440,20 +440,20 @@ impl SpiFlash {
 
     pub fn cmd_poll_bit(&self, timeout: u64, cmd: u8, poll_bit: u8) -> Result<(), Error> {
         let spi = &self.spi;
-        let mut attempt = 0;
+        //let mut attempt = 0;
         let mut status = [0u8; 1];
         let mut sw = Stopwatch::new();
 
         sw.init_msecs_expire(timeout);
 
         while !sw.expired() {
-            attempt += 1;
+            //attempt += 1;
 
             if let Err(e) = spi.do_spi_flash_cmd(&[cmd], &mut status) {
-                debug!(
-                    "SF: SPI command failed on attempt {} with rc {}",
-                    attempt, e as u8
-                );
+                //debug!(
+                //    "SF: SPI command failed on attempt {} with rc {}",
+                //    attempt, e as u8
+                //);
                 return Err(e);
             }
 
@@ -462,11 +462,11 @@ impl SpiFlash {
             }
         }
 
-        debug!(
-            "SF: timeout at {} msec after {} attempts",
-            sw.duration_msecs(),
-            attempt
-        );
+        //debug!(
+        //    "SF: timeout at {} msec after {} attempts",
+        //    sw.duration_msecs(),
+        //    attempt
+        //);
 
         Err(Error::Generic)
     }
@@ -481,12 +481,12 @@ impl SpiFlash {
         let erase_size = self.sector_size as usize;
 
         if offset as usize % erase_size != 0 || len % erase_size != 0 {
-            error!("SF: Erase offset/length not multiple of erase size");
+            //error!("SF: Erase offset/length not multiple of erase size");
             return Err(Error::Generic);
         }
 
         if len == 0 {
-            error!("SF: Erase length cannot be 0");
+            //error!("SF: Erase length cannot be 0");
             return Err(Error::Generic);
         }
 
@@ -499,10 +499,10 @@ impl SpiFlash {
             offset += erase_size as u32;
 
             if cfg!(feature = "debug_spi_flash") {
-                debug!(
-                    "SF: erase {:2x} {:2x} {:2x} {:2x} ({:x})",
-                    cmd[0], cmd[1], cmd[2], cmd[3], offset
-                );
+                //debug!(
+                //    "SF: erase {:2x} {:2x} {:2x} {:2x} ({:x})",
+                //    cmd[0], cmd[1], cmd[2], cmd[3], offset
+                //);
             }
 
             self.spi.spi_flash_cmd(CMD_WRITE_ENABLE, &mut [])?;
@@ -512,7 +512,7 @@ impl SpiFlash {
             self.cmd_wait_ready(SPI_FLASH_PAGE_ERASE_TIMEOUT_MS)?;
         }
 
-        debug!("SF: Successfully erased {} bytes @ {:x}", len, start);
+        //debug!("SF: Successfully erased {} bytes @ {:x}", len, start);
 
         Ok(())
     }
@@ -523,7 +523,7 @@ impl SpiFlash {
 
     pub fn probe(&mut self, bus: u32, cs: u32) -> Result<(), Error> {
         if let Err(e) = self.spi.setup(bus, cs) {
-            debug!("SF: Failed to set up slave");
+            //debug!("SF: Failed to set up slave");
             return Err(e);
         }
 
@@ -539,10 +539,11 @@ impl SpiFlash {
 
         // Give up -- nothing more to try if flash is not found.
         if ret.is_err() {
-            debug!("SF: Unsupported manufacturer!");
+            //debug!("SF: Unsupported manufacturer!");
             return Err(Error::Generic);
         }
 
+        /*
         let mode_string = if unsafe { self.flags.flags.dual_io() } != 0
             && self.spi.xfer_dual(&[], &mut []).is_ok()
         {
@@ -554,17 +555,18 @@ impl SpiFlash {
         } else {
             ""
         };
+        */
 
-        info!(
-            "SF: Detected {:02x} {:04x} with sector size 0x{:x}, total 0x{:x}{}",
-            self.vendor, self.model, self.sector_size, self.size, mode_string
-        );
+        //info!(
+        //    "SF: Detected {:02x} {:04x} with sector size 0x{:x}, total 0x{:x}{}",
+        //    self.vendor, self.model, self.sector_size, self.size, mode_string
+        //);
 
         if (bus == (BOOT_DEVICE_SPI_FLASH_BUS as u32)) && self.size != ROM_SIZE {
-            error!(
-                "SF size 0x{:x} does not correspond to CONFIG_ROM_SIZE 0x{:x}!!",
-                self.size, ROM_SIZE
-            );
+            //error!(
+            //    "SF size 0x{:x} does not correspond to CONFIG_ROM_SIZE 0x{:x}!!",
+            //    self.size, ROM_SIZE
+            //);
         }
 
         if cfg!(feature = "spi_flash_exit_4_byte_addr_mode") && ENV_INITIAL_STAGE != 0 {
@@ -711,8 +713,8 @@ impl SpiSlave {
     pub fn spi_flash_cmd(&self, cmd: u8, response: &mut [u8]) -> Result<(), Error> {
         let ret = self.do_spi_flash_cmd(&[cmd], response);
 
-        if let Err(e) = &ret {
-            debug!("SF: Failed to send command {:02x}: {}", cmd, *e as i32);
+        if let Err(_e) = &ret {
+            //debug!("SF: Failed to send command {:02x}: {}", cmd, *e as i32);
         }
 
         ret
@@ -778,16 +780,18 @@ impl SpiSlave {
         /* Read the ID codes */
         self.spi_flash_cmd(CMD_READ_ID, &mut idcode)?;
 
-        if cfg!(DEBUG_SPI_FLASH) {
+        if cfg!(feature = "debug_spi_flash") {
+            /*
             debug!("SF: Got idcode: ");
             for b in idcode.iter() {
                 debug!("{:2x}", b);
             }
+            */
         }
 
         let mut manuf_id = idcode[0];
 
-        debug!("Manufacturer: {:2x}", manuf_id);
+        //debug!("Manufacturer: {:2x}", manuf_id);
 
         /* If no result from RDID command and STMicro parts are enabled attempt
         to wake the part from deep sleep and obtain alternative id info. */
@@ -809,16 +813,18 @@ impl SpiSlave {
         /* Read the ID codes */
         self.spi_flash_cmd(CMD_READ_ID, &mut idcode)?;
 
-        if cfg!(DEBUG_SPI_FLASH) {
+        if cfg!(feature = "debug_spi_flash") {
+            /*
             debug!("SF: Got idcode: ");
             for b in idcode.iter() {
                 debug!("{:2x}", b);
             }
+            */
         }
 
         let mut manuf_id = idcode[0];
 
-        debug!("Manufacturer: {:2x}", manuf_id);
+        //debug!("Manufacturer: {:2x}", manuf_id);
 
         /* If no result from RDID command and STMicro parts are enabled attempt
         to wake the part from deep sleep and obtain alternative id info. */
@@ -906,10 +912,10 @@ impl SpiSlave {
         buf[cmd_len..].copy_from_slice(data);
 
         if let Err(e) = self.do_spi_flash_cmd(&buf, &mut []) {
-            debug!(
-                "SF: Failed to send write command ({} bytes): {}",
-                data_len, e as u8
-            );
+            //debug!(
+            //    "SF: Failed to send write command ({} bytes): {}",
+            //    data_len, e as u8
+            //);
             Err(e)
         } else {
             Ok(())

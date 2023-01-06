@@ -6,7 +6,7 @@ use crate::google::chromeec::{
         EC_LPC_CMDR_DATA, EC_LPC_CMDR_PENDING, EC_MEMMAP_SIZE, EC_MEMMAP_SWITCHES,
     },
 };
-use log::error;
+
 use util::{
     cpuio::{inb, outb},
     timer::{udelay, Stopwatch, USECS_PER_SEC},
@@ -88,7 +88,7 @@ pub fn data_ready(port: u16) -> Result<(), Error> {
 
 pub fn get_event() -> HostEventCode {
     if wait_ready(EC_LPC_ADDR_ACPI_CMD).is_err() {
-        error!("Timeout waiting for EC ready!\r\n");
+        //error!("Timeout waiting for EC ready!\r\n");
         return HostEventCode::None;
     }
 
@@ -96,12 +96,12 @@ pub fn get_event() -> HostEventCode {
     let _ = write_byte(EC_CMD_ACPI_QUERY_EVENT as u8, EC_LPC_ADDR_ACPI_CMD);
 
     if wait_ready(EC_LPC_ADDR_ACPI_CMD).is_err() {
-        error!("Timeout waiting for EC QUERY_EVENT!\r\n");
+        //error!("Timeout waiting for EC QUERY_EVENT!\r\n");
         return HostEventCode::None;
     }
 
     if data_ready(EC_LPC_ADDR_ACPI_CMD).is_err() {
-        error!("Timeout waiting for data ready!\r\n");
+        //error!("Timeout waiting for data ready!\r\n");
         return HostEventCode::None;
     }
 

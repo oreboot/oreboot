@@ -6,7 +6,7 @@ use crate::google::chromeec::{
     ec_i2c::{REQ_BUF, RESP_BUF},
 };
 use drivers::context::Context;
-use log::{error, info};
+
 
 /* Dumps EC command / response data into debug output.
  *
@@ -15,7 +15,8 @@ use log::{error, info};
  * @param data	Data buffer to print.
  * @param len	Length of data.
  */
-pub fn cros_ec_dump_data(name: &str, cmd: i32, data: &[u8]) {
+pub fn cros_ec_dump_data(_name: &str, _cmd: i32, _data: &[u8]) {
+    /*
     info!("{}: ", name);
     if cmd != -1 {
         info!("cmd={:02x}: ", cmd);
@@ -24,6 +25,7 @@ pub fn cros_ec_dump_data(name: &str, cmd: i32, data: &[u8]) {
         info!("{:02x}", b);
     }
     info!("");
+    */
 }
 
 /* Calculate a simple 8-bit checksum of a data block
@@ -53,11 +55,11 @@ pub fn create_proto3_request(cec_command: &ChromeECCommand) -> Result<ECCommandV
 
     /* Fail if output size is too big */
     if out_bytes > cmd.len() {
-        error!(
-            "{}: Cannot send {} bytes\n",
-            "create_proto3_request",
-            cec_command.size_in()
-        );
+        //error!(
+        //    "{}: Cannot send {} bytes\n",
+        //    "create_proto3_request",
+        //    cec_command.size_in()
+        //);
         return Err(Error::EcResRequestTruncated);
     }
 
@@ -104,11 +106,11 @@ pub fn prepare_proto3_response_buffer(
 
     /* Fail if input size is too big */
     if in_bytes > resp.len() {
-        error!(
-            "{}: Cannot receive {} bytes\n",
-            "prepare_proto3_response_buffer",
-            cec_command.size_out()
-        );
+        //error!(
+        //    "{}: Cannot receive {} bytes\n",
+        //    "prepare_proto3_response_buffer",
+        //    cec_command.size_out()
+        //);
         return Err(Error::EcResResponseTooBig);
     }
 
@@ -135,17 +137,17 @@ pub fn handle_proto3_response(
 
     /* Check input data */
     if rs.struct_version() != EC_HOST_RESPONSE_VERSION {
-        error!("{}: EC response version mismatch", "handle_proto3_response");
+        //error!("{}: EC response version mismatch", "handle_proto3_response");
         return Err(Error::EcResInvalidResponse);
     }
 
     if rs.reserved() != 0 {
-        error!("{}: EC response reserved != 0", "handle_proto3_response");
+        //error!("{}: EC response reserved != 0", "handle_proto3_response");
         return Err(Error::EcResInvalidResponse);
     }
 
     if rs.data_len() as usize > resp.raw_data().len() || rs.data_len() > cec_command.size_out() {
-        error!("{}: EC returned too much data\n", "handle_proto3_response");
+        //error!("{}: EC returned too much data\n", "handle_proto3_response");
         return Err(Error::EcResResponseTooBig);
     }
 
@@ -157,10 +159,10 @@ pub fn handle_proto3_response(
     /* Verify checksum */
     let csum = cros_ec_calc_checksum(&resp.as_bytes()[..in_bytes]);
     if csum != 0 {
-        error!(
-            "{}: EC response checksum invalid: 0x{:02x}\n",
-            "handle_proto3_response", csum
-        );
+        //error!(
+        //    "{}: EC response checksum invalid: 0x{:02x}\n",
+        //    "handle_proto3_response", csum
+        //);
         return Err(Error::EcResInvalidChecksum);
     }
 
@@ -173,11 +175,11 @@ pub fn handle_proto3_response(
 
     /* Return error result, if any */
     if rs.result() != 0 {
-        error!(
-            "{}: EC response with error code: {}\n",
-            "handle_proto3_response",
-            rs.result()
-        );
+        //error!(
+        //    "{}: EC response with error code: {}\n",
+        //    "handle_proto3_response",
+        //    rs.result()
+        //);
         return Err(Error::EcResResponse(-(rs.result() as i32)));
     }
 
@@ -205,10 +207,10 @@ pub fn send_command_proto3(
 
     let rv = crosec_io(out_bytes, in_bytes, context);
     if rv.is_err() {
-        error!(
-            "{}: failed to complete I/O: Err = {:?}",
-            "send_command_proto3", rv
-        );
+        //error!(
+        //    "{}: failed to complete I/O: Err = {:?}",
+        //    "send_command_proto3", rv
+        //);
         return Err(Error::EcResError);
     }
 

@@ -2,7 +2,7 @@ use crate::intel::Error;
 #[cfg(target_arch = "x86_64")]
 use arch::x86_64::mmio::{read32, write32};
 use core::mem::size_of;
-use log::error;
+
 use payload::drivers::pci_map_bus_ops::{
     pci_read_config16, pci_read_config32, pci_write_config16, pci_write_config32,
 };
@@ -152,13 +152,13 @@ pub fn pcr_execute_sideband_msg(
         | PcrSbiOpcode::PcrWrite
         | PcrSbiOpcode::GpioLockUnlock => (),
         _ => {
-            error!("SBI Failure: Wrong Input = {}!", msg.opcode as u16);
+            //error!("SBI Failure: Wrong Input = {}!", msg.opcode as u16);
             return Err(Error::SbiFailure);
         }
     }
 
     if pci_read_config16(dev, PCI_VENDOR_ID) == 0xffff {
-        error!("SBI Failure: P2SB device Hidden!");
+        //error!("SBI Failure: P2SB device Hidden!");
         return Err(Error::SbiFailure);
     }
 
@@ -168,7 +168,7 @@ pub fn pcr_execute_sideband_msg(
      * Make sure the previous operation is completed.
      */
     if pcr_wait_for_completion(dev).is_err() {
-        error!("SBI Failure: Time Out!");
+        //error!("SBI Failure: Time Out!");
         return Err(Error::SbiFailure);
     }
 
@@ -242,7 +242,7 @@ pub fn pcr_execute_sideband_msg(
 
     /* Poll SBISTAT[0] = 0b, Polling for Busy bit */
     if pcr_wait_for_completion(dev).is_err() {
-        error!("SBI Failure: Time Out!");
+        //error!("SBI Failure: Time Out!");
         return Err(Error::SbiFailure);
     }
 
@@ -262,6 +262,6 @@ pub fn pcr_execute_sideband_msg(
         return Ok(());
     }
 
-    error!("SBI Failure: Transaction Status = {:x}", *response);
+    //error!("SBI Failure: Transaction Status = {:x}", *response);
     Err(Error::SbiFailure)
 }

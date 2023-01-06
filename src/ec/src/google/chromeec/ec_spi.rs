@@ -8,7 +8,7 @@ use drivers::{
     context::Context,
     spi::spi_generic::{SpiCtrlr, SpiSlave},
 };
-use log::error;
+
 use util::timer::{Stopwatch, USECS_PER_SEC};
 
 use spin::rwlock::RwLock;
@@ -29,7 +29,7 @@ pub fn crosec_spi_io(
     resp_size: usize,
     ctx: &mut dyn Context,
 ) -> Result<(), Error> {
-    const FUNC_NAME: &'static str = "crosec_spi_io";
+    //const FUNC_NAME: &'static str = "crosec_spi_io";
     if let Some(slave) = ctx.as_any_mut().downcast_mut::<SpiSlave>() {
         let out = |spi: &SpiSlave| -> Result<(), Error> {
             spi.release_bus().map_err(|e| Error::EcSpiError(e))?;
@@ -50,7 +50,7 @@ pub fn crosec_spi_io(
             .xfer(&(*REQ_BUF.read()).data[..req_size], &mut [0u8; 0])
             .is_err()
         {
-            error!("{}: Failed to send request.", FUNC_NAME);
+            //error!("{}: Failed to send request.", FUNC_NAME);
             return out(&slave);
         }
 
@@ -60,14 +60,14 @@ pub fn crosec_spi_io(
         loop {
             let mut byte = [0u8; 1];
             if slave.xfer(&[0u8; 0], &mut byte[..]).is_err() {
-                error!("{}: Failed to receive byte", FUNC_NAME);
+                //error!("{}: Failed to receive byte", FUNC_NAME);
                 return out(&slave);
             }
             if byte[0] == EC_FRAMING_BYTE {
                 break;
             }
             if sw.expired() {
-                error!("{}: Timeout waiting for framing byte.", FUNC_NAME);
+                //error!("{}: Timeout waiting for framing byte.", FUNC_NAME);
                 return out(&slave);
             }
         }
@@ -76,7 +76,7 @@ pub fn crosec_spi_io(
             .xfer(&[0u8; 0], &mut (*RESP_BUF.write()).data[..resp_size])
             .is_err()
         {
-            error!("{}: Failed to receive a response.", FUNC_NAME);
+            //error!("{}: Failed to receive a response.", FUNC_NAME);
         }
 
         out(&slave)
@@ -103,6 +103,6 @@ pub fn google_chromeec_command(cec_command: &mut ChromeECCommand) -> Result<(), 
 }
 
 pub fn get_event() -> HostEventCode {
-    error!("{}: Not supported.", "google_chromeec_get_event");
+    //error!("{}: Not supported.", "google_chromeec_get_event");
     HostEventCode::None
 }

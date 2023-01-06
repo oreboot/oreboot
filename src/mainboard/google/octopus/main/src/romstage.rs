@@ -2,7 +2,7 @@ use crate::consts::DRAM_PART_IN_CBI_BOARD_ID_MIN;
 use consts::memory_info::DIMM_INFO_PART_NUMBER_SIZE;
 use ec::google::chromeec::{ec::cbi_get_dram_part_num, ec_boardid::board_id};
 use fsp::FSPM_UPD;
-use log::error;
+
 use soc::intel::apollolake::meminit_glk::{save_lpddr4_dimm_info, save_lpddr4_dimm_info_part_num};
 use variants::baseboard::memory::{lpddr4_config, memory_sku};
 
@@ -26,7 +26,7 @@ pub fn save_dimm_info() {
     }
 
     if cbi_get_dram_part_num(&mut part_num_store).is_err() {
-        error!("Couldn't obtain DRAM part number from CBI\r\n");
+        //error!("Couldn't obtain DRAM part number from CBI\r\n");
         return;
     }
 

@@ -4,7 +4,7 @@
 ///! memory for each logical channel.
 use consts::{GiB, MiB};
 use fsp_apl::FSP_M_CONFIG;
-use log::{debug, error, info};
+
 use spin::rwlock::RwLock;
 
 pub static MEMORY_SIZE_IN_MIB: RwLock<usize> = RwLock::new(0);
@@ -205,13 +205,13 @@ impl Lpddr4Speed {
             }
         }
 
-        debug!("Invalid LPDDR4 speed: {}\r\n", *self as i32);
+        //debug!("Invalid LPDDR4 speed: {}\r\n", *self as i32);
     }
 
     pub fn meminit_lpddr4(&self, cfg: &mut FSP_M_CONFIG) {
         self.validate();
 
-        info!("LPDDR4 speed is {}MHz\r\n", *self as i32);
+        //info!("LPDDR4 speed is {}MHz\r\n", *self as i32);
         cfg.Profile = self.fsp_memory_profile() as u8;
 
         set_lpddr4_defaults(cfg);
@@ -390,7 +390,7 @@ impl Lpddr4SwizzleCfg {
         dual_rank: i32,
     ) {
         if rank_density_gb == Lpddr4Density::Density0Gb {
-            error!("Invalid LPDDR4 density: {} Gb", rank_density_gb as i32);
+            //error!("Invalid LPDDR4 density: {} Gb", rank_density_gb as i32);
             return;
         }
 
@@ -457,25 +457,25 @@ pub struct Lpddr4Cfg<'a, 'b> {
 impl<'a, 'b> Lpddr4Cfg<'a, 'b> {
     pub fn meminit_lpddr4_by_sku(&mut self, cfg: &mut FSP_M_CONFIG, sku_id: usize) {
         if sku_id >= self.skus.len() {
-            error!(
-                "Too few LPDDR4 SKUs: 0x{:x}/0x{:x}\r\n",
-                sku_id,
-                self.skus.len()
-            );
+            //error!(
+            //    "Too few LPDDR4 SKUs: 0x{:x}/0x{:x}\r\n",
+            //    sku_id,
+            //    self.skus.len()
+            //);
             return;
         }
 
-        info!("LPDDR4 SKU id = 0x{:x}\r\n", sku_id);
+        //info!("LPDDR4 SKU id = 0x{:x}\r\n", sku_id);
 
         let sku = &self.skus[sku_id];
 
         sku.speed().meminit_lpddr4(cfg);
 
         if sku.ch0_rank_density != Lpddr4Density::Density0Gb {
-            info!(
-                "LPDDR4 Ch0 density = {} Gb\r\n",
-                sku.ch0_rank_density as u32
-            );
+            //info!(
+            //    "LPDDR4 Ch0 density = {} Gb\r\n",
+            //    sku.ch0_rank_density as u32
+            //);
             self.swizzle_config.meminit_lpddr4_enable_channel(
                 cfg,
                 LogicalId::Ch0,
@@ -485,10 +485,10 @@ impl<'a, 'b> Lpddr4Cfg<'a, 'b> {
         }
 
         if sku.ch1_rank_density != Lpddr4Density::Density0Gb {
-            info!(
-                "LPDDR4 Ch1 density = {} Gb\r\n",
-                sku.ch1_rank_density as u32
-            );
+            //info!(
+            //    "LPDDR4 Ch1 density = {} Gb\r\n",
+            //    sku.ch1_rank_density as u32
+            //);
             self.swizzle_config.meminit_lpddr4_enable_channel(
                 cfg,
                 LogicalId::Ch1,

@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 bitfield = "0.14.0"
 downcast-rs = { version = "1.2.0", default_features = false }
-log = "0.4"
 mainboard = { path = "../mainboard" }
 rules = { path = "../lib/rules" }
 spin = "0.9"

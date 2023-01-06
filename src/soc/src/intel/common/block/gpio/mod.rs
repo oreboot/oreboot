@@ -20,7 +20,7 @@ use crate::{
 use alloc::vec::Vec;
 use consts::{ENV_ROMSTAGE_OR_BEFORE, ENV_SMM};
 use core::mem::size_of;
-use log::{debug, error};
+
 use security::vboot::vboot_common::vboot_recovery_mode_enabled;
 use spin::rwlock::RwLock;
 use types::bit;
@@ -99,12 +99,12 @@ pub fn gpio_lock_pads(pad_list: &[GpioLockConfig]) -> Result<(), Error> {
      * function is called from SMM.
      */
     if !ENV_SMM {
-        error!("{}: Error: must be called from SMM!", "gpio_lock_pads");
+        //error!("{}: Error: must be called from SMM!", "gpio_lock_pads");
         return Err(Error::NoSmm);
     }
 
     if pad_list.len() == 0 {
-        error!("{}: Error: pad_list count = 0!", "gpio_lock_pads");
+        //error!("{}: Error: pad_list count = 0!", "gpio_lock_pads");
         return Err(Error::NullGpioPads);
     }
 
@@ -118,10 +118,10 @@ pub fn gpio_lock_pads(pad_list: &[GpioLockConfig]) -> Result<(), Error> {
         let mut offset = comm.pad_cfg_lock_offset;
 
         if offset == 0 {
-            error!(
-                "{}: Error: offset not defined for pad {}",
-                "gpio_lock_pads", pad
-            );
+            //error!(
+            //    "{}: Error: offset not defined for pad {}",
+            //    "gpio_lock_pads", pad
+            //);
             continue;
         }
 
@@ -158,18 +158,18 @@ pub struct GpioLockConfig {
 
 impl GpioLockConfig {
     pub fn gpio_pad_config_lock_using_pcr(&self, pid: u8, offset: u16, bit_mask: u32) {
-        const FUNC_NAME: &str = "gpio_pad_config_lock_using_pcr";
+        //const FUNC_NAME: &str = "gpio_pad_config_lock_using_pcr";
 
         if self.lock_action == GpioLockAction::LockConfig {
             if cfg!(DEBUG_GPIO) {
-                debug!("{}: Locking pad {} configuration", FUNC_NAME, self.pad);
+                //debug!("{}: Locking pad {} configuration", FUNC_NAME, self.pad);
             }
             pcr_or32(pid, offset, bit_mask);
         }
 
         if self.lock_action == GpioLockAction::LockTx {
             if cfg!(DEBUG_GPIO) {
-                debug!("{}: Locking pad {} TX state", FUNC_NAME, self.pad);
+                //debug!("{}: Locking pad {} TX state", FUNC_NAME, self.pad);
             }
             pcr_or32(pid, offset + size_of::<u32>() as u16, bit_mask);
         }
@@ -181,7 +181,7 @@ impl GpioLockConfig {
         offset: u16,
         bit_mask: u32,
     ) -> Result<(), Error> {
-        const FUNC_NAME: &str = "gpio_pad_config_lock_using_sbi";
+        //const FUNC_NAME: &str = "gpio_pad_config_lock_using_sbi";
 
         let mut msg = PcrSbiMsg {
             pid,
@@ -194,22 +194,22 @@ impl GpioLockConfig {
         };
 
         if self.lock_action as u32 & GpioLockAction::LockFull as u32 == 0 {
-            error!(
-                "{}: Error: no lock_action specified for pad {}",
-                FUNC_NAME, self.pad
-            );
+            //error!(
+            //    "{}: Error: no lock_action specified for pad {}",
+            //    FUNC_NAME, self.pad
+            //);
             return Err(Error::MissingLockAction);
         }
 
         if self.lock_action == GpioLockAction::LockConfig {
             if cfg!(debug_gpio) {
-                debug!("{}: Locking pad {} configuration", FUNC_NAME, self.pad);
+                //debug!("{}: Locking pad {} configuration", FUNC_NAME, self.pad);
             }
             let mut data = pcr_read32(pid, offset) | bit_mask;
             let mut response = 0;
             pcr_execute_sideband_msg(PCH_DEV_P2SB, &mut msg, &mut data, &mut response)?;
             if response != 0 {
-                error!("Failed to lock GPIO PAD Tx state, response = {}", response);
+                //error!("Failed to lock GPIO PAD Tx state, response = {}", response);
             }
         }
 
@@ -217,26 +217,26 @@ impl GpioLockConfig {
     }
 
     pub fn gpio_non_smm_lock_pad(&self) -> Result<(), Error> {
-        const FUNC_NAME: &str = "gpio_non_smm_lock_pad";
+        //const FUNC_NAME: &str = "gpio_non_smm_lock_pad";
 
         let community = &soc_gpio_get_community();
         let comm = gpio_get_community(self.pad, community)?;
 
         if cpu_soc_is_in_untrusted_mode() {
-            error!(
-                "{}: Error: IA Untrusted Mode enabled, can't lock pad!",
-                FUNC_NAME
-            );
+            //error!(
+            //    "{}: Error: IA Untrusted Mode enabled, can't lock pad!",
+            //    FUNC_NAME
+            //);
             return Err(Error::UntrustedMode);
         }
 
         let rel_pad = comm.relative_pad_in_comm(self.pad);
         let mut offset = comm.pad_cfg_lock_offset;
         if offset == 0 {
-            error!(
-                "{}: Error: offset not defined for pad {}",
-                FUNC_NAME, self.pad
-            );
+            //error!(
+            //    "{}: Error: offset not defined for pad {}",
+            //    FUNC_NAME, self.pad
+            //);
             return Err(Error::UndefinedOffset);
         }
 
@@ -245,19 +245,19 @@ impl GpioLockConfig {
 
         if cfg!(feature = "lock_using_pcr") {
             if cfg!(DEBUG_GPIO) {
-                debug!("Locking pad configuration using PCR");
+                //debug!("Locking pad configuration using PCR");
             }
             self.gpio_pad_config_lock_using_pcr(comm.port, offset, bit_mask);
         } else if cfg!(feature = "lock_using_sbi") {
             if cfg!(DEBUG_GPIO) {
-                debug!("Locking pad configuration using SBI");
+                //debug!("Locking pad configuration using SBI");
             }
             self.gpio_pad_config_lock_using_sbi(comm.port, offset, bit_mask)?;
         } else {
-            error!(
-                "{}: Error: No pad configuration lock method is selected!",
-                FUNC_NAME
-            );
+            //error!(
+            //    "{}: Error: No pad configuration lock method is selected!",
+            //    FUNC_NAME
+            //);
         }
 
         Ok(())
@@ -333,10 +333,10 @@ impl PadConfig {
 
             soc_pad_conf = self.soc_gpio_pad_config_fixup(i as i32, soc_pad_conf);
             if cfg!(feature = "debug_gpio") {
-                debug!(
-                    "gpio_padcfg [0x{:02x}, {:02}] DW{} [0x{:08x} : 0x{:08x} : 0x{:08x}]",
-                    comm.port, pin, i, pad_conf, self.pad_config[i], soc_pad_conf
-                );
+                //debug!(
+                //    "gpio_padcfg [0x{:02x}, {:02}] DW{} [0x{:08x} : 0x{:08x} : 0x{:08x}]",
+                //    comm.port, pin, i, pad_conf, self.pad_config[i], soc_pad_conf
+                //);
             }
             pcr_write32(
                 comm.port,
@@ -355,6 +355,15 @@ impl PadConfig {
         }
 
         Ok(())
+    }
+
+    pub fn gpio_get_config<'a>(&self, override_cfg: &'a [PadConfig]) -> Option<&'a PadConfig> {
+        for pad in override_cfg.iter() {
+            if self.pad == pad.pad {
+                return Some(pad);
+            }
+        }
+        None
     }
 
     pub fn soc_gpio_pad_config_fixup(&self, _dw_reg: i32, reg_val: u32) -> u32 {
@@ -385,7 +394,7 @@ impl PadConfig {
         irq &= PadCfg1Mask::Irq as u32;
 
         if irq == 0 {
-            error!("GPIO {} doesn't support routing.", self.pad);
+            //error!("GPIO {} doesn't support routing.", self.pad);
         }
 
         if cfg!(feature = "itss_pol_cfg") {
@@ -476,13 +485,13 @@ impl PadConfig {
         pcr_or32(comm.port, en_reg as u16, en_value);
 
         if cfg!(debug_gpio) {
-            debug!(
-                "GPE_EN[0x{:02x}, {:02}]: Reg: 0x{:x}, Value = 0x{:x}",
-                comm.port,
-                comm.relative_pad_in_comm(self.pad),
-                en_reg,
-                pcr_read32(comm.port, en_reg as u16)
-            );
+            //debug!(
+            //    "GPE_EN[0x{:02x}, {:02}]: Reg: 0x{:x}, Value = 0x{:x}",
+            //    comm.port,
+            //    comm.relative_pad_in_comm(self.pad),
+            //    en_reg,
+            //    pcr_read32(comm.port, en_reg as u16)
+            //);
         }
 
         Ok(())
@@ -498,7 +507,7 @@ pub fn gpio_get_community<'a>(
             return Ok(comm);
         }
     }
-    error!("{} pad {} not found", "gpio_get_community", pad);
+    //error!("{} pad {} not found", "gpio_get_community", pad);
     Err(Error::MissingCommunityPad)
 }
 
@@ -523,6 +532,14 @@ pub fn gpio_get(gpio_num: Gpio) -> Result<u32, Error> {
 pub fn gpio_configure_pads(cfg: &[PadConfig]) -> Result<(), Error> {
     for pad in cfg.iter() {
         pad.configure_pad()?;
+    }
+    Ok(())
+}
+
+pub fn gpio_configure_pads_with_override(base_cfg: &[PadConfig], override_cfg: &[PadConfig]) -> Result<(), Error> {
+    for pad in base_cfg.iter() {
+        let c = pad.gpio_get_config(override_cfg).unwrap_or(pad);
+        c.configure_pad()?;
     }
     Ok(())
 }
@@ -657,10 +674,10 @@ impl<'a, 'b, 'c, 'd> PadCommunity<'a, 'b, 'c, 'd> {
                 return Ok(i);
             }
         }
-        error!(
-            "{}: pad {} is not found in community {}!",
-            "gpio_group_index", relative_pad, self.name
-        );
+        //error!(
+        //    "{}: pad {} is not found in community {}!",
+        //    "gpio_group_index", relative_pad, self.name
+        //);
         Err(Error::MissingCommunityPad)
     }
 
@@ -678,10 +695,10 @@ impl<'a, 'b, 'c, 'd> PadCommunity<'a, 'b, 'c, 'd> {
             }
         }
 
-        error!(
-            "{}: Logical to Chipset mapping not found",
-            "gpio_pad_reset_config_override"
-        );
+        //error!(
+        //    "{}: Logical to Chipset mapping not found",
+        //    "gpio_pad_reset_config_override"
+        //);
         config_value
     }
 

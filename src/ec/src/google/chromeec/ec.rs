@@ -1,7 +1,7 @@
 use crate::google::chromeec::{ec_commands::*, ec_spi::google_chromeec_command};
 use core::mem::size_of;
 use drivers::{context::Context, elog, spi::Error as SpiError};
-use log::debug;
+
 use spin::rwlock::RwLock;
 
 pub const EC_HOST_PARAM_SIZE: usize = 0xfc;
@@ -581,14 +581,14 @@ pub fn is_uhepi_supported() -> Result<bool, Error> {
         } else {
             UHEPI_NOT_SUPPORTED
         };
-        debug!(
-            "Chrome EC: UHEPI {}",
-            if *UHEPI_SUPPORT.read() == UHEPI_SUPPORTED {
-                "supported"
-            } else {
-                "not supported"
-            }
-        );
+        //debug!(
+        //    "Chrome EC: UHEPI {}",
+        //    if *UHEPI_SUPPORT.read() == UHEPI_SUPPORTED {
+        //        "supported"
+        //    } else {
+        //        "not supported"
+        //    }
+        //);
     }
 
     Ok(*UHEPI_SUPPORT.read() == UHEPI_SUPPORTED)
@@ -670,46 +670,46 @@ pub fn set_mask(type_: EcHostEventMaskType, mut mask: u64) -> Result<(), Error> 
 }
 
 pub fn set_sci_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set SCI mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set SCI mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::SciMask, mask)
 }
 
 pub fn set_smi_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set SMI mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set SMI mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::SmiMask, mask)
 }
 
 pub fn set_wake_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set WAKE mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set WAKE mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::ActiveWakeMask, mask)
 }
 
 pub fn set_s3_lazy_wake_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set S3 LAZY WAKE mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set S3 LAZY WAKE mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::LazyWakeMaskS3, mask)
 }
 
 pub fn set_s5_lazy_wake_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set S5 LAZY WAKE mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set S5 LAZY WAKE mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::LazyWakeMaskS5, mask)
 }
 
 pub fn set_s0ix_lazy_wake_mask(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: Set S0iX LAZY WAKE mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: Set S0iX LAZY WAKE mask to 0x{:16x}", mask);
     set_mask(EcHostEventMaskType::LazyWakeMaskS0ix, mask)
 }
 
 pub fn set_lazy_wake_masks(s5_mask: u64, s3_mask: u64, s0ix_mask: u64) -> Result<(), Error> {
     if set_s5_lazy_wake_mask(s5_mask).is_err() {
-        debug!("Error: Set S5 LAZY WAKE mask failed");
+        //debug!("Error: Set S5 LAZY WAKE mask failed");
     }
 
     if set_s3_lazy_wake_mask(s3_mask).is_err() {
-        debug!("Error: Set S3 LAZY WAKE mask failed");
+        //debug!("Error: Set S3 LAZY WAKE mask failed");
     }
 
     if s0ix_mask != 0 && set_s0ix_lazy_wake_mask(s0ix_mask).is_err() {
-        debug!("Error: Set S0iX LAZY WAKE mask failed");
+        //debug!("Error: Set S0iX LAZY WAKE mask failed");
     }
 
     Ok(())
@@ -750,7 +750,7 @@ pub fn get_events_b() -> Result<u64, Error> {
 }
 
 pub fn clear_events_b(mask: u64) -> Result<(), Error> {
-    debug!("Chrome EC: clear events_b mask to 0x{:16x}", mask);
+    //debug!("Chrome EC: clear events_b mask to 0x{:16x}", mask);
     clear_mask(EcHostEventMaskType::B, mask)
 }
 

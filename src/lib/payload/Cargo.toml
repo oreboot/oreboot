@@ -10,7 +10,6 @@ edition = "2021"
 arch = { package = "oreboot-arch", path = "../../arch" }
 types = { path = "../../lib/types" }
 util = { path = "../../lib/util" }
-log = "0.4"
 spin = "0.9.4"
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]

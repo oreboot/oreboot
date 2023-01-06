@@ -9,7 +9,6 @@ edition = "2021"
 [dependencies]
 arch = { package = "oreboot-arch", path = "../arch" }
 drivers = { path = "../drivers" }
-log = "0.4"
 payload = { path = "../lib/payload" }
 spin = "0.9"
 types = { path = "../lib/types" }

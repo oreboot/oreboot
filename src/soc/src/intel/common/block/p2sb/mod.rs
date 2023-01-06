@@ -1,4 +1,4 @@
-use log::error;
+
 use payload::drivers::pci_map_bus_ops::{pci_read_config16, pci_read_config8, pci_write_config8};
 use types::{
     pci_def::PCI_VENDOR_ID,
@@ -22,7 +22,7 @@ pub fn p2sb_dev_is_hidden(dev: PciDevFnT) -> bool {
     if pci_vid == PCI_VID_INTEL {
         return false;
     }
-    error!("P2SB PCI_VENDOR_ID is invalid, unknown if hidden");
+    //error!("P2SB PCI_VENDOR_ID is invalid, unknown if hidden");
     true
 }
 
@@ -48,7 +48,7 @@ pub fn p2sb_dev_unhide(dev: PciDevFnT) {
     p2sb_dev_set_hide_bit(dev, 0);
 
     if p2sb_dev_is_hidden(dev) {
-        error!("Unable to unhide the P2SB device!");
+        //error!("Unable to unhide the P2SB device!");
     }
 }
 
@@ -60,6 +60,6 @@ pub fn p2sb_dev_hide(dev: PciDevFnT) {
     p2sb_dev_set_hide_bit(dev, 1);
 
     if !p2sb_dev_is_hidden(dev) {
-        error!("Unable to hide the P2SB device!");
+        //error!("Unable to hide the P2SB device!");
     }
 }

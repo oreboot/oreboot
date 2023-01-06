@@ -4,7 +4,7 @@ use crate::arch::x86::sysinfo::LIB_SYSINFO;
 use arch::x86_64::mmio::{read32, write32};
 
 use crate::pci::{pci_bus, pci_func, pci_slot, PciDevT};
-use log::debug;
+
 use types::bit;
 use util::{helpers::retry, timer::udelay};
 
@@ -133,7 +133,7 @@ pub fn dw_pcie_prog_outbound_atu(
         return;
     }
 
-    debug!("outbound IATU couldn't be enabled after 5ms");
+    //debug!("outbound IATU couldn't be enabled after 5ms");
 }
 
 /// Get PCIe MMIO configuration space base address

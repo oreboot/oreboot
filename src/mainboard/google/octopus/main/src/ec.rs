@@ -4,7 +4,7 @@ use ec::google::chromeec::{
     ec::{Error, EventInfo},
     ec_lpc::ioport_range,
 };
-use log::info;
+
 use soc::intel::common::block::lpc::{
     lpc_enable_fixed_io_ranges, lpc_open_mmio_window, LPC_IOE_EC_62_66, LPC_IOE_KBC_60_64,
     LPC_IOE_LGE_200,
@@ -25,7 +25,7 @@ pub fn ramstage_ec_init() -> Result<(), Error> {
         s0ix_wake_events: MAINBOARD_EC_S0IX_WAKE_EVENTS,
     };
 
-    info!("mainboard: EC init");
+    //info!("mainboard: EC init");
 
     info.init(acpi_is_wakeup_s3())
 }
