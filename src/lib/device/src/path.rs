@@ -1,6 +1,8 @@
 pub const DEVICE_PATH_MAX: usize = 40;
 pub const BUS_PATH_MAX: usize = DEVICE_PATH_MAX + 10;
 
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum DevicePathType {
     PathNone = 0,
     Root,
@@ -18,6 +20,7 @@ pub enum DevicePathType {
     Usb,
     Mmio,
     Gpio,
+    Mdio,
     /*
      * When adding path types to this table, please also update the
      * DEVICE_PATH_NAMES macro below.
@@ -43,6 +46,7 @@ impl DevicePathType {
             Self::Usb => "DEVICE_PATH_USB",
             Self::Mmio => "DEVICE_PATH_MMIO",
             Self::Gpio => "DEVICE_PATH_GPIO",
+            Self::Mdio => "DEVICE_PATH_MDIO",
         }
     }
 }
@@ -125,6 +129,13 @@ pub struct GPIOPath {
     pub id: u32,
 }
 
+#[derive(Clone, Copy)]
+pub struct MDIOPath {
+    pub addr: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub union DevicePathUnion {
     pub pci: PCIPath,
     pub pnp: PNPPath,
@@ -140,11 +151,43 @@ pub union DevicePathUnion {
     pub usb: USBPath,
     pub mmio: MMIOPath,
     pub gpio: GPIOPath,
+    pub mdio: MDIOPath,
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub struct DevicePath {
     pub path_type: DevicePathType,
     pub union: DevicePathUnion,
+}
+
+impl PartialEq for DevicePath {
+    fn eq(&self, oth: &Self) -> bool {
+        if self.path_type != oth.path_type {
+            return false;
+        }
+
+        let (u1, u2) = (&self.union, &oth.union);
+        match self.path_type {
+            DevicePathType::PathNone => false,
+            DevicePathType::Root => true,
+            DevicePathType::Pci => unsafe { u1.pci.devfn == u2.pci.devfn },
+            DevicePathType::Pnp => unsafe { u1.pnp.port == u2.pnp.port && u1.pnp.device == u2.pnp.device },
+            DevicePathType::I2c => unsafe { u1.i2c.device == u2.i2c.device && u1.i2c.mode_10bit == u2.i2c.mode_10bit },
+            DevicePathType::Apic => unsafe { u1.apic.apic_id == u2.apic.apic_id },
+            DevicePathType::Domain => unsafe { u1.domain.domain == u2.domain.domain },
+            DevicePathType::CpuCluster => unsafe { u1.cpu_cluster.cluster == u2.cpu_cluster.cluster },
+            DevicePathType::Cpu => unsafe { u1.cpu.id == u2.cpu.id },
+            DevicePathType::CpuBus => unsafe { u1.cpu_bus.id == u2.cpu_bus.id },
+            DevicePathType::Generic => unsafe { u1.generic.id == u2.generic.id && u1.generic.subid == u2.generic.subid },
+            DevicePathType::Spi => unsafe { u1.spi.cs == u2.spi.cs },
+            DevicePathType::Usb => unsafe { u1.usb.port_type == u2.usb.port_type && u1.usb.port_id == u2.usb.port_id },
+            DevicePathType::Mmio => unsafe { u1.mmio.addr == u2.mmio.addr },
+            DevicePathType::Gpio => unsafe { u1.gpio.id == u2.gpio.id },
+            DevicePathType::Mdio => unsafe { u1.mdio.addr == u2.mdio.addr },
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl DevicePath {

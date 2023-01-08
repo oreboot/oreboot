@@ -36,10 +36,12 @@ pub const IORESOURCE_PCI64: u32 = 1 << 0; /* 64bit long pci resource */
 pub const IORESOURCE_PCI_BRIDGE: u32 = 1 << 1; /* A bridge pci resource */
 pub const IORESOURCE_PCIE_RESIZABLE_BAR: u32 = 1 << 2; /* A Resizable BAR */
 
-pub type ResourceSearch = fn(&mut dyn ResourceArg, *const Device, *const Resource);
+pub type ResourceSearch = fn(&mut dyn ResourceArg, &Device, &Resource);
 
 pub trait ResourceArg: Sync {}
 
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Resource {
     /// Base address of the resource
     pub base: u64,
@@ -48,7 +50,7 @@ pub struct Resource {
     /// Largest valid value base + size - 1
     pub limit: u64,
     /// Next resource in the list
-    pub next: *const Resource,
+    pub next: Option<&'static Resource>,
     /// Descriptions of the kind of resource
     pub flags: u32,
     /// Bus specific per device resource id

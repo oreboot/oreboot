@@ -21,6 +21,8 @@ pub enum Error {
 }
 
 bitfield! {
+    #[repr(C)]
+    #[derive(Clone, Copy, PartialEq)]
     pub struct BusFields(u8);
     pub reset_needed, set_reset_needed: 1, 0;
     pub disable_relaxed_ordering, set_disable_relaxed_ordering: 1, 1;
@@ -29,14 +31,14 @@ bitfield! {
 }
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct Bus {
     /// This bridge device
-    pub dev: *const Device,
+    pub dev: Option<&'static Device>,
     /// Devices behind this bridge
-    pub children: *const Device,
+    pub children: Option<&'static Device>,
     /// The next bridge on this device
-    pub next: *const Bus,
+    pub next: Option<&'static Bus>,
     /// Bridge control register
     pub bridge_ctrl: u32,
     /// Bridge command register
@@ -76,6 +78,7 @@ impl PCIIRQInfo {
 }
 
 bitfield! {
+    #[derive(Clone, Copy, PartialEq)]
     pub struct DeviceFields(u8);
     pub enabled, set_enabled: 1, 0;
     pub initialize, set_initialized: 1, 1;
@@ -88,13 +91,15 @@ bitfield! {
 
 pub struct ChipInfo;
 
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub struct Device {
     /// Bus this device is on, for bridge devices, it is the up stream bus
-    pub bus: *const Bus,
+    pub bus: Option<&'static Bus>,
     /// Next device on this bus
-    pub sibling: *const Device,
+    pub sibling: Option<&'static Device>,
     /// Chain of all devices
-    pub next: *const Device,
+    pub next: Option<&'static Device>,
     pub path: DevicePath,
     pub vendor: u32,
     pub device: u32,
@@ -109,22 +114,22 @@ pub struct Device {
     /// Number of hotplug buses to allocate
     pub hotplug_buses: u16,
     /// Base registers for this device. I/O, MEM and Expansion ROM
-    pub resource_list: *const Resource,
+    pub resource_list: Option<&'static Resource>,
     /// Links are (downstream) buses attached to the device, usually a leaf
     /// device with no children has 0 buses attached and a bridge has 1 bus
-    pub link_list: *const Bus,
+    pub link_list: Option<&'static Bus>,
     pub pci_irq_info: [PCIIRQInfo; 4],
     /* TODO: add config for !DEVTREE_EARLY */
-    pub chip_info: *const ChipInfo,
-    pub prob_list: *const FwConfig,
+    pub chip_info: Option<&'static ChipInfo>,
+    pub prob_list: Option<&'static FwConfig>,
 }
 
 impl Device {
     pub const fn new() -> Self {
         Self {
-            bus: core::ptr::null(),
-            sibling: core::ptr::null(),
-            next: core::ptr::null(),
+            bus: None,
+            sibling: None,
+            next: None,
             path: DevicePath::new(),
             vendor: 0,
             device: 0,
@@ -135,11 +140,11 @@ impl Device {
             fields: DeviceFields(0),
             command: 0,
             hotplug_buses: 0,
-            resource_list: core::ptr::null(),
-            link_list: core::ptr::null(),
+            resource_list: None,
+            link_list: None,
             pci_irq_info: [PCIIRQInfo::new(); 4],
-            chip_info: core::ptr::null::<ChipInfo>(),
-            prob_list: core::ptr::null::<FwConfig>(),
+            chip_info: None,
+            prob_list: None,
         }
     }
 }
