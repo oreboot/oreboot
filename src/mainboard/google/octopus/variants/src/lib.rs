@@ -13,4 +13,3 @@ pub mod bobba;
 pub const DRAM_PART_IN_CBI_BOARD_ID_MIN: i32 = 3;
 #[cfg(not(feature = "bobba"))]
 pub const DRAM_PART_IN_CBI_BOARD_ID_MIN: i32 = 255;
-

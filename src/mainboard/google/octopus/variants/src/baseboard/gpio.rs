@@ -1,13 +1,16 @@
 use acpi::AcpiSn;
 use soc::{
-    pad_cfg_gpo_iosstate_iosterm, pad_cfg_gpi_sci, pad_cfg_gpi_sci_low, pad_nc, pad_cfg_nf, pad_cfg_nf_iosstate_iosterm, pad_irq_cfg, pad_cfg_gpi, pad_cfg_gpo, pad_cfg_gpi_apic_ios, pad_iosstate, pad_pull, pad_buf, pad_func, pad_trig, pad_reset, pad_iosterm, pad_rx_pol, pad_irq_route,
     intel::{
         apollolake::gpio_glk::{
-            GPIO_109, GPIO_117, GPIO_151, GPIO_154, GPIO_161, GPIO_164, GPIO_178, GPIO_189, GPIO_190,
-            GPIO_41, GPIO_63, GPIO_64, GPIO_65, GPIO_67, GPIO_68, GPIO_69, GPIO_70, GPIO_71, GPIO_79, GPIO_80, GPIO_82, GPIO_83,
+            GPIO_109, GPIO_117, GPIO_151, GPIO_154, GPIO_161, GPIO_164, GPIO_178, GPIO_189,
+            GPIO_190, GPIO_41, GPIO_63, GPIO_64, GPIO_65, GPIO_67, GPIO_68, GPIO_69, GPIO_70,
+            GPIO_71, GPIO_79, GPIO_80, GPIO_82, GPIO_83,
         },
         common::block::gpio::{gpio_defs::*, PadConfig},
     },
+    pad_buf, pad_cfg_gpi, pad_cfg_gpi_apic_ios, pad_cfg_gpi_sci, pad_cfg_gpi_sci_low, pad_cfg_gpo,
+    pad_cfg_gpo_iosstate_iosterm, pad_cfg_nf, pad_cfg_nf_iosstate_iosterm, pad_func, pad_iosstate,
+    pad_iosterm, pad_irq_cfg, pad_irq_route, pad_nc, pad_pull, pad_reset, pad_rx_pol, pad_trig,
 };
 
 pub const GPIO_EC_IN_RW: u16 = GPIO_189;
@@ -87,7 +90,12 @@ pub fn early_gpio_table() -> &'static [PadConfig] {
 pub static SLEEP_GPIO_TABLE: [PadConfig; 1] = [PadConfig::new()];
 
 pub static SLEEP_S5_GPIO_TABLE: [PadConfig; 1] = [pad_cfg_gpo_iosstate_iosterm!(
-    GPIO_109 as u32, 0, Deep, None, Tx0RxDcRx1, Same
+    GPIO_109 as u32,
+    0,
+    Deep,
+    None,
+    Tx0RxDcRx1,
+    Same
 )];
 
 pub fn sleep_gpio_table(slp_typ: u8) -> &'static [PadConfig] {
