@@ -9,7 +9,7 @@ console = { path = "../../../console" }
 payloads = { path = "../../../../payloads" }
 print = { path = "../../../lib/print" }
 
-heapless = "0.6.1"
+heapless = "0.7.16"
 postcard = "0.7.3"
 static-ref = "0.1.1"
 
