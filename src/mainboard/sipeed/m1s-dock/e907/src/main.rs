@@ -16,6 +16,9 @@ use init::SWRST_CFG2;
 #[macro_use]
 mod log;
 
+const BOARD_SOC: &str = "Bouffalo Lab BL808";
+const BOARD_NAME: &str = "Sipeed M1S Dock";
+
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
 #[link_section = ".bss.uninit"]
@@ -78,6 +81,8 @@ fn riscv_plat_info() {
     println!("RISC-V vendor {:x} arch {:x} imp {:x}", vid, arch, imp);
     let hart_id = mhartid::read();
     println!("RISC-V hart ID {}", hart_id);
+    println!("Board: {BOARD_NAME}");
+    println!("SoC: {BOARD_SOC}");
 }
 
 /**
