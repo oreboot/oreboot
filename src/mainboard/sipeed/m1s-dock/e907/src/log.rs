@@ -6,7 +6,7 @@ use core::fmt;
 use embedded_hal::serial::nb::Write;
 use nb::block;
 
-type S = Wrap<Serial>;
+type S = Wrap<Serial<bl808_pac::UART0, bl808_pac::UART1>>;
 
 #[doc(hidden)]
 pub(crate) static mut LOGGER: Option<Logger> = None;
@@ -31,7 +31,7 @@ impl fmt::Write for S {
 }
 
 #[inline]
-pub fn set_logger(serial: Serial) {
+pub fn set_logger(serial: Serial<bl808_pac::UART0, bl808_pac::UART1>) {
     unsafe {
         LOGGER = Some(Logger {
             inner: Wrap(serial),
@@ -39,6 +39,15 @@ pub fn set_logger(serial: Serial) {
     }
 }
 
+#[inline]
+#[doc(hidden)]
+pub fn _debug(num: u8) {
+    unsafe {
+        if let Some(l) = &mut LOGGER {
+            l.inner.0.debug(num);
+        }
+    }
+}
 #[inline]
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {

@@ -1,11 +1,12 @@
 #![feature(naked_functions, asm_const)]
+#![feature(associated_type_bounds)]
 #![no_std]
 #![no_main]
 
+use bl808_pac::Peripherals;
 use core::{
     arch::asm,
     panic::PanicInfo,
-    ptr::write_volatile,
     // ptr::slice_from_raw_parts,
 };
 use riscv::register::{marchid, mhartid, mimpid, mvendorid};
@@ -79,19 +80,29 @@ fn riscv_plat_info() {
     println!("RISC-V hart ID {}", hart_id);
 }
 
+/**
+ * There are multiple UARTs available. We configure both to 115200 bauds.
+ * We use UART0 like for classic POST codes via `Serial`'s `_debug` function.
+ * The `print`/`println` macros output to UART1 for rich output.
+ * Note that UART0 is really only for debugging here, and we want to use it for
+ * the D0 core (64-bit "MM"/multimedia) otherwise.
+ */
 fn main() {
     unsafe {
-        init::gpio_uart_init();
-        init::uart_init();
-        let serial = init::Serial::new();
+        let p = Peripherals::steal();
+        let glb = p.GLB;
+        init::gpio_uart_init(&glb);
+        let serial = init::Serial::new(p.UART0, p.UART1);
         log::set_logger(serial);
 
+        // print to UART0
+        log::_debug(42);
+
+        // prints to UART1
         println!("oreboot 🦀");
         riscv_plat_info();
 
-        // AAAAAA.... 🐢....
         loop {
-            write_volatile(init::UART0_FIFO_WDATA as *mut u32, 'A' as u32);
             println!("🐢");
             sleep();
         }
@@ -101,7 +112,7 @@ fn main() {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     unsafe {
-        write_volatile(init::UART0_FIFO_WDATA as *mut u32, 'X' as u32);
+        println!("panic");
     }
     loop {
         core::hint::spin_loop();
