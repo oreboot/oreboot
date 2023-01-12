@@ -3,9 +3,9 @@
 
 use crate::init::Serial;
 use core::fmt;
-use embedded_hal::serial::blocking::Write;
-// use embedded_hal::serial::nb::Write;
-// use nb::block;
+// use embedded_hal::serial::blocking::Write;
+use embedded_hal::serial::nb::Write;
+use nb::block;
 
 type S = Wrap<Serial>;
 
@@ -24,10 +24,9 @@ impl fmt::Write for S {
     #[inline]
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
         for byte in s.as_bytes() {
-            self.0.write(&[*byte]).ok();
-            // self.0.write(*byte).unwrap();
+            block!(self.0.write(*byte)).unwrap();
         }
-        // block!(self.0.flush()).unwrap();
+        block!(self.0.flush()).unwrap();
         Ok(())
     }
 }

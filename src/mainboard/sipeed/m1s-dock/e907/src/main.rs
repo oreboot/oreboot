@@ -8,6 +8,7 @@ use core::{
     ptr::write_volatile,
     // ptr::slice_from_raw_parts,
 };
+use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 mod init;
 use init::SWRST_CFG2;
@@ -69,6 +70,15 @@ fn sleep() {
     }
 }
 
+fn riscv_plat_info() {
+    let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
+    let arch = marchid::read().map(|r| r.bits()).unwrap_or(0);
+    let imp = mimpid::read().map(|r| r.bits()).unwrap_or(0);
+    println!("RISC-V vendor {:x} arch {:x} imp {:x}", vid, arch, imp);
+    let hart_id = mhartid::read();
+    println!("RISC-V hart ID {}", hart_id);
+}
+
 fn main() {
     unsafe {
         init::gpio_uart_init();
@@ -76,7 +86,8 @@ fn main() {
         let serial = init::Serial::new();
         log::set_logger(serial);
 
-        print!("oreboot 🦀");
+        println!("oreboot 🦀");
+        riscv_plat_info();
 
         // AAAAAA.... 🐢....
         loop {
