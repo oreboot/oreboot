@@ -71,11 +71,13 @@ const GPIO_CFG17: usize = GLB_BASE + 0x0908;
 const UART0_BASE: usize = 0x2000_a000;
 const UART0_TX_CFG: usize = UART0_BASE;
 const UART0_BIT_PRD: usize = UART0_BASE + 0x0008;
+const UART0_STATUS: usize = UART1_BASE + 0x0030;
 pub const UART0_FIFO_WDATA: usize = UART0_BASE + 0x0088;
 
 const UART1_BASE: usize = 0x2000_a100;
 const UART1_TX_CFG: usize = UART1_BASE;
 const UART1_BIT_PRD: usize = UART1_BASE + 0x0008;
+const UART1_STATUS: usize = UART1_BASE + 0x0030;
 pub const UART1_FIFO_WDATA: usize = UART1_BASE + 0x0088;
 
 const UART_TX_STOP: u32 = 2 << 11; // stop bits
@@ -151,11 +153,12 @@ impl embedded_hal::serial::ErrorType for Serial {
 impl embedded_hal::serial::nb::Write<u8> for Serial {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
-        // TODO
-        if false {
-            return Err(nb::Error::WouldBlock);
+        unsafe {
+            if read_volatile(UART1_STATUS as *mut u32) & 1 == 1 {
+                return Err(nb::Error::WouldBlock);
+            }
+            write_volatile(UART1_FIFO_WDATA as *mut u32, c as u32);
         }
-        unsafe { write_volatile(UART1_FIFO_WDATA as *mut u32, c as u32); }
         Ok(())
     }
 
