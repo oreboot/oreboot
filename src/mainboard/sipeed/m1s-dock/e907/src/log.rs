@@ -3,7 +3,6 @@
 
 use crate::init::Serial;
 use core::fmt;
-// use embedded_hal::serial::blocking::Write;
 use embedded_hal::serial::nb::Write;
 use nb::block;
 
