@@ -148,30 +148,24 @@ impl embedded_hal::serial::ErrorType for Serial {
     type Error = Error;
 }
 
-// impl embedded_hal::serial::nb::Write<u8> for Serial {
-impl embedded_hal::serial::blocking::Write<u8> for Serial {
+impl embedded_hal::serial::nb::Write<u8> for Serial {
     #[inline]
-    // fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
-    fn write(&mut self, c: &[u8]) -> Result<(), self::Error> {
+    fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
         // TODO
         if false {
-            // return Err(nb::Error::WouldBlock);
+            return Err(nb::Error::WouldBlock);
         }
-        unsafe { write_volatile(UART1_FIFO_WDATA as *mut u32, c[0] as u32); }
+        unsafe { write_volatile(UART1_FIFO_WDATA as *mut u32, c as u32); }
         Ok(())
     }
 
     #[inline]
-    // fn flush(&mut self) -> nb::Result<(), self::Error> {
-    fn flush(&mut self) -> Result<(), self::Error> {
+    fn flush(&mut self) -> nb::Result<(), self::Error> {
         // TODO
-        /*
         if true {
             Ok(())
         } else {
             Err(nb::Error::WouldBlock)
         }
-        */
-        Ok(())
     }
 }

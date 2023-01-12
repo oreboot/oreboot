@@ -12,41 +12,44 @@ OUTPUT_FORMAT(elf32-littleriscv)
 ENTRY (start)
 
 MEMORY {
-  RAM (rwx): ORIGIN = 0x22020000, LENGTH = 0x38000
+  SRAM (rwx): ORIGIN = 0x22020000, LENGTH = 0x38000
 }
 
 SECTIONS {
-  . = ORIGIN(RAM);
-
-  .text . : ALIGN(16) {
-    KEEP(*(.text.entry))
-    KEEP(*(.text.main))
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.text*)))
-    . = ALIGN(16);
-  } > RAM
-
-  .rodata . : ALIGN(16) {
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
-    . = ALIGN(16);
-  } > RAM
-
-  .data . : ALIGN(16) {
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.data*)))
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.sdata*)))
-    . = ALIGN(16);
-  } > RAM
-
-  .bss . : ALIGN(16) {
-    __bss_start = .;
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.sbss*)))
-    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.bss*)))
-    . = ALIGN(16);
-    __bss_end = .;
-  } > RAM
-
-  __stack_start = .;
-  . += 0x1000;
-  __stack_end = .;
+    .head : {
+        *(.head.text)
+        KEEP(*(.debug))
+        KEEP(*(.bootblock.boot))
+    } > SRAM
+    .text . : {
+        KEEP(*(.text.entry))
+        *(.text .text.*)
+    } > SRAM
+    .rodata : ALIGN(4) {
+        srodata = .;
+        *(.rodata .rodata.*)
+        *(.srodata .srodata.*)
+        . = ALIGN(4);
+        erodata = .;
+    } > SRAM
+    .data : ALIGN(4) {
+        sdata = .;
+        *(.data .data.*)
+        *(.sdata .sdata.*)
+        . = ALIGN(4);
+        edata = .;
+    } > SRAM
+    sidata = LOADADDR(.data);
+    .bss (NOLOAD) : ALIGN(4096) {
+        *(.bss.uninit)
+        sbss = .;
+        *(.bss .bss.*)
+        *(.sbss .sbss.*)
+        ebss = .;
+    } > SRAM
+    /DISCARD/ : {
+        *(.eh_frame)
+    }
 }
 ";
 

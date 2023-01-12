@@ -9,7 +9,7 @@ authors = [
 edition = "2021"
 
 [dependencies]
-embedded-hal = "1.0.0-alpha.8"
+embedded-hal = "=1.0.0-alpha.8"
 nb = "1"
 riscv = "0.9.0"
 spin = "0.9"
