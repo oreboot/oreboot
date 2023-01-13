@@ -2,6 +2,14 @@ use bl808_pac::GLB;
 
 const GLB_BASE: usize   = 0x2000_0000;
 pub const SWRST_CFG2: usize = GLB_BASE + 0x0548;
+const CPU_RST: u32 = 1 << 1;
+
+pub fn reset_cpu() {
+    unsafe {
+        let s = core::ptr::read_volatile(SWRST_CFG2 as *mut u32);
+        core::ptr::write_volatile(SWRST_CFG2 as *mut u32, s | CPU_RST);
+    }
+}
 
 pub unsafe fn gpio_uart_init(glb: &GLB) {
     /* GPIO mode config */

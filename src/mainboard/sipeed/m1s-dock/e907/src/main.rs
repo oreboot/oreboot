@@ -12,7 +12,6 @@ use core::{
 use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 mod init;
-use init::SWRST_CFG2;
 #[macro_use]
 mod log;
 
@@ -53,14 +52,8 @@ pub unsafe extern "C" fn start() -> ! {
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
         "call   {main}",
-        // reset
-        "li     t0, {swrst_cfg2}",
-        "lw     t1, 0(t0)",
-        "ori    t1, t1, 1",
-        "sw     t1, 0(t0)",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        swrst_cfg2 = const SWRST_CFG2,
         main       =   sym main,
         options(noreturn)
     )
@@ -110,6 +103,7 @@ fn main() {
         loop {
             println!("🐢");
             sleep();
+            init::reset_cpu();
         }
     }
 }
