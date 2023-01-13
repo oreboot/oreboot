@@ -102,11 +102,12 @@ fn main() {
         riscv_plat_info();
         println!("{}", glb.chip_inform.read().bits());
 
-        loop {
+        for _ in 0..4 {
             println!("🐢");
             sleep();
-            init::reset_cpu();
         }
+        init::resume_mm();
+        init::reset_cpu();
     }
 }
 
