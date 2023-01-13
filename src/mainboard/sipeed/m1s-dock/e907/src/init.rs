@@ -66,29 +66,32 @@ impl embedded_hal::serial::Error for Error {
 impl<UART0: Instance0, UART1: Instance1> Serial<UART0, UART1> {
     #[inline]
     pub fn new(u0: UART0, u1: UART1) -> Self {
-    // TX config
-    u0.transmit_config.write(|w| {
-        w.word_length().eight()
-            .stop_bits().one()
-            .freerun().enable()
-            .function().enable()
-    });
-    u1.transmit_config.write(|w| {
-        w.word_length().eight()
-            .stop_bits().one()
-            .freerun().enable()
-            .function().enable()
-    });
-    /* baud rate configuration */
-    let period = u0.bit_period.read();
-    let rxp = period.receive().bits();
-    let txp = period.transmit().bits();
-    u1.bit_period.write(|w| w.transmit().variant(txp).receive().variant(rxp));
+        // TX config
+        u0.transmit_config.write(|w| {
+            w.word_length().eight()
+                .stop_bits().one()
+                .freerun().enable()
+                .function().enable()
+        });
+        u1.transmit_config.write(|w| {
+            w.word_length().eight()
+                .stop_bits().one()
+                .freerun().enable()
+                .function().enable()
+        });
+        /* baud rate configuration */
+        let period = u0.bit_period.read();
+        let rxp = period.receive().bits();
+        let txp = period.transmit().bits();
+        u1.bit_period.write(|w| {
+            w.transmit().variant(txp)
+                .receive().variant(rxp)
+        });
         Self{u0, u1}
     }
 
     pub fn debug(&mut self, num: u8) {
-        unsafe { self.u0.data_write.write(|w| w.bits(num as u32)); }
+        self.u0.data_write.write(|w| w.value().variant(num));
     }
 }
 
@@ -99,12 +102,10 @@ impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::ErrorType for Ser
 impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::nb::Write<u8> for Serial<UART0, UART1> {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
-        unsafe {
-            if self.u1.bus_state.read().transmit_busy().is_busy() {
-                return Err(nb::Error::WouldBlock);
-            }
-            self.u1.data_write.write(|w| w.bits(c as u32));
+        if self.u1.bus_state.read().transmit_busy().is_busy() {
+            return Err(nb::Error::WouldBlock);
         }
+        self.u1.data_write.write(|w| w.value().variant(c));
         Ok(())
     }
 
