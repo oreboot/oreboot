@@ -100,6 +100,7 @@ fn main() {
         // prints to UART1
         println!("oreboot 🦀");
         riscv_plat_info();
+        println!("{}", glb.chip_inform.read().bits());
 
         loop {
             println!("🐢");
