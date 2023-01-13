@@ -79,7 +79,8 @@ fn riscv_plat_info() {
 }
 
 /**
- * There are multiple UARTs available. We configure both to 115200 bauds.
+ * There are multiple UARTs available. We configure the first two to 115200
+ * bauds.
  * We use UART0 like for classic POST codes via `Serial`'s `_debug` function.
  * The `print`/`println` macros output to UART1 for rich output.
  * Note that UART0 is really only for debugging here, and we want to use it for
