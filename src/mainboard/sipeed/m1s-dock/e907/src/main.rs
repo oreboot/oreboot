@@ -1,3 +1,4 @@
+#![feature(default_alloc_error_handler)]
 #![feature(naked_functions, asm_const)]
 #![feature(associated_type_bounds)]
 #![no_std]
@@ -91,7 +92,7 @@ fn main() {
         let p = Peripherals::steal();
         let glb = p.GLB;
         init::gpio_uart_init(&glb);
-        let serial = init::Serial::new(p.UART0, p.UART1);
+        let serial = init::BSerial::new(p.UART0, p.UART1);
         log::set_logger(serial);
 
         // print to UART0
@@ -113,9 +114,7 @@ fn main() {
 
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
-    unsafe {
-        println!("panic");
-    }
+    println!("panic");
     loop {
         core::hint::spin_loop();
     }
