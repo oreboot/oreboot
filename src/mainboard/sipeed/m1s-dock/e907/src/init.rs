@@ -1,4 +1,5 @@
 use bl808_pac::GLB;
+use crate::log::{Error, Serial};
 
 const GLB_BASE: usize   = 0x2000_0000;
 pub const SWRST_CFG2: usize = GLB_BASE + 0x0548;
@@ -27,7 +28,7 @@ pub fn resume_mm() {
     }
 }
 
-pub unsafe fn gpio_uart_init(glb: &GLB) {
+pub fn gpio_uart_init(glb: &GLB) {
     /* GPIO mode config */
     glb.gpio_config[14].write(|w| {
         w.alternate().uart().output_set().set_bit()
@@ -61,25 +62,12 @@ impl Instance0 for bl808_pac::UART0 {}
 impl Instance1 for bl808_pac::UART1 {}
 
 #[derive(Debug)]
-pub struct Serial<UART0: Instance0, UART1: Instance1> {
+pub struct BSerial<UART0: Instance0, UART1: Instance1> {
     u0: UART0,
     u1: UART1,
 }
 
-/// Error types that may happen when serial transfer
-#[derive(Debug)]
-pub struct Error {
-    kind: embedded_hal::serial::ErrorKind,
-}
-
-impl embedded_hal::serial::Error for Error {
-    #[inline]
-    fn kind(&self) -> embedded_hal::serial::ErrorKind {
-        self.kind
-    }
-}
-
-impl<UART0: Instance0, UART1: Instance1> Serial<UART0, UART1> {
+impl<UART0: Instance0, UART1: Instance1> BSerial<UART0, UART1> {
     #[inline]
     pub fn new(u0: UART0, u1: UART1) -> Self {
         // TX config
@@ -105,17 +93,19 @@ impl<UART0: Instance0, UART1: Instance1> Serial<UART0, UART1> {
         });
         Self{u0, u1}
     }
+}
 
-    pub fn debug(&mut self, num: u8) {
+impl<UART0: Instance0, UART1: Instance1> Serial for BSerial<UART0, UART1> {
+    fn debug(&self, num: u8) {
         self.u0.data_write.write(|w| w.value().variant(num));
     }
 }
 
-impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::ErrorType for Serial<UART0, UART1> {
+impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::ErrorType for BSerial<UART0, UART1> {
     type Error = Error;
 }
 
-impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::nb::Write<u8> for Serial<UART0, UART1> {
+impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::nb::Write<u8> for BSerial<UART0, UART1> {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
         if self.u1.bus_state.read().transmit_busy().is_busy() {

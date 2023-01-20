@@ -1,41 +1,72 @@
 //! Log system for BT0
 // essentially copied from sunxi/nezha
 
-use crate::init::Serial;
 use core::fmt;
-use embedded_hal::serial::nb::Write;
+use embedded_hal::serial::{ErrorType,nb::Write};
 use nb::block;
 
-type S = Wrap<Serial<bl808_pac::UART0, bl808_pac::UART1>>;
-
-#[doc(hidden)]
-pub(crate) static mut LOGGER: Option<Logger> = None;
-
-// type `Serial` is declared outside this crate, avoid orphan rule
-pub(crate) struct Wrap<T>(T);
-
-#[doc(hidden)]
-pub(crate) struct Logger {
-    pub(crate) inner: S,
+pub trait Serial: ErrorType + Write {
+    fn debug(&self, num: u8) {}
 }
 
-impl fmt::Write for S {
+struct Wrap<T>(T);
+
+/// Error types that may happen when serial transfer
+#[derive(Debug)]
+pub struct Error {
+    pub kind: embedded_hal::serial::ErrorKind,
+}
+
+impl embedded_hal::serial::Error for Error {
+    #[inline]
+    fn kind(&self) -> embedded_hal::serial::ErrorKind {
+        self.kind
+    }
+}
+
+pub type SerialLogger = dyn Serial<Error=Error>;
+
+extern crate alloc;
+use alloc::boxed::Box;
+type Logger = Wrap<Option<Box<SerialLogger>>>;
+
+use core::alloc::{GlobalAlloc, Layout};
+use core::ptr::null_mut;
+unsafe impl GlobalAlloc for Logger {
+    unsafe fn alloc(&self, _layout: Layout) -> *mut u8 { null_mut() }
+    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {}
+}
+
+#[doc(hidden)]
+#[global_allocator]
+static mut LOGGER: Logger = Wrap(None);
+
+impl fmt::Write for SerialLogger {
     #[inline]
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
         for byte in s.as_bytes() {
-            block!(self.0.write(*byte)).unwrap();
+            block!(self.write(*byte)).unwrap();
         }
-        block!(self.0.flush()).unwrap();
+        block!(self.flush()).unwrap();
         Ok(())
     }
 }
 
 #[inline]
-pub fn set_logger(serial: Serial<bl808_pac::UART0, bl808_pac::UART1>) {
+pub fn set_logger<S: Serial<Error=Error> + 'static>(serial: S) {
     unsafe {
-        LOGGER = Some(Logger {
-            inner: Wrap(serial),
-        });
+        LOGGER = Wrap(Some(Box::new(serial)));
+    }
+}
+
+#[inline]
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use fmt::Write;
+    unsafe {
+        if let Some(l) = &mut LOGGER.0 {
+             l.write_fmt(args).unwrap();
+        }
     }
 }
 
@@ -43,18 +74,8 @@ pub fn set_logger(serial: Serial<bl808_pac::UART0, bl808_pac::UART1>) {
 #[doc(hidden)]
 pub fn _debug(num: u8) {
     unsafe {
-        if let Some(l) = &mut LOGGER {
-            l.inner.0.debug(num);
-        }
-    }
-}
-#[inline]
-#[doc(hidden)]
-pub fn _print(args: fmt::Arguments) {
-    use fmt::Write;
-    unsafe {
-        if let Some(l) = &mut LOGGER {
-            l.inner.write_fmt(args).unwrap();
+        if let Some(l) = &mut LOGGER.0 {
+            l.debug(num);
         }
     }
 }
