@@ -114,7 +114,7 @@ fn main() {
 
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
-    println!("panic");
+    println!("panic {:?}", info);
     loop {
         core::hint::spin_loop();
     }
