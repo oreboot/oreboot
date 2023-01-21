@@ -6,7 +6,7 @@ use embedded_hal::serial::{ErrorType,nb::Write};
 use nb::block;
 
 pub trait Serial: ErrorType + Write {
-    fn debug(&self, num: u8) {}
+    fn debug(&self, num: u8);
 }
 
 struct Wrap<T>(T);
