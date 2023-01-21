@@ -8,9 +8,18 @@ BLL_DIR := "/home/dama/firmware/Bouffalo Lab/bouffalo-loader"
 BL_LOADER := "python3 $(BLL_DIR)/loader.py"
 BL_LOADER_CFG := "$(BLL_DIR)/bl808_header_cfg.conf"
 
-all: build run
+cibuild: mainboard
+# TODO
+nop:
+	echo nope...
 
-build:
+ciclippy: nop
+citest: nop
+checkformat: nop
+
+all: mainboard run
+
+mainboard:
 	cargo build --release
 
 objdump: build
