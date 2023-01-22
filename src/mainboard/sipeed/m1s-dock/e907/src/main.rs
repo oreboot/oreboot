@@ -9,6 +9,7 @@ use core::{
     arch::asm,
     panic::PanicInfo,
     // ptr::slice_from_raw_parts,
+    slice,
 };
 #[macro_use]
 extern crate log;
@@ -80,6 +81,15 @@ fn riscv_plat_info() {
     println!("SoC: {BOARD_SOC}");
 }
 
+fn dump(addr: usize, length: usize) {
+    let s = unsafe { slice::from_raw_parts(addr as *const u8, length) };
+    println!("dump {length} bytes @{addr:x}");
+    for w in s.iter() {
+        print!("{:02x}", w);
+    }
+    println!();
+}
+
 /**
  * There are multiple UARTs available. We configure the first two to 115200
  * bauds.
@@ -107,6 +117,9 @@ fn main() {
         println!("🐢");
         sleep();
     }
+
+    dump(0x3EFF0000, 32);
+
     init::resume_mm();
     init::reset_cpu();
 }
