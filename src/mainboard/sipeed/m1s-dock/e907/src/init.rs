@@ -1,7 +1,7 @@
 use bl808_pac::GLB;
 use log::{Error, Serial};
 
-const GLB_BASE: usize   = 0x2000_0000;
+const GLB_BASE: usize = 0x2000_0000;
 pub const SWRST_CFG2: usize = GLB_BASE + 0x0548;
 const CPU_RST: u32 = 1 << 1;
 
@@ -30,24 +30,34 @@ pub fn resume_mm() {
 
 pub fn gpio_uart_init(glb: &GLB) {
     /* GPIO mode config */
-    glb.gpio_config[14].write(|w| {
-        w.alternate().uart().output_set().set_bit()
-    });
+    glb.gpio_config[14].write(|w| w.alternate().uart().output_set().set_bit());
     glb.gpio_config[15].write(|w| {
-        w.alternate().uart().input_function().set_bit().pull_up().set_bit()
+        w.alternate()
+            .uart()
+            .input_function()
+            .set_bit()
+            .pull_up()
+            .set_bit()
     });
-    glb.gpio_config[16].write(|w| {
-        w.alternate().uart().output_set().set_bit()
-    });
+    glb.gpio_config[16].write(|w| w.alternate().uart().output_set().set_bit());
     glb.gpio_config[17].write(|w| {
-        w.alternate().uart().input_function().set_bit().pull_up().set_bit()
+        w.alternate()
+            .uart()
+            .input_function()
+            .set_bit()
+            .pull_up()
+            .set_bit()
     });
     /* GPIO UART function config */
     glb.uart_signal_0.write(|w| {
-        w.function_02().uart0_txd()
-         .function_03().uart0_rxd()
-         .function_04().uart1_txd()
-         .function_05().uart1_rxd()
+        w.function_02()
+            .uart0_txd()
+            .function_03()
+            .uart0_rxd()
+            .function_04()
+            .uart1_txd()
+            .function_05()
+            .uart1_rxd()
     });
     /* Enable UART clock */
     glb.uart_config.write(|w| w.clock_enable().set_bit());
@@ -64,26 +74,32 @@ impl BSerial {
     pub fn new(u0: bl808_pac::UART0, u1: bl808_pac::UART1) -> Self {
         // TX config
         u0.transmit_config.write(|w| {
-            w.word_length().eight()
-                .stop_bits().one()
-                .freerun().enable()
-                .function().enable()
+            w.word_length()
+                .eight()
+                .stop_bits()
+                .one()
+                .freerun()
+                .enable()
+                .function()
+                .enable()
         });
         u1.transmit_config.write(|w| {
-            w.word_length().eight()
-                .stop_bits().one()
-                .freerun().enable()
-                .function().enable()
+            w.word_length()
+                .eight()
+                .stop_bits()
+                .one()
+                .freerun()
+                .enable()
+                .function()
+                .enable()
         });
         /* baud rate configuration */
         let period = u0.bit_period.read();
         let rxp = period.receive().bits();
         let txp = period.transmit().bits();
-        u1.bit_period.write(|w| {
-            w.transmit().variant(txp)
-                .receive().variant(rxp)
-        });
-        Self{u0, u1}
+        u1.bit_period
+            .write(|w| w.transmit().variant(txp).receive().variant(rxp));
+        Self { u0, u1 }
     }
 }
 
