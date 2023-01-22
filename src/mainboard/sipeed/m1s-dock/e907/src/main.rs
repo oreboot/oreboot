@@ -10,11 +10,11 @@ use core::{
     panic::PanicInfo,
     // ptr::slice_from_raw_parts,
 };
+#[macro_use]
+extern crate log;
 use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 mod init;
-#[macro_use]
-mod log;
 
 const BOARD_SOC: &str = "Bouffalo Lab BL808";
 const BOARD_NAME: &str = "Sipeed M1S Dock";
