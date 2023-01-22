@@ -88,28 +88,26 @@ fn riscv_plat_info() {
  * the D0 core (64-bit "MM"/multimedia) otherwise.
  */
 fn main() {
-    unsafe {
-        let p = Peripherals::steal();
-        let glb = p.GLB;
-        init::gpio_uart_init(&glb);
-        let serial = init::BSerial::new(p.UART0, p.UART1);
-        log::set_logger(serial);
+    let p = Peripherals::take().unwrap();
+    let glb = p.GLB;
+    init::gpio_uart_init(&glb);
+    let serial = init::BSerial::new(p.UART0, p.UART1);
+    log::set_logger(serial);
 
-        // print to UART0
-        log::_debug(42);
+    // print to UART0
+    log::_debug(42);
 
-        // prints to UART1
-        println!("oreboot 🦀");
-        riscv_plat_info();
-        println!("{}", glb.chip_inform.read().bits());
+    // prints to UART1
+    println!("oreboot 🦀");
+    riscv_plat_info();
+    println!("{}", glb.chip_inform.read().bits());
 
-        for _ in 0..4 {
-            println!("🐢");
-            sleep();
-        }
-        init::resume_mm();
-        init::reset_cpu();
+    for _ in 0..4 {
+        println!("🐢");
+        sleep();
     }
+    init::resume_mm();
+    init::reset_cpu();
 }
 
 #[cfg_attr(not(test), panic_handler)]
