@@ -17,13 +17,11 @@ ciclippy: nop
 citest: nop
 checkformat: nop
 
-all: mainboard run
-
 mainboard:
 	cargo build --release
 
 objdump: build
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"
 
-run:
+run: mainboard
 	"$(BL_LOADER)" -c bl808 -p /dev/ttyUSB1 -C "$(BL_LOADER_CFG)" "$(IMAGE_ELF)"

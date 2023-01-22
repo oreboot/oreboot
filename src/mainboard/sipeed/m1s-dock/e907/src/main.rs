@@ -15,6 +15,7 @@ extern crate log;
 use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 mod init;
+mod uart;
 
 const BOARD_SOC: &str = "Bouffalo Lab BL808";
 const BOARD_NAME: &str = "Sipeed M1S Dock";
@@ -91,7 +92,7 @@ fn main() {
     let p = Peripherals::take().unwrap();
     let glb = p.GLB;
     init::gpio_uart_init(&glb);
-    let serial = init::BSerial::new(p.UART0, p.UART1);
+    let serial = uart::BSerial::new(p.UART0, p.UART1);
     log::set_logger(serial);
 
     // print to UART0
