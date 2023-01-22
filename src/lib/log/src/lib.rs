@@ -24,6 +24,7 @@ use core::{
 };
 use embedded_hal::serial::{nb::Write, ErrorType};
 use nb::block;
+use spin::{Mutex, Once};
 
 pub trait Serial: ErrorType + Write {
     /// This is meant to be the simplest fallback for debugging:
@@ -37,7 +38,9 @@ pub trait Serial: ErrorType + Write {
 #[inline]
 pub fn set_logger<S: Serial<Error = Error> + 'static>(serial: S) {
     unsafe {
-        LOGGER = Wrap(Some(Box::new(serial)));
+        LOGGER.0.call_once(|| LockedLogger {
+            l: Mutex::new(Box::new(serial)),
+        });
     }
 }
 
@@ -70,12 +73,17 @@ impl embedded_hal::serial::Error for Error {
     }
 }
 
-pub type SerialLogger = dyn Serial<Error = Error>;
+type SerialLogger = dyn Serial<Error = Error>;
 
-// We wrap things thrice to make Rust happy. This is the result of despair.
-// If you can figure out a simpler implementation, please rewrite it.
+#[doc(hidden)]
+struct LockedLogger {
+    l: Mutex<Box<SerialLogger>>,
+}
+
+// We wrap this to fulfill the orphan rule. See the Rust book for more details:
+// https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types
 struct Wrap<T>(T);
-type Logger = Wrap<Option<Box<SerialLogger>>>;
+type Logger = Wrap<Once<LockedLogger>>;
 
 unsafe impl GlobalAlloc for Logger {
     unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
@@ -86,7 +94,7 @@ unsafe impl GlobalAlloc for Logger {
 
 #[doc(hidden)]
 #[global_allocator]
-static mut LOGGER: Logger = Wrap(None);
+static mut LOGGER: Logger = Wrap(Once::new());
 
 impl fmt::Write for SerialLogger {
     #[inline]
@@ -104,17 +112,13 @@ impl fmt::Write for SerialLogger {
 pub fn _print(args: fmt::Arguments) {
     use fmt::Write;
     unsafe {
-        if let Some(l) = &mut LOGGER.0 {
-            l.write_fmt(args).unwrap();
-        }
+        LOGGER.0.wait().l.lock().write_fmt(args).unwrap();
     }
 }
 
 #[inline]
 pub fn _debug(num: u8) {
     unsafe {
-        if let Some(l) = &mut LOGGER.0 {
-            l.debug(num);
-        }
+        LOGGER.0.wait().l.lock().debug(num);
     }
 }
