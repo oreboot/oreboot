@@ -7,6 +7,7 @@ IMAGE_ELF := "$(OREBOOT)/target/$(TARGET)/$(RELEASE)/$(IMAGE_NAME)"
 BLL_DIR := "/home/dama/firmware/Bouffalo Lab/bouffalo-loader"
 BL_LOADER := "python3 $(BLL_DIR)/loader.py"
 BL_LOADER_CFG := "$(BLL_DIR)/bl808_header_cfg.conf"
+IMAGE2 := /home/dama/firmware/oreboot-bl808/target/riscv64imac-unknown-none-elf/release/sipeed-m1s-dock-c906
 
 cibuild: mainboard
 # TODO
@@ -20,8 +21,8 @@ checkformat: nop
 mainboard:
 	cargo build --release
 
-objdump: build
+objdump: mainboard
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"
 
 run: mainboard
-	"$(BL_LOADER)" -c bl808 -p /dev/ttyUSB1 -C "$(BL_LOADER_CFG)" "$(IMAGE_ELF)"
+	"$(BL_LOADER)" -c bl808 -p /dev/ttyUSB1 -C "$(BL_LOADER_CFG)" "$(IMAGE_ELF)" "$(IMAGE2)"
