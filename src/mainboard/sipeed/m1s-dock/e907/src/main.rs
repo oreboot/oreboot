@@ -118,10 +118,13 @@ fn main() {
         sleep();
     }
 
-    dump(0x3EFF0000, 32);
+    const MM_ENTRY: usize = 0x3eff_0000;
+    dump(MM_ENTRY, 32);
 
-    init::resume_mm();
-    init::reset_cpu();
+    init::resume_mm(MM_ENTRY as u32);
+    if false {
+        init::reset_cpu();
+    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
