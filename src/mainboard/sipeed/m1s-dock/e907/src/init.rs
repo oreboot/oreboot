@@ -53,23 +53,15 @@ pub fn gpio_uart_init(glb: &GLB) {
     glb.uart_config.write(|w| w.clock_enable().set_bit());
 }
 
-use core::ops::Deref;
-
-pub trait Instance0: Deref<Target = bl808_pac::uart::RegisterBlock> {}
-pub trait Instance1: Deref<Target = bl808_pac::uart::RegisterBlock> {}
-
-impl Instance0 for bl808_pac::UART0 {}
-impl Instance1 for bl808_pac::UART1 {}
-
 #[derive(Debug)]
-pub struct BSerial<UART0: Instance0, UART1: Instance1> {
-    u0: UART0,
-    u1: UART1,
+pub struct BSerial {
+    u0: bl808_pac::UART0,
+    u1: bl808_pac::UART1,
 }
 
-impl<UART0: Instance0, UART1: Instance1> BSerial<UART0, UART1> {
+impl BSerial {
     #[inline]
-    pub fn new(u0: UART0, u1: UART1) -> Self {
+    pub fn new(u0: bl808_pac::UART0, u1: bl808_pac::UART1) -> Self {
         // TX config
         u0.transmit_config.write(|w| {
             w.word_length().eight()
@@ -95,17 +87,17 @@ impl<UART0: Instance0, UART1: Instance1> BSerial<UART0, UART1> {
     }
 }
 
-impl<UART0: Instance0, UART1: Instance1> Serial for BSerial<UART0, UART1> {
+impl Serial for BSerial {
     fn debug(&self, num: u8) {
         self.u0.data_write.write(|w| w.value().variant(num));
     }
 }
 
-impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::ErrorType for BSerial<UART0, UART1> {
+impl embedded_hal::serial::ErrorType for BSerial {
     type Error = Error;
 }
 
-impl<UART0: Instance0, UART1: Instance1> embedded_hal::serial::nb::Write<u8> for BSerial<UART0, UART1> {
+impl embedded_hal::serial::nb::Write<u8> for BSerial {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
         if self.u1.bus_state.read().transmit_busy().is_busy() {
