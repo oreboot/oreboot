@@ -1,5 +1,5 @@
 use bl808_pac::GLB;
-use crate::log::{Error, Serial};
+use log::{Error, Serial};
 
 const GLB_BASE: usize   = 0x2000_0000;
 pub const SWRST_CFG2: usize = GLB_BASE + 0x0548;
