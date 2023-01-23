@@ -15,7 +15,7 @@ pub fn init_peripheral() {
 struct Ipi;
 
 impl rustsbi::Ipi for Ipi {
-    fn send_ipi_many(&self, hart_mask: HartMask) -> SbiRet {
+    fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
         // TODO: This was a member function in previous RustSBI
         fn max_hart_id() -> usize {
             1
@@ -26,7 +26,7 @@ impl rustsbi::Ipi for Ipi {
                 msip::clear_ipi(i);
             }
         }
-        SbiRet::ok(0)
+        SbiRet::success(0)
     }
 }
 
