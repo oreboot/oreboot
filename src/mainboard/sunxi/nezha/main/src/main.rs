@@ -398,7 +398,7 @@ extern "C" fn main() -> usize {
         peripheral::init_peripheral();
 
         print!("RustSBI version {}\n", rustsbi::VERSION);
-        print!("{}\n", rustsbi::logo());
+        print!("{}\n", rustsbi::LOGO);
         print!("Platform Name: {}\n", PLATFORM);
         print!(
             "Implementation: oreboot version {}\n",
