@@ -1,0 +1,10 @@
+[package]
+name = "log"
+version = "0.1.0"
+authors = ["oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+embedded-hal = "=1.0.0-alpha.8"
+nb = "1"
+spin = "0.9"
