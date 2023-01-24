@@ -6,8 +6,6 @@
 #![feature(generator_trait)]
 #![feature(panic_info_message)]
 
-extern crate alloc;
-
 mod execute;
 mod feature;
 mod hart_csr_utils;
@@ -17,7 +15,6 @@ mod runtime;
 //#[macro_use]
 //mod logging;
 
-use buddy_system_allocator::LockedHeap;
 use core::panic::PanicInfo;
 use core::{
     arch::asm,
@@ -230,7 +227,6 @@ unsafe extern "C" fn start() -> ! {
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
-        "call   {heap_init}",
         "call   {main}",
         // Function `main` returns with hardware power operation type
         // which may be reboot or shutdown. Function `finish` would
@@ -238,7 +234,6 @@ unsafe extern "C" fn start() -> ! {
         "j      {finish}",
         stack      =   sym ENV_STACK,
         stack_size = const STACK_SIZE,
-        heap_init  =   sym heap_init,
         main       =   sym main,
         finish     =   sym finish,
         options(noreturn)
@@ -249,19 +244,6 @@ unsafe extern "C" fn start() -> ! {
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 const STACK_SIZE: usize = 8 * 1024; // 8KiB
-
-extern "C" fn heap_init() {
-    unsafe {
-        SBI_HEAP
-            .lock()
-            .init(HEAP_SPACE.as_ptr() as usize, SBI_HEAP_SIZE)
-    }
-}
-
-const SBI_HEAP_SIZE: usize = 8 * 1024; // 8KiB
-static mut HEAP_SPACE: [u8; SBI_HEAP_SIZE] = [0; SBI_HEAP_SIZE];
-#[global_allocator]
-static SBI_HEAP: LockedHeap<32> = LockedHeap::empty();
 
 static PLATFORM: &str = "T-HEAD Xuantie Platform";
 

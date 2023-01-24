@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 bitflags = "1"
-buddy_system_allocator = "0.8"
 embedded-hal = "=1.0.0-alpha.8"
 lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"

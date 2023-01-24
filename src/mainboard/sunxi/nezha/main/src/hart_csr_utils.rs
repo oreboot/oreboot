@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use riscv::register::{
     medeleg, mideleg, mie,
     misa::{self, MXL},
@@ -55,118 +54,110 @@ fn print_misa() {
 
 #[inline]
 fn print_mideleg() {
+    print!("[rustsbi] mideleg: ");
     let mideleg = mideleg::read();
-    let mut delegs = Vec::new();
     if mideleg.ssoft() {
-        delegs.push("ssoft")
+        print!("ssoft ")
     }
     if mideleg.usoft() {
-        delegs.push("usoft")
+        print!("usoft ")
     }
     if mideleg.stimer() {
-        delegs.push("stimer")
+        print!("stimer ")
     }
     if mideleg.utimer() {
-        delegs.push("utimer")
+        print!("utimer ")
     }
     if mideleg.sext() {
-        delegs.push("sext")
+        print!("sext ")
     }
     if mideleg.uext() {
-        delegs.push("uext")
+        print!("uext ")
     }
-    println!(
-        "[rustsbi] mideleg: {} ({:#x})\r",
-        delegs.join(", "),
-        mideleg.bits()
-    );
+    println!("({:#08x})\r", mideleg.bits());
 }
 
 #[inline]
 fn print_mie() {
+    print!("[rustsbi] mie: ");
     let mie = mie::read();
-    let mut en = Vec::new();
     if mie.msoft() {
-        en.push("msoft")
+        print!("msoft ")
     }
     if mie.ssoft() {
-        en.push("ssoft")
+        print!("ssoft ")
     }
     if mie.usoft() {
-        en.push("usoft")
+        print!("usoft ")
     }
     if mie.mtimer() {
-        en.push("mtimer")
+        print!("mtimer ")
     }
     if mie.stimer() {
-        en.push("stimer")
+        print!("stimer ")
     }
     if mie.utimer() {
-        en.push("utimer")
+        print!("utimer ")
     }
     if mie.mext() {
-        en.push("mext")
+        print!("mext ")
     }
     if mie.sext() {
-        en.push("sext")
+        print!("sext ")
     }
     if mie.uext() {
-        en.push("uext")
+        print!("uext ")
     }
-    println!("[rustsbi] mie: {} ({:08x})\r", en.join(", "), mie.bits());
+    println!("({:#08x})\r", mie.bits());
 }
 
 #[inline]
 fn print_medeleg() {
+    print!("[rustsbi] medeleg: ");
     let medeleg = medeleg::read();
-    let mut delegs = Vec::new();
     if medeleg.instruction_misaligned() {
-        delegs.push("ima")
+        print!("ima ")
     }
     if medeleg.instruction_fault() {
-        delegs.push("ia") // instruction access
+        print!("ia ") // instruction access
     }
     if medeleg.illegal_instruction() {
-        delegs.push("illinsn")
+        print!("illinsn ")
     }
     if medeleg.breakpoint() {
-        delegs.push("bkpt")
+        print!("bkpt ")
     }
     if medeleg.load_misaligned() {
-        delegs.push("lma")
+        print!("lma ")
     }
     if medeleg.load_fault() {
-        delegs.push("la") // load access
+        print!("la ") // load access
     }
     if medeleg.store_misaligned() {
-        delegs.push("sma")
+        print!("sma ")
     }
     if medeleg.store_fault() {
-        delegs.push("sa") // store access
+        print!("sa ") // store access
     }
     if medeleg.user_env_call() {
-        delegs.push("uecall")
+        print!("uecall ")
     }
     if medeleg.supervisor_env_call() {
-        delegs.push("secall")
+        print!("secall ")
     }
     if medeleg.machine_env_call() {
-        delegs.push("mecall")
+        print!("mecall ")
     }
     if medeleg.instruction_page_fault() {
-        delegs.push("ipage")
+        print!("ipage ")
     }
     if medeleg.load_page_fault() {
-        delegs.push("lpage")
+        print!("lpage ")
     }
     if medeleg.store_page_fault() {
-        delegs.push("spage")
+        print!("spage ")
     }
-    println!(
-        "[rustsbi] medeleg: {} ({:#x})\r",
-        delegs.join(", "),
-        medeleg.bits()
-    );
+    println!("({:#08x})\r", medeleg.bits());
 }
 
 fn pmp_get(n: usize) -> Option<(usize, usize, usize)> {
