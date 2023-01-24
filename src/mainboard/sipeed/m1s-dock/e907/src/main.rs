@@ -1,4 +1,3 @@
-#![feature(default_alloc_error_handler)]
 #![feature(naked_functions, asm_const)]
 #![feature(associated_type_bounds)]
 #![no_std]
@@ -90,10 +89,20 @@ fn dump(addr: usize, length: usize) {
     println!();
 }
 
+fn init_logger(u: uart::BSerial) {
+    static ONCE: spin::Once<()> = spin::Once::new();
+
+    ONCE.call_once(|| unsafe {
+        static mut SERIAL: Option<uart::BSerial> = None;
+        SERIAL.replace(u);
+        log::init(SERIAL.as_mut().unwrap());
+    });
+}
+
 /**
  * There are multiple UARTs available. We configure the first two to 115200
  * bauds.
- * We use UART0 like for classic POST codes via `Serial`'s `_debug` function.
+ * We use UART0 like for classic POST codes via `Serial`'s `debug` function.
  * The `print`/`println` macros output to UART1 for rich output.
  * Note that UART0 is really only for debugging here, and we want to use it for
  * the D0 core (64-bit "MM"/multimedia) otherwise.
@@ -103,10 +112,10 @@ fn main() {
     let glb = p.GLB;
     init::gpio_uart_init(&glb);
     let serial = uart::BSerial::new(p.UART0, p.UART1);
-    log::set_logger(serial);
+    init_logger(serial);
 
     // print to UART0
-    log::_debug(42);
+    log::debug(42);
 
     // prints to UART1
     println!("oreboot 🦀");
