@@ -27,7 +27,7 @@ use oreboot_soc::sunxi::d1::{
     gpio::Gpio,
     pac::Peripherals,
     time::U32Ext,
-    uart::{Config, Parity, Serial, StopBits, WordLength},
+    uart::{Config, D1Serial, Parity, StopBits, WordLength},
 };
 use rustsbi::{legacy_stdio::LegacyStdio, print};
 
@@ -303,11 +303,11 @@ use oreboot_soc::sunxi::d1::pac::UART0;
 type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
 type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
 
-// Serial is a driver implementing embedded HAL; external
-struct Cereal(core::cell::UnsafeCell<Serial<UART0, (TX, RX)>>);
+// D1Serial is a driver implementing embedded HAL; external
+struct Serial(core::cell::UnsafeCell<D1Serial<UART0, (TX, RX)>>);
 
 // LegacyStdio from RustSBI
-impl LegacyStdio for Cereal {
+impl LegacyStdio for Serial {
     fn getchar(&self) -> u8 {
         0
     }
@@ -317,8 +317,8 @@ impl LegacyStdio for Cereal {
 }
 
 // YOLO :)
-unsafe impl Send for Cereal {}
-unsafe impl Sync for Cereal {}
+unsafe impl Send for Serial {}
+unsafe impl Sync for Serial {}
 
 // Function `main`. It would initialize an environment for the kernel.
 // The environment does not exit when bootloading stage is finished;
@@ -347,8 +347,8 @@ extern "C" fn main() -> usize {
         stopbits: StopBits::One,
     };
 
-    let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
-    let cereal = Cereal(core::cell::UnsafeCell::new(serial));
+    let serial = D1Serial::new(p.UART0, (tx, rx), config, &clocks);
+    let cereal = Serial(core::cell::UnsafeCell::new(serial));
 
     // logging::set_logger(serial);
     rustsbi::legacy_stdio::init_legacy_stdio(unsafe {
