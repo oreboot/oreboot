@@ -35,7 +35,6 @@ pub trait Serial: ErrorType + Write {
 }
 
 /// Set the globally available logger that enables the macros.
-#[inline]
 pub fn set_logger<S: Serial<Error = Error> + 'static>(serial: S) {
     unsafe {
         LOGGER.0.call_once(|| LockedLogger {
@@ -53,10 +52,10 @@ macro_rules! print {
 
 #[macro_export]
 macro_rules! println {
-    () => ($crate::print!("\r\n"));
+    () => ($crate::print!("\n"));
     ($($arg:tt)*) => {
         $crate::_print(core::format_args!($($arg)*));
-        $crate::print!("\r\n");
+        $crate::print!("\n");
     }
 }
 
@@ -100,6 +99,9 @@ impl fmt::Write for SerialLogger {
     #[inline]
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
         for byte in s.as_bytes() {
+            if byte == b'\n' {
+                block!(self.write(b'\r')).unwrap();
+            }
             block!(self.write(*byte)).unwrap();
         }
         block!(self.flush()).unwrap();
@@ -107,7 +109,6 @@ impl fmt::Write for SerialLogger {
     }
 }
 
-#[inline]
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use fmt::Write;
@@ -116,7 +117,6 @@ pub fn _print(args: fmt::Arguments) {
     }
 }
 
-#[inline]
 pub fn _debug(num: u8) {
     unsafe {
         LOGGER.0.wait().l.lock().debug(num);
