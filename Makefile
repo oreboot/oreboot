@@ -43,13 +43,17 @@ nexttime:
 	$(CARGOINST) --force $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 
+firsttime_fsp:
+	sudo apt-get install build-essential uuid-dev iasl gcc nasm python3-distutils libclang-dev
+	git submodule update --init --recursive
+
 debiansysprepare:
 	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
 	# -y makes it non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 .PHONY: ciprepare debiansysprepare firsttime
-ciprepare: debiansysprepare firsttime
+ciprepare: debiansysprepare firsttime firsttime_fsp
 
 update:
 	rustup update

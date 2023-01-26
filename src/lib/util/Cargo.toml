@@ -5,3 +5,4 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
+arch = { path = "../../arch", package = "oreboot-arch" }

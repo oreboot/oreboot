@@ -1,0 +1,11 @@
+[package]
+name = "acpi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+romstage_handoff = { path = "../romstage_handoff" }
+southbridge = { path = "../../southbridge", optional = true }
+
+[features]
+intel = ["southbridge"]

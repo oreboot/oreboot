@@ -1,0 +1,18 @@
+[package]
+name = "gpio"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+util = { path = "../util" }
+soc = { path = "../../soc", package = "oreboot-soc" }
+
+[features]
+amd = []
+cavium = []
+intel = ["soc/intel"]
+mediatek = []
+nvidia = []
+qualcomm = []
+rockchip = []

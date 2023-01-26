@@ -1,0 +1,20 @@
+[package]
+name = "ec"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+spin = "0.9.4"
+acpi = { path = "../lib/acpi" }
+cpu = { path = "../cpu", package = "oreboot-cpu" }
+device = { path = "../lib/device" }
+drivers = { path = "../drivers" }
+soc = { path = "../soc", package = "oreboot-soc" }
+types = { path = "../lib/types" }
+util = { path = "../lib/util" }
+
+[features]
+amd = []
+intel = []
+mediatek = []

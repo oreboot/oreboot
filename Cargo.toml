@@ -4,13 +4,32 @@ members = [
   "src/arch",
   "src/console",
   "src/cpu",
+  "src/drivers",
+  "src/ec",
   "src/soc",
+  "src/southbridge",
 
+  "src/lib/acpi",
+  "src/lib/bootmode",
+  "src/lib/cbmem",
   "src/lib/consts",
+  "src/lib/device",
+  "src/lib/gpio",
+  "src/lib/payload",
+  "src/lib/romstage_handoff",
+  "src/lib/rules",
+  "src/lib/types",
   "src/lib/util",
 
+  "src/mainboard",
   "src/mainboard/sunxi/nezha/*",
   "src/mainboard/emulation/*",
+  "src/mainboard/google/octopus/*",
+  "src/vendorcode/fsp/build-utils",
+  "src/vendorcode/fsp/common",
+  "src/vendorcode/fsp/apollolake",
+
+  "src/security",
 
   "xtask",
 

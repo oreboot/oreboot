@@ -1,10 +1,16 @@
 #![no_std]
 
+#[cfg(feature = "intel")]
+extern crate alloc;
+
 #[cfg(feature = "amd")]
 pub mod amd;
 
 #[cfg(feature = "aspeed")]
 pub mod aspeed;
+
+#[cfg(feature = "intel")]
+pub mod intel;
 
 #[cfg(feature = "opentitan")]
 pub mod opentitan;
