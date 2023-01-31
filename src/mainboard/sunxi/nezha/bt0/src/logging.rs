@@ -1,7 +1,7 @@
 //! Log system for BT0
 
 use core::fmt;
-use embedded_hal::serial::nb::Write;
+use embedded_hal_nb::serial::Write;
 use nb::block;
 use oreboot_soc::sunxi::d1::{
     gpio::{

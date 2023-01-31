@@ -184,7 +184,7 @@ impl<const P: char, const N: u8> embedded_hal::digital::ErrorType for Pin<P, N, 
     type Error = core::convert::Infallible;
 }
 
-impl<const P: char, const N: u8> embedded_hal::digital::blocking::InputPin for Pin<P, N, Input> {
+impl<const P: char, const N: u8> embedded_hal::digital::InputPin for Pin<P, N, Input> {
     #[inline]
     fn is_high(&self) -> Result<bool, Self::Error> {
         Ok(unsafe { read_volatile(Self::DATA_REG) } & (1 << N) != 0)
@@ -199,7 +199,7 @@ impl<const P: char, const N: u8> embedded_hal::digital::ErrorType for Pin<P, N, 
     type Error = core::convert::Infallible;
 }
 
-impl<const P: char, const N: u8> embedded_hal::digital::blocking::OutputPin for Pin<P, N, Output> {
+impl<const P: char, const N: u8> embedded_hal::digital::OutputPin for Pin<P, N, Output> {
     #[inline]
     fn set_low(&mut self) -> Result<(), Self::Error> {
         let mut new_data = unsafe { read_volatile(Self::DATA_REG) };
@@ -216,9 +216,7 @@ impl<const P: char, const N: u8> embedded_hal::digital::blocking::OutputPin for 
     }
 }
 
-impl<const P: char, const N: u8> embedded_hal::digital::blocking::StatefulOutputPin
-    for Pin<P, N, Output>
-{
+impl<const P: char, const N: u8> embedded_hal::digital::StatefulOutputPin for Pin<P, N, Output> {
     #[inline]
     fn is_set_high(&self) -> Result<bool, Self::Error> {
         Ok(unsafe { read_volatile(Self::DATA_REG) } & (1 << N) != 0)

@@ -20,8 +20,8 @@ use core::{
     arch::asm,
     ptr::{read_volatile, write_volatile},
 };
-use embedded_hal::digital::blocking::OutputPin;
-use embedded_hal::serial::nb::Write;
+use embedded_hal::digital::OutputPin;
+use embedded_hal_nb::serial::Write;
 use oreboot_compression::decompress;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,

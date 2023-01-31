@@ -7,7 +7,7 @@
 use core::intrinsics::transmute;
 use core::ptr::{read_volatile, write_volatile};
 use core::{arch::asm, panic::PanicInfo};
-use embedded_hal::digital::blocking::OutputPin;
+use embedded_hal::digital::OutputPin;
 use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,

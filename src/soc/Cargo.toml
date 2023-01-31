@@ -16,7 +16,8 @@ util = { path = "../lib/util", optional = true }
 vcell = { version = "0.1.3", optional = true }
 
 d1-pac = { version = "0.0.31", features = ["critical-section"], optional = true }
-embedded-hal = { version = "1.0.0-alpha.8", optional = true }
+embedded-hal = { version = "1.0.0-alpha.9", optional = true }
+embedded-hal-nb = { version = "1.0.0-alpha.1", optional = true }
 nb = "1"
 
 [features]
@@ -27,4 +28,4 @@ amd = [
   "vcell",
 ]
 sunxi = []
-sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal"]
+sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal", "embedded-hal-nb"]
