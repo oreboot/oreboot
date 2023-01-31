@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 bitflags = "1"
-embedded-hal = "=1.0.0-alpha.8"
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-nb = "=1.0.0-alpha.1"
 lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"
 # rustsbi = { path = "../rustsbi", features =["legacy"] }

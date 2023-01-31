@@ -179,28 +179,21 @@ impl Pins<d1_pac::UART0> for (PB8<Function<6>>, PB9<Function<6>>) {}
 /// Error types that may happen when serial transfer
 #[derive(Debug)]
 pub struct Error {
-    kind: embedded_hal::serial::ErrorKind,
+    kind: embedded_hal_nb::serial::ErrorKind,
 }
 
-impl embedded_hal::serial::Error for Error {
+impl embedded_hal_nb::serial::Error for Error {
     #[inline]
-    fn kind(&self) -> embedded_hal::serial::ErrorKind {
+    fn kind(&self) -> embedded_hal_nb::serial::ErrorKind {
         self.kind
     }
 }
 
-impl<UART: Instance, PINS> embedded_hal::serial::ErrorType for Serial<UART, PINS> {
+impl<UART: Instance, PINS> embedded_hal_nb::serial::ErrorType for Serial<UART, PINS> {
     type Error = Error;
 }
 
-// NOTE: This is just a stub. We do not need to read from serial in oreboot.
-impl<UART: Instance, PINS> embedded_hal::serial::nb::Read<u8> for Serial<UART, PINS> {
-    fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        Ok(0)
-    }
-}
-
-impl<UART: Instance, PINS> embedded_hal::serial::nb::Write<u8> for Serial<UART, PINS> {
+impl<UART: Instance, PINS> embedded_hal_nb::serial::Write<u8> for Serial<UART, PINS> {
     #[inline]
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
         if self.inner.usr.read().tfnf().is_full() {
