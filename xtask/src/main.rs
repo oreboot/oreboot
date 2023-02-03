@@ -38,6 +38,7 @@ enum Commands {
     Gdb,
 }
 
+#[derive(Clone)]
 enum Memory {
     /// Operate on NAND flash
     Nand,
