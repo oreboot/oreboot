@@ -23,7 +23,7 @@ STACK_SIZES_VER := 0.4.0
 TARPAULIN_VER := 0.19.1
 DPRINT_VER := 0.32.2
 
-CARGOINST := rustup run --install 1.65 cargo install
+CARGOINST := rustup run --install 1.67 cargo install
 
 .PHONY: $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
