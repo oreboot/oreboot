@@ -18,7 +18,7 @@ jobs:
       - name: git-checkout-action
         uses: actions/checkout@v3
       - name: dprint-check-action
-        uses: dprint/check@v2.1
+        uses: dprint/check@v2.2
 
   LintAndFormat:
     runs-on: ubuntu-latest
