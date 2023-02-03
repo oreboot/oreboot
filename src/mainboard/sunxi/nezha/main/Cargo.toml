@@ -13,7 +13,7 @@ lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"
 # rustsbi = { path = "../rustsbi", features =["legacy"] }
 rustsbi = { version = "0.3.1", features = ["legacy"] }
-sbi-spec = "0.0.2"
+sbi-spec = "0.0.4"
 # todo: a new package oreboot-console
 spin = "0.9" # todo: remove when we have a console package
 vcell = "0.1.3"
