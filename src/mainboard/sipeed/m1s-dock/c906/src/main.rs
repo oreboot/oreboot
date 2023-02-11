@@ -102,6 +102,10 @@ fn sleep() {
     }
 }
 
+const PSRAM_CONFIGURE: usize = 0x2005_2000;
+
+const PSRAM_BASE: usize = 0x5000_0000;
+
 fn main() {
     unsafe {
         /*

@@ -99,6 +99,10 @@ fn init_logger(u: uart::BSerial) {
     });
 }
 
+const PSRAM_CONFIGURE: usize = 0x2005_2000;
+
+const PSRAM_BASE: usize = 0x5000_0000;
+
 /**
  * There are multiple UARTs available. We configure the first two to 115200
  * bauds.
@@ -115,7 +119,7 @@ fn main() {
     init_logger(serial);
 
     // print to UART0
-    log::debug(42);
+    log::debug('*' as u8);
 
     // prints to UART1
     println!("oreboot 🦀");
@@ -129,6 +133,58 @@ fn main() {
 
     const MM_ENTRY: usize = 0x3eff_0000;
     dump(MM_ENTRY, 32);
+
+    use core::ptr::{read_volatile, write_volatile};
+
+    let psram_cfg = unsafe { read_volatile(PSRAM_CONFIGURE as *mut u32) };
+    println!("psram_cfg {:x}", psram_cfg);
+
+    const TZC_SEC_BASE: usize = 0x2000_5000;
+    const TZC_SEC_TZC_PSRAMA_TZSRG_CTRL: usize = TZC_SEC_BASE + 0x0380;
+    const TZC_SEC_TZC_PSRAMA_TZSRG_R0: usize = TZC_SEC_TZC_PSRAMA_TZSRG_CTRL;
+    const TZC_SEC_TZC_PSRAMB_TZSRG_CTRL: usize = TZC_SEC_BASE + 0x03A8;
+    const TZC_SEC_TZC_PSRAMB_TZSRG_R0: usize = TZC_SEC_TZC_PSRAMA_TZSRG_CTRL;
+
+    const PSRAM_SIZE: u32 = 64 * 1024 * 1024;
+    let start_addr = 0;
+    let end_addr = PSRAM_SIZE;
+    let region = 0;
+
+    /*
+     * CPU Prefetching barrier; see Bl808 SDK
+     * see drivers/bl808_driver/startup/m0/source/system_bl808.c
+     */
+    unsafe {
+        let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_CTRL as *mut u32);
+        println!("TZC_SEC_TZC_PSRAMA_TZSRG_CTRL {v:x}");
+        // prepare?
+        write_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_CTRL as *mut u32, 0xffff_ffff);
+
+        let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_R0 as *mut u32);
+        println!("TZC_SEC_TZC_PSRAMA_TZSRG_R0 {v:x}");
+        // lose the lower 10 bits (22 bits remain), then drop higher 6 remaining bits
+        let start_addr_high = (start_addr >> 10) & 0xffff;
+        let v_start = (start_addr_high) << 16; // xxxx_0000
+        let end_addr_high = (end_addr >> 10) & 0xffff;
+        let v_end = (end_addr_high - 1) & 0xffff; // 0000_xxxx
+        let v = v_start | v_end;
+        write_volatile((TZC_SEC_TZC_PSRAMA_TZSRG_R0 + region * 4) as *mut u32, v);
+        let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_R0 as *mut u32);
+        println!("TZC_SEC_TZC_PSRAMA_TZSRG_R0 {v:x}");
+
+        /* set enable but not lock */
+        let ctrl_mask = 1 << (region + 16);
+        let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_CTRL as *mut u32);
+        write_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_CTRL as *mut u32, v | ctrl_mask);
+        let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_CTRL as *mut u32);
+        println!("TZC_SEC_TZC_PSRAMA_TZSRG_CTRL {v:x}");
+    }
+
+    // NOTE: before using PSRAM, also implement PHY init; see Bl808 SDK
+    // drivers/bl808_driver/std_drv/src/bl808_uhs_phy.c
+
+    unsafe { write_volatile(PSRAM_BASE as *mut u32, 0x1234_5678) }
+    dump(PSRAM_BASE, 8);
 
     init::resume_mm(MM_ENTRY as u32);
     if false {
