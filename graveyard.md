@@ -1,5 +1,20 @@
 # oreboot Graveyard
 
+We iteratively walk through various approaches to oreboot's design.
+Earlier attempts are documented below for reference. The code may still be
+useful in general, though requires rework to fit into the current design.
+
+## Removals
+
+The following mainboards have been removed:
+
+- Aspeed ast25x0
+- Nuvoton npcm7xx
+- OpenTitan crb, [Documentation](Documentation/opentitan/README.md)
+- SiFive HiFive Unleashed, [Documentation](Documentation/sifive/setup.md)
+
+## History
+
 ```
 Path                               Deleting Commit
 ================================== ========================================
