@@ -1,0 +1,20 @@
+[package]
+name = "oreboot-mangopi-mqquad-bt0"
+version = "0.1.0"
+authors = ["oreboot authors"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-nb = "=1.0.0-alpha.1"
+nb = "1"
+spin = "0.9"
+
+[features]
+default = ["mqquad"]
+mqquad = ["nor"]
+
+nand = []
+nor = []
