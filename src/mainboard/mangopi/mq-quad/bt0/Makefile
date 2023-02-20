@@ -13,3 +13,7 @@ objdump: all
 
 hexdump: all
 	xxd $(BIN_FILE)
+
+run: all
+	xfel write 0x20000 $(BIN_FILE)
+	xfel exec 0x20000
