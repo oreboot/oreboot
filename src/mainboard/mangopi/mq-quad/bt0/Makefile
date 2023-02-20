@@ -10,3 +10,6 @@ all:
 
 objdump: all
 	aarch64-linux-gnu-objdump -D $(ELF_FILE)
+
+hexdump: all
+	xxd $(BIN_FILE)

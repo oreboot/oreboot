@@ -23,13 +23,13 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[export_name = "head_jump"]
 pub unsafe extern "C" fn head_jump() {
     asm!(
-        // "b.ne .+0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
-        ".word 0x54000341",
+        "b.ne .+0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
+        // ".word 0x54000341", // this is the result...
         options(noreturn)
     )
 }
 */
-// todo: option(noreturn) generates an extra `unimp` insn
+// todo: option(noreturn) generates an extra `brk` instruction
 
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
@@ -86,8 +86,9 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
     length: 0, // real size filled by xtask
 };
 
-// TODO: Arm asm
 /// Clear stuff and jump to main.
+/// Kudos to Azeria \o/
+/// https://azeria-labs.com/memory-instructions-load-and-store-part-4/
 ///
 /// # Safety
 ///
