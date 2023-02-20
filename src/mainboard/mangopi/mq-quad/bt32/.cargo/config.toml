@@ -1,0 +1,8 @@
+[build]
+target = "armv7a-none-eabi"
+
+[target.armv7a-none-eabi]
+rustflags = [
+  "-C",
+  "link-arg=-Tlink-mangopi-mqquad-bt32.ld",
+]
