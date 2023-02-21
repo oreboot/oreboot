@@ -121,11 +121,20 @@ const GPIO_PORTC_DATA: usize = GPIO_BASE + 0x0058;
 const PC13_OUT: u32 = 0b001 << 20;
 const PC13_HIGH: u32 = 1 << 13;
 
+// SUN50I GEN H6
+const RVBAR: usize = 0x0170_00a0;
+
+// const RVBAR: usize = 0x0901_0040;
+
+const START_AARCH64: u32 = 0x0020_0300;
+
 extern "C" fn main() -> ! {
     unsafe {
         // set PC13 high (status LED)
         write_volatile(GPIO_PORTC_CFG1 as *mut u32, PC13_OUT); // set to out
-        loop {
+        let new_addr = START_AARCH64;
+        write_volatile(RVBAR as *mut u32, new_addr);
+        for _ in 0..3 {
             write_volatile(GPIO_PORTC_DATA as *mut u32, PC13_HIGH);
             for _ in 0..0x1f0000 {
                 core::hint::spin_loop();
@@ -134,6 +143,17 @@ extern "C" fn main() -> ! {
             for _ in 0..0x1f0000 {
                 core::hint::spin_loop();
             }
+        }
+        asm!(
+            "dsb	sy",
+            "isb	sy",
+            "mrc	p15, 0, r0, cr12, cr0, 2", // read RMR register
+            "orr	r0, r0, #3",               // request reset in AArch64
+            "mcr	p15, 0, r0, cr12, cr0, 2", // write RMR register
+            "isb	sy",
+        );
+        loop {
+            asm!("wfi");
         }
     }
 }
