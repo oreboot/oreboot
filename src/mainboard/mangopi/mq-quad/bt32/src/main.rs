@@ -103,7 +103,7 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     asm!(
-        // hack to include eGON header
+        // hack to include eGON header; we skip this via the jump from header
         "ldr     r0, {egon_head}",
         "bl   {main}",
         egon_head  =   sym EGON_HEAD,
@@ -126,7 +126,18 @@ const RVBAR: usize = 0x0170_00a0;
 
 // const RVBAR: usize = 0x0901_0040;
 
-const START_AARCH64: u32 = 0x0020_0300;
+const START_AARCH64: u32 = 0x0002_0200;
+
+unsafe fn blink() {
+    write_volatile(GPIO_PORTC_DATA as *mut u32, PC13_HIGH);
+    for _ in 0..0x1f0000 {
+        core::hint::spin_loop();
+    }
+    write_volatile(GPIO_PORTC_DATA as *mut u32, 0);
+    for _ in 0..0x1f0000 {
+        core::hint::spin_loop();
+    }
+}
 
 extern "C" fn main() -> ! {
     unsafe {
@@ -134,16 +145,21 @@ extern "C" fn main() -> ! {
         write_volatile(GPIO_PORTC_CFG1 as *mut u32, PC13_OUT); // set to out
         let new_addr = START_AARCH64;
         write_volatile(RVBAR as *mut u32, new_addr);
-        for _ in 0..3 {
-            write_volatile(GPIO_PORTC_DATA as *mut u32, PC13_HIGH);
-            for _ in 0..0x1f0000 {
-                core::hint::spin_loop();
-            }
-            write_volatile(GPIO_PORTC_DATA as *mut u32, 0);
-            for _ in 0..0x1f0000 {
-                core::hint::spin_loop();
-            }
-        }
+        blink();
+        asm!(
+            "add     r0, pc, #88",
+            "ldr     r1, [pc, #84]",
+            "add     r0, r0, r1",
+            "str     sp, [r0]",
+            "str     lr, [r0, #4]",
+            "mrs     lr, CPSR",
+            "str     lr, [r0, #8]",
+            "mrc     p15, 0, lr, cr1, cr0, 0",
+            "str     lr, [r0, #12]",
+            "mrc     p15, 0, lr, cr12, cr0, 0",
+            "str     lr, [r0, #16]",
+        );
+        blink();
         asm!(
             "dsb	sy",
             "isb	sy",
@@ -152,6 +168,7 @@ extern "C" fn main() -> ! {
             "mcr	p15, 0, r0, cr12, cr0, 2", // write RMR register
             "isb	sy",
         );
+        blink();
         loop {
             asm!("wfi");
         }
