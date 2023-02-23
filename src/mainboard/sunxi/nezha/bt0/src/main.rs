@@ -281,15 +281,10 @@ pub unsafe extern "C" fn start() -> ! {
         "add    sp, sp, t0",
         "la     a0, {egon_head}",
         "call   {main}",
-        // function `main` returns address of next stage,
-        // it drops all peripherals it holds when goes out of scope
-        // now, jump to dram code
-        "j      {finish}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         egon_head  =   sym EGON_HEAD,
         main       =   sym main,
-        finish     =   sym finish,
         options(noreturn)
     )
 }
@@ -431,7 +426,7 @@ fn init_logger(s: Serial) {
     });
 }
 
-extern "C" fn main() -> usize {
+extern "C" fn main() {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();
     // rom provided clock frequency, it's hard coded in bt0 stage
@@ -580,18 +575,10 @@ extern "C" fn main() -> usize {
     unsafe {
         let f: unsafe extern "C" fn() = transmute(RAM_BASE);
         f();
-    }
 
-    // returns an address of dram payload; now cpu would jump to this address
-    // and run code inside
-    RAM_BASE
-}
-
-// jump to dram
-extern "C" fn finish(main_stage: extern "C" fn()) -> ! {
-    main_stage();
-    loop {
-        unsafe { asm!("wfi") }
+        loop {
+            asm!("wfi")
+        }
     }
 }
 
