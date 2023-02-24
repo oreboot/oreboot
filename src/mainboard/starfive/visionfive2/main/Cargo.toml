@@ -1,0 +1,21 @@
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "starfive-visionfive2-main"
+version = "0.1.0"
+authors = [
+  "Daniel Maslowski <info@orangecms.org>",
+]
+edition = "2021"
+
+[dependencies]
+embedded-hal = "1.0.0-alpha.9"
+embedded-hal-nb = "1.0.0-alpha.1"
+nb = "1"
+riscv = "0.10.1"
+spin = "0.9"
+
+# TODO
+# [dependencies.oreboot-soc]
+# path = "../../../../soc"
+# features = ["starfive_jh7100"]
