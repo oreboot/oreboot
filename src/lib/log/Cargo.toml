@@ -5,6 +5,12 @@ authors = ["oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-embedded-hal = "=1.0.0-alpha.8"
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-nb = "=1.0.0-alpha.1"
 nb = "1"
 spin = "0.9"
+
+[features]
+default = []
+debug = []
+mutex = []
