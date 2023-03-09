@@ -13,10 +13,26 @@ use d1_pac::{
     },
     CCU,
 };
+use log::{Error, Serial};
+
+pub trait Instance: Send + Gating + Reset + Deref<Target = RegisterBlock> {}
+
+impl Instance for d1_pac::UART0 {}
+
+// note: if we want to assert RTS and/or CTS, implement Pins<UARTi> for them
+// then users can use (tx, rx, rts, cts) in PINS type parameter
+// and D1Serial::new function should take care of it to enable rtc and cts for peripheral
+
+pub trait Pins<UART>: Send {}
+
+#[allow(non_camel_case_types)]
+pub type Pins_B8_B9 = (PB8<Function<6>>, PB9<Function<6>>);
+
+impl Pins<d1_pac::UART0> for Pins_B8_B9 {}
 
 /// D1 serial peripheral
 #[derive(Debug)]
-pub struct Serial<UART: Instance, PINS> {
+pub struct D1Serial<UART: Instance, PINS: Send> {
     pins: PINS,
     inner: UART,
 }
@@ -47,7 +63,6 @@ pub enum Parity {
 }
 
 /// Stop Bit configuration parameter for serial.
-#[allow(unused)] // should be used as exported structure in HAL crate
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum StopBits {
     /// 1 stop bit
@@ -56,7 +71,7 @@ pub enum StopBits {
     Two,
 }
 
-impl<UART: Instance, PINS: Pins<UART>> Serial<UART, PINS> {
+impl<UART: Instance, PINS: Pins<UART>> D1Serial<UART, PINS> {
     /// Create instance of Uart
     #[inline]
     pub fn new(uart: UART, pins: PINS, config: impl Into<Config>, clock: &Clocks) -> Self {
@@ -139,10 +154,9 @@ impl<UART: Instance, PINS: Pins<UART>> Serial<UART, PINS> {
              .rt()    .two_less_than_full()
         });
         // 6. return the instance
-        Serial { pins, inner: uart }
+        D1Serial { pins, inner: uart }
     }
     // Close uart and release peripheral
-    #[allow(unused)] // FIXME
     #[inline]
     pub fn free(self) -> (UART, PINS) {
         use core::ptr;
@@ -155,7 +169,7 @@ impl<UART: Instance, PINS: Pins<UART>> Serial<UART, PINS> {
 
 // Disable UART when drop; either next bootloading stage will initialize again,
 // or we provide ownership of serial structure to next bootloading stage.
-impl<UART: Instance, PINS> Drop for Serial<UART, PINS> {
+impl<UART: Instance, PINS: Send> Drop for D1Serial<UART, PINS> {
     #[inline]
     fn drop(&mut self) {
         let ccu = unsafe { &*CCU::ptr() };
@@ -164,36 +178,13 @@ impl<UART: Instance, PINS> Drop for Serial<UART, PINS> {
     }
 }
 
-pub trait Instance: Gating + Reset + Deref<Target = RegisterBlock> {}
+impl<UART: Instance, PINS: Send> Serial for D1Serial<UART, PINS> {}
 
-impl Instance for d1_pac::UART0 {}
-
-// note: if we want to assert RTS and/or CTS, implement Pins<UARTi> for them
-// then users can use (tx, rx, rts, cts) in PINS type parameter
-// and Serial::new function should take care of it to enable rtc and cts for peripheral
-
-pub trait Pins<UART> {}
-
-impl Pins<d1_pac::UART0> for (PB8<Function<6>>, PB9<Function<6>>) {}
-
-/// Error types that may happen when serial transfer
-#[derive(Debug)]
-pub struct Error {
-    kind: embedded_hal_nb::serial::ErrorKind,
-}
-
-impl embedded_hal_nb::serial::Error for Error {
-    #[inline]
-    fn kind(&self) -> embedded_hal_nb::serial::ErrorKind {
-        self.kind
-    }
-}
-
-impl<UART: Instance, PINS> embedded_hal_nb::serial::ErrorType for Serial<UART, PINS> {
+impl<UART: Instance, PINS: Send> embedded_hal_nb::serial::ErrorType for D1Serial<UART, PINS> {
     type Error = Error;
 }
 
-impl<UART: Instance, PINS> embedded_hal_nb::serial::Write<u8> for Serial<UART, PINS> {
+impl<UART: Instance, PINS: Send> embedded_hal_nb::serial::Write<u8> for D1Serial<UART, PINS> {
     #[inline]
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
         if self.inner.usr.read().tfnf().is_full() {

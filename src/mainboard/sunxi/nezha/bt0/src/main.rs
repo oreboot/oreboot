@@ -10,17 +10,20 @@ use embedded_hal::digital::OutputPin;
 use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
-    gpio::{portc, Function, Gpio, Pin},
+    gpio::{
+        portb::{PB8, PB9},
+        portc, Function, Gpio, Pin,
+    },
     jtag::Jtag,
-    pac::{Peripherals, SPI0},
+    pac::{Peripherals, SPI0, UART0},
     spi::{Spi, MODE_3},
     time::U32Ext,
-    uart::{Config, Parity, Serial, StopBits, WordLength},
+    uart::{self, Config, D1Serial, Parity, StopBits, WordLength},
 };
 use riscv as _;
 
 #[macro_use]
-mod logging;
+extern crate log;
 mod flash;
 mod mctl;
 
@@ -416,6 +419,18 @@ fn trim_bandgap_ref_voltage() {
     unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
 }
 
+type Serial = D1Serial<UART0, uart::Pins_B8_B9>;
+
+fn init_logger(s: Serial) {
+    static ONCE: spin::Once<()> = spin::Once::new();
+
+    ONCE.call_once(|| unsafe {
+        static mut SERIAL: Option<Serial> = None;
+        SERIAL.replace(s);
+        log::init(SERIAL.as_mut().unwrap());
+    });
+}
+
 extern "C" fn main() -> usize {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();
@@ -426,32 +441,11 @@ extern "C" fn main() -> usize {
     };
     let gpio = Gpio::new(p.GPIO);
 
-    // configure jtag interface
-    let tms = gpio.portf.pf0.into_function_4();
-    let tck = gpio.portf.pf5.into_function_4();
-    let tdi = gpio.portf.pf1.into_function_4();
-    let tdo = gpio.portf.pf3.into_function_4();
-    let _jtag = Jtag::new((tms, tck, tdi, tdo));
-
     // light up led
     let mut pb5 = gpio.portb.pb5.into_output();
     pb5.set_high().unwrap();
     let mut pc1 = gpio.portc.pc1.into_output();
     pc1.set_high().unwrap();
-
-    /*
-    // blinky
-    for _ in 0..2 {
-        for _ in 0..1000_0000 {
-            core::hint::spin_loop();
-        }
-        pc1.set_low().unwrap();
-        for _ in 0..1000_0000 {
-            core::hint::spin_loop();
-        }
-        pc1.set_high().unwrap();
-    }
-    */
 
     // prepare serial port logger
     let tx = gpio.portb.pb8.into_function_6();
@@ -462,8 +456,8 @@ extern "C" fn main() -> usize {
         parity: Parity::None,
         stopbits: StopBits::One,
     };
-    let serial = Serial::new(p.UART0, (tx, rx), config, &clocks);
-    crate::logging::set_logger(serial);
+    let serial = D1Serial::new(p.UART0, (tx, rx), config, &clocks);
+    init_logger(serial);
 
     println!("oreboot 🦀");
 
