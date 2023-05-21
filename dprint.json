@@ -10,7 +10,8 @@
   "includes": ["**/*.{json,md,toml,rs}"],
   "excludes": [
     "**/*-lock.json",
-    "target/"
+    "target/",
+    "3rdparty/"
   ],
   "plugins": [
     "https://plugins.dprint.dev/rustfmt-0.6.2.json@886c6f3161cf020c2d75160262b0f56d74a521e05cfb91ec4f956650c8ca76ca",
