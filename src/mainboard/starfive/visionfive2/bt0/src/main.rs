@@ -208,8 +208,9 @@ static mut SERIAL: Option<JH71XXSerial> = None;
 fn init_logger(s: JH71XXSerial) {
     unsafe {
         SERIAL.replace(s);
-        let m = SERIAL.as_mut().unwrap();
-        log::init(m);
+        if let Some(m) = SERIAL.as_mut() {
+            log::init(m);
+        }
     }
 }
 
