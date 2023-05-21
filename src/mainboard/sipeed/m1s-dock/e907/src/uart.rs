@@ -38,19 +38,19 @@ impl BSerial {
             .write(|w| w.transmit().variant(txp).receive().variant(rxp));
         Self { u0, u1 }
     }
-}
 
-impl Serial for BSerial {
-    fn debug(&self, num: u8) {
+    pub fn debug(&self, num: u8) {
         self.u0.data_write.write(|w| w.value().variant(num));
     }
 }
+
+impl Serial for BSerial {}
 
 impl embedded_hal::serial::ErrorType for BSerial {
     type Error = Error;
 }
 
-impl embedded_hal::serial::nb::Write<u8> for BSerial {
+impl embedded_hal_nb::serial::Write<u8> for BSerial {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
         if self.u1.bus_state.read().transmit_busy().is_busy() {
