@@ -116,10 +116,10 @@ fn main() {
     let glb = p.GLB;
     init::gpio_uart_init(&glb);
     let serial = uart::BSerial::new(p.UART0, p.UART1);
-    init_logger(serial);
-
     // print to UART0
-    log::debug('*' as u8);
+    serial.debug('*' as u8);
+
+    init_logger(serial);
 
     // prints to UART1
     println!("oreboot 🦀");
@@ -183,8 +183,8 @@ fn main() {
     // NOTE: before using PSRAM, also implement PHY init; see Bl808 SDK
     // drivers/bl808_driver/std_drv/src/bl808_uhs_phy.c
 
-    unsafe { write_volatile(PSRAM_BASE as *mut u32, 0x1234_5678) }
-    dump(PSRAM_BASE, 8);
+    // unsafe { write_volatile(PSRAM_BASE as *mut u32, 0x1234_5678) }
+    // dump(PSRAM_BASE, 8);
 
     init::resume_mm(MM_ENTRY as u32);
     if false {

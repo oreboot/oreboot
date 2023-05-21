@@ -6,7 +6,6 @@ const CPU_RST: u32 = 1 << 1;
 
 pub const MM_BASE: usize = 0x3000_0000;
 
-
 const MM_GLB_BASE: usize = 0x3000_7000;
 const MM_SYS_CTRL: usize = MM_GLB_BASE;
 const MM_SW_SYS_RESET: usize = MM_GLB_BASE + 0x0040;

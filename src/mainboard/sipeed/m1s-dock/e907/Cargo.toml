@@ -9,9 +9,10 @@ authors = [
 edition = "2021"
 
 [dependencies]
-bl808-pac = { git = "https://github.com/bouffalolab/bl808-pac", commit = "3bbd010", features = ["rt", "critical-section"] }
+bl808-pac = { git = "https://github.com/bouffalolab/bl-pac", commit = "eb62bbb", features = ["rt", "critical-section"] }
 critical-section = "1.0"
-embedded-hal = "=1.0.0-alpha.8"
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-nb = "=1.0.0-alpha.1"
 log = { path = "../../../../lib/log" }
 nb = "1"
 riscv = { version = "0.10.1", features = ["critical-section-single-hart"] }
