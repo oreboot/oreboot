@@ -1,6 +1,8 @@
 #![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
+// TODO: remove when done debugging crap
+#![allow(unused)]
 
 use core::{
     arch::asm,
