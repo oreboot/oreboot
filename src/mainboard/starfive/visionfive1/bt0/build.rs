@@ -6,13 +6,12 @@ use std::path::PathBuf;
 const LINKERSCRIPT_FILENAME: &str = "link-visionfive1-bt0.ld";
 
 // NOTE: We omit 4 bytes here so that the same binary can be used for flashing.
-// In flash, the first 4 bytes enode the size of the binary to load into SRAM.
+// In flash, the first 4 bytes encode the size of the binary to load into SRAM.
 const FLASH: &[u8] = b"
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
     SRAM : ORIGIN = 0x18000000, LENGTH = 128k
-    # DRAM : ORIGIN = 0x80000000, LENGTH = 8G
 }
 SECTIONS {
     .head : {
