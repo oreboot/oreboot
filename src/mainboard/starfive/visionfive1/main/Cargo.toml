@@ -12,8 +12,11 @@ edition = "2021"
 embedded-hal = "1.0.0"
 embedded-hal-nb = "1.0.0"
 nb = "1"
-riscv = "0.10.1"
+riscv = { version = "0.10.1", features = [] }
+rustsbi = "0.3.2"
 spin = "0.9"
+
+log = { path = "../../../../lib/log" }
 
 # TODO
 # [dependencies.oreboot-soc]
