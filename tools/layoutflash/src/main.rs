@@ -139,7 +139,8 @@ fn create_areas(fdt: &fdt::Fdt) -> io::Result<Vec<Area>> {
 struct Opts {
     /// The path to the firmware device tree file
     in_fdt: PathBuf,
-    #[clap(parse(from_os_str))]
+    // This refuses to work, and the error makes no sense.
+    // #[clap(Arg::parse(from_os_str))]
     /// The output path for the firmware
     out_firmware: PathBuf,
 }
