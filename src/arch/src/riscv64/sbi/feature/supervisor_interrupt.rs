@@ -1,4 +1,4 @@
-use crate::runtime::SupervisorContext;
+use super::super::runtime::SupervisorContext;
 use riscv::register::{mie, mip};
 
 static mut DEVINTRENTRY: usize = 0;

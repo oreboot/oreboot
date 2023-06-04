@@ -1,9 +1,9 @@
-use crate::runtime::SupervisorContext;
+use super::super::runtime::SupervisorContext;
+use log::println;
 use riscv::register::{
     mstatus::{self, MPP, SPP},
     mtval, scause, sepc, stval, stvec,
 };
-use rustsbi::println;
 
 pub unsafe fn should_transfer_trap(ctx: &mut SupervisorContext) -> bool {
     ctx.mstatus.mpp() != MPP::Machine

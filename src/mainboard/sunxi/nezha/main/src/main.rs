@@ -5,31 +5,21 @@
 #![feature(generator_trait)]
 #![feature(panic_info_message)]
 
-mod execute;
-mod feature;
-mod hart_csr_utils;
-mod peripheral;
-mod runtime;
-
-//#[macro_use]
-//mod logging;
-
 use core::panic::PanicInfo;
-use core::{
-    arch::asm,
-    ptr::{read_volatile, write_volatile},
-};
+use core::{arch::asm, ptr::read_volatile};
 use embedded_hal::digital::OutputPin;
-use embedded_hal_nb::serial::Write;
+use log::{print, println};
 use oreboot_compression::decompress;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::Gpio,
-    pac::Peripherals,
+    pac::{Peripherals, UART0},
     time::U32Ext,
-    uart::{Config, D1Serial, Parity, StopBits, WordLength},
+    uart::{self, Config, D1Serial, Parity, StopBits, WordLength},
 };
-use rustsbi::{legacy_stdio::LegacyStdio, print};
+use spin;
+
+mod sbi_platform;
 
 const MEM: usize = 0x4000_0000;
 
@@ -245,6 +235,7 @@ static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 const STACK_SIZE: usize = 8 * 1024; // 8KiB
 
 static PLATFORM: &str = "T-HEAD Xuantie Platform";
+static VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn dump_csrs() {
     let mut v: usize;
@@ -264,6 +255,8 @@ fn dump_csrs() {
 }
 
 fn init_csrs() {
+    print!("Set up extension CSRs\n");
+    dump_csrs();
     unsafe {
         // MXSTATUS: T-Head ISA extension enable, MAEE, MM, UCME, CLINTEE
         // NOTE: Linux relies on detecting errata via mvendorid, marchid and
@@ -279,46 +272,20 @@ fn init_csrs() {
         // MHINT
         asm!("csrw 0x7c5, {}", in(reg) 0x0016e30c);
     }
+    dump_csrs();
 }
 
-fn init_plic() {
-    let mut addr: usize;
-    unsafe {
-        // What? 0xfc1 is BADADDR as per C906 manual; this seems to work though
-        asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
-        let a = addr + 0x001ffffc; // 0x101f_fffc
-        if false {
-            print!("BADADDR {:x} SOME ADDR {:x}", addr, a);
-        }
-        // allow S-mode to access PLIC regs, D1 manual p210
-        write_volatile(a as *mut u8, 0x1);
-    }
+type Serial = D1Serial<UART0, uart::Pins_B8_B9>;
+
+fn init_logger(s: Serial) {
+    static ONCE: spin::Once<()> = spin::Once::new();
+
+    ONCE.call_once(|| unsafe {
+        static mut SERIAL: Option<Serial> = None;
+        SERIAL.replace(s);
+        log::init(SERIAL.as_mut().unwrap());
+    });
 }
-
-// To work around Rust's orphan rule, wrap Serial in a new local struct
-// See also https://blog.mgattozzi.dev/orphan-rules/
-use oreboot_soc::sunxi::d1::gpio::Function;
-use oreboot_soc::sunxi::d1::pac::UART0;
-
-type TX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 8_u8, Function<6_u8>>;
-type RX = oreboot_soc::sunxi::d1::gpio::Pin<'B', 9_u8, Function<6_u8>>;
-
-// D1Serial is a driver implementing embedded HAL; external
-struct Serial(core::cell::UnsafeCell<D1Serial<UART0, (TX, RX)>>);
-
-// LegacyStdio from RustSBI
-impl LegacyStdio for Serial {
-    fn getchar(&self) -> u8 {
-        0
-    }
-    fn putchar(&self, ch: u8) {
-        while let Err(nb::Error::WouldBlock) = unsafe { (*self.0.get()).write(ch) } {}
-    }
-}
-
-// YOLO :)
-unsafe impl Send for Serial {}
-unsafe impl Sync for Serial {}
 
 // Function `main`. It would initialize an environment for the kernel.
 // The environment does not exit when bootloading stage is finished;
@@ -348,12 +315,7 @@ extern "C" fn main() -> usize {
     };
 
     let serial = D1Serial::new(p.UART0, (tx, rx), config, &clocks);
-    let cereal = Serial(core::cell::UnsafeCell::new(serial));
-
-    // logging::set_logger(serial);
-    rustsbi::legacy_stdio::init_legacy_stdio(unsafe {
-        core::mem::transmute::<_, &'static _>(&cereal as &dyn LegacyStdio)
-    });
+    init_logger(serial);
 
     print!("oreboot: serial uart0 initialized\n");
 
@@ -368,38 +330,20 @@ extern "C" fn main() -> usize {
 
     let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
-        init_pmp();
-        dump_csrs();
-        print!("Set up extension CSRs\n");
+        use oreboot_arch::riscv64::sbi;
+        sbi_platform::init();
         init_csrs();
-        dump_csrs();
 
-        runtime::init();
-        init_plic();
-        peripheral::init_peripheral();
-
-        print!("RustSBI version {}\n", rustsbi::VERSION);
-        print!("{}\n", rustsbi::LOGO);
-        print!("Platform Name: {}\n", PLATFORM);
-        print!(
-            "Implementation: oreboot version {}\n",
-            env!("CARGO_PKG_VERSION")
-        );
-        delegate_interrupt_exception();
-        hart_csr_utils::print_hart_csrs();
-        hart_csr_utils::print_hart_pmp();
+        sbi::runtime::init();
+        sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
-        print!(
-            "Handing over to SBI, will continue at 0x{:x}\r\n",
-            LINUXBOOT_ADDR
-        );
-
-        print!(
-            "enter supervisor at {:x} with DTB from {:x}\n",
+        println!(
+            "Enter supervisor at {:x} with DTB from {:x}",
             LINUXBOOT_ADDR, DTB_ADDR
         );
-        let (reset_type, reset_reason) = execute::execute_supervisor(LINUXBOOT_ADDR, 0, DTB_ADDR);
+        let (reset_type, reset_reason) =
+            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, 0, DTB_ADDR);
         print!("oreboot: reset reason = {}", reset_reason);
         reset_type
     } else {
@@ -407,66 +351,15 @@ extern "C" fn main() -> usize {
         unsafe {
             asm!("csrs 0x7c0, {}", in(reg) 0x00018000);
         }
-        print!("You are NOT MY SUPERVISOR!\r\n");
+        println!("You are NOT MY SUPERVISOR!");
         decompress(Standout, LINUXBOOT_TMP_ADDR, PAYLOAD_ADDR, PAYLOAD_SIZE);
-        print!("Running payload at 0x{:x}\r\n", PAYLOAD_ADDR);
+        println!("Running payload at 0x{:x}", PAYLOAD_ADDR);
         unsafe {
             let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
             f();
         }
-        print!("Unexpected return from payload\r");
+        println!("Unexpected return from payload");
         0
-    }
-}
-
-/**
- * from stock vendor OpenSBI:
- * PMP0    : 0x0000000040000000-0x000000004001ffff (A)
- * PMP1    : 0x0000000040000000-0x000000007fffffff (A,R,W,X)
- * PMP2    : 0x0000000000000000-0x0000000007ffffff (A,R,W)
- * PMP3    : 0x0000000009000000-0x000000000901ffff (
- */
-// see privileged spec v1.10 p44 ff
-// https://riscv.org/wp-content/uploads/2017/05/riscv-privileged-v1.10.pdf
-fn init_pmp() {
-    use riscv::register::*;
-    let cfg = 0x0f090f090fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
-    pmpcfg0::write(cfg);
-    pmpcfg2::write(0); // nothing active here
-    pmpaddr0::write(0x40000000usize >> 2);
-    pmpaddr1::write(0x40200000usize >> 2);
-    pmpaddr2::write(0x80000000usize >> 2);
-    pmpaddr3::write(0x80200000usize >> 2);
-    pmpaddr4::write(0xffffffffusize >> 2);
-}
-
-fn delegate_interrupt_exception() {
-    use riscv::register::{medeleg, mideleg, mie};
-    unsafe {
-        mideleg::set_sext();
-        mideleg::set_stimer();
-        mideleg::set_ssoft();
-        // p 35, table 3.6
-        medeleg::set_instruction_misaligned();
-        medeleg::set_instruction_fault();
-        // Do not medeleg::set_illegal_instruction();
-        // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
-        // medeleg::set_breakpoint();
-        medeleg::set_load_misaligned();
-        medeleg::set_load_fault(); // PMP violation, shouldn't be hit
-        medeleg::set_store_misaligned();
-        medeleg::set_store_fault();
-        medeleg::set_user_env_call();
-        // Do not delegate env call from S-mode nor M-mode
-        medeleg::set_instruction_page_fault();
-        medeleg::set_load_page_fault();
-        medeleg::set_store_page_fault();
-        mie::set_mext();
-        mie::set_mtimer();
-        mie::set_msoft();
-        mie::set_sext();
-        mie::set_stimer();
-        mie::set_ssoft();
     }
 }
 
@@ -474,7 +367,7 @@ extern "C" fn finish(reset_type: u32) -> ! {
     use sbi_spec::srst::*;
     match reset_type {
         RESET_TYPE_SHUTDOWN => loop {
-            print!("🦀");
+            println!("🦀");
             // unsafe { asm!("wfi") }
         },
         /*
@@ -489,10 +382,10 @@ extern "C" fn finish(reset_type: u32) -> ! {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        print!("panic in '{}' line {}\n", location.file(), location.line(),);
+        println!("panic in '{}' line {}", location.file(), location.line(),);
         print!("{:?}", info.message());
     } else {
-        print!("panic at unknown location\n");
+        println!("panic at unknown location");
     };
     loop {
         core::hint::spin_loop();
