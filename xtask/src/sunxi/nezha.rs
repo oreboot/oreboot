@@ -220,7 +220,7 @@ fn align_up_to(len: u64, target_align: u64) -> u64 {
 
 const IMG_SIZE: u64 = 16 * 1024 * 1024;
 const EI: usize = 12; // offset bits
-const MAX_COMPRESSED_SIZE: usize = 0xc00000;
+const MAX_COMPRESSED_SIZE: usize = 0x00d0_0000;
 
 fn xtask_concat_flash_binaries(env: &Env) {
     // offset_bits aka EI, usually 10..13
