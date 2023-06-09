@@ -44,7 +44,17 @@ nexttime:
 
 
 debiansysprepare:
-	sudo apt-get install device-tree-compiler pkg-config libssl-dev llvm-dev libclang-dev clang qemu-system-x86
+	sudo apt-get install \
+		device-tree-compiler \
+		pkg-config \
+		libssl-dev \
+		llvm-dev \
+		libclang-dev \
+		clang \
+		qemu-system-x86 \
+		binutils-riscv64-unknown-elf \
+		libudev-dev \
+
 	# -y makes it non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
 
