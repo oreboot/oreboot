@@ -1,15 +1,17 @@
-use crate::feature;
-use crate::runtime::{MachineTrap, Runtime, SupervisorContext};
+use super::feature;
+use super::runtime::{MachineTrap, Runtime, SupervisorContext};
 use core::{
     arch::asm,
     ops::{Generator, GeneratorState},
     pin::Pin,
 };
+use log::{print, println};
 use riscv::register::mip;
 use riscv::register::scause::{Exception, Trap};
-use rustsbi::println;
 use rustsbi::spec::binary::SbiRet;
+use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
+const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 const DEBUG: bool = false;
 
@@ -21,7 +23,7 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
             let mut err = 0;
             let csr = args[0];
             if dbg {
-                println!("[rustsbi] read CSR {:x}\r", csr);
+                println!("[rustsbi] read CSR {:x}", csr);
             }
             match csr {
                 0x7c0 => unsafe {
@@ -41,7 +43,7 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
                 }
             }
             if dbg {
-                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}\r", csr, val, err);
+                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}", csr, val, err);
             }
             SbiRet {
                 value: val,
@@ -52,9 +54,16 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     }
 }
 
+fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
+    let char = args[0] as u8 as char;
+    print!("{char}");
+    SbiRet { value: 0, error: 0 }
+}
+
 pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
     loop {
+        // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
             GeneratorState::Yielded(MachineTrap::SbiCall()) => {
                 let ctx = rt.context_mut();
@@ -62,11 +71,11 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 feature::preprocess_supervisor_external(ctx);
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
                 let ans = match ctx.a7 {
-                    0x0A023B00 => ore_sbi(ctx.a6, param),
+                    ECALL_OREBOOT => ore_sbi(ctx.a6, param),
+                    LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        // if not sbi putchar
-                        if ctx.a7 != 0x1 && DEBUG {
-                            println!("[rustsbi] ecall {:x}\r", ctx.a6);
+                        if ctx.a7 != LEGACY_CONSOLE_PUTCHAR && DEBUG {
+                            println!("[rustsbi] ecall {:x}", ctx.a6);
                         }
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
@@ -87,7 +96,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
                     if DEBUG {
-                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}\r", ctx);
+                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
@@ -100,7 +109,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                                 Trap::Exception(Exception::IllegalInstruction),
                             )
                         } else {
-                            println!("[rustsbi] Na na na! {:#04X?}\r", ctx);
+                            println!("[rustsbi] Na na na! {:#04X?}", ctx);
                             fail_illegal_instruction(ctx, ins)
                         }
                     }
@@ -111,7 +120,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
                 if DEBUG {
-                    println!("M timer int\r");
+                    println!("M timer int");
                 }
                 unsafe {
                     mip::set_stimer();

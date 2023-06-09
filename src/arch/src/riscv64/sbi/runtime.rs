@@ -5,12 +5,41 @@ use core::{
 };
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
-    mepc,
+    medeleg, mepc, mideleg, mie,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
 };
 use rustsbi::print;
+
+fn delegate_interrupt_exception() {
+    unsafe {
+        mideleg::set_sext();
+        mideleg::set_stimer();
+        mideleg::set_ssoft();
+        // p 35, table 3.6
+        medeleg::set_instruction_misaligned();
+        medeleg::set_instruction_fault();
+        // Do not medeleg::set_illegal_instruction();
+        // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
+        // medeleg::set_breakpoint();
+        medeleg::set_load_misaligned();
+        medeleg::set_load_fault(); // PMP violation, shouldn't be hit
+        medeleg::set_store_misaligned();
+        medeleg::set_store_fault();
+        medeleg::set_user_env_call();
+        // Do not delegate env call from S-mode nor M-mode; we handle it :)
+        medeleg::set_instruction_page_fault();
+        medeleg::set_load_page_fault();
+        medeleg::set_store_page_fault();
+        mie::set_mext();
+        mie::set_mtimer();
+        mie::set_msoft();
+        mie::set_sext();
+        mie::set_stimer();
+        mie::set_ssoft();
+    }
+}
 
 pub fn init() {
     let mut addr = from_supervisor_save as usize;
@@ -19,6 +48,7 @@ pub fn init() {
         addr += 0x2;
     }
     unsafe { mtvec::write(addr, TrapMode::Direct) };
+    delegate_interrupt_exception();
 }
 
 pub struct Runtime {
@@ -156,15 +186,21 @@ pub struct SupervisorContext {
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
-    asm!("j     {from_machine_save}", from_machine_save = sym from_machine_save, options(noreturn))
+    asm!(
+        "j      {from_machine_save}",
+        from_machine_save = sym from_machine_save,
+        options(noreturn),
+    )
 }
 
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
-    asm!( // sp:机器栈顶
-        "addi   sp, sp, -15*8", // sp:机器栈顶
-        // 进入函数之前，已经保存了调用者寄存器，应当保存被调用者寄存器
+    asm!(
+        // sp: top of the stack
+        "addi   sp, sp, -15*8",
+        // Before entering the function, the caller's register has been saved,
+        // and the callee's register should be saved
         "sd     ra, 0*8(sp)
         sd      gp, 1*8(sp)
         sd      tp, 2*8(sp)
@@ -180,7 +216,7 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
         sd      s9, 12*8(sp)
         sd      s10, 13*8(sp)
         sd      s11, 14*8(sp)",
-        // a0:特权级上下文
+        // a0: privileged context
         "j      {to_supervisor_restore}",
         to_supervisor_restore = sym to_supervisor_restore,
         options(noreturn)
@@ -191,7 +227,7 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
 #[link_section = ".text"]
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
-        // a0:特权级上下文
+        // a0: privileged context
         "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文
         "csrw   mscratch, a0", // 新mscratch:特权级上下文
         // mscratch:特权级上下文

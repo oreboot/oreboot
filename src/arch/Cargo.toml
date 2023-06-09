@@ -5,5 +5,12 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
+log = { path = "../lib/log" }
+
+# RISC-V
+riscv = { version = "=0.10.1", features = ["critical-section-single-hart"] }
+rustsbi = { version = "0.3.2", features = ["legacy"] }
+sbi-spec = { version = "0.0.4", features = ["legacy"] }
 
 [features]
+riscv64 = []
