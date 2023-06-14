@@ -4,6 +4,7 @@ use std::{env, fs, path::Path};
 // NOTE: we don't use u32. At the rate that SPI flash is expanding, we're going to see
 // 5B addressing soon I bet. The size limitation should be a function of the destination,
 // not this program. This problem should just stupidly arrange things.
+#[derive(Debug, PartialEq)]
 struct Area {
     pub name: String,
     pub offset: Option<usize>,
@@ -73,7 +74,14 @@ fn layout_flash(path: &Path, areas: &mut Vec<Area>) -> io::Result<()> {
                 Ok(data) => data,
             };
             if data.len() > a.size as usize {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, format!("File {} is too big to fit into the flash area, file size: {}, area size: {}", path, data.len(), a.size)));
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "File {path} is too big to fit into the flash area, file size: {} area size: {}",
+                        data.len(),
+                        a.size
+                    ),
+                ));
             }
             f.write_all(&data)?;
         }
@@ -129,10 +137,91 @@ fn create_areas(fdt: &fdt::Fdt) -> io::Result<Vec<Area>> {
     Ok(areas)
 }
 
-#[test]
-fn readit() {
-    static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
-    fdt::Fdt::new(&DATA).unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn readit() {
+        static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
+        let fdt = fdt::Fdt::new(&DATA).unwrap();
+        let areas = create_areas(&fdt).unwrap();
+
+        let want: Vec<Area> = vec![
+            Area {
+                name: "area@0".to_string(),
+                offset: Some(0),
+                size: 524288,
+                file: None,
+            },
+            Area {
+                name: "area@1".to_string(),
+                offset: Some(524288),
+                size: 524288,
+                file: Some("testdata/test.dtb".to_string()),
+            },
+            Area {
+                name: "area@2".to_string(),
+                offset: Some(1048576),
+                size: 524288,
+                file: None,
+            },
+            Area {
+                name: "area@3".to_string(),
+                offset: Some(1572864),
+                size: 524288,
+                file: None,
+            },
+            Area {
+                name: "area@4".to_string(),
+                offset: Some(2097152),
+                size: 1048576,
+                file: None,
+            },
+            Area {
+                name: "area@5".to_string(),
+                offset: Some(3145728),
+                size: 1048576,
+                file: None,
+            },
+            Area {
+                name: "area@6".to_string(),
+                offset: Some(4194304),
+                size: 6291456,
+                file: None,
+            },
+            Area {
+                name: "area@7".to_string(),
+                offset: Some(10485760),
+                size: 6291456,
+                file: None,
+            },
+        ];
+        assert_eq!(areas.len(), want.len());
+        for i in 0..areas.len() {
+            println!("Check element {i}");
+            assert_eq!(
+                areas[i].name, want[i].name,
+                "Element {i}: name {:?} != {:?}",
+                areas[i].name, want[i].name
+            );
+            assert_eq!(
+                areas[i].offset, want[i].offset,
+                "Element {i}: offset {:?} , {:?}",
+                areas[i].offset, want[i].offset
+            );
+            assert_eq!(
+                areas[i].size, want[i].size,
+                "Element {i}: size {:?} , {:?}",
+                areas[i].size, want[i].size
+            );
+            assert_eq!(
+                areas[i].file, want[i].file,
+                "Element {i}: file {:?} , {:?}",
+                areas[i].file, want[i].file
+            );
+        }
+    }
 }
 
 /*
