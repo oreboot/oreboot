@@ -1,8 +1,5 @@
 use std::io::{self, Seek, SeekFrom, Write};
-use std::{
-    env, fs,
-    path::Path,
-};
+use std::{env, fs, path::Path};
 
 // NOTE: we don't use u32. At the rate that SPI flash is expanding, we're going to see
 // 5B addressing soon I bet. The size limitation should be a function of the destination,
@@ -132,20 +129,11 @@ fn create_areas(fdt: &fdt::Fdt) -> io::Result<Vec<Area>> {
     Ok(areas)
 }
 
-#[cfg(test)]
+#[test]
 fn readit() {
-    println!("Read in testdata/test.dtb");
-    let data = fs::read("testdata/test.dtb").unwrap();
-/*
-    let fdt = match fdt::Fdt::new(&data) {
-        Ok(f) => f,
-        Err(error) => {
-            eprintln!("fdt from data failed: {}", error);
-        }
-    };
-*/
-    }
-
+    static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
+    fdt::Fdt::new(&DATA).unwrap();
+}
 
 /*
 fn main() {
@@ -153,13 +141,6 @@ fn main() {
 
     println!("Read in {:?}", args.in_fdt);
     let data = fs::read(&args.in_fdt).unwrap();
-    let fdt = match fdt::Fdt::new(&data) {
-        Ok(f) => f,
-        Err(error) => {
-            eprintln!("fdt from data failed: {}", error);
-            exit(1);
-        }
-    };
 
     create_areas(&fdt)
         .and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas))
