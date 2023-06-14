@@ -16,3 +16,5 @@ lzss = "0.8"
 pathdiff = "0.2"
 
 oreboot_compression = { path = "../src/lib/compression" }
+fdt = "0.1.4"
+layoutflash={path="../src/lib/layoutflash"}

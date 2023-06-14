@@ -1,0 +1,8 @@
+[package]
+name = "layoutflash"
+version = "0.1.0"
+authors = ["Ryan O'Leary <ryanoleary@google.com>"]
+edition = "2021"
+
+[dependencies]
+fdt = "0.1.4"

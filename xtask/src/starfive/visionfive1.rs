@@ -2,11 +2,14 @@ use crate::dist_dir;
 use crate::project_root;
 use crate::{Commands, Env};
 use log::{error, info, trace};
-use std::env;
 use std::fs::File;
 use std::io::{self, Seek, SeekFrom};
 use std::process::{self, Command, Stdio};
+use fdt;
 
+use std::{env, fs, path::Path};
+extern crate layoutflash;
+use layoutflash::{areas::{create_areas,Area},unix::layout_flash};
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
@@ -17,6 +20,8 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
         Commands::Make => {
             info!("building VisionFive1");
             let binutils_prefix = find_binutils_prefix_or_fail();
+	    // dtb
+	    xtask_build_dtb(&args.env);
             // bt0 stage
             xtask_build_jh7100_flash_bt0(&args.env, &features);
             xtask_binary_jh7100_flash_bt0(binutils_prefix, &args.env);
@@ -24,10 +29,26 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
             xtask_build_jh7100_flash_main(&args.env);
             xtask_binary_jh7100_flash_main(binutils_prefix, &args.env);
             xtask_concat_flash_binaries(&args.env);
+	    xtask_build_dtb_image(&args.env);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
         }
+    }
+}
+
+fn xtask_build_dtb(env: &Env) {
+    trace!("build dtb");
+    let mut command = Command::new("dtc");
+        command.current_dir(dist_dir(env, DEFAULT_TARGET));
+    command.arg("-o");
+    command.arg("starfive-visionfive1.dtb");
+    command.arg(board_project_root().join("board.dts"));
+    let status = command.status().unwrap();
+    trace!("dtc returned {}", status);
+    if !status.success() {
+        error!("dtc build failed with {}", status);
+        process::exit(1);
     }
 }
 
@@ -139,6 +160,30 @@ fn xtask_concat_flash_binaries(env: &Env) {
     io::copy(&mut main_file, &mut output_file).expect("copy main binary");
 
     println!("======= DONE =======");
+    println!("Output file: {:?}", &output_file_path.into_os_string());
+}
+
+fn xtask_build_dtb_image(env: &Env) {
+    let dist_dir = dist_dir(env, DEFAULT_TARGET);
+    let dtb_path = dist_dir.join("starfive-visionfive1.dtb");
+    let dtb = fs::read(dtb_path).expect("dtb");
+
+let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
+    let mut output_file = File::options()
+        .write(true)
+        .create(true)
+        .open(&output_file_path)
+        .expect("create output binary file");
+
+    output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
+
+        let fdt = fdt::Fdt::new(&dtb).unwrap();
+	let mut Areas: Vec<Area> = vec![];
+	Areas.resize(16, Area{name:"", offset: None, size: 0, file: None,});
+        let Areas = create_areas(&fdt, &mut Areas);
+
+        layout_flash(Path::new(&output_file_path), Areas.to_vec()).unwrap();
+	println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
