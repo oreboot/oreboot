@@ -4,10 +4,10 @@
 #![feature(asm_const)]
 #![feature(panic_info_message)]
 
-use core::panic::PanicInfo;
-use core::{arch::asm, ptr::read_volatile};
+use core::{arch::asm, mem::transmute, panic::PanicInfo, ptr::read_volatile};
 use embedded_hal::digital::OutputPin;
 use log::{print, println};
+use oreboot_arch::riscv64::sbi;
 use oreboot_compression::decompress;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
@@ -37,7 +37,7 @@ const LINUXBOOT_ADDR: usize = MEM + LINUXBOOT_OFFSET;
 const LINUXBOOT_SIZE: usize = 0x0180_0000;
 // DTB_OFFSET should be >=LINUXBOOT_OFFSET+LINUXBOOT_SIZE and match bt0
 // TODO: Should we just copy it to a higher address before decompressing Linux?
-const DTB_OFFSET: usize = 0x01a0_0000;
+const DTB_OFFSET: usize = LINUXBOOT_OFFSET + LINUXBOOT_SIZE;
 const DTB_ADDR: usize = MEM + DTB_OFFSET;
 
 fn decompress_lb() {
@@ -223,9 +223,9 @@ unsafe extern "C" fn start() -> ! {
 }
 
 // stack which the bootloader environment would make use of.
+const STACK_SIZE: usize = 8 * 1024;
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-const STACK_SIZE: usize = 8 * 1024; // 8KiB
 
 static PLATFORM: &str = "T-HEAD Xuantie Platform";
 static VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -323,7 +323,6 @@ extern "C" fn main() -> usize {
 
     let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
-        use oreboot_arch::riscv64::sbi;
         sbi_platform::init();
         init_csrs();
 
@@ -350,7 +349,7 @@ extern "C" fn main() -> usize {
         }
         println!("Running payload at 0x{:x}", PAYLOAD_ADDR);
         unsafe {
-            let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
+            let f: unsafe extern "C" fn() = transmute(PAYLOAD_ADDR);
             f();
         }
         println!("Unexpected return from payload");
