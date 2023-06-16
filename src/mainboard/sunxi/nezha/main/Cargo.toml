@@ -17,13 +17,8 @@ vcell = "0.1.3"
 
 log = { path = "../../../../lib/log" }
 oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
-
-[dependencies.oreboot_compression]
-path = "../../../../lib/compression"
-
-[dependencies.oreboot-soc]
-path = "../../../../soc"
-features = ["sunxi_d1"]
+oreboot_compression = { path = "../../../../lib/compression" }
+oreboot-soc = { path = "../../../../soc", features = ["sunxi_d1"] }
 
 [features]
 default = []
