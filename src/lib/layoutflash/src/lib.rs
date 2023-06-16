@@ -29,7 +29,7 @@ struct Area {
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
-fn layout_flash(path: &Path, areas: &mut Vec<Area>) -> io::Result<()> {
+fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
     for a in areas {
@@ -142,7 +142,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn readit() {
+    fn read_create() {
         static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
         let fdt = fdt::Fdt::new(&DATA).unwrap();
         let areas = create_areas(&fdt).unwrap();
@@ -158,7 +158,7 @@ mod tests {
                 name: "area@1".to_string(),
                 offset: Some(524288),
                 size: 524288,
-                file: Some("testdata/test.dtb".to_string()),
+                file: Some("src/testdata/test.dtb".to_string()),
             },
             Area {
                 name: "area@2".to_string(),
@@ -221,6 +221,12 @@ mod tests {
                 areas[i].file, want[i].file
             );
         }
+
+        layout_flash(Path::new("out"), areas).unwrap();
+        // Make sure we can read what we wrote.
+        let data = fs::read("out").expect("Unable to read file produced by layout");
+        let reference = fs::read("src/testdata/test.out").expect("Unable to read testdata file");
+        assert_eq!(data, reference, "Data and reference differ");
     }
 }
 
