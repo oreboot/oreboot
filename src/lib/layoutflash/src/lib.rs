@@ -12,6 +12,23 @@ struct Area {
     pub file: Option<String>,
 }
 
+fn find_fdt<'a>(data: &'a [u8]) -> Result<fdt::Fdt, fdt::FdtError> {
+    // The informal standard is that the fdt must be on a 0x1000
+    // boundary. It is a fine line between too coarse a boundary
+    // and falling into an false positive.
+    // yuck. Make a better iterator.
+    for pos in 0..data.len() - 0x1000 {
+        match fdt::Fdt::new(&data[pos..]) {
+            Err(_) => {}
+            Ok(fdt) => {
+                return Ok(fdt);
+            }
+        };
+    }
+
+    Err(fdt::FdtError::BadMagic)
+}
+
 // In earlier versions of this function, we assumed all Areas had a non-zero
 // offset. There was a sort step to sort by offset as a first step.
 // Requiring users to compute all the offsets, and adjust them every time
@@ -227,6 +244,15 @@ mod tests {
         let data = fs::read("out").expect("Unable to read file produced by layout");
         let reference = fs::read("src/testdata/test.out").expect("Unable to read testdata file");
         assert_eq!(data, reference, "Data and reference differ");
+        let mut vec = Vec::with_capacity(16384);
+        vec.resize(16384, 0u8);
+        match find_fdt(&vec) {
+            Err(_) => {}
+            Ok(_) => {
+                panic!("Unpacked an FDT from a block of zeros!");
+            }
+        }
+        let fdt = find_fdt(&data).unwrap();
     }
 }
 
