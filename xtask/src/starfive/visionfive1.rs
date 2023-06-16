@@ -17,6 +17,8 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
         Commands::Make => {
             info!("building VisionFive1");
             let binutils_prefix = find_binutils_prefix_or_fail();
+	    // dtb
+	    xtask_build_dtb(env: &Env);
             // bt0 stage
             xtask_build_jh7100_flash_bt0(&args.env, &features);
             xtask_binary_jh7100_flash_bt0(binutils_prefix, &args.env);
@@ -24,10 +26,26 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
             xtask_build_jh7100_flash_main(&args.env);
             xtask_binary_jh7100_flash_main(binutils_prefix, &args.env);
             xtask_concat_flash_binaries(&args.env);
+	    xtask_build_dtb_image(&args.env);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
         }
+    }
+}
+
+fn xtask_build_dtb(env: &Env) {
+    trace!("build dtb");
+    let mut command = Command::new("dtc");
+    command.current_dir(board_project_root());
+    command.arg("-o");
+    command.arg("board.dtb");
+    command.arg("board.dts");
+    let status = command.status().unwrap();
+    trace!("dtc returned {}", status);
+    if !status.success() {
+        error!("dtc build failed with {}", status);
+        process::exit(1);
     }
 }
 
@@ -112,6 +130,37 @@ fn xtask_binary_jh7100_flash_main(prefix: &str, env: &Env) {
 }
 
 fn xtask_concat_flash_binaries(env: &Env) {
+    let dist_dir = dist_dir(env, DEFAULT_TARGET);
+    let mut bt0_file = File::options()
+        .read(true)
+        .open(dist_dir.join("starfive-visionfive1-bt0.bin"))
+        .expect("open bt0 binary file");
+    let mut main_file = File::options()
+        .read(true)
+        .open(dist_dir.join("starfive-visionfive1-main.bin"))
+        .expect("open main binary file");
+
+    let output_file_path = dist_dir.join("starfive-visionfive1.bin");
+    let mut output_file = File::options()
+        .write(true)
+        .create(true)
+        .open(&output_file_path)
+        .expect("create output binary file");
+
+    output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
+
+    let bt0_len = 30 * 1024;
+    io::copy(&mut bt0_file, &mut output_file).expect("copy bt0 binary");
+    output_file
+        .seek(SeekFrom::Start(bt0_len))
+        .expect("seek after bt0 copy");
+    io::copy(&mut main_file, &mut output_file).expect("copy main binary");
+
+    println!("======= DONE =======");
+    println!("Output file: {:?}", &output_file_path.into_os_string());
+}
+
+fn xtask_build_dtb_image(env: &Env) {
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
     let mut bt0_file = File::options()
         .read(true)

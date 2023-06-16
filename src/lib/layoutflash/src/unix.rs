@@ -79,54 +79,6 @@ fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     Ok(())
 }
 
-fn create_areas(fdt: &fdt::Fdt) -> io::Result<Vec<Area>> {
-    // Assemble the bits of the fdt we care about into Areas.
-    let mut areas: Vec<Area> = vec![];
-
-    for node in fdt.find_all_nodes("/flash-info/areas") {
-        println!("{:?}", node.name);
-        for child in node.children() {
-            println!("    {}", child.name);
-            let mut a: Area = Area {
-                name: child.name.to_string(),
-                offset: None,
-                size: 0,
-                file: None,
-            };
-            for p in child.properties() {
-                println!(" {:?} {:?}, {:?}", p.name, p.as_str(), p.as_usize());
-
-                // There can be all kinds of properties in a node.
-                // we only care about file, size, and offset.
-                // Not that we remove any, just that those relate
-                // to data we put in the image.
-
-                match p.name {
-                    "file" => {
-                        a.file = Some(
-                            p.as_str()
-                                .expect(
-                                    format!("Child {}: \"file\" needs a name", child.name).as_str(),
-                                )
-                                .to_string(),
-                        );
-                    }
-                    "offset" => {
-                        a.offset = Some(p.as_usize().unwrap());
-                    }
-                    "size" => {
-                        a.size = p.as_usize().unwrap();
-                    }
-                    _ => {}
-                }
-            }
-            areas.push(a);
-        }
-    }
-
-    Ok(areas)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

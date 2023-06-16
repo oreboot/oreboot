@@ -257,12 +257,16 @@ fn main() {
         let dram = DRAM_BASE;
 	// let's find the dtb
 
-	let pointer = transmute(base);
-
-	// The `slice` function creates a slice from the pointer.
-	let slice = unsafe { core::slice::from_raw_parts(pointer, size) };
+	let slice = unsafe {
+		let pointer = transmute(base);
+		// The `slice` function creates a slice from the pointer.
+		unsafe { core::slice::from_raw_parts(pointer, size) }
+	};
 	let fdt = layoutflash::find_fdt(slice);
-	println!("FDT:{fdt:?}");
+        match fdt {
+		Err(_) => {println!("got the expected error");},
+		_ => {println!("Well that was odd. No error");},
+	}
 
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
