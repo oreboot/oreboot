@@ -6,6 +6,7 @@
 
 #[macro_use]
 extern crate log;
+extern crate layoutflash;
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
 use init::{dump_block, read32, write32};
