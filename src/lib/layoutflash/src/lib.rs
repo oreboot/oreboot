@@ -19,7 +19,7 @@ struct Area {
     pub file: Option<String>,
 }
 
-fn find_fdt<'a>(data: &'a [u8]) -> Result<fdt::Fdt, fdt::FdtError> {
+pub fn find_fdt<'a>(data: &'a [u8]) -> Result<fdt::Fdt<'a>, fdt::FdtError> {
     // The informal standard is that the fdt must be on a 0x1000
     // boundary. It is a fine line between too coarse a boundary
     // and falling into an false positive.
