@@ -1,5 +1,6 @@
 use std::io::{self, Seek, SeekFrom, Write};
 use std::{env, fs, path::Path};
+use crate::areas::{Area,create_areas,find_fdt};
 
 // In earlier versions of this function, we assumed all Areas had a non-zero
 // offset. There was a sort step to sort by offset as a first step.
@@ -18,7 +19,6 @@ use std::{env, fs, path::Path};
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
-#[config(std)]
 pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
@@ -87,53 +87,54 @@ mod tests {
     fn read_create() {
         static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
         let fdt = fdt::Fdt::new(&DATA).unwrap();
-        let areas = create_areas(&fdt).unwrap();
-
+        let mut areas: Vec<Area> = vec![];
+	areas.resize(8, Area{name: "", offset: None, size: 0, file: None,});
+	let areas = create_areas(&fdt, &mut areas);
         let want: Vec<Area> = vec![
             Area {
-                name: "area@0".to_string(),
+                name: "area@0",
                 offset: Some(0),
                 size: 524288,
                 file: None,
             },
             Area {
-                name: "area@1".to_string(),
+                name: "area@1",
                 offset: Some(524288),
                 size: 524288,
-                file: Some("src/testdata/test.dtb".to_string()),
+                file: Some("src/testdata/test.dtb"),
             },
             Area {
-                name: "area@2".to_string(),
+                name: "area@2",
                 offset: Some(1048576),
                 size: 524288,
                 file: None,
             },
             Area {
-                name: "area@3".to_string(),
+                name: "area@3",
                 offset: Some(1572864),
                 size: 524288,
                 file: None,
             },
             Area {
-                name: "area@4".to_string(),
+                name: "area@4",
                 offset: Some(2097152),
                 size: 1048576,
                 file: None,
             },
             Area {
-                name: "area@5".to_string(),
+                name: "area@5",
                 offset: Some(3145728),
                 size: 1048576,
                 file: None,
             },
             Area {
-                name: "area@6".to_string(),
+                name: "area@6",
                 offset: Some(4194304),
                 size: 6291456,
                 file: None,
             },
             Area {
-                name: "area@7".to_string(),
+                name: "area@7",
                 offset: Some(10485760),
                 size: 6291456,
                 file: None,
@@ -164,7 +165,7 @@ mod tests {
             );
         }
 
-        layout_flash(Path::new("out"), areas).unwrap();
+        layout_flash(Path::new("out"), areas.to_vec()).unwrap();
         // Make sure we can read what we wrote.
         let data = fs::read("out").expect("Unable to read file produced by layout");
         let reference = fs::read("src/testdata/test.out").expect("Unable to read testdata file");
@@ -181,18 +182,3 @@ mod tests {
     }
 }
 
-/*
-fn main() {
-    let args = Opts::parse();
-
-    println!("Read in {:?}", args.in_fdt);
-    let data = fs::read(&args.in_fdt).unwrap();
-
-    create_areas(&fdt)
-        .and_then(|mut areas| layout_flash(&args.out_firmware, &mut areas))
-        .unwrap_or_else(|err| {
-            eprintln!("failed: {}", err);
-            exit(1);
-        });
-}
-*/
