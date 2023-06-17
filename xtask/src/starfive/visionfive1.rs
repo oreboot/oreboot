@@ -40,10 +40,10 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
 fn xtask_build_dtb(env: &Env) {
     trace!("build dtb");
     let mut command = Command::new("dtc");
-    command.current_dir(board_project_root());
+        command.current_dir(dist_dir(env, DEFAULT_TARGET));
     command.arg("-o");
-    command.arg("board.dtb");
-    command.arg("board.dts");
+    command.arg("starfive-visionfive1.dtb");
+    command.arg(board_project_root().join("board.dts"));
     let status = command.status().unwrap();
     trace!("dtc returned {}", status);
     if !status.success() {
@@ -165,7 +165,8 @@ fn xtask_concat_flash_binaries(env: &Env) {
 
 fn xtask_build_dtb_image(env: &Env) {
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
-    let dtb = fs::read(dist_dir.join("board.dtb")).expect("read dtb file");
+    let dtb_path = dist_dir.join("starfive-visionfive1.dtb");
+    let dtb = fs::read(dtb_path).expect("dtb");
 
 let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
     let mut output_file = File::options()
