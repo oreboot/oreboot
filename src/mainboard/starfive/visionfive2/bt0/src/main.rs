@@ -7,6 +7,7 @@
 #[macro_use]
 extern crate log;
 extern crate layoutflash;
+use layoutflash::areas::find_fdt;
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
 use init::{dump_block, read32, write32};
@@ -262,7 +263,7 @@ fn main() {
 		// The `slice` function creates a slice from the pointer.
 		unsafe { core::slice::from_raw_parts(pointer, size) }
 	};
-	let fdt = layoutflash::find_fdt(slice);
+	let fdt = find_fdt(slice);
         match fdt {
 		Err(_) => {println!("got the expected error");},
 		_ => {println!("Well that was odd. No error");},

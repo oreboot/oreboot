@@ -179,6 +179,7 @@ let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
 
         let fdt = fdt::Fdt::new(&dtb).unwrap();
 	let mut Areas: Vec<Area> = vec![];
+	Areas.resize(16, Area{name:"", offset: None, size: 0, file: None,});
         let Areas = create_areas(&fdt, &mut Areas);
 
         layout_flash(Path::new(&output_file_path), Areas.to_vec()).unwrap();
