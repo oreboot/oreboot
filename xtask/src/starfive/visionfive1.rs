@@ -9,7 +9,7 @@ use fdt;
 
 use std::{env, fs, path::Path};
 extern crate layoutflash;
-use layoutflash::*;
+use layoutflash::{areas::{create_areas,Area},unix::layout_flash};
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
@@ -177,10 +177,10 @@ let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
         let fdt = fdt::Fdt::new(&dtb).unwrap();
-	let mut Areas: [layoutflash::Area;8];
-        create_areas(&fdt, &mut Areas);
+	let mut Areas: Vec<Area> = vec![];
+        let Areas = create_areas(&fdt, &mut Areas);
 
-        layoutflash::layout_flash(Path::new(&output_file_path), Areas).unwrap();
+        layout_flash(Path::new(&output_file_path), Areas.to_vec()).unwrap();
 	println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
