@@ -8,7 +8,7 @@ use core::result::Result::Ok;
 // 5B addressing soon I bet. The size limitation should be a function of the destination,
 // not this program. This problem should just stupidly arrange things.
 #[derive(Debug, PartialEq)]
-struct Area<'a> {
+pub struct Area<'a> {
     pub name: &'a str,
     pub offset: Option<usize>,
     pub size: usize,
@@ -34,7 +34,7 @@ pub fn find_fdt<'a>(data: &'a [u8]) -> Result<fdt::Fdt<'a>, fdt::FdtError> {
 
 // create_areas: create the areas from the fdt. This is unnecessarily messy,
 // as we want to use this same code in std and no_std.
-fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> usize {
+pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> usize {
     // Assemble the bits of the fdt we care about into Areas.
 
     let mut i = 0;

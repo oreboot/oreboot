@@ -19,7 +19,7 @@ use std::{env, fs, path::Path};
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
 #[config(std)]
-fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
+pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
     for a in areas {

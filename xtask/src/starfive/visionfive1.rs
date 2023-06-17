@@ -2,11 +2,14 @@ use crate::dist_dir;
 use crate::project_root;
 use crate::{Commands, Env};
 use log::{error, info, trace};
-use std::env;
 use std::fs::File;
 use std::io::{self, Seek, SeekFrom};
 use std::process::{self, Command, Stdio};
+use fdt;
 
+use std::{env, fs, path::Path};
+extern crate layoutflash;
+use layoutflash::*;
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
@@ -18,7 +21,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
             info!("building VisionFive1");
             let binutils_prefix = find_binutils_prefix_or_fail();
 	    // dtb
-	    xtask_build_dtb(env: &Env);
+	    xtask_build_dtb(&args.env);
             // bt0 stage
             xtask_build_jh7100_flash_bt0(&args.env, &features);
             xtask_binary_jh7100_flash_bt0(binutils_prefix, &args.env);
@@ -162,16 +165,9 @@ fn xtask_concat_flash_binaries(env: &Env) {
 
 fn xtask_build_dtb_image(env: &Env) {
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
-    let mut bt0_file = File::options()
-        .read(true)
-        .open(dist_dir.join("starfive-visionfive1-bt0.bin"))
-        .expect("open bt0 binary file");
-    let mut main_file = File::options()
-        .read(true)
-        .open(dist_dir.join("starfive-visionfive1-main.bin"))
-        .expect("open main binary file");
+    let dtb = fs::read(dist_dir.join("board.dtb")).expect("read dtb file");
 
-    let output_file_path = dist_dir.join("starfive-visionfive1.bin");
+let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
     let mut output_file = File::options()
         .write(true)
         .create(true)
@@ -180,14 +176,12 @@ fn xtask_build_dtb_image(env: &Env) {
 
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
-    let bt0_len = 30 * 1024;
-    io::copy(&mut bt0_file, &mut output_file).expect("copy bt0 binary");
-    output_file
-        .seek(SeekFrom::Start(bt0_len))
-        .expect("seek after bt0 copy");
-    io::copy(&mut main_file, &mut output_file).expect("copy main binary");
+        let fdt = fdt::Fdt::new(&dtb).unwrap();
+	let mut Areas: [layoutflash::Area;8];
+        create_areas(&fdt, &mut Areas);
 
-    println!("======= DONE =======");
+        layoutflash::layout_flash(Path::new(&output_file_path), Areas).unwrap();
+	println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
