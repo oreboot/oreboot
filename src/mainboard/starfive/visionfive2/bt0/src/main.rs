@@ -239,11 +239,8 @@ fn main() {
     dram::init();
 
     // TODO: use this when we put Linux in flash etc
-<<<<<<< HEAD
-=======
     println!("Copy payload... ⏳");
     let mut dtb: usize = 0;
->>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
     if LOAD_FROM_FLASH {
         println!("Copy payload... ⏳");
         let base = SPI_FLASH_BASE;
@@ -330,9 +327,7 @@ fn main() {
         println!("Jump to main stage...\n");
     }
 
-<<<<<<< HEAD
-    exec_payload();
-=======
+	/*
     println!("lzss compressed Linux");
     dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
 
@@ -342,9 +337,9 @@ fn main() {
     write32(CLINT_HART3_MSIP, 0x1);
     write32(CLINT_HART4_MSIP, 0x1);
 
+*/
     println!("Jump to payload... with dtb {dtb:#x}");
     exec_payload(dtb);
->>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
     println!("Exit from payload, resetting...");
     unsafe {
         sleep(0x0100_0000);
@@ -353,14 +348,9 @@ fn main() {
     };
 }
 
-<<<<<<< HEAD
-fn exec_payload() {
-    let hart_id = mhartid::read();
-    if LOAD_FROM_FLASH {
-=======
 fn exec_payload(dtb: usize) {
+    let hart_id = mhartid::read();
     let load_addr = if LOAD_FROM_FLASH {
->>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
         // U-Boot proper expects to be loaded here
         // see SYS_TEXT_BASE in U-Boot config
         let load_addr = DRAM_BASE + 0x0020_0000;
@@ -386,14 +376,6 @@ fn exec_payload(dtb: usize) {
     };
     // println!("Payload @{load_addr:08x}");
 
-    let hart_id = mhartid::read();
-    // U-Boot proper
-    unsafe {
-        // jump to payload
-        let f = transmute::<usize, EntryPoint>(load_addr);
-        asm!("fence.i");
-        f(hart_id, dtb);
-    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
