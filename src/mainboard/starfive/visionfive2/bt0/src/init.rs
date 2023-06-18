@@ -43,14 +43,6 @@ pub fn set_bit(reg: usize, bit: u32) {
     }
 }
 
-const CLINT_BASE: usize = 0x0200_0000;
-const CLINT_MTIMER: usize = CLINT_BASE + 0xbff8;
-
-pub fn udelay(t: usize) {
-    let curr_time = read32(CLINT_MTIMER);
-    while read32(CLINT_MTIMER) < (curr_time + 4 * t as u32) {}
-}
-
 pub const DDR_CTRL_BASE: usize = 0x1570_0000;
 pub const DDR_SEC_CTRL_BASE: usize = DDR_CTRL_BASE + 0x1000;
 

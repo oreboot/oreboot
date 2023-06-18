@@ -1,5 +1,3 @@
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [package]
 name = "starfive-visionfive2-main"
 version = "0.1.0"
@@ -13,7 +11,15 @@ embedded-hal = "1.0.0"
 embedded-hal-nb = "1.0.0"
 nb = "1"
 riscv = "0.10.1"
+rustsbi = "0.3.2"
+sbi-spec = "0.0.4"
 spin = "0.9"
+
+log = { path = "../../../../lib/log" }
+oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
+oreboot_compression = { path = "../../../../lib/compression" }
+
+starfive-visionfive2-lib = { path = "../lib" }
 
 [dependencies.soc]
 path = "../../../../soc"

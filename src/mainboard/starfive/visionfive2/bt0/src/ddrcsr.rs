@@ -1,6 +1,7 @@
 use crate::ddrlib::*;
-use crate::init::{self, read32, udelay, write32};
+use crate::init::{self, read32, write32};
 use crate::pac;
+use starfive_visionfive2_lib::udelay;
 
 const FREQ_CHANGE: usize = 0x0001;
 const FREQ_CHANGE_ACK: usize = 0x0002;

@@ -17,9 +17,10 @@ use core::{
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
 };
-use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
+use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
+use uart::JH71XXSerial;
 
 use fdt::Fdt;
 
