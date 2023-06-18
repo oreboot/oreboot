@@ -102,5 +102,5 @@ pub fn resume_all_harts() {
 
 pub fn udelay(t: usize) {
     let curr_time = read32(CLINT_MTIMER);
-    while read32(CLINT_MTIMER) < (curr_time + 4 * t as u32) {}
+    while read32(CLINT_MTIMER) < (curr_time + 2 * t as u32) {}
 }

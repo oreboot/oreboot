@@ -8,9 +8,9 @@
 extern crate log;
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
-use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
+use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
 use uart::JH71XXSerial;
 
 mod ddr_start;
@@ -28,14 +28,7 @@ pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
-const DRAM_BASE: usize = 0x4000_0000;
-
-// see also SiFive VICU7 manual chapter 6 (p 31)
-const CLINT_BASE_ADDR: usize = 0x0200_0000;
-const CLINT_HART1_MSIP: usize = CLINT_BASE_ADDR + 0x0004;
-const CLINT_HART2_MSIP: usize = CLINT_BASE_ADDR + 0x0008;
-const CLINT_HART3_MSIP: usize = CLINT_BASE_ADDR + 0x000c;
-const CLINT_HART4_MSIP: usize = CLINT_BASE_ADDR + 0x0010;
+const DRAM_BASE: usize = 0x8000_0000;
 
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
 const SPI_FLASH_BASE: usize = 0x2100_0000;
@@ -43,15 +36,14 @@ const SPI_FLASH_BASE: usize = 0x2100_0000;
 const DRAM_BLOB_BASE: usize = SPI_FLASH_BASE + 0x0001_0000;
 const PAYLOAD_BASE: usize = SPI_FLASH_BASE + 0x0004_0000;
 
-const MAIN_BLOB_BASE: usize = SRAM0_BASE + 30 * 1024;
-const MAIN_BLOB_SIZE: usize = 2 * 1024;
+const MAIN_BLOB_BASE: usize = SRAM0_BASE + 32 * 1024;
+const MAIN_BLOB_SIZE: usize = 64 * 1024;
 
 const DTB_ADDR: usize = DRAM_BASE + 0x0020_0000 + 0x0100_0000; // TODO
 const LOAD_ADDR: usize = DRAM_BASE + 0x0002_0000;
 const LOAD_MAIN: bool = false;
 
-const QSPI_XIP_BASE: usize = 0x2100_0000;
-const LOAD_FROM_FLASH: bool = true;
+const LOAD_FROM_FLASH: bool = false;
 const DEBUG: bool = false;
 
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
@@ -84,10 +76,11 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
+        "li     a1, 1",
         "csrr   a0, mhartid",
         "bne    a0, a1, .nonboothart",
         // 2. prepare stack
+        // FIXME: each hart needs its own stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
@@ -131,12 +124,6 @@ pub unsafe extern "C" fn reset() {
     // Call user entry point
     main();
 }
-
-/*
-fn spi_flash_init() {
-    unsafe { write_volatile(QSPI_READ_CMD as *mut u32, SPI_FLASH_READ_CMD) };
-}
-*/
 
 // 0: SPI, 1: MMC2, 2: MMC1, 3: UART
 const MODE_SELECT_REG: usize = 0x1702_002c;
@@ -238,7 +225,7 @@ fn main() {
     write32(init::GPIO04_07_EN, 0xc0c0_c0c0);
     let mut s = JH71XXSerial::new();
     init_logger(s);
-    println!("oreboot 🦀");
+    println!("oreboot 🦀 bt0");
     print_boot_mode();
     print_ids();
 
@@ -248,9 +235,9 @@ fn main() {
     dram::init();
 
     // TODO: use this when we put Linux in flash etc
-    println!("Copy payload... ⏳");
     if LOAD_FROM_FLASH {
-        let base = QSPI_XIP_BASE;
+        println!("Copy payload... ⏳");
+        let base = SPI_FLASH_BASE;
         // let size = 0x0100_0000; // 16M
         let size = 0x0020_0000; // occupied space
         let dram = DRAM_BASE;
@@ -261,7 +248,7 @@ fn main() {
             }
         }
         let size = 0x0010_0000; // occupied space
-        let base = QSPI_XIP_BASE + 0x0030_00d4; // first 0xd4 is just 0-bytes
+        let base = SPI_FLASH_BASE + 0x0030_00d4; // first 0xd4 is just 0-bytes
         let target = DRAM_BASE + 0x0020_0000;
         for b in (0..size).step_by(4) {
             write32(target + b, read32(base + b));
@@ -281,28 +268,21 @@ fn main() {
             dump_block(dram + 0x0020_0000, 0x100, 0x20);
         }
     } else {
-        let base = 0x0800_0000 + 32 * 1024;
-        let dram = DRAM_BASE;
-        for b in (0..0x100).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
+        let target = DRAM_BASE;
+        println!("Copy {}k main stage to DRAM... ⏳", MAIN_BLOB_SIZE / 1024);
+        for b in (0..MAIN_BLOB_SIZE).step_by(4) {
+            write32(target + b, read32(MAIN_BLOB_BASE + b));
+            if b % 1024 == 0 {
                 print!(".");
             }
         }
-        println!("Payload:");
-        dump_block(dram, 0x20, 0x20);
+        println!(" done.");
+        println!("Main stage:");
+        dump_block(target, 0x20, 0x20);
     }
 
-    println!("lzss compressed Linux");
-    dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
-
     println!("release non-boot harts =====\n");
-    write32(CLINT_HART1_MSIP, 0x1);
-    write32(CLINT_HART2_MSIP, 0x1);
-    write32(CLINT_HART3_MSIP, 0x1);
-    write32(CLINT_HART4_MSIP, 0x1);
-
-    println!("Jump to payload...");
+    udelay(50);
     exec_payload();
     println!("Exit from payload, resetting...");
     unsafe {
@@ -313,24 +293,31 @@ fn main() {
 }
 
 fn exec_payload() {
-    let load_addr = if LOAD_FROM_FLASH {
+    let hart_id = mhartid::read();
+    if LOAD_FROM_FLASH {
         // U-Boot proper expects to be loaded here
         // see SYS_TEXT_BASE in U-Boot config
-        DRAM_BASE + 0x0020_0000
+        let load_addr = DRAM_BASE + 0x0020_0000;
+        // U-Boot proper
+        let dtb_addr = DRAM_BASE + 0x0010_0000;
+        unsafe {
+            // jump to payload
+            let f = transmute::<usize, EntryPoint>(load_addr);
+            asm!("fence.i");
+            f(hart_id, dtb_addr);
+        }
     } else {
-        DRAM_BASE
+        let load_addr = DRAM_BASE;
+        if hart_id == 0 {
+            println!("Payload @{load_addr:08x}");
+        }
+        udelay(150000);
+        unsafe {
+            let f: fn() = transmute(load_addr);
+            asm!("fence.i");
+            f();
+        }
     };
-    // println!("Payload @{load_addr:08x}");
-
-    let hart_id = mhartid::read();
-    // U-Boot proper
-    let dtb_addr = DRAM_BASE + 0x0010_0000;
-    unsafe {
-        // jump to payload
-        let f = transmute::<usize, EntryPoint>(load_addr);
-        asm!("fence.i");
-        f(hart_id, dtb_addr);
-    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
