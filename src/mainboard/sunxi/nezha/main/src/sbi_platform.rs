@@ -1,7 +1,7 @@
 use core::arch::asm;
 use log::println;
 use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
-use riscv::register::{mie, mip};
+use riscv::register::{self as reg, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 
@@ -26,15 +26,14 @@ pub fn init() {
 // see privileged spec v1.10 p44 ff
 // https://riscv.org/wp-content/uploads/2017/05/riscv-privileged-v1.10.pdf
 fn init_pmp() {
-    use riscv::register::*;
     let cfg = 0x0f090f090fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
-    pmpcfg0::write(cfg);
-    pmpcfg2::write(0); // nothing active here
-    pmpaddr0::write(0x40000000usize >> 2);
-    pmpaddr1::write(0x40200000usize >> 2);
-    pmpaddr2::write(0x80000000usize >> 2);
-    pmpaddr3::write(0x80200000usize >> 2);
-    pmpaddr4::write(0xffffffffusize >> 2);
+    reg::pmpcfg0::write(cfg);
+    reg::pmpcfg2::write(0); // nothing active here
+    reg::pmpaddr0::write(0x40000000usize >> 2);
+    reg::pmpaddr1::write(0x40200000usize >> 2);
+    reg::pmpaddr2::write(0x80000000usize >> 2);
+    reg::pmpaddr3::write(0x80200000usize >> 2);
+    reg::pmpaddr4::write(0xffffffffusize >> 2);
 }
 
 fn init_plic() {

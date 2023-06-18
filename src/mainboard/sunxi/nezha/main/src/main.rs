@@ -16,6 +16,7 @@ use oreboot_soc::sunxi::d1::{
     time::U32Ext,
     uart::{self, Config, D1Serial, Parity, StopBits, WordLength},
 };
+use riscv::register::mhartid;
 use spin;
 
 mod sbi_platform;
@@ -330,12 +331,9 @@ extern "C" fn main() -> usize {
         sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
-        println!(
-            "Enter supervisor at {:x} with DTB from {:x}",
-            LINUXBOOT_ADDR, DTB_ADDR
-        );
+        let hartid = mhartid::read();
         let (reset_type, reset_reason) =
-            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, 0, DTB_ADDR);
+            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, hartid, DTB_ADDR);
         print!("oreboot: reset reason = {}", reset_reason);
         reset_type
     } else {
