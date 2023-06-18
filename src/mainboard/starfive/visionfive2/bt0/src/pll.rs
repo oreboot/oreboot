@@ -1,4 +1,4 @@
-use crate::init::{self, read32, udelay, write32};
+use crate::init::{self, read32, write32};
 
 // see `boot/arch/riscv/cpu/jh7110/pll.c` `pll_set_rate`
 // NOTE: The order may be irrelevant, which would allow for simplification.

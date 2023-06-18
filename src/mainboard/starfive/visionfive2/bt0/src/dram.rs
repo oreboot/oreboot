@@ -1,8 +1,9 @@
 use crate::ddr_start::start;
 use crate::ddrcsr::omc_init;
 use crate::ddrphy::{train, util};
-use crate::init::{self, read32, udelay, write32};
+use crate::init::{self, read32, write32};
 use crate::pll;
+use starfive_visionfive2_lib::udelay;
 
 // see StarFive U-Boot drivers/ram/starfive/starfive_ddr.c
 pub fn init() {
