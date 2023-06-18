@@ -41,14 +41,6 @@ const LINUXBOOT_SIZE: usize = 0x0180_0000;
 const DTB_OFFSET: usize = LINUXBOOT_OFFSET + LINUXBOOT_SIZE;
 const DTB_ADDR: usize = MEM + DTB_OFFSET;
 
-struct Standout;
-impl core::fmt::Write for Standout {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        print!("{s}");
-        Ok(())
-    }
-}
-
 fn decompress_lb() {
     // check for Device Tree header, d00dfeed
     let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
@@ -58,7 +50,9 @@ fn decompress_lb() {
         print!("DTB looks fine, yay!\n");
     }
 
-    decompress(Standout, LINUXBOOT_TMP_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+    unsafe {
+        decompress(LINUXBOOT_TMP_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+    }
 
     // check for kernel to be okay
     let a = LINUXBOOT_ADDR + 0x30;
@@ -229,8 +223,8 @@ unsafe extern "C" fn start() -> ! {
     )
 }
 
-// stack which the bootloader environment would make use of.
-const STACK_SIZE: usize = 8 * 1024;
+const STACK_SIZE: usize = 4 * 1024; // 8KiB
+                                    // stack which the bootloader environment would make use of.
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
@@ -351,7 +345,9 @@ extern "C" fn main() -> usize {
             asm!("csrs 0x7c0, {}", in(reg) 0x00018000);
         }
         println!("You are NOT MY SUPERVISOR!");
-        decompress(Standout, LINUXBOOT_TMP_ADDR, PAYLOAD_ADDR, PAYLOAD_SIZE);
+        unsafe {
+            decompress(LINUXBOOT_TMP_ADDR, PAYLOAD_ADDR, PAYLOAD_SIZE);
+        }
         println!("Running payload at 0x{:x}", PAYLOAD_ADDR);
         unsafe {
             let f: unsafe extern "C" fn() = transmute(PAYLOAD_ADDR);
