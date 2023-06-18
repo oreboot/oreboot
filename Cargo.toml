@@ -6,7 +6,9 @@ members = [
   "src/cpu",
   "src/soc",
 
+  "src/lib/compression",
   "src/lib/consts",
+  "src/lib/log",
   "src/lib/util",
   "src/lib/layoutflash",
 
