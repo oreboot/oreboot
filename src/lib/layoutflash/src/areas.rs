@@ -1,54 +1,28 @@
+#![no_std]
 use core::option::Option;
 use core::result::Result;
 use core::result::Result::Err;
 use core::result::Result::Ok;
 use fdt::node::FdtNode;
+extern crate alloc;
 
-pub
-struct Areas<'a> {
-	nodes: dyn Iterator<Item = FdtNode<'a, 'a>>,
+use alloc::boxed::Box;
+
+struct FdtIterator<'a> {
+    iter: Box<dyn Iterator<Item = FdtNode<'a, 'a>>>,
 }
 
-pub fn areas(fdt: fdt::Fdt) -> Option<Areas> {
-        if let Some(i) = fdt.find_all_nodes("/flash-info/areas"){
-	return Areas {
-	nodes: i,
-	}
-	}
-None
-}
-impl Iterator for Areas<'_> {
-  fn next(&mut self) -> Option<Area> {
-	let child = self.nodes.next();
-            let mut a: Area = Area {
-                name: child.name,
-                offset: None,
-                size: 0,
-                file: None,
-            };
-            for p in child.properties() {
-                // There can be all kinds of properties in a node.
-                // we only care about file, size, and offset.
-                // Not that we remove any, just that those relate
-                // to data we put in the image.
-
-                match p.name {
-                    "file" => {
-                        a.file = Some(p.as_str().expect("MISSING NAME"));
-                    }
-                    "offset" => {
-                        a.offset = Some(p.as_usize().unwrap());
-                    }
-                    "size" => {
-                        a.size = p.as_usize().unwrap();
-                    }
-                    _ => {}
-                }
-            }
+impl<'a> FdtIterator<'a> {
+    pub fn new(iter: Box<dyn Iterator<Item = FdtNode<'a, 'a>>>) -> Self {
+        FdtIterator {
+            iter: iter,
         }
-	a
-}
+    }
 
+    pub fn next(&mut self) -> Option<FdtNode<'a, 'a>> {
+        self.iter.next()
+    }
+}
 
 // NOTE: we don't use u32. At the rate that SPI flash is expanding, we're going to see
 // 5B addressing soon I bet. The size limitation should be a function of the destination,

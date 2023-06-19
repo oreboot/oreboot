@@ -4,6 +4,8 @@ use core::result::Result;
 use core::result::Result::Err;
 use core::result::Result::Ok;
 
+use alloc::boxed::Box;
+
 // NOTE: we don't use u32. At the rate that SPI flash is expanding, we're going to see
 // 5B addressing soon I bet. The size limitation should be a function of the destination,
 // not this program. This problem should just stupidly arrange things.
