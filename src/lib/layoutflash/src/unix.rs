@@ -79,9 +79,11 @@ pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     Ok(())
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
+*/
 
     #[test]
     fn read_create() {
@@ -180,5 +182,5 @@ mod tests {
         }
         let fdt = find_fdt(&data).unwrap();
     }
-}
+//}
 

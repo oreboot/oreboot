@@ -92,3 +92,15 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a
 
     areas
 }
+
+
+    #[test]
+    fn read_create() {
+        static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
+        let fdt = fdt::Fdt::new(&DATA).unwrap();
+        let it = fdt.find_all_nodes("/flash-info/areas");
+	let a = FdtIterator::new(Box::new(it));
+	drop(a.iter);
+}
+//}
+
