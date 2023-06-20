@@ -1,4 +1,3 @@
-#![no_std]
 pub mod areas;
-#[cfg(feature = "std")]
+//#[cfg(feature = "std")]
 pub mod unix;

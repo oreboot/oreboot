@@ -87,6 +87,7 @@ mod tests {
 
 #[test]
 fn read_create() {
+    panic!("w");
     static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
     let fdt = fdt::Fdt::new(&DATA).unwrap();
     let mut areas: Vec<Area> = vec![];

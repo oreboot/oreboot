@@ -10,6 +10,8 @@ use fdt;
 use std::{env, fs, path::Path};
 extern crate layoutflash;
 use layoutflash::{areas::{create_areas,Area},unix::layout_flash};
+use layoutflash::areas;
+use layoutflash::unix;
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
