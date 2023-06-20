@@ -8,12 +8,12 @@ extern crate alloc;
 
 use alloc::boxed::Box;
 
-struct FdtIterator<'a> {
-    iter: Box<dyn Iterator<Item = FdtNode<'a, 'a>>>,
+struct FdtIterator<'a, 'b> {
+    iter: &'a mut dyn Iterator<Item = FdtNode<'b, 'b>>,
 }
 
-impl<'a> FdtIterator<'a> {
-    pub fn new(iter: Box<dyn Iterator<Item = FdtNode<'a, 'a>>>) -> Self {
+impl<'a, 'b> FdtIterator<'a, 'b> {
+    pub fn new(iter: &'a mut dyn Iterator<Item = FdtNode<'b, 'b>>) -> FdtIterator<'a, 'b> {
         FdtIterator {
             iter: iter,
         }
@@ -98,8 +98,8 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a
     fn read_create() {
         static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
         let fdt = fdt::Fdt::new(&DATA).unwrap();
-        let it = fdt.find_all_nodes("/flash-info/areas");
-	let a = FdtIterator::new(Box::new(it));
+        let it:&mut dyn Iterator<Item = FdtNode<'_, '_>> = &mut fdt.find_all_nodes("/flash-info/areas");
+	let a = FdtIterator::new(it);
 	drop(a.iter);
 }
 //}
