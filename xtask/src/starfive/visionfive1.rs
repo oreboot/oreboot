@@ -10,8 +10,8 @@ use fdt;
 use std::{env, fs, path::Path};
 extern crate layoutflash;
 use layoutflash::{areas::{create_areas,Area},unix::layout_flash};
-use layoutflash::areas;
-use layoutflash::unix;
+
+
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
@@ -171,7 +171,7 @@ fn xtask_build_dtb_image(env: &Env) {
     let dtb = fs::read(dtb_path).expect("dtb");
 
 let output_file_path = dist_dir.join("starfive-visionfive1.fdtbin");
-    let mut output_file = File::options()
+    let output_file = File::options()
         .write(true)
         .create(true)
         .open(&output_file_path)

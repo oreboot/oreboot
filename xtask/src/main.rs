@@ -13,7 +13,7 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
-use log::{error, info, trace};
+use log::{error};
 
 #[derive(Parser)]
 #[clap(name = "xtask")]
