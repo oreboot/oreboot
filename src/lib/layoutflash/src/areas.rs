@@ -100,7 +100,6 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a
         let fdt = fdt::Fdt::new(&DATA).unwrap();
         let it:&mut dyn Iterator<Item = FdtNode<'_, '_>> = &mut fdt.find_all_nodes("/flash-info/areas");
 	let a = FdtIterator::new(it);
-	drop(a.iter);
 }
 //}
 
