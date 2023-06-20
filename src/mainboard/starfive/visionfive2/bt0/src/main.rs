@@ -7,13 +7,15 @@
 #[macro_use]
 extern crate log;
 extern crate layoutflash;
-use layoutflash::areas::find_fdt;
+use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
 use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
 use uart::JH71XXSerial;
+
+use fdt::Fdt;
 
 mod ddr_start;
 mod ddrcsr;
@@ -237,24 +239,53 @@ fn main() {
     dram::init();
 
     // TODO: use this when we put Linux in flash etc
+<<<<<<< HEAD
+=======
+    println!("Copy payload... ⏳");
+    let mut dtb: usize = 0;
+>>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
     if LOAD_FROM_FLASH {
         println!("Copy payload... ⏳");
         let base = SPI_FLASH_BASE;
         // let size = 0x0100_0000; // 16M
         let size = 0x0020_0000; // occupied space
         let dram = DRAM_BASE;
-	// let's find the dtb
+        // let's find the dtb
 
-	let slice = unsafe {
-		let pointer = transmute(base);
-		// The `slice` function creates a slice from the pointer.
-		unsafe { core::slice::from_raw_parts(pointer, size) }
-	};
-	let fdt = find_fdt(slice);
+        let slice = unsafe {
+            let pointer = transmute(SRAM0_BASE);
+            // The `slice` function creates a slice from the pointer.
+            unsafe { core::slice::from_raw_parts(pointer, size) }
+        };
+        let fdt = find_fdt(slice);
         match fdt {
-		Err(_) => {println!("got the expected error");},
-		_ => {println!("Well that was odd. No error");},
-	}
+            Err(_) => {
+                println!(
+                    "Could not find an FDT between {:?} and {:?}",
+                    SRAM0_BASE,
+                    SRAM0_BASE + size
+                );
+            }
+            Ok(f) => {
+                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
+                let it = &mut f.find_all_nodes("/flash-info/areas");
+                let a = FdtIterator::new(it);
+                for aa in a {
+                    for c in aa.children() {
+                        for p in c.properties() {
+                            match p.name {
+                                "size" => {
+                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
+                                }
+                                _ => {
+                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
@@ -299,7 +330,21 @@ fn main() {
         println!("Jump to main stage...\n");
     }
 
+<<<<<<< HEAD
     exec_payload();
+=======
+    println!("lzss compressed Linux");
+    dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
+
+    println!("release non-boot harts =====\n");
+    write32(CLINT_HART1_MSIP, 0x1);
+    write32(CLINT_HART2_MSIP, 0x1);
+    write32(CLINT_HART3_MSIP, 0x1);
+    write32(CLINT_HART4_MSIP, 0x1);
+
+    println!("Jump to payload... with dtb {dtb:#x}");
+    exec_payload(dtb);
+>>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
     println!("Exit from payload, resetting...");
     unsafe {
         sleep(0x0100_0000);
@@ -308,9 +353,14 @@ fn main() {
     };
 }
 
+<<<<<<< HEAD
 fn exec_payload() {
     let hart_id = mhartid::read();
     if LOAD_FROM_FLASH {
+=======
+fn exec_payload(dtb: usize) {
+    let load_addr = if LOAD_FROM_FLASH {
+>>>>>>> c8e12fdfd9 (it's enumerating the areas now.)
         // U-Boot proper expects to be loaded here
         // see SYS_TEXT_BASE in U-Boot config
         let load_addr = DRAM_BASE + 0x0020_0000;
@@ -334,6 +384,16 @@ fn exec_payload() {
             f();
         }
     };
+    // println!("Payload @{load_addr:08x}");
+
+    let hart_id = mhartid::read();
+    // U-Boot proper
+    unsafe {
+        // jump to payload
+        let f = transmute::<usize, EntryPoint>(load_addr);
+        asm!("fence.i");
+        f(hart_id, dtb);
+    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
