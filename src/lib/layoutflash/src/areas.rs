@@ -22,7 +22,7 @@ impl<'a, 'b> FdtIterator<'a, 'b> {
 
 impl<'a,'b> Iterator for FdtIterator<'a,'b> {
     type Item = FdtNode<'a,'b>;
-    fn next(&mut self) -> Option<Self:Item> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
 }
@@ -102,9 +102,13 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a
         static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
         let fdt = fdt::Fdt::new(&DATA).unwrap();
         let it = &mut fdt.find_all_nodes("/flash-info/areas");
-	let a = FdtIterator::new(it);
-        for n in a.into_iter() {
-		println!("{:?}", n);
+	let mut a = FdtIterator::new(it);
+        for aa in a.next() {
+        for c in aa.children() {
+		for p in c.properties() {
+		panic!("{c:?} {p:?}");
+		}
+}
 	}
 }
 //}
