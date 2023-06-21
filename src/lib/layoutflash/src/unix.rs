@@ -79,12 +79,6 @@ pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
     Ok(())
 }
 
-/*
-#[cfg(test)]
-mod tests {
-    use super::*;
-*/
-
 #[test]
 fn read_create() {
     static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
@@ -190,4 +184,3 @@ fn read_create() {
     }
     let fdt = find_fdt(&data).unwrap();
 }
-//}
