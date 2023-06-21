@@ -3,6 +3,7 @@ use core::{
     ops::{Generator, GeneratorState},
     pin::Pin,
 };
+use log::println;
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
     medeleg, mepc, mideleg, mie,
@@ -10,7 +11,6 @@ use riscv::register::{
     mtval,
     mtvec::{self, TrapMode},
 };
-use rustsbi::print;
 
 fn delegate_interrupt_exception() {
     unsafe {
@@ -86,7 +86,7 @@ impl Runtime {
 
 // best debugging function on the planet
 fn crap() {
-    print!(
+    println!(
         "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
         mtval::read(),
         mepc::read(),
@@ -109,7 +109,7 @@ impl Generator for Runtime {
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
-                print!("mtimer traaaaap\r\n");
+                println!("mtimer traaaaap");
                 crap();
                 MachineTrap::MachineTimer()
             }
