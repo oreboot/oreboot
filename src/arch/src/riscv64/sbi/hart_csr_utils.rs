@@ -1,10 +1,10 @@
+use log::{print, println};
 use riscv::register::{
     medeleg, mideleg, mie,
     misa::{self, MXL},
     pmpaddr0, pmpaddr1, pmpaddr10, pmpaddr11, pmpaddr12, pmpaddr13, pmpaddr14, pmpaddr15, pmpaddr2,
     pmpaddr3, pmpaddr4, pmpaddr5, pmpaddr6, pmpaddr7, pmpaddr8, pmpaddr9, pmpcfg0, pmpcfg2,
 };
-use rustsbi::{print, println};
 
 pub const PMP_COUNT: usize = 16;
 pub const PMP_SHIFT: usize = 2;
@@ -48,7 +48,7 @@ fn print_misa() {
                 print!("{}", ext);
             }
         }
-        println!("\r");
+        println!("");
     }
 }
 
