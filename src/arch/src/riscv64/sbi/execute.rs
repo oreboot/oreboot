@@ -13,7 +13,7 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -76,6 +76,9 @@ pub fn execute_supervisor(
                 let ctx = rt.context_mut();
                 // specific for 1.9.1; see document for details
                 feature::preprocess_supervisor_external(ctx);
+                if false {
+                    println!("YOU ARE NOT MY SUPERVISOR! {ctx:#?}");
+                }
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
                 let ans = match ctx.a7 {
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
