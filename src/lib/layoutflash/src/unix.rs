@@ -19,7 +19,7 @@ use std::{env, fs, path::Path};
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
-pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
+pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
     for a in areas {
@@ -49,12 +49,20 @@ pub fn layout_flash(path: &Path, areas: Vec<Area>) -> io::Result<()> {
             }
 
             // If the path is an unused environment variable, skip it.
-            if path.starts_with("$(") && path.ends_with(')') {
+            if path.starts_with("$(") && path.ends_with(")") {
                 continue;
             }
 
             f.seek(SeekFrom::Start(offset as u64))?;
-            let data = match fs::read(&path) {
+
+            let data = {
+                if !Path::new(&path).is_absolute() {
+                    fs::read(&dir.join(&path))
+                } else {
+                    fs::read(&path)
+                }
+            };
+            let data = match data {
                 Err(e) => {
                     return Err(io::Error::new(
                         e.kind(),

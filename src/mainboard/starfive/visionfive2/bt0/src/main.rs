@@ -256,18 +256,22 @@ fn main() {
         // let size = 0x0100_0000; // 16M
         let size = 0x0020_0000; // occupied space
         let dram = DRAM_BASE;
-	// let's find the dtb
+        // let's find the dtb
 
-	let slice = unsafe {
-		let pointer = transmute(base);
-		// The `slice` function creates a slice from the pointer.
-		unsafe { core::slice::from_raw_parts(pointer, size) }
-	};
-	let fdt = find_fdt(slice);
+        let slice = unsafe {
+            let pointer = transmute(base);
+            // The `slice` function creates a slice from the pointer.
+            unsafe { core::slice::from_raw_parts(pointer, size) }
+        };
+        let fdt = find_fdt(slice);
         match fdt {
-		Err(_) => {println!("got the expected error");},
-		_ => {println!("Well that was odd. No error");},
-	}
+            Err(_) => {
+                println!("got the expected error");
+            }
+            _ => {
+                println!("Well that was odd. No error");
+            }
+        }
 
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
