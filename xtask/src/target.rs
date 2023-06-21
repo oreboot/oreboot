@@ -39,6 +39,7 @@ pub(crate) fn parse_target(
         let vendor_board = match (vendor.as_ref(), board.as_ref()) {
             ("sunxi", "nezha") => Vendor::Sunxi(sunxi::Board::Nezha),
             ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
+            ("starfive", "visionfive2") => Vendor::StarFive(starfive::Board::VisionFive2),
             _ => return None,
         };
         return Some(Target {

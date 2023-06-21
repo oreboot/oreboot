@@ -45,7 +45,7 @@ fn xtask_build_dtb(env: &Env) {
     let mut command = Command::new("dtc");
     command.current_dir(cwd);
     command.arg("-o");
-    command.arg("starfive-visionfive1-board.dtb");
+    command.arg("starfive-visionfive2-board.dtb");
     command.arg(board_project_root().join("board.dts"));
     let status = command.status().unwrap();
     trace!("dtc returned {}", status);
@@ -85,10 +85,10 @@ fn xtask_binary_jh7100_flash_bt0(prefix: &str, env: &Env) {
     trace!("objcopy binary, prefix: '{}'", prefix);
     let status = Command::new(format!("{}objcopy", prefix))
         .current_dir(dist_dir(env, DEFAULT_TARGET))
-        .arg("starfive-visionfive1-bt0")
+        .arg("starfive-visionfive2-bt0")
         .arg("--binary-architecture=riscv64")
         .arg("--strip-all")
-        .args(["-O", "binary", "starfive-visionfive1-bt0.bin"])
+        .args(["-O", "binary", "starfive-visionfive2-bt0.bin"])
         .status()
         .unwrap();
 
@@ -121,10 +121,10 @@ fn xtask_binary_jh7100_flash_main(prefix: &str, env: &Env) {
     trace!("objcopy binary, prefix: '{}'", prefix);
     let status = Command::new(format!("{}objcopy", prefix))
         .current_dir(dist_dir(env, DEFAULT_TARGET))
-        .arg("starfive-visionfive1-main")
+        .arg("starfive-visionfive2-main")
         .arg("--binary-architecture=riscv64")
         .arg("--strip-all")
-        .args(["-O", "binary", "starfive-visionfive1-main.bin"])
+        .args(["-O", "binary", "starfive-visionfive2-main.bin"])
         .status()
         .unwrap();
 
@@ -139,14 +139,14 @@ fn xtask_concat_flash_binaries(env: &Env) {
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join("starfive-visionfive1-bt0.bin"))
+        .open(dist_dir.join("starfive-visionfive2-bt0.bin"))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join("starfive-visionfive1-main.bin"))
+        .open(dist_dir.join("starfive-visionfive2-main.bin"))
         .expect("open main binary file");
 
-    let output_file_path = dist_dir.join("starfive-visionfive1.bin");
+    let output_file_path = dist_dir.join("starfive-visionfive2.bin");
     let mut output_file = File::options()
         .write(true)
         .create(true)
@@ -168,10 +168,10 @@ fn xtask_concat_flash_binaries(env: &Env) {
 
 fn xtask_build_dtb_image(env: &Env) {
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
-    let dtb_path = dist_dir.join("starfive-visionfive1-board.dtb");
+    let dtb_path = dist_dir.join("starfive-visionfive2-board.dtb");
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = dist_dir.join("starfive-visionfive1-board.fdtbin");
+    let output_file_path = dist_dir.join("starfive-visionfive2-board.fdtbin");
     let output_file = File::options()
         .write(true)
         .create(true)
@@ -233,5 +233,5 @@ fn find_binutils_prefix_or_fail() -> &'static str {
 
 // FIXME: factor out, rework, share!
 fn board_project_root() -> std::path::PathBuf {
-    project_root().join("src/mainboard/starfive/visionfive1")
+    project_root().join("src/mainboard/starfive/visionfive2")
 }

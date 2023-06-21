@@ -3,7 +3,6 @@ use core::result::Result;
 use core::result::Result::Err;
 use core::result::Result::Ok;
 use fdt::node::FdtNode;
-extern crate alloc;
 
 struct FdtIterator<'a, 'b> {
     iter: &'a mut dyn Iterator<Item = FdtNode<'b, 'b>>,

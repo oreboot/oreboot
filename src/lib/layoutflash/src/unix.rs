@@ -1,5 +1,8 @@
-use crate::areas::{create_areas, find_fdt, Area};
+
+
+#[cfg(feature = "std")]
 use std::io::{self, Seek, SeekFrom, Write};
+#[cfg(feature = "std")]
 use std::{env, fs, path::Path};
 
 // In earlier versions of this function, we assumed all Areas had a non-zero
@@ -19,6 +22,7 @@ use std::{env, fs, path::Path};
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
+#[cfg(feature = "std")]
 pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
