@@ -47,7 +47,9 @@ pub fn init() {
     if addr & 0x2 != 0 {
         addr += 0x2;
     }
+    println!("[SBI] set mtvec: {addr:x}");
     unsafe { mtvec::write(addr, TrapMode::Direct) };
+    println!("[SBI] delegate interrupts and exceptions");
     delegate_interrupt_exception();
 }
 
@@ -87,7 +89,7 @@ impl Runtime {
 // best debugging function on the planet
 fn crap() {
     println!(
-        "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
+        "[SBI] DEBUG: instruction 0x{:08x} at 0x{:016x}: {:?}",
         mtval::read(),
         mepc::read(),
         mcause::read().cause()
@@ -98,6 +100,7 @@ impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
+        crap();
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
         let trap = match mcause::read().cause() {
@@ -109,7 +112,7 @@ impl Coroutine for Runtime {
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
-                println!("mtimer traaaaap");
+                println!("[SBI] mtimer traaaaap");
                 crap();
                 MachineTrap::MachineTimer()
             }
@@ -120,8 +123,8 @@ impl Coroutine for Runtime {
             Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
             Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
             e => panic!(
-                "unhandled exception: {:?}! mtval: {:#x?}, ctx: {:#x?}",
-                e, mtval, self.context
+                "[SBI] unhandled exception: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
+                self.context
             ),
         };
         CoroutineState::Yielded(trap)
