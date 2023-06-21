@@ -15,7 +15,7 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         let cycle_usize = cycle::read64() as usize;
         set_register_xi(ctx, rd, cycle_usize);
         ctx.mepc = ctx.mepc.wrapping_add(4); // skip current instruction
-        println!("[rustsbi] rdcycle {:x}\r", cycle_usize);
+        println!("[SBI] rdcycle {:x}", cycle_usize);
         true
     }
     // TODO: IS THIS CORRECT? Linux calls rdtime a *lot*.
@@ -31,7 +31,7 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         ctx.mepc = ctx.mepc.wrapping_add(4); // skip current instruction
         let x = time_usize / 0x1000;
         if DEBUG_THIS && x > 1 && x % 0x200 == 0 {
-            println!("[rustsbi] rdtime {:x}\r", time_usize);
+            println!("[SBI] rdtime {:x}", time_usize);
         }
         true
     } else {

@@ -16,14 +16,13 @@ const EBREAK: u16 = 0x9002;
 const DEBUG: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
-    let dbg = true;
     match method {
         0x023A_DC52 => {
             let mut val = 0;
             let mut err = 0;
             let csr = args[0];
-            if dbg {
-                println!("[rustsbi] read CSR {:x}", csr);
+            if DEBUG {
+                println!("[SBI] read CSR {:x}", csr);
             }
             match csr {
                 0x7c0 => unsafe {
@@ -42,8 +41,8 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
                     err = 1;
                 }
             }
-            if dbg {
-                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}", csr, val, err);
+            if DEBUG {
+                println!("[SBI] CSR {:x} is {:08x}, err {:x}", csr, val, err);
             }
             SbiRet {
                 value: val,
@@ -60,8 +59,16 @@ fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
     SbiRet { value: 0, error: 0 }
 }
 
-pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
-    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
+pub fn execute_supervisor(
+    supervisor_mepc: usize,
+    hartid: usize,
+    dtb_addr: usize,
+) -> (usize, usize) {
+    println!(
+        "[SBI] Enter supervisor on hart {hartid} at {:x} with DTB from {:x}",
+        supervisor_mepc, dtb_addr
+    );
+    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -75,7 +82,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
                         if ctx.a7 != LEGACY_CONSOLE_PUTCHAR && DEBUG {
-                            println!("[rustsbi] ecall {:x}", ctx.a6);
+                            println!("[SBI] ecall {:x}", ctx.a6);
                         }
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
@@ -96,7 +103,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
                     if DEBUG {
-                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
+                        println!("[SBI] Take an EBREAK! {ctx:#04X?}");
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
@@ -109,7 +116,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                                 Trap::Exception(Exception::IllegalInstruction),
                             )
                         } else {
-                            println!("[rustsbi] Na na na! {:#04X?}", ctx);
+                            println!("[SBI] Na na na! {ctx:#04X?}");
                             fail_illegal_instruction(ctx, ins)
                         }
                     }
@@ -120,7 +127,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
             GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
                 if DEBUG {
-                    println!("M timer int");
+                    println!("[SBI] M-timer interrupt");
                 }
                 unsafe {
                     mip::set_stimer();
@@ -168,5 +175,6 @@ fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool 
 
 // Real illegal instruction happening in M-mode
 fn fail_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> ! {
-    panic!("invalid instruction from machine level, mepc: {:016x?}, instruction: {:016x?}, context: {:016x?}", ctx.mepc, ins, ctx);
+    let mepc = ctx.mepc;
+    panic!("[SBI] invalid instruction from M-mode, mepc: {mepc:016x?}, instruction: {ins:016x?}, context: {ctx:016x?}");
 }
