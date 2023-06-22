@@ -20,11 +20,12 @@ const DEFAULT_TARGET: &str = "riscv64imac-unknown-none-elf";
 pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
-            info!("building VisionFive1");
+            info!("building VisionFive2");
             let binutils_prefix = find_binutils_prefix_or_fail();
             // bt0 stage
             xtask_build_jh7100_flash_bt0(&args.env, &features);
             xtask_binary_jh7100_flash_bt0(binutils_prefix, &args.env);
+	    xtask_add_bt0_header(&args.env);
             // main stage
             xtask_build_jh7100_flash_main(&args.env);
             xtask_binary_jh7100_flash_main(binutils_prefix, &args.env);
@@ -51,6 +52,22 @@ fn xtask_build_dtb(env: &Env) {
     trace!("dtc returned {}", status);
     if !status.success() {
         error!("dtc build failed with {}", status);
+        process::exit(1);
+    }
+}
+
+fn xtask_add_bt0_header(env: &Env) {
+    let cwd = dist_dir(env, DEFAULT_TARGET);
+    trace!("add wacky header to dtb in {}/starfive-visionfive2-bt0.bin", cwd.display());
+    let mut command = Command::new("vf2-header");
+    command.current_dir(cwd);
+    command.arg("-c");
+    command.arg("-f");
+    command.arg("starfive-visionfive2-bt0.bin");
+    let status = command.status().unwrap();
+    trace!("wacky header returned returned {}", status);
+    if !status.success() {
+        error!("wacky header add failed with {}", status);
         process::exit(1);
     }
 }

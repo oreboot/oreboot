@@ -14,18 +14,18 @@
                 description = "Boot Blob";
                 compatible = "ore-bootblob";
                 size = <0x80000>; // 512KiB
-                file = "starfive-visionfive1-bt0.bin";
+                file = "starfive-visionfive2-bt0.bin.normal.out";
             };
             area@1 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 size = <0x1000>;
-                file = "starfive-visionfive1-board.dtb";
+                file = "starfive-visionfive2-board.dtb";
             };
             area@2 {
                 description = "main";
                 size = <0x100000>; // 1MiB
-		file = "starfive-visionfive1-main.bin";
+		file = "starfive-visionfive2-main.bin";
             };
             area@3 {
                 description = "RomPayload";

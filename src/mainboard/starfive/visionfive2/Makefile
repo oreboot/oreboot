@@ -24,4 +24,4 @@ objdump: mainboard
 	riscv64-linux-gnu-objdump -D "$(IMAGE_BT0)"
 
 run: mainboard
-	jh7100-recover -r $(IMAGE) -D $(PORT)
+	sudo `which vf2-loader` $(IMAGE)
