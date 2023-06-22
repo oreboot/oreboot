@@ -1,5 +1,3 @@
-
-
 #[cfg(feature = "std")]
 use std::io::{self, Seek, SeekFrom, Write};
 #[cfg(feature = "std")]

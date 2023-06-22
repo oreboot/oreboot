@@ -25,7 +25,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
             // bt0 stage
             xtask_build_jh7100_flash_bt0(&args.env, &features);
             xtask_binary_jh7100_flash_bt0(binutils_prefix, &args.env);
-	    xtask_add_bt0_header(&args.env);
+            xtask_add_bt0_header(&args.env);
             // main stage
             xtask_build_jh7100_flash_main(&args.env);
             xtask_binary_jh7100_flash_main(binutils_prefix, &args.env);
@@ -58,7 +58,10 @@ fn xtask_build_dtb(env: &Env) {
 
 fn xtask_add_bt0_header(env: &Env) {
     let cwd = dist_dir(env, DEFAULT_TARGET);
-    trace!("add wacky header to dtb in {}/starfive-visionfive2-bt0.bin", cwd.display());
+    trace!(
+        "add wacky header to dtb in {}/starfive-visionfive2-bt0.bin",
+        cwd.display()
+    );
     let mut command = Command::new("vf2-header");
     command.current_dir(cwd);
     command.arg("-c");
