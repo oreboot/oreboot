@@ -276,7 +276,7 @@ fn main() {
                 );
             }
             Ok(f) => {
-                dtb = &fdt as *const _ as usize;
+                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
                 let it = &mut f.find_all_nodes("/flash-info/areas");
                 let a = FdtIterator::new(it);
                 for aa in a {
