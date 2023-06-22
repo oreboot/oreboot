@@ -4,7 +4,7 @@ use core::result::Result::Err;
 use core::result::Result::Ok;
 use fdt::node::FdtNode;
 
-struct FdtIterator<'a, 'b> {
+pub struct FdtIterator<'a, 'b> {
     iter: &'a mut dyn Iterator<Item = FdtNode<'b, 'b>>,
 }
 

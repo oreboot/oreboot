@@ -7,13 +7,15 @@
 #[macro_use]
 extern crate log;
 extern crate layoutflash;
-use layoutflash::areas::find_fdt;
+use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
 use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
 use uart::JH71XXSerial;
+
+use fdt::Fdt;
 
 mod ddr_start;
 mod ddrcsr;
@@ -259,17 +261,36 @@ fn main() {
         // let's find the dtb
 
         let slice = unsafe {
-            let pointer = transmute(base);
+            let pointer = transmute(SRAM0_BASE);
             // The `slice` function creates a slice from the pointer.
             unsafe { core::slice::from_raw_parts(pointer, size) }
         };
         let fdt = find_fdt(slice);
         match fdt {
             Err(_) => {
-                println!("got the expected error");
+                println!(
+                    "Could not find an FDT between {:?} and {:?}",
+                    SRAM0_BASE,
+                    SRAM0_BASE + size
+                );
             }
-            _ => {
-                println!("Well that was odd. No error");
+            Ok(f) => {
+                let it = &mut f.find_all_nodes("/flash-info/areas");
+                let a = FdtIterator::new(it);
+                for aa in a {
+                    for c in aa.children() {
+                        for p in c.properties() {
+                            match p.name {
+                                "size" => {
+                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
+                                }
+                                _ => {
+                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
