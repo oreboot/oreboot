@@ -253,6 +253,7 @@ fn main() {
 
     // TODO: use this when we put Linux in flash etc
     println!("Copy payload... ⏳");
+    let mut dtb: usize = 0;
     if LOAD_FROM_FLASH {
         let base = QSPI_XIP_BASE;
         // let size = 0x0100_0000; // 16M
@@ -275,6 +276,7 @@ fn main() {
                 );
             }
             Ok(f) => {
+                dtb = &fdt as *const _ as usize;
                 let it = &mut f.find_all_nodes("/flash-info/areas");
                 let a = FdtIterator::new(it);
                 for aa in a {
@@ -342,8 +344,8 @@ fn main() {
     write32(CLINT_HART3_MSIP, 0x1);
     write32(CLINT_HART4_MSIP, 0x1);
 
-    println!("Jump to payload...");
-    exec_payload();
+    println!("Jump to payload... with dtb {dtb:#x}");
+    exec_payload(dtb);
     println!("Exit from payload, resetting...");
     unsafe {
         sleep(0x0100_0000);
@@ -352,7 +354,7 @@ fn main() {
     };
 }
 
-fn exec_payload() {
+fn exec_payload(dtb: usize) {
     let load_addr = if LOAD_FROM_FLASH {
         // U-Boot proper expects to be loaded here
         // see SYS_TEXT_BASE in U-Boot config
@@ -364,12 +366,11 @@ fn exec_payload() {
 
     let hart_id = mhartid::read();
     // U-Boot proper
-    let dtb_addr = DRAM_BASE + 0x0010_0000;
     unsafe {
         // jump to payload
         let f = transmute::<usize, EntryPoint>(load_addr);
         asm!("fence.i");
-        f(hart_id, dtb_addr);
+        f(hart_id, dtb);
     }
 }
 
