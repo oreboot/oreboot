@@ -1,8 +1,5 @@
 use log::{print, println};
-use riscv::register::{
-    self as reg, medeleg, mideleg, mie,
-    misa::{self, MXL},
-};
+use riscv::register::{self as reg, medeleg, mideleg, mie, misa};
 
 pub const PMP_COUNT: usize = 16;
 pub const PMP_SHIFT: usize = 2;
@@ -37,11 +34,11 @@ fn print_misa() {
     let isa = misa::read();
     if let Some(isa) = isa {
         let mxl_str = match isa.mxl() {
-            MXL::XLEN32 => "RV32",
-            MXL::XLEN64 => "RV64",
-            MXL::XLEN128 => "RV128",
+            misa::MXL::XLEN32 => "RV32",
+            misa::MXL::XLEN64 => "RV64",
+            misa::MXL::XLEN128 => "RV128",
         };
-        print!("[SBI] misa: {}", mxl_str);
+        print!("[SBI] misa: {mxl_str}");
         for ext in 'A'..='Z' {
             if isa.has_extension(ext) {
                 print!("{}", ext);
