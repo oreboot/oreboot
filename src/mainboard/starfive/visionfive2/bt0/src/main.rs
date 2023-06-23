@@ -279,10 +279,9 @@ fn main() {
         println!(" done.");
         println!("Main stage:");
         dump_block(target, 0x20, 0x20);
+        println!("Jump to main stage...\n");
     }
 
-    println!("release non-boot harts =====\n");
-    udelay(50);
     exec_payload();
     println!("Exit from payload, resetting...");
     unsafe {

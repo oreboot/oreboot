@@ -93,8 +93,7 @@ pub fn clear_ipi(hartid: usize) {
     };
 }
 
-pub fn resume_all_harts() {
-    set_ipi(1);
+pub fn resume_nonboot_harts() {
     set_ipi(2);
     set_ipi(3);
     set_ipi(4);
