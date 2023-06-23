@@ -8,13 +8,14 @@ use log::{print, println};
 use oreboot_arch::riscv64::sbi::{self, execute::execute_supervisor};
 use oreboot_compression::decompress;
 use riscv::register::mhartid;
-use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
+use starfive_visionfive2_lib::{dump_block, read32, resume_nonboot_harts, udelay, write32};
 use uart::JH71XXSerial;
 
 mod sbi_platform;
 mod uart;
 
 const MEM: usize = 0x8000_0000;
+const SRAM0_BASE: usize = 0x0800_0000;
 const SPI_FLASH_BASE: usize = 0x2100_0000;
 
 // compressed image
@@ -23,9 +24,12 @@ const LINUXBOOT_SRC_OFFSET: usize = 0x0040_0000;
 const LINUXBOOT_SRC_ADDR: usize = SPI_FLASH_BASE + LINUXBOOT_SRC_OFFSET;
 const LINUXBOOT_SRC_SIZE: usize = 0x00c0_0000;
 
-const DTB_SRC_OFFSET: usize = 0x0010_0000;
-const DTB_SRC_ADDR: usize = SPI_FLASH_BASE + DTB_SRC_OFFSET;
-const DTB_SIZE: usize = 0x2_0000;
+// const DTB_SRC_OFFSET: usize = 0x0010_0000;
+// const DTB_SRC_ADDR: usize = SPI_FLASH_BASE + DTB_SRC_OFFSET;
+// const DTB_SIZE: usize = 0x2_0000;
+const DTB_SRC_OFFSET: usize = 96 * 1024;
+const DTB_SRC_ADDR: usize = SRAM0_BASE + DTB_SRC_OFFSET;
+const DTB_SIZE: usize = 0x8000;
 
 const LINUXBOOT_TMP_OFFSET: usize = 0x0400_0000;
 const LINUXBOOT_TMP_ADDR: usize = MEM + LINUXBOOT_TMP_OFFSET;
@@ -79,11 +83,13 @@ pub unsafe extern "C" fn start() -> ! {
         ".nonboothart:",
         "csrw   mie, 8", // 1 << 3
         "wfi",
+        "call   {payload}",
         ".boothart:",
         "call   {reset}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         reset      =   sym reset,
+        payload    =   sym payload,
         options(noreturn)
     )
 }
@@ -189,11 +195,18 @@ fn main() {
     decompress_lb();
     println!("Payload extracted. Preview:");
     dump_block(LINUXBOOT_ADDR, 0x100, 0x20);
+    println!("Release non-boot harts =====");
+    resume_nonboot_harts();
+    payload();
+}
 
+fn payload() {
     let hartid = mhartid::read();
     sbi_platform::init();
     sbi::runtime::init();
-    sbi::info::print_info(PLATFORM, VERSION);
+    if hartid == 1 {
+        sbi::info::print_info(PLATFORM, VERSION);
+    }
     let (reset_type, reset_reason) = execute_supervisor(LINUXBOOT_ADDR, hartid, DTB_ADDR);
     print!("oreboot: reset reason = {reset_reason}");
 }

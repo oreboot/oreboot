@@ -41,9 +41,9 @@ fn delegate_interrupt_exception() {
             // mie::set_mext();
             mie::set_mtimer();
             mie::set_msoft();
-            mie::set_sext();
-            mie::set_stimer();
-            mie::set_ssoft();
+            // mie::set_sext();
+            // mie::set_stimer();
+            // mie::set_ssoft();
         }
     }
 }
