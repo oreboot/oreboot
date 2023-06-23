@@ -320,9 +320,9 @@ fn main() {
         println!(" done.");
         println!("Main stage:");
         dump_block(target, 0x20, 0x20);
+        println!("Jump to main stage...\n");
     }
 
-    udelay(50);
     exec_payload();
     println!("Exit from payload, resetting...");
     unsafe {
