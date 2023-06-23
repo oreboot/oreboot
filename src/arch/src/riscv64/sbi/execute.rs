@@ -13,7 +13,7 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -84,8 +84,14 @@ pub fn execute_supervisor(
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        if ctx.a7 != LEGACY_CONSOLE_PUTCHAR && DEBUG {
-                            println!("[SBI] ecall {:x}", ctx.a6);
+                        if DEBUG || true {
+                            println!(
+                                "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
+                                ctx.a6, ctx.a7,
+                                ctx.a0, ctx.a1,
+                                ctx.a2, ctx.a3,
+                                ctx.a4, ctx.a5,
+                            );
                         }
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
