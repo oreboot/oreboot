@@ -81,7 +81,7 @@ pub unsafe extern "C" fn start() -> ! {
         "j      .boothart",
         // wait for multihart to get back into the game
         ".nonboothart:",
-        "csrw   mie, 8", // 1 << 3
+        "csrw   mie, 8", // 1 << 3 for IPI
         "wfi",
         "call   {payload}",
         ".boothart:",
@@ -131,7 +131,7 @@ fn decompress_lb() {
         print!("DTB looks fine, yay!\n");
     }
     unsafe {
-        decompress(LINUXBOOT_TMP_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+        decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
     }
     // check for kernel to be okay
     let a = LINUXBOOT_ADDR + 0x30;
@@ -169,18 +169,20 @@ fn main() {
     println!("oreboot 🦀 main");
 
     // TODO: this should not be necessary, decompress from flash directly
-    println!("lzss compressed Linux:");
-    dump_block(LINUXBOOT_SRC_ADDR, 0x100, 0x20);
-    let target = LINUXBOOT_TMP_ADDR;
+    if false {
+        println!("lzss compressed Linux:");
+        dump_block(LINUXBOOT_SRC_ADDR, 0x100, 0x20);
+        let target = LINUXBOOT_TMP_ADDR;
 
-    println!("Copy compressed Linux to DRAM... ⏳");
-    for b in (0..LINUXBOOT_SRC_SIZE).step_by(4) {
-        write32(target + b, read32(LINUXBOOT_SRC_ADDR + b));
-        if b % 0x4_0000 == 0 {
-            print!(".");
+        println!("Copy compressed Linux to DRAM... ⏳");
+        for b in (0..LINUXBOOT_SRC_SIZE).step_by(4) {
+            write32(target + b, read32(LINUXBOOT_SRC_ADDR + b));
+            if b % 0x4_0000 == 0 {
+                print!(".");
+            }
         }
+        println!(" done.");
     }
-    println!(" done.");
 
     println!("Copy DTB to DRAM... ⏳");
     let target = DTB_ADDR;
@@ -193,8 +195,10 @@ fn main() {
     println!(" done.");
 
     decompress_lb();
-    println!("Payload extracted. Preview:");
-    dump_block(LINUXBOOT_ADDR, 0x100, 0x20);
+    println!("Payload extracted.");
+    if false {
+        dump_block(LINUXBOOT_ADDR, 0x100, 0x20);
+    }
     println!("Release non-boot harts =====");
     resume_nonboot_harts();
     payload();
