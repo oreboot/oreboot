@@ -93,21 +93,25 @@ impl Runtime {
     }
 }
 
+const DEBUG: bool = false;
+
 // best debugging function on the planet
-fn crap() {
-    println!(
-        "[SBI] DEBUG: instruction 0x{:08x} at 0x{:016x}: {:?}",
-        mtval::read(),
-        mepc::read(),
-        mcause::read().cause()
-    );
+fn print_exception_interrupt() {
+    if DEBUG {
+        println!(
+            "[SBI] DEBUG: instruction 0x{:08x} at 0x{:016x}: {:?}",
+            mtval::read(),
+            mepc::read(),
+            mcause::read().cause()
+        );
+    }
 }
 
 impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
-        crap();
+        print_exception_interrupt();
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
         let trap = match mcause::read().cause() {
@@ -120,7 +124,7 @@ impl Coroutine for Runtime {
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
                 println!("[SBI] mtimer traaaaap");
-                crap();
+                print_exception_interrupt();
                 MachineTrap::MachineTimer()
             }
             Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
