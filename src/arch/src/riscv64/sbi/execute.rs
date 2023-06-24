@@ -84,7 +84,7 @@ pub fn execute_supervisor(
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        if DEBUG || true {
+                        if DEBUG {
                             println!(
                                 "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
                                 ctx.a6, ctx.a7,
