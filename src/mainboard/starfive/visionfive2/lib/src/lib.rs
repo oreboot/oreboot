@@ -42,10 +42,12 @@ pub fn set_bit(reg: usize, bit: u32) {
 
 // see SiFive U74 MC core complex manual, chapter 9.5, table 123 (p 184)
 const CLINT_BASE: usize = 0x0200_0000;
+const HART0_MSIP: usize = CLINT_BASE + 0x0000;
 const HART1_MSIP: usize = CLINT_BASE + 0x0004;
 const HART2_MSIP: usize = CLINT_BASE + 0x0008;
 const HART3_MSIP: usize = CLINT_BASE + 0x000c;
 const HART4_MSIP: usize = CLINT_BASE + 0x0010;
+const HART0_MTIMECMP: usize = CLINT_BASE + 0x4000;
 const HART1_MTIMECMP: usize = CLINT_BASE + 0x4008;
 const HART2_MTIMECMP: usize = CLINT_BASE + 0x4010;
 const HART3_MTIMECMP: usize = CLINT_BASE + 0x4018;
@@ -65,6 +67,7 @@ fn write64(addr: usize, val: u64) {
 
 pub fn set_mtimecmp(hartid: usize, val: u64) {
     match hartid {
+        0 => write64(HART0_MTIMECMP, val),
         1 => write64(HART1_MTIMECMP, val),
         2 => write64(HART2_MTIMECMP, val),
         3 => write64(HART3_MTIMECMP, val),
@@ -75,6 +78,7 @@ pub fn set_mtimecmp(hartid: usize, val: u64) {
 
 pub fn set_ipi(hartid: usize) {
     match hartid {
+        0 => write32(HART0_MSIP, 0x1),
         1 => write32(HART1_MSIP, 0x1),
         2 => write32(HART2_MSIP, 0x1),
         3 => write32(HART3_MSIP, 0x1),
@@ -85,6 +89,7 @@ pub fn set_ipi(hartid: usize) {
 
 pub fn clear_ipi(hartid: usize) {
     match hartid {
+        0 => write32(HART0_MSIP, 0x0),
         1 => write32(HART1_MSIP, 0x0),
         2 => write32(HART2_MSIP, 0x0),
         3 => write32(HART3_MSIP, 0x0),
@@ -94,9 +99,14 @@ pub fn clear_ipi(hartid: usize) {
 }
 
 pub fn resume_nonboot_harts() {
+    set_ipi(0);
+    clear_ipi(0);
     set_ipi(2);
+    clear_ipi(2);
     set_ipi(3);
+    clear_ipi(3);
     set_ipi(4);
+    clear_ipi(4);
 }
 
 pub fn udelay(t: usize) {

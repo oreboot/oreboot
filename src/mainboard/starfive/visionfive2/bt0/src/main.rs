@@ -32,7 +32,7 @@ pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
-const DRAM_BASE: usize = 0x8000_0000;
+const DRAM_BASE: usize = 0x4000_0000;
 
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
 const SPI_FLASH_BASE: usize = 0x2100_0000;
