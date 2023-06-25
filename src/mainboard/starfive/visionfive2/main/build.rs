@@ -9,7 +9,7 @@ const LINKERSCRIPT: &[u8] = b"
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
-    DRAM : ORIGIN = 0x80000000, LENGTH = 512k
+    DRAM : ORIGIN = 0x40000000, LENGTH = 512k
 }
 SECTIONS {
     .head : {
