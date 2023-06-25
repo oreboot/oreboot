@@ -59,6 +59,15 @@ fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
     SbiRet { value: 0, error: 0 }
 }
 
+fn print_ecall_context(ctx: &mut SupervisorContext) {
+    if DEBUG {
+        println!(
+            "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
+            ctx.a6, ctx.a7, ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5,
+        );
+    }
+}
+
 pub fn execute_supervisor(
     supervisor_mepc: usize,
     hartid: usize,
@@ -76,23 +85,12 @@ pub fn execute_supervisor(
                 let ctx = rt.context_mut();
                 // specific for 1.9.1; see document for details
                 feature::preprocess_supervisor_external(ctx);
-                if false {
-                    println!("YOU ARE NOT MY SUPERVISOR! {ctx:#?}");
-                }
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
                 let ans = match ctx.a7 {
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        if DEBUG {
-                            println!(
-                                "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
-                                ctx.a6, ctx.a7,
-                                ctx.a0, ctx.a1,
-                                ctx.a2, ctx.a3,
-                                ctx.a4, ctx.a5,
-                            );
-                        }
+                        print_ecall_context(ctx);
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
                 };
@@ -117,7 +115,10 @@ pub fn execute_supervisor(
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_illegal_instruction(ctx, ins) {
+                } else if !emulate_instruction(ctx, ins) {
+                    if DEBUG {
+                        println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
+                    }
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
@@ -131,8 +132,6 @@ pub fn execute_supervisor(
                     }
                 }
             }
-            // NOTE: These are all delegated.
-            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
                 if DEBUG {
@@ -142,6 +141,8 @@ pub fn execute_supervisor(
                     mip::set_stimer();
                 }
             }
+            // NOTE: These are all delegated.
+            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
             CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
@@ -172,7 +173,10 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     ans
 }
 
-fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+    if DEBUG {
+        println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
+    }
     if feature::emulate_rdtime(ctx, ins) {
         return true;
     }
