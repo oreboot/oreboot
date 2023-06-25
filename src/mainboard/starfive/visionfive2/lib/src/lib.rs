@@ -60,9 +60,10 @@ const CLINT_MTIMER: usize = CLINT_BASE + 0xbff8;
 // Using an enum instead makes it unnecessarily complicated.
 // So we just do nothing if hartid is out of range.
 
+// FIXME: Recheck if we got the lower and higher parts in the right spot...
 fn write64(addr: usize, val: u64) {
-    write32(addr, (val >> 32) as u32);
-    write32(addr + 4, val as u32);
+    write32(addr + 4, (val >> 32) as u32);
+    write32(addr, val as u32);
 }
 
 pub fn set_mtimecmp(hartid: usize, val: u64) {
@@ -112,4 +113,10 @@ pub fn resume_nonboot_harts() {
 pub fn udelay(t: usize) {
     let curr_time = read32(CLINT_MTIMER);
     while read32(CLINT_MTIMER) < (curr_time + 2 * t as u32) {}
+}
+
+pub fn get_mtime() -> u64 {
+    let l = read32(CLINT_MTIMER) as u64;
+    let h = read32(CLINT_MTIMER + 4) as u64;
+    (h << 32) | l
 }

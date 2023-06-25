@@ -123,7 +123,9 @@ impl Generator for Runtime {
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
-                println!("[SBI] mtimer traaaaap");
+                if DEBUG {
+                    println!("[SBI] mtimer trap");
+                }
                 print_exception_interrupt();
                 MachineTrap::MachineTimer()
             }

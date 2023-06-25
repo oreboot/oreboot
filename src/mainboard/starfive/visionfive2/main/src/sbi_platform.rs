@@ -3,7 +3,7 @@ use log::println;
 use riscv::register::{self as reg, mhartid, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
-use starfive_visionfive2_lib::{clear_ipi, set_ipi, set_mtimecmp};
+use starfive_visionfive2_lib::{clear_ipi, get_mtime, set_ipi, set_mtimecmp};
 
 const DEBUG: bool = false;
 
@@ -122,10 +122,8 @@ impl rustsbi::Ipi for Ipi {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        let time: u64;
-        unsafe {
-            asm!("csrr {}, time", out(reg) time);
-        }
+        // let time = riscv::register::time::read64();
+        let time = get_mtime();
         let hartid = mhartid::read();
         if DEBUG && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
