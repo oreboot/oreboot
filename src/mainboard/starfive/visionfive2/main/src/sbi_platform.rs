@@ -32,8 +32,8 @@ pub fn init() {
 // TODO: move out to SBI lib?
 fn init_pmp() {
     let cfg = 0x0000_0000_000f_0f0f;
-    reg::pmpaddr0::write(0x0000_0000_8000_0000 >> 2);
-    reg::pmpaddr1::write(0x0000_0000_8020_0000 >> 2);
+    reg::pmpaddr0::write(0x0000_0000_4000_0000 >> 2);
+    reg::pmpaddr1::write(0x0000_0000_4020_0000 >> 2);
     reg::pmpaddr2::write(0x00ff_ffff_ffff_ffff >> 2);
     reg::pmpaddr3::write(0);
     reg::pmpaddr4::write(0);
@@ -70,8 +70,7 @@ impl rustsbi::Fence for Rfence {
         unsafe {
             asm!("sfence.vma");
         }
-        // NOTE: Hart 0 is the monitor core, cannot implement SBI
-        for i in 1..=4 {
+        for i in 0..=4 {
             if hart_mask.has_bit(i) {
                 set_ipi(i);
                 clear_ipi(i);
@@ -110,8 +109,7 @@ impl rustsbi::Ipi for Ipi {
         if DEBUG && hartid == 1 {
             println!("[SBI] IPI {hart_mask:?}");
         }
-        // NOTE: Hart 0 is the monitor core, cannot implement SBI
-        for i in 1..=4 {
+        for i in 0..=4 {
             if hart_mask.has_bit(i) {
                 set_ipi(i);
                 clear_ipi(i);

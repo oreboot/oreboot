@@ -14,7 +14,7 @@ use uart::JH71XXSerial;
 mod sbi_platform;
 mod uart;
 
-const MEM: usize = 0x8000_0000;
+const MEM: usize = 0x4000_0000;
 const SRAM0_BASE: usize = 0x0800_0000;
 const SPI_FLASH_BASE: usize = 0x2100_0000;
 
@@ -83,13 +83,13 @@ pub unsafe extern "C" fn start() -> ! {
         ".nonboothart:",
         "csrw   mie, 8", // 1 << 3 for IPI
         "wfi",
-        "call   {payload}",
+        "call   {resume}",
         ".boothart:",
         "call   {reset}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         reset      =   sym reset,
-        payload    =   sym payload,
+        resume    =   sym resume,
         options(noreturn)
     )
 }
@@ -102,7 +102,7 @@ const DEBUG: bool = true;
 /// # Safety
 /// :shrug:
 #[no_mangle]
-pub unsafe extern "C" fn reset() {
+pub unsafe extern "C" fn init() {
     extern "C" {
         static mut _sbss: u8;
         static mut _ebss: u8;
@@ -117,37 +117,57 @@ pub unsafe extern "C" fn reset() {
 
     let count = &_edata as *const u8 as usize - &_sdata as *const u8 as usize;
     ptr::copy_nonoverlapping(&_sidata as *const u8, &mut _sdata as *mut u8, count);
-    // Call user entry point
+}
 
+/// # Safety
+/// :shrug:
+#[no_mangle]
+pub unsafe extern "C" fn reset() {
+    init();
+    // Call user entry point
     main();
 }
 
-fn decompress_lb() {
-    // check for Device Tree header, d00dfeed
-    let dtb = read32(DTB_ADDR);
-    if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x}\n", dtb);
-    } else {
-        print!("DTB looks fine, yay!\n");
+fn copy(source: usize, target: usize, size: usize) {
+    for b in (0..size).step_by(4) {
+        write32(target + b, read32(source + b));
+        if b % 0x4_0000 == 0 {
+            print!(".");
+        }
     }
+    println!(" done.");
+}
+
+// Device Tree header, d00dfeed, in little endian
+const DTB_HEADER: u32 = 0xedfe0dd0;
+
+fn check_dtb(dtb_addr: usize) {
+    let dtb = read32(dtb_addr);
+    if dtb == DTB_HEADER {
+        println!("DTB looks fine, yay!");
+    } else {
+        panic!("DTB looks wrong: {:08x}", dtb);
+    }
+}
+
+fn check_kernel(kernel_addr: usize) {
+    let a = kernel_addr + 0x30;
+    let r = read32(a);
+    if r == u32::from_le_bytes(*b"RISC") {
+        println!("Payload looks like Linux Image, yay!");
+    } else {
+        panic!("Payload does not look like Linux Image: {:x}", r);
+    }
+}
+
+fn decompress_lb() {
+    check_dtb(DTB_ADDR);
     unsafe {
         decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
     }
-    // check for kernel to be okay
-    let a = LINUXBOOT_ADDR + 0x30;
-    let r = read32(a);
-    if r == u32::from_le_bytes(*b"RISC") {
-        print!("Payload looks like Linux Image, yay!\n");
-    } else {
-        panic!("Payload does not look like Linux Image: {:x}\n", r);
-    }
+    check_kernel(LINUXBOOT_ADDR);
     // Recheck on DTB, kernel should not run into it
-    let dtb = read32(DTB_ADDR);
-    if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x} - was it overridden?\n", dtb);
-    } else {
-        print!("DTB still fine, yay!\n");
-    }
+    check_dtb(DTB_ADDR);
 }
 
 static mut SERIAL: Option<JH71XXSerial> = None;
@@ -168,32 +188,21 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 main");
 
-    // TODO: this should not be necessary, decompress from flash directly
     if false {
         println!("lzss compressed Linux:");
         dump_block(LINUXBOOT_SRC_ADDR, 0x100, 0x20);
-        let target = LINUXBOOT_TMP_ADDR;
+    }
 
+    // TODO: this should not be necessary, decompress from flash directly
+    if false {
         println!("Copy compressed Linux to DRAM... ⏳");
-        for b in (0..LINUXBOOT_SRC_SIZE).step_by(4) {
-            write32(target + b, read32(LINUXBOOT_SRC_ADDR + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        println!(" done.");
+        copy(LINUXBOOT_SRC_ADDR, LINUXBOOT_TMP_ADDR, LINUXBOOT_SRC_SIZE);
     }
 
     println!("Copy DTB to DRAM... ⏳");
-    let target = DTB_ADDR;
-    for b in (0..DTB_SIZE).step_by(4) {
-        write32(target + b, read32(DTB_SRC_ADDR + b));
-        if b % 0x4_0000 == 0 {
-            print!(".");
-        }
-    }
-    println!(" done.");
+    copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
 
+    println!("Decompress payload... ⏳");
     decompress_lb();
     println!("Payload extracted.");
     if false {
@@ -201,6 +210,20 @@ fn main() {
     }
     println!("Release non-boot harts =====");
     resume_nonboot_harts();
+    payload();
+}
+
+fn resume() {
+    unsafe {
+        init();
+    }
+    // TODO: What do we do with hart 0, the S7 monitor hart?
+    let hartid = mhartid::read();
+    if hartid == 0 {
+        loop {
+            unsafe { asm!("wfi") }
+        }
+    }
     payload();
 }
 
