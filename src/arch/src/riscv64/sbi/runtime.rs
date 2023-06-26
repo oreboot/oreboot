@@ -39,7 +39,7 @@ fn delegate_interrupt_exception() {
         medeleg::set_store_page_fault();
         if true {
             // mie::set_mext();
-            mie::set_mtimer();
+            // mie::set_mtimer();
             mie::set_msoft();
             mie::set_sext();
             mie::set_stimer();
@@ -94,16 +94,14 @@ impl Runtime {
 }
 
 const DEBUG: bool = false;
+const DEBUG_MTIMER: bool = false;
 
 // best debugging function on the planet
 fn print_exception_interrupt() {
     if DEBUG {
-        println!(
-            "[SBI] DEBUG: instruction 0x{:08x} at 0x{:016x}: {:?}",
-            mtval::read(),
-            mepc::read(),
-            mcause::read().cause()
-        );
+        let cause = mcause::read().cause();
+        let epc = mepc::read();
+        println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
     }
 }
 
@@ -111,10 +109,13 @@ impl Generator for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> GeneratorState<Self::Yield, Self::Return> {
-        print_exception_interrupt();
         unsafe { do_resume(&mut self.context as *mut _) };
+        let cause = mcause::read().cause();
+        if cause != Trap::Interrupt(Interrupt::MachineTimer) {
+            print_exception_interrupt();
+        }
         let mtval = mtval::read();
-        let trap = match mcause::read().cause() {
+        let trap = match cause {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
@@ -123,10 +124,9 @@ impl Generator for Runtime {
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
-                if DEBUG {
-                    println!("[SBI] mtimer trap");
+                if DEBUG_MTIMER {
+                    print_exception_interrupt();
                 }
-                print_exception_interrupt();
                 MachineTrap::MachineTimer()
             }
             Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
@@ -136,7 +136,7 @@ impl Generator for Runtime {
             Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
             Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
             e => panic!(
-                "[SBI] unhandled exception: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
+                "[SBI] unhandled: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
                 self.context
             ),
         };
