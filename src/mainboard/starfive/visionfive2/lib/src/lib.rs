@@ -101,8 +101,8 @@ pub fn clear_ipi(hartid: usize) {
 }
 
 pub fn resume_nonboot_harts() {
-    set_ipi(0);
-    clear_ipi(0);
+    // set_ipi(0);
+    // clear_ipi(0);
     set_ipi(2);
     clear_ipi(2);
     set_ipi(3);

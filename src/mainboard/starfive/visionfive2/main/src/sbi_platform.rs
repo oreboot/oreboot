@@ -122,20 +122,25 @@ impl rustsbi::Ipi for Ipi {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        // let time = riscv::register::time::read64();
-        let time = get_mtime();
         let hartid = mhartid::read();
         if DEBUG && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
         }
         set_mtimecmp(hartid, stime_value);
+        if DEBUG && hartid == 1 {
+            println!("[SBI] timer is set...");
+        }
+        // let time = riscv::register::time::read64();
+        let time = get_mtime();
         unsafe {
             if time > stime_value {
+                mie::clear_stimer();
                 mip::set_stimer();
             } else {
                 // clear any pending timer and reenable the interrupt
                 mip::clear_stimer();
-                mie::set_mtimer();
+                mie::set_stimer();
+                // mie::set_mtimer();
             }
         };
     }
