@@ -350,7 +350,7 @@ fn exec_payload() {
         }
     } else {
         let load_addr = DRAM_BASE;
-        if hart_id == 0 {
+        if hart_id == 1 {
             println!("Payload @{load_addr:08x}");
         }
         udelay(150000);
