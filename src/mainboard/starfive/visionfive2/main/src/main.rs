@@ -81,8 +81,6 @@ pub unsafe extern "C" fn start() -> ! {
         "j      .boothart",
         // wait for multihart to get back into the game
         ".nonboothart:",
-        "csrw   mie, 8", // 1 << 3 for IPI
-        "wfi",
         "call   {resume}",
         ".boothart:",
         "call   {reset}",
@@ -160,16 +158,6 @@ fn check_kernel(kernel_addr: usize) {
     }
 }
 
-fn decompress_lb() {
-    check_dtb(DTB_ADDR);
-    unsafe {
-        decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
-    }
-    check_kernel(LINUXBOOT_ADDR);
-    // Recheck on DTB, kernel should not run into it
-    check_dtb(DTB_ADDR);
-}
-
 static mut SERIAL: Option<JH71XXSerial> = None;
 
 fn init_logger(s: JH71XXSerial) {
@@ -201,13 +189,17 @@ fn main() {
 
     println!("Copy DTB to DRAM... ⏳");
     copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
+    check_dtb(DTB_ADDR);
 
     println!("Decompress payload... ⏳");
-    decompress_lb();
-    println!("Payload extracted.");
-    if false {
-        dump_block(LINUXBOOT_ADDR, 0x100, 0x20);
+    unsafe {
+        decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
     }
+    println!("Payload extracted.");
+    check_kernel(LINUXBOOT_ADDR);
+
+    // Recheck on DTB, kernel should not run into it
+    check_dtb(DTB_ADDR);
     println!("Release non-boot harts =====");
     resume_nonboot_harts();
     payload();
