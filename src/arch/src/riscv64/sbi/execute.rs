@@ -6,14 +6,15 @@ use core::{
     pin::Pin,
 };
 use log::{print, println};
-use riscv::register::mip;
 use riscv::register::scause::{Exception, Trap};
+use riscv::register::{mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 const DEBUG: bool = false;
+const DEBUG_MTIMER: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
