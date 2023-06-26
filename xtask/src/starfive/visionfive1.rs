@@ -181,8 +181,8 @@ fn xtask_build_dtb_image(env: &Env) {
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
     let fdt = fdt::Fdt::new(&dtb).unwrap();
-    let mut Areas: Vec<Area> = vec![];
-    Areas.resize(
+    let mut areas: Vec<Area> = vec![];
+    areas.resize(
         16,
         Area {
             name: "",
@@ -191,12 +191,12 @@ fn xtask_build_dtb_image(env: &Env) {
             file: None,
         },
     );
-    let Areas = create_areas(&fdt, &mut Areas);
+    let areas = create_areas(&fdt, &mut areas);
 
     layout_flash(
         Path::new(&dist_dir),
         Path::new(&output_file_path),
-        Areas.to_vec(),
+	areas.to_vec(),
     )
     .unwrap();
     println!("======= DONE =======");
