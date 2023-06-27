@@ -9,6 +9,7 @@ edition = "2021"
 byteorder = "1"
 clap = { version = "4.1.4", features = ["derive"] }
 clap-verbosity-flag = "2.0"
+crc = "*"
 ctrlc = "3.2"
 env_logger = "0.9"
 fdt = "0.1.4"

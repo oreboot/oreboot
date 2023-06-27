@@ -14,6 +14,8 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
+use layoutflash::areas::create_areas;
+use layoutflash::areas::find_fdt;
 use layoutflash::areas::Area;
 use log::error;
 

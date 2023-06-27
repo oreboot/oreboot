@@ -1,0 +1,6 @@
+127.0.0.1	localhost
+::1		localhost
+127.0.1.1	pop-os.localdomain	pop-os
+
+192.168.0.1 centre usbadapter
+192.168.0.2 visionfive2 u6ccf39004821
