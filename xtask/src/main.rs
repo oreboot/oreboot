@@ -14,7 +14,7 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
-use layoutflash::areas::{Area};
+use layoutflash::areas::Area;
 use log::error;
 
 #[derive(Parser)]

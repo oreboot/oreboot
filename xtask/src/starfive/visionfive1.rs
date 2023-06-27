@@ -196,7 +196,7 @@ fn xtask_build_dtb_image(env: &Env) {
     layout_flash(
         Path::new(&dist_dir),
         Path::new(&output_file_path),
-	areas.to_vec(),
+        areas.to_vec(),
     )
     .unwrap();
     println!("======= DONE =======");
