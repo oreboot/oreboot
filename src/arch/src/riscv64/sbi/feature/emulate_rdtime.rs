@@ -36,7 +36,7 @@ fn get_mtime() -> u64 {
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
     //  c0002573     rdcycle a0
     if ins & 0xFFFFF07F == 0xC0002073 {
-        if DEBUG && DEBUG_RDTIME {
+        if DEBUG && DEBUG_RDCYCLE {
             println!("[SBI] rdcycle");
         }
         let rd = ((ins >> 7) & 0b1_1111) as u8;
@@ -44,13 +44,14 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         set_register_xi(ctx, rd, cycle_usize);
         // skip current instruction, 4 bytes
         ctx.mepc = ctx.mepc.wrapping_add(4);
-        if DEBUG && DEBUG_RDTIME {
+        if DEBUG && DEBUG_RDCYCLE {
             println!("[SBI] rdcycle {cycle_usize:x}");
         }
         true
     }
     // TODO: IS THIS CORRECT? Linux calls rdtime a *lot*.
     //  c0102573     rdtime  a0
+    //  c01027f3     rdtime  a5
     else if ins & 0xFFFFF07F == 0xC0102073 {
         if DEBUG && DEBUG_RDTIME {
             println!("[SBI] rdtime");
@@ -64,9 +65,7 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         // skip current instruction, 4 bytes
         ctx.mepc = ctx.mepc.wrapping_add(4);
         let x = time_usize / 0x1000;
-        if DEBUG && DEBUG_RDTIME
-        /*&& x > 1 && x % 0x200 == 0*/
-        {
+        if DEBUG && DEBUG_RDTIME {
             println!("[SBI] rdtime {time_usize:x}");
         }
         true

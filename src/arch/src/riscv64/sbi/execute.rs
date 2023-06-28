@@ -13,8 +13,12 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
-const DEBUG: bool = false;
+
+const DEBUG: bool = true;
 const DEBUG_MTIMER: bool = false;
+const DEBUG_EBREAK: bool = true;
+const DEBUG_EMULATE: bool = false;
+const DEBUG_ILLEGAL: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -110,14 +114,14 @@ pub fn execute_supervisor(
                 if ins as u16 == EBREAK {
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
-                    if DEBUG {
+                    if DEBUG_EBREAK {
                         println!("[SBI] Take an EBREAK! {ctx:#04X?}");
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
                 } else if !emulate_instruction(ctx, ins) {
-                    if DEBUG {
+                    if DEBUG_ILLEGAL {
                         println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
                     }
                     unsafe {
@@ -135,7 +139,7 @@ pub fn execute_supervisor(
             }
             CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
-                if DEBUG {
+                if DEBUG && DEBUG_MTIMER {
                     println!("[SBI] M-timer interrupt");
                 }
                 unsafe {
@@ -175,7 +179,7 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
 }
 
 fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
-    if DEBUG {
+    if DEBUG && DEBUG_EMULATE {
         println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
     }
     if feature::emulate_rdtime(ctx, ins) {
