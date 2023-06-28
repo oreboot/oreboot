@@ -136,7 +136,7 @@ pub fn clocks() {
     // Set clk_osc_div4 as the APB clock
     pac::aoncrg_reg()
         .clk_aon_apb()
-        .modify(|_, w| w.clk_mux_sel().variant(0));
+        .modify(|_, w| w.clk_mux_sel().variant(1));
 
     // Set clk_qspi_ref_src as the QSPI clock
     syscrg

@@ -5,28 +5,35 @@ use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 use starfive_visionfive2_lib::{clear_ipi, get_mtime, set_ipi, set_mtimecmp};
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
+const DEBUG_IPI: bool = true;
+const DEBUG_FENCE: bool = true;
+const DEBUG_TIMER: bool = false;
 
 pub fn init() {
     init_pmp();
     // init_plic();
     let hartid = mhartid::read();
-    if hartid == 1 {
-        println!("[SBI] timer init");
-    }
-    rustsbi::init_timer(&Timer);
-    if hartid == 1 {
-        println!("[SBI] reset init");
-    }
-    rustsbi::init_reset(&Reset);
+
     if hartid == 1 {
         println!("[SBI] ipi init");
     }
     rustsbi::init_ipi(&Ipi);
+
     if hartid == 1 {
         println!("[SBI] rfence init");
     }
     rustsbi::init_remote_fence(&Rfence);
+
+    if hartid == 1 {
+        println!("[SBI] timer init");
+    }
+    rustsbi::init_timer(&Timer);
+
+    if hartid == 1 {
+        println!("[SBI] reset init");
+    }
+    rustsbi::init_reset(&Reset);
 }
 
 // TODO: move out to SBI lib?
@@ -60,53 +67,11 @@ fn init_plic() {
     }
 }
 
-struct Rfence;
-impl rustsbi::Fence for Rfence {
-    fn remote_fence_i(&self, hart_mask: HartMask) -> SbiRet {
-        let hartid = mhartid::read();
-        if DEBUG && hartid == 1 {
-            println!("[SBI] remote_fence_i {hart_mask:?}");
-        }
-        unsafe {
-            asm!("sfence.vma");
-        }
-        for i in 0..=4 {
-            if hart_mask.has_bit(i) {
-                set_ipi(i);
-                clear_ipi(i);
-            }
-        }
-        SbiRet::success(0)
-    }
-
-    fn remote_sfence_vma_asid(
-        &self,
-        hart_mask: HartMask,
-        start_addr: usize,
-        size: usize,
-        asid: usize,
-    ) -> SbiRet {
-        let hartid = mhartid::read();
-        if DEBUG && hartid == 1 {
-            println!("[SBI] remote_sfence_vma_asid {hart_mask:?}");
-        }
-        SbiRet::success(0)
-    }
-
-    fn remote_sfence_vma(&self, hart_mask: HartMask, start_addr: usize, size: usize) -> SbiRet {
-        let hartid = mhartid::read();
-        if DEBUG && hartid == 1 {
-            println!("[SBI] remote_sfence_vma {hart_mask:?}");
-        }
-        SbiRet::success(0)
-    }
-}
-
 struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
         let hartid = mhartid::read();
-        if DEBUG && hartid == 1 {
+        if DEBUG && DEBUG_IPI && hartid == 1 {
             println!("[SBI] IPI {hart_mask:?}");
         }
         for i in 0..=4 {
@@ -119,15 +84,63 @@ impl rustsbi::Ipi for Ipi {
     }
 }
 
+struct Rfence;
+impl rustsbi::Fence for Rfence {
+    fn remote_fence_i(&self, hart_mask: HartMask) -> SbiRet {
+        let hartid = mhartid::read();
+        if DEBUG && DEBUG_FENCE && hartid == 1 {
+            println!("[SBI] remote_fence_i {hart_mask:?}");
+        }
+        unsafe {
+            asm!(
+                "sfence.vma",  // TLB flush
+                "fence.i",     // local hart
+                "fence   w,w", // whatever..?
+            );
+        }
+        for i in 0..=4 {
+            if hart_mask.has_bit(i) {
+                set_ipi(i);
+                clear_ipi(i);
+            }
+        }
+        // SbiRet::success(0)
+
+        SbiRet::failed()
+    }
+
+    fn remote_sfence_vma_asid(
+        &self,
+        hart_mask: HartMask,
+        start_addr: usize,
+        size: usize,
+        asid: usize,
+    ) -> SbiRet {
+        let hartid = mhartid::read();
+        if DEBUG && DEBUG_FENCE && hartid == 1 {
+            println!("[SBI] remote_sfence_vma_asid {hart_mask:?}");
+        }
+        SbiRet::success(0)
+    }
+
+    fn remote_sfence_vma(&self, hart_mask: HartMask, start_addr: usize, size: usize) -> SbiRet {
+        let hartid = mhartid::read();
+        if DEBUG && DEBUG_FENCE && hartid == 1 {
+            println!("[SBI] remote_sfence_vma {hart_mask:?}");
+        }
+        SbiRet::success(0)
+    }
+}
+
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
         let hartid = mhartid::read();
-        if DEBUG && hartid == 1 {
+        if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
         }
         set_mtimecmp(hartid, stime_value);
-        if DEBUG && hartid == 1 {
+        if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] timer is set...");
         }
         // let time = riscv::register::time::read64();
