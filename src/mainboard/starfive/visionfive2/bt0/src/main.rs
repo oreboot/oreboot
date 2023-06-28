@@ -93,6 +93,7 @@ pub unsafe extern "C" fn start() -> ! {
         ".nonboothart:",
         "csrw   mie, 8", // 1 << 3
         "wfi",
+        "csrw   mip, 0",
         "call   {payload}",
         ".boothart:",
         "call   {reset}",

@@ -126,9 +126,9 @@ pub fn clocks() {
     let c = read32(CLK_NOC_BUS_STG_AXI);
     write32(CLK_NOC_BUS_STG_AXI, c | CLK_NOC_BUS_STG_AXI_CLK_ICG_EN);
 
-    // let c = read32(CLK_AON_APB_FUNC);
-    // write32(CLK_AON_APB_FUNC, c | CLK_AON_APB_FUNC_MUX_SEL);
-    write32(CLK_AON_APB_FUNC, 0);
+    let c = read32(CLK_AON_APB_FUNC);
+    write32(CLK_AON_APB_FUNC, c | CLK_AON_APB_FUNC_MUX_SEL);
+    // write32(CLK_AON_APB_FUNC, 0);
 
     let c = read32(CLK_QSPI_REF);
     write32(CLK_QSPI_REF, c | CLK_QSPI_REF_MUX_SEL);

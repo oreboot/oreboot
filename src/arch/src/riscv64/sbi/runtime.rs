@@ -6,7 +6,7 @@ use core::{
 use log::println;
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
-    medeleg, mepc, mideleg, mie,
+    medeleg, mepc, mideleg, mie, mip,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
@@ -17,6 +17,13 @@ use riscv::register::{
 // OpenSBI medeleg: 0xb109
 fn delegate_interrupt_exception() {
     unsafe {
+        mip::clear_stimer();
+        mip::clear_sext();
+        mip::clear_ssoft();
+        mip::clear_utimer();
+        mip::clear_uext();
+        mip::clear_usoft();
+
         mideleg::set_sext();
         mideleg::set_stimer();
         mideleg::set_ssoft();
@@ -93,7 +100,7 @@ impl Runtime {
     }
 }
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 const DEBUG_MTIMER: bool = false;
 
 // best debugging function on the planet
@@ -101,9 +108,63 @@ fn print_exception_interrupt() {
     if DEBUG {
         let cause = mcause::read().cause();
         let epc = mepc::read();
-        println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
+        match epc {
+            0xffffffff80406e1e => {}
+            0xffffffff80406e2e => {}
+            0xffffffff80357fc4 => {}
+            0xffffffff803583d8 => {}
+            0xffffffff803583d0 => {}
+            0xffffffff803583c8 => {}
+            0xffffffff803583c0 => {}
+            0xffffffff8026abf0 => {}
+            0xffffffff80358130 => {}
+            _ => {
+                println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
+            }
+        }
     }
 }
+
+/*
+
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu:     RCU restricting CPUs from NR_CPUS=64 to nr_cpu_ids=4.
+[    0.000000] rcu:     RCU debug extended QS entry/exit.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=4
+[    0.000000] NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
+[    0.000000] CPU with hartid=0 is not available
+[    0.000000] riscv-intc: unable to find hart id for /cpus/cpu@0/interrupt-controller
+[    0.000000] riscv-intc: 64 local interrupts mapped
+[    0.000000] plic: interrupt-controller@c000000: mapped 136 interrupts with 4 handlers for 9 contexts.
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] riscv-timer: riscv_timer_init_dt: Registering clocksource cpuid [0] hartid [1]
+[    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1d854df40, max_idle_ns: 881590404240 ns
+[    0.000000] Oops - illegal instruction [#1]
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.3.0-rc3-cyrevolt-g853b23029090 #20
+[    0.000000] Hardware name: StarFive VisionFive 2 v1.3B (DT)
+[    0.000000] epc : riscv_sched_clock+0x6/0x10
+[    0.000000]  ra : sched_clock_register+0xa4/0x1ba
+[    0.000000] epc : ffffffff80406e2e ra : ffffffff8060bd5e sp : ffffffff81203e00
+[    0.000000]  gp : ffffffff812dec80 tp : ffffffff8120dc80 t0 : 756f736b636f6c63
+[    0.000000]  t1 : 00000000003d0900 t2 : 72756f736b636f6c s0 : ffffffff81203e10
+[    0.000000]  s1 : 00000000003d0900 a0 : ffffffff81203e20 a1 : ffffffff81288df0
+[    0.000000]  a2 : 0000000000000028 a3 : ffffffff81288df0 a4 : 0000000000000000
+[    0.000000]  a5 : 0000000000000000 a6 : 000000003e800000 a7 : 0000000000000000
+[    0.000000]  s2 : ffffffff81288dc0 s3 : 0000000000000040 s4 : 0000000200000100
+[    0.000000]  s5 : 000001ffffffffcc s6 : ffffffff80406e28 s7 : ffffffffffffffff
+[    0.000000]  s8 : 0000000000000000 s9 : 0000000000000000 s10: 0000000000000000
+[    0.000000]  s11: 0000000000000000 t3 : ffffffff812f0e0f t4 : ffffffff812f0e0f
+[    0.000000]  t5 : ffffffff812f0e10 t6 : ffffffff81203e48
+[    0.000000] status: 0000000200000100 badaddr: 00000000c0102573 cause: 0000000000000002
+[    0.000000] [<ffffffff80406e2e>] riscv_sched_clock+0x6/0x10
+[    0.000000] Code: e422 0800 2573 c010 6422 0141 8082 1141 e422 0800 (2573) c010
+[    0.000000] ---[ end trace 0000000000000000 ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill the idle task! ]---
+
+*/
 
 impl Generator for Runtime {
     type Yield = MachineTrap;
