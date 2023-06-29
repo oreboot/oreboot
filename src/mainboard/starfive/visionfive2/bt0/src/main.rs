@@ -356,6 +356,7 @@ fn exec_payload(dtb: usize) {
         let load_addr = DRAM_BASE + 0x0020_0000;
         // U-Boot proper
         let dtb_addr = DRAM_BASE + 0x0010_0000;
+	println!("hart {hart_id:x} Loading from FLASH @{load_addr:x} dtb {dtb_addr:x}");
         unsafe {
             // jump to payload
             let f = transmute::<usize, EntryPoint>(load_addr);
@@ -364,10 +365,12 @@ fn exec_payload(dtb: usize) {
         }
     } else {
         let load_addr = DRAM_BASE;
+        let dtb_addr = DRAM_BASE + 0x0010_0000;
         if hart_id == 1 {
             println!("Payload @{load_addr:08x}");
         }
         udelay(150000);
+	println!("hart {hart_id:x} Loading from DRAM @{load_addr:x} dtb {dtb_addr:x}");
         unsafe {
             let f: fn() = transmute(load_addr);
             asm!("fence.i");
