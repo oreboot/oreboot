@@ -104,9 +104,7 @@ impl rustsbi::Fence for Rfence {
                 clear_ipi(i);
             }
         }
-        // SbiRet::success(0)
-
-        SbiRet::failed()
+        SbiRet::success(0)
     }
 
     fn remote_sfence_vma_asid(
