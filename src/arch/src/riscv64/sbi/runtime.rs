@@ -32,7 +32,7 @@ fn delegate_interrupt_exception() {
         medeleg::set_instruction_fault();
         // Do not medeleg::set_illegal_instruction();
         // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
-        // medeleg::set_breakpoint();
+        medeleg::set_breakpoint();
         // medeleg::set_load_misaligned();
         medeleg::clear_load_misaligned();
         // load fault means PMP violation, shouldn't be hit
@@ -100,7 +100,7 @@ impl Runtime {
     }
 }
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 const DEBUG_MTIMER: bool = false;
 
 // best debugging function on the planet

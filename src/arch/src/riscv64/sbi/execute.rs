@@ -14,7 +14,7 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 const DEBUG_MTIMER: bool = false;
 const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
