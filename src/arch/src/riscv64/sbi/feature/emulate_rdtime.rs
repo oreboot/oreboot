@@ -3,7 +3,7 @@ use core::arch::asm;
 use log::println;
 use riscv::register::cycle;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 const DEBUG_RDCYCLE: bool = true;
 const DEBUG_RDTIME: bool = false;
 
