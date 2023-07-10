@@ -41,4 +41,7 @@ impl Reset for d1_pac::$PERI {
 define_gating_reset! {
     UART0: (uart_bgr, uart0_gating, uart0_rst);
     SPI0: (spi_bgr, spi0_gating, spi0_rst);
+    SMHC0: (smhc_bgr, smhc0_gating, smhc0_rst);
+    SMHC1: (smhc_bgr, smhc1_gating, smhc1_rst);
+    SMHC2: (smhc_bgr, smhc2_gating, smhc2_rst);
 }
