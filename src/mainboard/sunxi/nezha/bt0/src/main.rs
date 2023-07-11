@@ -15,7 +15,8 @@ use oreboot_soc::sunxi::d1::{
         portc, Function, Gpio, Pin,
     },
     jtag::Jtag,
-    pac::{Peripherals, SPI0, UART0},
+    pac::{Peripherals, SMHC0, SPI0, UART0},
+    smhc::{Block, Error as SmhcError, Smhc},
     spi::{Spi, MODE_3},
     time::U32Ext,
     uart::{self, Config, D1Serial, Parity, StopBits, WordLength},
@@ -340,6 +341,28 @@ fn load(
     println!(".");
 }
 
+#[cfg(feature = "mmc")]
+fn load(skip: usize, base: usize, size: usize, sd: &mut Smhc<SMHC0>) -> Result<(), SmhcError> {
+    sd.reset_card()?;
+    let ctype = sd.initialize()?;
+    println!("Initialized card type: {:?}", ctype);
+
+    let _cid = sd.get_cid()?;
+    let card = sd.get_rca()?;
+
+    let cs = card.select()?;
+    let cs = card.set_wide_bus()?;
+
+    // Read requested data and place it in DRAM
+    // TODO: if (skip % Block::LEN) != 0, we start 'too early'
+    let first_block = skip / Block::LEN;
+    // TODO: if (size % Block::LEN) != 0, we read too few bytes
+    let nr_blocks = size / Block::LEN;
+    let blocks = unsafe { core::slice::from_raw_parts_mut(base as *mut Block, nr_blocks) };
+
+    card.read_blocks(first_block as u32, blocks)
+}
+
 const SUNXI_AUDIO_CODEC: u32 = 0x0203_0000;
 const AC_SMTH: u32 = SUNXI_AUDIO_CODEC + 0x348;
 const SUNXI_SID_BASE: u32 = 0x0300_6000;
@@ -518,11 +541,14 @@ extern "C" fn main() {
     let spi_speed = 100_000_000.hz();
 
     // prepare spi interface to use in flash
-    let sck = gpio.portc.pc2.into_function_2();
-    let scs = gpio.portc.pc3.into_function_2();
-    let mosi = gpio.portc.pc4.into_function_2();
-    let miso = gpio.portc.pc5.into_function_2();
-    let spi = Spi::new(p.SPI0, (sck, scs, mosi, miso), MODE_3, spi_speed, &clocks);
+    #[cfg(any(feature = "nor", feature = "nand"))]
+    let spi = {
+        let sck = gpio.portc.pc2.into_function_2();
+        let scs = gpio.portc.pc3.into_function_2();
+        let mosi = gpio.portc.pc4.into_function_2();
+        let miso = gpio.portc.pc5.into_function_2();
+        Spi::new(p.SPI0, (sck, scs, mosi, miso), MODE_3, spi_speed, &clocks)
+    };
 
     #[cfg(feature = "nor")]
     {
@@ -571,7 +597,40 @@ extern "C" fn main() {
         // flash is freed when it goes out of scope
     }
 
-    println!("Run payload at 0x{:x}", RAM_BASE);
+    #[cfg(feature = "mmc")]
+    {
+        let sdc0_d1 = gpio.portf.pf0.into_function_2();
+        let sdc0_d0 = gpio.portf.pf1.into_function_2();
+        let sdc0_clk = gpio.portf.pf2.into_function_2();
+        let sdc0_cmd = gpio.portf.pf3.into_function_2();
+        let sdc0_d3 = gpio.portf.pf4.into_function_2();
+        let sdc0_d2 = gpio.portf.pf5.into_function_2();
+        let sdc0_pins = (sdc0_d1, sdc0_d0, sdc0_clk, sdc0_cmd, sdc0_d3, sdc0_d2);
+
+        let mut smhc = Smhc::new(p.SMHC0, sdc0_pins, 200_000_000.hz(), &clocks);
+
+        // Mandatory 8K SPL offset on sdcard
+        let skip = 8192;
+        // SPL is already loaded (by BROM), so skip it
+        let skip = skip + (0x1 << 15); // 32K, the size of SPL/boot0
+        if let Err(e) = load(skip, ORE_ADDR, ORE_SIZE, &mut smhc) {
+            println!("Loading oreboot failed: {:?}", e);
+        }
+
+        // Linux is behind oreboot + dtfs
+        let skip = skip + ORE_SIZE + DTF_SIZE;
+        if let Err(e) = load(skip, LIN_ADDR, LIN_SIZE, &mut smhc) {
+            println!("Loading Linux failed: {:?}", e);
+        }
+
+        // DTB is behind Linux
+        let skip = skip + LIN_SIZE;
+        if let Err(e) = load(skip, DTB_ADDR, DTB_SIZE, &mut smhc) {
+            println!("Loading DTB failed: {:?}", e);
+        }
+    }
+
+    println!("Running payload at 0x{:x}", RAM_BASE);
     unsafe {
         let f: unsafe extern "C" fn() = transmute(RAM_BASE);
         f();

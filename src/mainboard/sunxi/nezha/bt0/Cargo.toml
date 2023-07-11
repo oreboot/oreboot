@@ -31,3 +31,4 @@ lichee = ["nor"]
 
 nand = []
 nor = []
+mmc = []
