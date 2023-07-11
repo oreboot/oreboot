@@ -5,7 +5,6 @@
 use core::{
     arch::{asm, global_asm},
     panic::PanicInfo,
-    ptr::slice_from_raw_parts,
 };
 use embedded_hal_nb::serial::Write;
 use riscv;

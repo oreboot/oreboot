@@ -6,12 +6,16 @@
 
 #[macro_use]
 extern crate log;
+extern crate layoutflash;
+use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
 use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
 use uart::JH71XXSerial;
+
+use fdt::Fdt;
 
 mod ddr_start;
 mod ddrcsr;
@@ -249,11 +253,49 @@ fn main() {
 
     // TODO: use this when we put Linux in flash etc
     println!("Copy payload... ⏳");
+    let mut dtb: usize = 0;
     if LOAD_FROM_FLASH {
         let base = QSPI_XIP_BASE;
         // let size = 0x0100_0000; // 16M
         let size = 0x0020_0000; // occupied space
         let dram = DRAM_BASE;
+        // let's find the dtb
+
+        let slice = unsafe {
+            let pointer = transmute(SRAM0_BASE);
+            // The `slice` function creates a slice from the pointer.
+            unsafe { core::slice::from_raw_parts(pointer, size) }
+        };
+        let fdt = find_fdt(slice);
+        match fdt {
+            Err(_) => {
+                println!(
+                    "Could not find an FDT between {:?} and {:?}",
+                    SRAM0_BASE,
+                    SRAM0_BASE + size
+                );
+            }
+            Ok(f) => {
+                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
+                let it = &mut f.find_all_nodes("/flash-info/areas");
+                let a = FdtIterator::new(it);
+                for aa in a {
+                    for c in aa.children() {
+                        for p in c.properties() {
+                            match p.name {
+                                "size" => {
+                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
+                                }
+                                _ => {
+                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
             if b % 0x4_0000 == 0 {
@@ -302,8 +344,8 @@ fn main() {
     write32(CLINT_HART3_MSIP, 0x1);
     write32(CLINT_HART4_MSIP, 0x1);
 
-    println!("Jump to payload...");
-    exec_payload();
+    println!("Jump to payload... with dtb {dtb:#x}");
+    exec_payload(dtb);
     println!("Exit from payload, resetting...");
     unsafe {
         sleep(0x0100_0000);
@@ -312,7 +354,7 @@ fn main() {
     };
 }
 
-fn exec_payload() {
+fn exec_payload(dtb: usize) {
     let load_addr = if LOAD_FROM_FLASH {
         // U-Boot proper expects to be loaded here
         // see SYS_TEXT_BASE in U-Boot config
@@ -324,12 +366,11 @@ fn exec_payload() {
 
     let hart_id = mhartid::read();
     // U-Boot proper
-    let dtb_addr = DRAM_BASE + 0x0010_0000;
     unsafe {
         // jump to payload
         let f = transmute::<usize, EntryPoint>(load_addr);
         asm!("fence.i");
-        f(hart_id, dtb_addr);
+        f(hart_id, dtb);
     }
 }
 
