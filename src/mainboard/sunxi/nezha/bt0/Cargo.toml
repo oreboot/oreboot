@@ -20,7 +20,7 @@ path = "../../../../soc"
 features = ["sunxi_d1"]
 
 [dependencies.riscv]
-version = "0.10.0"
+version = "0.10.1"
 features = ["critical-section-single-hart"]
 
 [features]

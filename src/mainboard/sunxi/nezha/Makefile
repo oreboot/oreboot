@@ -3,7 +3,7 @@ OREBOOT=$(abspath $(CURDIR)/../../../../)
 TARGET     = riscv64imac-unknown-none-elf
 # config: board variant and storage memory type
 VARIANT    ?= lichee
-MEMORY		 ?= nor
+MEMORY     ?= nor
 # outputs: full image and main part (can be run from DRAM)
 IMAGE      ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha.bin
 PAYLOADER  ?= $(OREBOOT)/target/$(TARGET)/debug/oreboot-nezha-main.bin
