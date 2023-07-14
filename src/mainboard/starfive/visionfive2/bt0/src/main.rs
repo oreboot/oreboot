@@ -302,6 +302,7 @@ fn main() {
             }
         }
 
+	println!("dtb {dtb:x}");
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
             if b % 0x4_0000 == 0 {
@@ -355,7 +356,7 @@ fn main() {
     println!("hart 1 runs payload, hart 0 sleeping.");
     loop {
         unsafe {
-            sleep(0x0100_0000);
+            sleep(0x0400_0000);
             //riscv::asm::wfi();
             println!("... hart 0 STILL sleeping.");
         };
@@ -374,6 +375,7 @@ fn exec_payload(dtb: usize) {
 
     let hart_id = mhartid::read();
     // U-Boot proper
+    let dtb:usize = 0x8010000;
     unsafe {
         // jump to payload
         let f = transmute::<usize, EntryPoint>(load_addr);
