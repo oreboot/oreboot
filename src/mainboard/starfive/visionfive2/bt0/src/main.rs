@@ -88,20 +88,26 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
         "csrr   a0, mhartid",
-        "bne    a0, a1, .nonboothart",
-        // 2. prepare stack
-        "la     sp, {stack}",
-        "li     t0, {stack_size}",
-        "add    sp, sp, t0",
-        "j      .boothart",
+        "li     a1, 0",
+        "beq    a0, a1, .boothart",
+        "li     a1, 1",
+        "beq    a0, a1, .hart1",
+    ".hart2_4:",
+    "wfi",
+    "j .hart2_4",
         // wait for multihart to get back into the game
-        ".nonboothart:",
+        ".hart1:",
+    // grow hart1 stack DOWN from the bottom of bt0 stack.
+        "la     sp, {stack}",
         "csrw   mie, 8", // 1 << 3
         "wfi",
         "call   {payload}",
         ".boothart:",
+        // 2. prepare stack
+        "la     sp, {stack}",
+        "li     t0, {stack_size}",
+        "add    sp, sp, t0",
         "call   {reset}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
@@ -338,20 +344,22 @@ fn main() {
     println!("lzss compressed Linux");
     dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
 
-    println!("release non-boot harts =====\n");
+    println!("release harts 1-4 =====\n");
     write32(CLINT_HART1_MSIP, 0x1);
     write32(CLINT_HART2_MSIP, 0x1);
     write32(CLINT_HART3_MSIP, 0x1);
     write32(CLINT_HART4_MSIP, 0x1);
 
-    println!("Jump to payload... with dtb {dtb:#x}");
-    exec_payload(dtb);
-    println!("Exit from payload, resetting...");
-    unsafe {
-        sleep(0x0100_0000);
-        reset();
-        riscv::asm::wfi()
-    };
+    //println!("Jump to payload... with dtb {dtb:#x}");
+    //exec_payload(dtb);
+    println!("hart 1 runs payload, hart 0 sleeping.");
+    loop {
+        unsafe {
+            sleep(0x0100_0000);
+            //riscv::asm::wfi();
+            println!("... hart 0 STILL sleeping.");
+        };
+    }
 }
 
 fn exec_payload(dtb: usize) {
