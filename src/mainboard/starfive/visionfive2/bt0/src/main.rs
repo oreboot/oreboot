@@ -93,6 +93,9 @@ pub unsafe extern "C" fn start() -> ! {
         "beq    a0, a1, .boothart",
         "li     a1, 1",
         "beq    a0, a1, .hart1",
+	// Let's assume we only wake the one we want,
+	// which is more flexible anyway.
+	"j .hart1",
     ".hart2_4:",
     "wfi",
     "j .hart2_4",
@@ -345,15 +348,19 @@ fn main() {
     println!("lzss compressed Linux");
     dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
 
-    println!("release harts 1-4 =====\n");
-    write32(CLINT_HART1_MSIP, 0x1);
-    write32(CLINT_HART2_MSIP, 0x1);
-    write32(CLINT_HART3_MSIP, 0x1);
-    write32(CLINT_HART4_MSIP, 0x1);
+    let hart = 2;
+    println!("release hart {hart} ONLY =====\n");
+    match hart {
+	1 => write32(CLINT_HART1_MSIP, 0x1),
+	2 => write32(CLINT_HART2_MSIP, 0x1),
+	3 => write32(CLINT_HART3_MSIP, 0x1),
+	4 => write32(CLINT_HART4_MSIP, 0x1),
+	_ => {println!("bad hart {hart}, assume 1"); write32(CLINT_HART1_MSIP, 0x1);},
+	}
 
     //println!("Jump to payload... with dtb {dtb:#x}");
     //exec_payload(dtb);
-    println!("hart 1 runs payload, hart 0 sleeping.");
+    println!("hart {hart} runs payload, hart 0 sleeping.");
     loop {
         unsafe {
             sleep(0x0400_0000);
