@@ -196,6 +196,8 @@ impl Coroutine for Runtime {
             }
             Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
             Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
+            Trap::Exception(Exception::StoreMisaligned) => MachineTrap::StoreFault(mtval),
+            Trap::Exception(Exception::LoadMisaligned) => MachineTrap::LoadFault(mtval),
             e => panic!(
                 "[SBI] unhandled: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
                 self.context
