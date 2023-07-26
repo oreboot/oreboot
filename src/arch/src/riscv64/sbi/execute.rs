@@ -146,14 +146,27 @@ pub fn execute_supervisor(
                     mip::set_stimer();
                 }
             }
+            CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {
+                let ctx = rt.context_mut();
+                unsafe { feature::do_transfer_trap(ctx, Trap::Exception(Exception::LoadFault)) }
+            }
+            CoroutineState::Yielded(MachineTrap::StoreFault(addr)) => {
+                let ctx = rt.context_mut();
+                let is_page_fault = feature::is_page_fault(addr);
+                if is_page_fault {
+                    let fault = Trap::Exception(Exception::StorePageFault);
+                    unsafe { feature::do_transfer_trap(ctx, fault) }
+                } else {
+                    let fault = Trap::Exception(Exception::StoreFault);
+                    unsafe { feature::do_transfer_trap(ctx, fault) }
+                }
+            }
             // NOTE: These are all delegated.
             CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
             CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::StoreFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
             CoroutineState::Complete(()) => unreachable!(),
         }
