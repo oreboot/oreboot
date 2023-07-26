@@ -146,14 +146,27 @@ pub fn execute_supervisor(
                     mip::set_stimer();
                 }
             }
+            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {
+                let ctx = rt.context_mut();
+                unsafe { feature::do_transfer_trap(ctx, Trap::Exception(Exception::LoadFault)) }
+            }
+            GeneratorState::Yielded(MachineTrap::StoreFault(addr)) => {
+                let ctx = rt.context_mut();
+                let is_page_fault = feature::is_page_fault(addr);
+                if is_page_fault {
+                    let fault = Trap::Exception(Exception::StorePageFault);
+                    unsafe { feature::do_transfer_trap(ctx, fault) }
+                } else {
+                    let fault = Trap::Exception(Exception::StoreFault);
+                    unsafe { feature::do_transfer_trap(ctx, fault) }
+                }
+            }
             // NOTE: These are all delegated.
             GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             GeneratorState::Yielded(MachineTrap::MachineSoft()) => {}
             GeneratorState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::StoreFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
             GeneratorState::Complete(()) => unreachable!(),
         }
