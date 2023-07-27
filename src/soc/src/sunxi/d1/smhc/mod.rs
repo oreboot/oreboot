@@ -104,19 +104,49 @@ pub enum Error {
 }
 
 impl<SMHC: Instance> Smhc<SMHC> {
-    pub fn new<PINS>(smhc: SMHC, _pins: PINS, _freq: Hz, _clocks: &Clocks) -> Self
+    pub fn new<PINS>(smhc: SMHC, _pins: PINS, freq: Hz, clocks: &Clocks) -> Self
     where
         PINS: Pins<SMHC>,
     {
+        // card clock divider: the card clock will be half of the module clock (`freq` parameter)
+        // TODO: allow configuration of the card clock divider.
+        let div = 2;
+
+        smhc.smhc_clkdiv.write(|w| w.cclk_enb().off());
+
+        let (Hz(freq), Hz(psi)) = (freq, clocks.psi);
+        let (factor_n, factor_m) = {
+            let mut err = psi;
+            let (mut best_n, mut best_m) = (0, 0);
+            for m in 1u8..=16 {
+                for n in [1, 2, 4, 8] {
+                    let actual = psi / n / m as u32;
+                    if actual.abs_diff(freq) < err {
+                        err = actual.abs_diff(freq);
+                        (best_n, best_m) = (n, m);
+                    }
+                }
+            }
+            let factor_n = match best_n {
+                1 => FACTOR_N_A::N1,
+                2 => FACTOR_N_A::N2,
+                4 => FACTOR_N_A::N4,
+                8 => FACTOR_N_A::N8,
+                _ => unreachable!(),
+            };
+            let factor_m = best_m - 1;
+            (factor_n, factor_m)
+        };
+
         let ccu = unsafe { &*CCU::ptr() };
         SMHC::assert_reset(ccu);
         SMHC::gating_mask(ccu);
         // TODO: generic over all 3 SMHC interfaces
         #[rustfmt::skip]
         ccu.smhc0_clk.write(|w| w
-            .clk_src_sel().hosc()
-            .factor_n().variant(FACTOR_N_A::N1)
-            .factor_m().variant(1)
+            .clk_src_sel().pll_peri_1x()
+            .factor_n().variant(factor_n)
+            .factor_m().variant(factor_m)
             .clk_gating().set_bit()
         );
         SMHC::deassert_reset(ccu);
@@ -129,23 +159,19 @@ impl<SMHC: Instance> Smhc<SMHC> {
         while smhc.smhc_ctrl.read().fifo_rst().is_reset() {}
 
         smhc.smhc_ctrl.modify(|_, w| w.ine_enb().disable());
-        // smhc.smhc_intmask.write(|w| unsafe { w.bits(0xFFCE) });
-
-        #[rustfmt::skip]
-        smhc.smhc_clkdiv.write(|w| {
-            w.cclk_enb().off()
-        });
 
         Self::update_clk(&smhc);
 
-        smhc.smhc_clkdiv.modify(|_, w| w.cclk_div().variant(2));
+        smhc.smhc_clkdiv
+            .modify(|_, w| w.cclk_div().variant(div - 1));
 
-        smhc.smhc_smap_dl.write(|w| w.samp_dl_sw_en().set_bit());
-
-        #[rustfmt::skip]
-        smhc.smhc_clkdiv.modify(|_, w| {
-            w.cclk_enb().on()
+        // The delay is simply set to 0, which is also done in Linux and the Allwinner BSP.
+        smhc.smhc_smap_dl.write(|w| {
+            w.samp_dl_sw().variant(0);
+            w.samp_dl_sw_en().set_bit()
         });
+
+        smhc.smhc_clkdiv.modify(|_, w| w.cclk_enb().on());
 
         Self::update_clk(&smhc);
 
