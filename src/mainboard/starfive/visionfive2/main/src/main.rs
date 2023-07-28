@@ -156,7 +156,8 @@ fn check_kernel(kernel_addr: usize) {
     if r == u32::from_le_bytes(*b"RISC") {
         println!("Payload looks like Linux Image, yay!");
     } else {
-        panic!("Payload does not look like Linux Image: {:x}", r);
+        dump_block(LINUXBOOT_ADDR, 0x40, 0x20);
+        panic!("Payload does not look like Linux Image: {r:x}");
     }
 }
 
@@ -174,11 +175,11 @@ fn init_logger(s: JH71XXSerial) {
 fn main() {
     udelay(200);
 
-    let mut s = JH71XXSerial::new();
+    let s = JH71XXSerial::new();
     init_logger(s);
     println!("oreboot 🦀 main");
 
-    if false {
+    if true {
         println!("lzss compressed Linux:");
         dump_block(LINUXBOOT_SRC_ADDR, 0x100, 0x20);
     }
