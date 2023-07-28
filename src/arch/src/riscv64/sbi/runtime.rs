@@ -33,11 +33,11 @@ fn delegate_interrupt_exception() {
         // Do not medeleg::set_illegal_instruction();
         // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
         medeleg::set_breakpoint();
-        // medeleg::set_load_misaligned();
+        medeleg::set_load_misaligned();
         medeleg::clear_load_misaligned();
         // load fault means PMP violation, shouldn't be hit
         medeleg::set_load_fault();
-        // medeleg::set_store_misaligned();
+        medeleg::set_store_misaligned();
         medeleg::set_store_fault();
         medeleg::set_user_env_call();
         // Do not delegate env call from S-mode nor M-mode; we handle it :)

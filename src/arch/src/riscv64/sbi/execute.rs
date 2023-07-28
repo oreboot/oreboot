@@ -14,10 +14,10 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 
-const DEBUG: bool = false;
-const DEBUG_MTIMER: bool = false;
+const DEBUG: bool = true;
+const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
-const DEBUG_EMULATE: bool = false;
+const DEBUG_EMULATE: bool = true;
 const DEBUG_ILLEGAL: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
@@ -72,6 +72,8 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
         );
     }
 }
+
+const HANDLE_FAULT: bool = false;
 
 pub fn execute_supervisor(
     supervisor_mepc: usize,
@@ -147,18 +149,22 @@ pub fn execute_supervisor(
                 }
             }
             GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {
-                let ctx = rt.context_mut();
-                unsafe { feature::do_transfer_trap(ctx, Trap::Exception(Exception::LoadFault)) }
+                if HANDLE_FAULT {
+                    let ctx = rt.context_mut();
+                    unsafe { feature::do_transfer_trap(ctx, Trap::Exception(Exception::LoadFault)) }
+                }
             }
             GeneratorState::Yielded(MachineTrap::StoreFault(addr)) => {
-                let ctx = rt.context_mut();
-                let is_page_fault = feature::is_page_fault(addr);
-                if is_page_fault {
-                    let fault = Trap::Exception(Exception::StorePageFault);
-                    unsafe { feature::do_transfer_trap(ctx, fault) }
-                } else {
-                    let fault = Trap::Exception(Exception::StoreFault);
-                    unsafe { feature::do_transfer_trap(ctx, fault) }
+                if HANDLE_FAULT {
+                    let ctx = rt.context_mut();
+                    let is_page_fault = feature::is_page_fault(addr);
+                    if is_page_fault {
+                        let fault = Trap::Exception(Exception::StorePageFault);
+                        unsafe { feature::do_transfer_trap(ctx, fault) }
+                    } else {
+                        let fault = Trap::Exception(Exception::StoreFault);
+                        unsafe { feature::do_transfer_trap(ctx, fault) }
+                    }
                 }
             }
             // NOTE: These are all delegated.
