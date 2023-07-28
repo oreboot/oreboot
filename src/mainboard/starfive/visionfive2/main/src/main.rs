@@ -94,8 +94,6 @@ pub unsafe extern "C" fn start() -> ! {
     )
 }
 
-const DEBUG: bool = true;
-
 /// Initialize RAM: Clear BSS and set up data.
 /// See https://docs.rust-embedded.org/embedonomicon/main.html
 ///
