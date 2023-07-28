@@ -32,23 +32,8 @@ pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
+
 const DRAM_BASE: usize = 0x4000_0000;
-
-// see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
-const SPI_FLASH_BASE: usize = 0x2100_0000;
-
-const DRAM_BLOB_BASE: usize = SPI_FLASH_BASE + 0x0001_0000;
-const PAYLOAD_BASE: usize = SPI_FLASH_BASE + 0x0004_0000;
-
-const MAIN_BLOB_BASE: usize = SRAM0_BASE + 32 * 1024;
-const MAIN_BLOB_SIZE: usize = 64 * 1024;
-
-const DTB_ADDR: usize = DRAM_BASE + 0x0020_0000 + 0x0100_0000; // TODO
-const LOAD_ADDR: usize = DRAM_BASE + 0x0002_0000;
-const LOAD_MAIN: bool = false;
-
-const LOAD_FROM_FLASH: bool = false;
-const DEBUG: bool = false;
 
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
@@ -222,9 +207,11 @@ fn main() {
     write32(init::SYS_SYSCON_12, 0x0);
 
     // enable is active low
-    // write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
-    // write32(init::GPIO40_43_DATA, 0x8181_8181);
-    // blink();
+    if false {
+        write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
+        write32(init::GPIO40_43_DATA, 0x8181_8181);
+        unsafe { blink() }
+    }
 
     // TX/RX are GPIOs 5 and 6
     write32(init::GPIO04_07_EN, 0xc0c0_c0c0);
@@ -239,92 +226,21 @@ fn main() {
     // init::clk_apb_func();
     dram::init();
 
-    // TODO: use this when we put Linux in flash etc
-    if LOAD_FROM_FLASH {
-        println!("Copy payload... ⏳");
-        let base = SPI_FLASH_BASE;
-        // let size = 0x0100_0000; // 16M
-        let size = 0x0020_0000; // occupied space
-        let dram = DRAM_BASE;
-        // let's find the dtb
+    const MAIN_BLOB_BASE: usize = SRAM0_BASE + 32 * 1024;
+    const MAIN_BLOB_SIZE: usize = 64 * 1024;
 
-        let slice = unsafe {
-            let pointer = transmute(SRAM0_BASE);
-            // The `slice` function creates a slice from the pointer.
-            unsafe { core::slice::from_raw_parts(pointer, size) }
-        };
-        let fdt = find_fdt(slice);
-        match fdt {
-            Err(_) => {
-                println!(
-                    "Could not find an FDT between {:?} and {:?}",
-                    SRAM0_BASE,
-                    SRAM0_BASE + size
-                );
-            }
-            Ok(f) => {
-                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
-                let it = &mut f.find_all_nodes("/flash-info/areas");
-                let a = FdtIterator::new(it);
-                for aa in a {
-                    for c in aa.children() {
-                        for p in c.properties() {
-                            match p.name {
-                                "size" => {
-                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
-                                }
-                                _ => {
-                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    // TODO: Scan SRAM for oreboot dtb
+    let main_size_k = MAIN_BLOB_SIZE / 1024;
+    println!("Copy {main_size_k}k main stage to DRAM... ⏳");
+    for b in (0..MAIN_BLOB_SIZE).step_by(4) {
+        write32(DRAM_BASE + b, read32(MAIN_BLOB_BASE + b));
+        if b % 1024 == 0 {
+            print!(".");
         }
-
-        for b in (0..size).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        let size = 0x0010_0000; // occupied space
-        let base = SPI_FLASH_BASE + 0x0030_00d4; // first 0xd4 is just 0-bytes
-        let target = DRAM_BASE + 0x0020_0000;
-        for b in (0..size).step_by(4) {
-            write32(target + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        println!(" done.");
-        if DEBUG {
-            println!("Start:");
-            dump_block(dram, 0x100, 0x20);
-            println!("Presumably JH7110 recovery:");
-            dump_block(dram + 0x0002_0000, 0x100, 0x20);
-            println!("DTB:");
-            dump_block(dram + 0x0010_0000, 0x100, 0x20);
-            println!("Something:");
-            dump_block(dram + 0x0020_0000, 0x100, 0x20);
-        }
-    } else {
-        let target = DRAM_BASE;
-        println!("Copy {}k main stage to DRAM... ⏳", MAIN_BLOB_SIZE / 1024);
-        for b in (0..MAIN_BLOB_SIZE).step_by(4) {
-            write32(target + b, read32(MAIN_BLOB_BASE + b));
-            if b % 1024 == 0 {
-                print!(".");
-            }
-        }
-        println!(" done.");
-        if false {
-            println!("Main stage:");
-            dump_block(target, 0x20, 0x20);
-        }
-        println!("Jump to main stage...\n");
     }
+    println!(" done.");
+    println!("Jump to main stage...");
+    println!();
 
     exec_payload();
     println!("Exit from payload, resetting...");
@@ -337,30 +253,16 @@ fn main() {
 
 fn exec_payload() {
     let hart_id = mhartid::read();
-    if LOAD_FROM_FLASH {
-        // U-Boot proper expects to be loaded here
-        // see SYS_TEXT_BASE in U-Boot config
-        let load_addr = DRAM_BASE + 0x0020_0000;
-        // U-Boot proper
-        let dtb_addr = DRAM_BASE + 0x0010_0000;
-        unsafe {
-            // jump to payload
-            let f = transmute::<usize, EntryPoint>(load_addr);
-            asm!("fence.i");
-            f(hart_id, dtb_addr);
-        }
-    } else {
-        let load_addr = DRAM_BASE;
-        if hart_id == 1 {
-            println!("Payload @{load_addr:08x}");
-        }
-        udelay(150000);
-        unsafe {
-            let f: fn() = transmute(load_addr);
-            asm!("fence.i");
-            f();
-        }
-    };
+    let load_addr = DRAM_BASE;
+    if hart_id == 1 {
+        println!("Payload @{load_addr:08x}");
+    }
+    udelay(150000);
+    unsafe {
+        let f: fn() = transmute(load_addr);
+        asm!("fence.i");
+        f();
+    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
