@@ -6,8 +6,8 @@ use core::{
     pin::Pin,
 };
 use log::{print, println};
+use riscv::register::mip;
 use riscv::register::scause::{Exception, Trap};
-use riscv::register::{mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
@@ -17,8 +17,8 @@ const EBREAK: u16 = 0x9002;
 const DEBUG: bool = true;
 const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
-const DEBUG_EMULATE: bool = true;
-const DEBUG_ILLEGAL: bool = true;
+const DEBUG_EMULATE: bool = false;
+const DEBUG_ILLEGAL: bool = false;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
