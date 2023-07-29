@@ -5,7 +5,7 @@ use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 use starfive_visionfive2_lib::{clear_ipi, get_mtime, set_ipi, set_mtimecmp};
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 const DEBUG_IPI: bool = true;
 const DEBUG_FENCE: bool = true;
 const DEBUG_TIMER: bool = false;
@@ -93,9 +93,9 @@ impl rustsbi::Fence for Rfence {
         }
         unsafe {
             asm!(
-                "sfence.vma",  // TLB flush
-                "fence.i",     // local hart
-                "fence   w,w", // whatever..?
+                "sfence.vma", // TLB flush
+                "fence.i",    // local hart
+                "fence  w,w", // whatever..?
             );
         }
         for i in 0..=4 {
