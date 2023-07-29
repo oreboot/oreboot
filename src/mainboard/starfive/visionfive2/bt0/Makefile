@@ -6,8 +6,8 @@ RELEASE_BIN= $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2-bt0.bin
 RELEASE_MAIN= $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2-main.bin
 RELEASE_ALL= $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2-all.bin
 DRAM_SIZE := 4G
-KERNEL_DIR := /home/dama/firmware/RISC-V/StarFive/VisionFive2/linux
-DTB_FILE := starfive/jh7110-starfive-visionfive-2-v1.3b.dtb
+KERNEL_DIR  ?= /home/dama/firmware/RISC-V/StarFive/VisionFive2/linux
+DTB_FILE    ?= starfive/jh7110-starfive-visionfive-2-v1.3b.dtb
 DEVICE_TREE := $(KERNEL_DIR)/arch/riscv/boot/dts/$(DTB_FILE)
 
 cibuild: mainboard
