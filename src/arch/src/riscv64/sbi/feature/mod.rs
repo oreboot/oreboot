@@ -1,10 +1,8 @@
-mod delegate_page_fault;
 mod emulate_rdtime;
 mod sfence_vma;
 mod supervisor_interrupt;
 mod transfer_trap;
 
-pub use delegate_page_fault::is_page_fault;
 pub use emulate_rdtime::emulate_rdtime;
 pub use sfence_vma::emulate_sfence_vma;
 pub use supervisor_interrupt::preprocess_supervisor_external;

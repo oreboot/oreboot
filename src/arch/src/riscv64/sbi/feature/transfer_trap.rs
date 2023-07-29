@@ -5,10 +5,14 @@ use riscv::register::{
     mtval, scause, sepc, stval, stvec,
 };
 
+/// # Safety
+/// YOLO
 pub unsafe fn should_transfer_trap(ctx: &mut SupervisorContext) -> bool {
     ctx.mstatus.mpp() != MPP::Machine
 }
 
+/// # Safety
+/// YOLO
 pub unsafe fn do_transfer_trap(ctx: &mut SupervisorContext, cause: scause::Trap) {
     // 设置S层异常原因为：非法指令
     // The reason for setting S-layer exception is: illegal instruction
