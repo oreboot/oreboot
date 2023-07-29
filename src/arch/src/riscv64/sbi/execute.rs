@@ -15,10 +15,12 @@ const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 
 const DEBUG: bool = true;
+const DEBUG_ECALL: bool = false;
 const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = false;
+const DEBUG_MISALIGNED: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -58,22 +60,21 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     }
 }
 
-fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
+// TODO: Check newer specs on out this should work
+fn putchar(_method: usize, args: [usize; 6]) -> SbiRet {
     let char = args[0] as u8 as char;
     print!("{char}");
     SbiRet { value: 0, error: 0 }
 }
 
 fn print_ecall_context(ctx: &mut SupervisorContext) {
-    if DEBUG {
+    if DEBUG && DEBUG_ECALL {
         println!(
             "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
             ctx.a6, ctx.a7, ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5,
         );
     }
 }
-
-const HANDLE_FAULT: bool = false;
 
 pub fn execute_supervisor(
     supervisor_mepc: usize,
@@ -148,26 +149,19 @@ pub fn execute_supervisor(
                     mip::set_stimer();
                 }
             }
-            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {
-                if HANDLE_FAULT {
-                    let ctx = rt.context_mut();
-                    unsafe { feature::do_transfer_trap(ctx, Trap::Exception(Exception::LoadFault)) }
+            GeneratorState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {
+                if DEBUG && DEBUG_MISALIGNED {
+                    println!("[SBI]: load misaligned");
                 }
             }
-            GeneratorState::Yielded(MachineTrap::StoreFault(addr)) => {
-                if HANDLE_FAULT {
-                    let ctx = rt.context_mut();
-                    let is_page_fault = feature::is_page_fault(addr);
-                    if is_page_fault {
-                        let fault = Trap::Exception(Exception::StorePageFault);
-                        unsafe { feature::do_transfer_trap(ctx, fault) }
-                    } else {
-                        let fault = Trap::Exception(Exception::StoreFault);
-                        unsafe { feature::do_transfer_trap(ctx, fault) }
-                    }
+            GeneratorState::Yielded(MachineTrap::StoreMisaligned(addr)) => {
+                if DEBUG && DEBUG_MISALIGNED {
+                    println!("[SBI]: store misaligned");
                 }
             }
             // NOTE: These are all delegated.
+            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
+            GeneratorState::Yielded(MachineTrap::StoreFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             GeneratorState::Yielded(MachineTrap::MachineSoft()) => {}
             GeneratorState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
