@@ -33,3 +33,6 @@ Cargo.lock
 
 # Ignore all intellij related files
 *.idea
+
+# gdb history files 
+.gdb_history
