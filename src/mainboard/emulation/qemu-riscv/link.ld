@@ -26,26 +26,41 @@ ENTRY(_boot);
 
 SECTIONS
 {
-    . = 0x20000000;
+    . = 0x80000000;
     .bootblock :
     {
         KEEP(*(.bootblock.boot));
     }
-    .text :
-    {
-        KEEP(*(.text .text.*));
+    .text : {
+        KEEP(*(.text.entry))
+        *(.text .text.*)
     }
-    .rodata :
-    {
-        KEEP(*(.rodata .rodata.*));
+    .rodata : ALIGN(4) {
+        srodata = .;
+        *(.rodata .rodata.*)
+        *(.srodata .srodata.*)
+        . = ALIGN(4);
+        erodata = .;
     }
-
-    .stack_sizes (INFO) :
-    {
+    .data : ALIGN(4) {
+        sdata = .;
+        *(.data .data.*)
+        *(.sdata .sdata.*)
+        . = ALIGN(4);
+        edata = .;
+    }
+    sidata = LOADADDR(.data);
+    .bss (NOLOAD) : ALIGN(4) {
+        *(.bss.uninit)
+        sbss = .;
+        *(.bss .bss.*)
+        *(.sbss .sbss.*)
+        ebss = .;
+    }
+    .stack_sizes (INFO) : {
         KEEP(*(.stack_sizes));
     }
-
-    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
-    /* Unused exception related info that only wastes space */
+    /DISCARD/ : {
+        *(.eh_frame)
     }
 }
