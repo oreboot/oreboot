@@ -28,6 +28,9 @@ mod uart;
 
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 
+// NOTE: JH, as in JH71x0, is short for JingHong, a city in Yunnan
+// https://en.wikipedia.org/wiki/Jinghong
+
 // The SRAM is called LIM, LooselyIntegrated Memory
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
@@ -191,6 +194,22 @@ fn init_logger(s: JH71XXSerial) {
     }
 }
 
+// GPIO 13 is GMAC PHY reset (negative?)
+fn reset_phy() {
+    let gpio12_15_en = read32(init::GPIO12_15_EN);
+    let gpio12_15_data = read32(init::GPIO12_15_DATA);
+    println!("inital GPIO 12-15 en/data {gpio12_15_en:08x}/{gpio12_15_data:08x}");
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x81 << 8),
+    );
+    unsafe { sleep(0x0004_0000) };
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x80 << 8),
+    );
+}
+
 #[no_mangle]
 fn main() {
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
@@ -202,6 +221,8 @@ fn main() {
     init::clk_cpu_root();
     init::clk_bus_root();
     init::clocks();
+
+    init::phy_cfg();
 
     // set GPIO to 3.3V
     write32(init::SYS_SYSCON_12, 0x0);
@@ -220,6 +241,8 @@ fn main() {
     println!("oreboot 🦀 bt0");
     print_boot_mode();
     print_ids();
+
+    reset_phy();
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
