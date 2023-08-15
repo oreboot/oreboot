@@ -1,5 +1,4 @@
 use super::super::runtime::SupervisorContext;
-use core::arch::asm;
 use log::println;
 use riscv::register::cycle;
 
@@ -64,7 +63,6 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
         set_register_xi(ctx, rd, time_usize);
         // skip current instruction, 4 bytes
         ctx.mepc = ctx.mepc.wrapping_add(4);
-        let x = time_usize / 0x1000;
         if DEBUG && DEBUG_RDTIME {
             println!("[SBI] rdtime {time_usize:x}");
         }

@@ -211,7 +211,6 @@ fn init_logger(s: uart::JH71XXSerial) {
 // TODO: registers
 // GPIO 13 is GMAC PHY reset (negative?)
 fn reset_phy() {
-    /*
     let gpio12_15_en = read32(init::GPIO12_15_EN);
     let gpio12_15_data = read32(init::GPIO12_15_DATA);
     println!("inital GPIO 12-15 en/data {gpio12_15_en:08x}/{gpio12_15_data:08x}");
@@ -224,7 +223,6 @@ fn reset_phy() {
         init::GPIO12_15_DATA,
         (gpio12_15_data & 0xffff00ff) | (0x80 << 8),
     );
-    */
 }
 
 fn get_main_offset_and_size(slice: &[u8]) -> (usize, usize) {
@@ -365,8 +363,9 @@ fn main() {
     }
 
     // TODO: Does this help?
-    if false {
+    if true {
         reset_phy();
+        init::phy_cfg();
     }
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
