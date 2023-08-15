@@ -8,7 +8,7 @@ use starfive_visionfive2_lib::{clear_ipi, get_mtime, set_ipi, set_mtimecmp};
 const DEBUG: bool = true;
 const DEBUG_IPI: bool = true;
 const DEBUG_FENCE: bool = true;
-const DEBUG_TIMER: bool = false;
+const DEBUG_TIMER: bool = true;
 
 pub fn init() {
     init_pmp();
@@ -38,6 +38,9 @@ pub fn init() {
 
 // TODO: move out to SBI lib?
 fn init_pmp() {
+    // A: address matching; 0x01 means TOR (Top of range)
+    //  |  1    2      2   1  1  1
+    //     L    x      A   X  W  R
     let cfg = 0x0000_0000_000f_0f0f;
     reg::pmpaddr0::write(0x0000_0000_4000_0000 >> 2);
     reg::pmpaddr1::write(0x0000_0000_4020_0000 >> 2);
