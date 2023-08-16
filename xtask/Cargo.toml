@@ -17,5 +17,5 @@ log = "0.4"
 lzss = "0.9"
 pathdiff = "0.2"
 
+layoutflash = { path = "../src/lib/layoutflash" }
 oreboot_compression = { path = "../src/lib/compression" }
-layoutflash={path="../src/lib/layoutflash"}
