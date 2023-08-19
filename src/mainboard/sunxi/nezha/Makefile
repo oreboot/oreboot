@@ -12,6 +12,10 @@ XFEL       ?= xfel
 MEMADDR    ?= 0x40000000
 RELEASE    ?= --release
 
+MODE       ?= release
+BOOT0      ?= $(OREBOOT)/target/$(TARGET)/$(MODE)/oreboot-nezha-bt0.bin
+
+
 # FIXME: Those included Makefiles do not support the xtask build setup.
 # Rework or remove them. We may not even need them at all anymore.
 #include $(OREBOOT)/Makefile.inc
@@ -61,3 +65,7 @@ raminitandboot:
 felboot: mainboard raminitandboot
 
 felbootwithpayload: withpayload raminitandboot
+
+boot: mainboard
+	$(XFEL) write 0x20000 $(BOOT0)
+	$(XFEL) exec 0x20000
