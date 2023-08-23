@@ -39,13 +39,12 @@ pub fn init() {
 // TODO: move out to SBI lib?
 fn init_pmp() {
     // A: address matching; 0x01 means TOR (Top of range)
-    //  |  1    2      2   1  1  1
-    //     L    x      A   X  W  R
-    let cfg = 0x0000_0000_000f_0f0f;
-    reg::pmpaddr0::write(0x0000_0000_4000_0000 >> 2);
-    reg::pmpaddr1::write(0x0000_0000_4020_0000 >> 2);
-    reg::pmpaddr2::write(0x00ff_ffff_ffff_ffff >> 2);
-    reg::pmpaddr3::write(0);
+    // [ L  x  x  A1   A0  X  W  R ]
+    let cfg = 0x0000_0000_0f08_0f0f;
+    reg::pmpaddr0::write(0x0);
+    reg::pmpaddr1::write(0x0000_0000_4000_0000 >> 2);
+    reg::pmpaddr2::write(0x0000_0000_4020_0000 >> 2);
+    reg::pmpaddr3::write(0x00ff_ffff_ffff_ffff >> 2);
     reg::pmpaddr4::write(0);
     reg::pmpaddr5::write(0);
     reg::pmpaddr6::write(0);
