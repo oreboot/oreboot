@@ -242,7 +242,7 @@ fn main() {
     print_boot_mode();
     print_ids();
 
-    reset_phy();
+    // reset_phy();
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
