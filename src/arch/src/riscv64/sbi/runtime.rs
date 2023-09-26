@@ -14,7 +14,7 @@ use riscv::register::{
 
 const DEBUG: bool = true;
 const DEBUG_MTIMER: bool = false;
-const HANDLE_MISALIGNED: bool = true;
+const HANDLE_MISALIGNED: bool = false;
 
 // mideleg: 0x222
 // medeleg: 0xb151
