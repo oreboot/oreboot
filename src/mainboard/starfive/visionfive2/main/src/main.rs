@@ -177,17 +177,6 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 main");
 
-    if true {
-        println!("lzss compressed Linux:");
-        dump_block(LINUXBOOT_SRC_ADDR, 0x100, 0x20);
-    }
-
-    // TODO: this should not be necessary, decompress from flash directly
-    if false {
-        println!("Copy compressed Linux to DRAM... ⏳");
-        copy(LINUXBOOT_SRC_ADDR, LINUXBOOT_TMP_ADDR, LINUXBOOT_SRC_SIZE);
-    }
-
     println!("Copy DTB to DRAM... ⏳");
     copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
     check_dtb(DTB_ADDR);
