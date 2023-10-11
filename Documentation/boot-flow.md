@@ -48,13 +48,19 @@ In the second stage, we are all set, and depending on the platform, we could
 already run the final OS, a hypervisor, or any other payload. However, some
 platforms require extra steps. For this example, we will look at RISC-V.
 
-RISC-V describes [SBI](https://github.com/riscv-non-isa/riscv-sbi-doc), the
-Supervisor Binary Interface, in the [privileged spec](https://riscv.org/technical/specifications/). The role of SBI is to set up or
-delegate exception and interrupt handling, register functions for the OS to call
-into, and drop into a lower privileged mode named S-mode which makes an [MMU](https://en.wikipedia.org/wiki/Memory_management_unit) available, and finally
-execute the operating system. This is where we hand over to LinuxBoot, our
-boot loader environment. In oreboot, we implement SBI via [RustSBI](https://github.com/rustsbi/rustsbi), a Rust crate offering all the necessary
-functions we need as a library.
+RISC-V mentions SBI, the Supervisor Binary Interface, in the ISA spec Volume 2,
+[Privileged Specification](https://riscv.org/technical/specifications/). It now
+evolves as [SBI specifcation](https://github.com/riscv-non-isa/riscv-sbi-doc).
+
+The role of SBI is to set up or delegate exception and interrupt handling,
+register functions for the OS to call into, and drop into a lower privileged
+mode named S-mode. While having less access to the hardware, it makes an [MMU](https://en.wikipedia.org/wiki/Memory_management_unit) with [paged virtual memory](https://www.sifive.com/blog/all-aboard-part-9-paging-and-mmu-in-risc-v-linux-kernel)
+available. RISC-V complements this in the (UNIX-class) [platform specification](https://github.com/riscv/riscv-platform-spec).
+
+Finally, in S-mode, we execute the operating system. This is where we hand over
+to [LinuxBoot](https://linuxboot.org), our boot loader environment. In oreboot,
+we implement SBI via [RustSBI](https://github.com/rustsbi/rustsbi), a Rust crate
+offering all the necessary functions we need as a library.
 
 ### Stage 3: Payload (LinuxBoot)
 
@@ -67,6 +73,6 @@ embed [cpud](https://github.com/u-root/cpu) directly, or your own custom app.
 
 There are components on a compute platform that can be scanned for and detected
 by the operating system, and others that need a fixed description instead. Those
-can be passed to Linux and some other systems in the aforementioned [Device Treeformat](https://www.devicetree.org/). On RISC-V, the DTB needs to sit _behind_
+can be passed to Linux and some other systems in the aforementioned [Device Tree format](https://www.devicetree.org/). On RISC-V, the DTB needs to sit _behind_
 the Linux kernel, and its memory location passed via defined registers. On some
 platforms, e.g., x86, [ACPI](https://uefi.org/specs/ACPI/6.4/) is used instead.
