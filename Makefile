@@ -18,11 +18,13 @@ help:
 # Turn them all off. We'll turn them back on to try to get to working tests.
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
+# NOTE: These are the host utilities, requiring their own recent Rust version.
+RUST_VER := 1.73
 BINUTILS_VER := 0.3.6
-TARPAULIN_VER := 0.19.1
-DPRINT_VER := 0.40.2
+TARPAULIN_VER := 0.27.1
+DPRINT_VER := 0.41.0
 
-CARGOINST := rustup run --install 1.67 cargo install
+CARGOINST := rustup run --install $(RUST_VER) cargo install
 
 .PHONY: $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
