@@ -55,7 +55,7 @@ evolves as [SBI specifcation](https://github.com/riscv-non-isa/riscv-sbi-doc).
 The role of SBI is to set up or delegate exception and interrupt handling,
 register functions for the OS to call into, and drop into a lower privileged
 mode named S-mode. While having less access to the hardware, it makes an [MMU](https://en.wikipedia.org/wiki/Memory_management_unit) with [paged virtual memory](https://www.sifive.com/blog/all-aboard-part-9-paging-and-mmu-in-risc-v-linux-kernel)
-available. RISC-V complements this in the (UNIX-class) [platform specification](https://github.com/riscv/riscv-platform-spec).
+available. RISC-V complements this in the (UNIX-class) [platform specification](https://github.com/riscv/riscv-platform-specs).
 
 Finally, in S-mode, we execute the operating system. This is where we hand over
 to [LinuxBoot](https://linuxboot.org), our boot loader environment. In oreboot,
