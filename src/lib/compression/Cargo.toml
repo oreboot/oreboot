@@ -5,4 +5,5 @@ authors = ["oreboot authors"]
 edition = "2021"
 
 [dependencies]
-lzss = { version = "0.8", default-features = false }
+log = { path = "../log" }
+lzss = { version = "0.9", default-features = false }

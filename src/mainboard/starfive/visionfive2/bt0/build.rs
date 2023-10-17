@@ -7,12 +7,11 @@ const LINKERSCRIPT_FILENAME: &str = "link-visionfive2-bt0.ld";
 
 // NOTE: The SRAM is called "L2 LIM", documented here:
 // https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
-const FLASH: &[u8] = b"
+const LINKERSCRIPT: &[u8] = b"
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
     SRAM : ORIGIN = 0x08000000, LENGTH = 128k
-    # DRAM : ORIGIN = 0x80000000, LENGTH = 8G
 }
 SECTIONS {
     .head : {
@@ -51,7 +50,7 @@ fn main() {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
     File::create(out.join(LINKERSCRIPT_FILENAME))
         .unwrap()
-        .write_all(FLASH)
+        .write_all(LINKERSCRIPT)
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());
 }

@@ -13,8 +13,8 @@
             area@0 {
                 description = "Boot Blob";
                 compatible = "ore-bootblob";
-                size = <0x10000>; // 64k
-                file = "starfive-visionfive2-bt0.bin.normal.out";
+                size = <0x20000>; // 64k
+                file = "starfive-visionfive2-bt0.bin";
             };
             area@1 {
                 description = "Fixed DTFS";

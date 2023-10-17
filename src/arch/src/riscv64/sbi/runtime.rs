@@ -6,39 +6,62 @@ use core::{
 use log::println;
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
-    medeleg, mepc, mideleg, mie,
+    medeleg, mepc, mideleg, mie, mip,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
 };
 
-fn delegate_interrupt_exception() {
-    unsafe {
-        mideleg::set_sext();
-        mideleg::set_stimer();
-        mideleg::set_ssoft();
-        // p 35, table 3.6
-        medeleg::set_instruction_misaligned();
-        medeleg::set_instruction_fault();
-        // Do not medeleg::set_illegal_instruction();
-        // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
-        // medeleg::set_breakpoint();
+const DEBUG: bool = true;
+const DEBUG_MTIMER: bool = false;
+const HANDLE_MISALIGNED: bool = false;
+
+// mideleg: 0x222
+// medeleg: 0xb151
+// OpenSBI medeleg: 0xb109
+// NOTE: OpenSBI does not delegate store/load misaligned.
+// Pending patches for Linux allow for it to handle misaligned access itself.
+// If delegated, Linux may send a SIGBUS to userspace and dump if unhandled:
+// `status: 8000000200006020 badaddr: 0000000000d608e6 cause: 0000000000000006`
+// Exception 6 on RISC-V means "Store/AMO address misaligned".
+unsafe fn delegate_interrupt_exception() {
+    mip::clear_stimer();
+    mip::clear_sext();
+    mip::clear_ssoft();
+    mip::clear_utimer();
+    mip::clear_uext();
+    mip::clear_usoft();
+
+    mideleg::set_sext();
+    mideleg::set_stimer();
+    mideleg::set_ssoft();
+    // p 35, table 3.6
+    medeleg::set_instruction_misaligned();
+    medeleg::set_instruction_fault();
+    // Do not medeleg::set_illegal_instruction();
+    // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
+    medeleg::set_breakpoint();
+    if HANDLE_MISALIGNED {
+        medeleg::clear_load_misaligned();
+    } else {
         medeleg::set_load_misaligned();
-        medeleg::set_load_fault(); // PMP violation, shouldn't be hit
-        medeleg::set_store_misaligned();
-        medeleg::set_store_fault();
-        medeleg::set_user_env_call();
-        // Do not delegate env call from S-mode nor M-mode; we handle it :)
-        medeleg::set_instruction_page_fault();
-        medeleg::set_load_page_fault();
-        medeleg::set_store_page_fault();
-        mie::set_mext();
-        mie::set_mtimer();
-        mie::set_msoft();
-        mie::set_sext();
-        mie::set_stimer();
-        mie::set_ssoft();
     }
+    // load fault means PMP violation, shouldn't be hit
+    medeleg::set_load_fault();
+    if HANDLE_MISALIGNED {
+        medeleg::clear_store_misaligned();
+    } else {
+        medeleg::set_store_misaligned();
+    }
+    medeleg::set_store_fault();
+    medeleg::set_user_env_call();
+    // Do not delegate env call from S-mode nor M-mode; we handle it :)
+    medeleg::set_instruction_page_fault();
+    medeleg::set_load_page_fault();
+    medeleg::set_store_page_fault();
+    // mie::set_mext();
+    // mie::set_mtimer();
+    mie::set_msoft();
 }
 
 pub fn init() {
@@ -47,8 +70,10 @@ pub fn init() {
     if addr & 0x2 != 0 {
         addr += 0x2;
     }
+    println!("[SBI] set mtvec: {addr:x}");
     unsafe { mtvec::write(addr, TrapMode::Direct) };
-    delegate_interrupt_exception();
+    println!("[SBI] delegate interrupts and exceptions");
+    unsafe { delegate_interrupt_exception() };
 }
 
 pub struct Runtime {
@@ -85,13 +110,12 @@ impl Runtime {
 }
 
 // best debugging function on the planet
-fn crap() {
-    println!(
-        "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
-        mtval::read(),
-        mepc::read(),
-        mcause::read().cause()
-    );
+fn print_exception_interrupt() {
+    if DEBUG {
+        let cause = mcause::read().cause();
+        let epc = mepc::read();
+        println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
+    }
 }
 
 impl Generator for Runtime {
@@ -99,29 +123,56 @@ impl Generator for Runtime {
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> GeneratorState<Self::Yield, Self::Return> {
         unsafe { do_resume(&mut self.context as *mut _) };
+        let cause = mcause::read().cause();
+        // NOTE: Debugging highly frequent traps may get tons of logs.
+        // If necessary, add prints here, use a counter, apply modulo, etc..
+        match cause {
+            Trap::Interrupt(Interrupt::MachineTimer) => {}
+            Trap::Exception(Exception::SupervisorEnvCall) => {}
+            Trap::Exception(Exception::IllegalInstruction) => {}
+            _ => {
+                print_exception_interrupt();
+            }
+        }
         let mtval = mtval::read();
-        let trap = match mcause::read().cause() {
+        let trap = match cause {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
-            Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
-            Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
-            Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
-            Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
             Trap::Interrupt(Interrupt::MachineTimer) => {
-                println!("mtimer traaaaap");
-                crap();
+                if DEBUG_MTIMER {
+                    print_exception_interrupt();
+                }
                 MachineTrap::MachineTimer()
             }
             Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
+            Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
+            Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
+            Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
+            Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
+            Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
+            Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
             Trap::Exception(Exception::InstructionPageFault) => {
                 MachineTrap::InstructionPageFault(mtval)
             }
-            Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
-            Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
+            // NOTE: We intend to always delegate misaligned traps to S-mode.
+            // However, you may want to debug S-mode behavior and may wish to do
+            // a round-trip via M-mode. In that case, set `HANDLE_MISALIGNED`.
+            Trap::Exception(Exception::StoreMisaligned) => {
+                if HANDLE_MISALIGNED {
+                    println!("[SBI]: StoreMisaligned");
+                }
+                MachineTrap::StoreMisaligned(mtval)
+            }
+            Trap::Exception(Exception::LoadMisaligned) => {
+                if HANDLE_MISALIGNED {
+                    println!("[SBI]: LoadMisaligned");
+                }
+                MachineTrap::LoadMisaligned(mtval)
+            }
             e => panic!(
-                "unhandled exception: {:?}! mtval: {:#x?}, ctx: {:#x?}",
-                e, mtval, self.context
+                "[SBI] unhandled: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
+                self.context
             ),
         };
         GeneratorState::Yielded(trap)
@@ -142,6 +193,8 @@ pub enum MachineTrap {
     InstructionPageFault(usize),
     LoadPageFault(usize),
     StorePageFault(usize),
+    LoadMisaligned(usize),
+    StoreMisaligned(usize),
 }
 
 #[derive(Debug)]
@@ -223,6 +276,8 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
     )
 }
 
+/// # Safety
+/// YOLO
 #[naked]
 #[link_section = ".text"]
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
@@ -274,7 +329,8 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 }
 
 // 中断开始
-
+/// # Safety
+/// YOLO
 #[naked]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {

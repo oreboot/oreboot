@@ -13,17 +13,23 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
-const DEBUG: bool = false;
+
+const DEBUG: bool = true;
+const DEBUG_ECALL: bool = false;
+const DEBUG_MTIMER: bool = true;
+const DEBUG_EBREAK: bool = true;
+const DEBUG_EMULATE: bool = false;
+const DEBUG_ILLEGAL: bool = false;
+const DEBUG_MISALIGNED: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
-    let dbg = true;
     match method {
         0x023A_DC52 => {
             let mut val = 0;
             let mut err = 0;
             let csr = args[0];
-            if dbg {
-                println!("[rustsbi] read CSR {:x}", csr);
+            if DEBUG {
+                println!("[SBI] read CSR {:x}", csr);
             }
             match csr {
                 0x7c0 => unsafe {
@@ -42,8 +48,8 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
                     err = 1;
                 }
             }
-            if dbg {
-                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}", csr, val, err);
+            if DEBUG {
+                println!("[SBI] CSR {:x} is {:08x}, err {:x}", csr, val, err);
             }
             SbiRet {
                 value: val,
@@ -54,14 +60,32 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     }
 }
 
-fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
+// TODO: Check newer specs on out this should work
+fn putchar(_method: usize, args: [usize; 6]) -> SbiRet {
     let char = args[0] as u8 as char;
     print!("{char}");
     SbiRet { value: 0, error: 0 }
 }
 
-pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
-    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
+fn print_ecall_context(ctx: &mut SupervisorContext) {
+    if DEBUG && DEBUG_ECALL {
+        println!(
+            "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
+            ctx.a6, ctx.a7, ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5,
+        );
+    }
+}
+
+pub fn execute_supervisor(
+    supervisor_mepc: usize,
+    hartid: usize,
+    dtb_addr: usize,
+) -> (usize, usize) {
+    println!(
+        "[SBI] Enter supervisor on hart {hartid} at {:x} with DTB from {:x}",
+        supervisor_mepc, dtb_addr
+    );
+    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -74,9 +98,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        if ctx.a7 != LEGACY_CONSOLE_PUTCHAR && DEBUG {
-                            println!("[rustsbi] ecall {:x}", ctx.a6);
-                        }
+                        print_ecall_context(ctx);
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
                 };
@@ -95,13 +117,16 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 if ins as u16 == EBREAK {
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
-                    if DEBUG {
-                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
+                    if DEBUG_EBREAK {
+                        println!("[SBI] Take an EBREAK! {ctx:#04X?}");
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_illegal_instruction(ctx, ins) {
+                } else if !emulate_instruction(ctx, ins) {
+                    if DEBUG_ILLEGAL {
+                        println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
+                    }
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
@@ -109,29 +134,39 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                                 Trap::Exception(Exception::IllegalInstruction),
                             )
                         } else {
-                            println!("[rustsbi] Na na na! {:#04X?}", ctx);
+                            println!("[SBI] Na na na! {ctx:#04X?}");
                             fail_illegal_instruction(ctx, ins)
                         }
                     }
                 }
             }
-            // NOTE: These are all delegated.
-            GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
-                if DEBUG {
-                    println!("M timer int");
+                if DEBUG && DEBUG_MTIMER {
+                    println!("[SBI] M-timer interrupt");
                 }
                 unsafe {
                     mip::set_stimer();
                 }
             }
+            GeneratorState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {
+                if DEBUG && DEBUG_MISALIGNED {
+                    println!("[SBI]: load misaligned");
+                }
+            }
+            GeneratorState::Yielded(MachineTrap::StoreMisaligned(addr)) => {
+                if DEBUG && DEBUG_MISALIGNED {
+                    println!("[SBI]: store misaligned");
+                }
+            }
+            // NOTE: These are all delegated.
+            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
+            GeneratorState::Yielded(MachineTrap::StoreFault(_addr)) => {}
+            GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             GeneratorState::Yielded(MachineTrap::MachineSoft()) => {}
             GeneratorState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::StoreFault(_addr)) => {}
             GeneratorState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
             GeneratorState::Complete(()) => unreachable!(),
         }
@@ -156,7 +191,10 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     ans
 }
 
-fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+    if DEBUG && DEBUG_EMULATE {
+        println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
+    }
     if feature::emulate_rdtime(ctx, ins) {
         return true;
     }
@@ -168,5 +206,6 @@ fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool 
 
 // Real illegal instruction happening in M-mode
 fn fail_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> ! {
-    panic!("invalid instruction from machine level, mepc: {:016x?}, instruction: {:016x?}, context: {:016x?}", ctx.mepc, ins, ctx);
+    let mepc = ctx.mepc;
+    panic!("[SBI] invalid instruction from M-mode, mepc: {mepc:016x?}, instruction: {ins:016x?}, context: {ctx:016x?}");
 }

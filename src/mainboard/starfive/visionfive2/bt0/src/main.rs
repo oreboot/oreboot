@@ -10,9 +10,9 @@ extern crate layoutflash;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
-use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
+use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
 use uart::JH71XXSerial;
 
 use fdt::Fdt;
@@ -28,35 +28,15 @@ mod uart;
 
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
 
+// NOTE: JH, as in JH71x0, is short for JingHong, a city in Yunnan
+// https://en.wikipedia.org/wiki/Jinghong
+
 // The SRAM is called LIM, LooselyIntegrated Memory
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
+
 const DRAM_BASE: usize = 0x4000_0000;
-
-// see also SiFive VICU7 manual chapter 6 (p 31)
-const CLINT_BASE_ADDR: usize = 0x0200_0000;
-const CLINT_HART1_MSIP: usize = CLINT_BASE_ADDR + 0x0004;
-const CLINT_HART2_MSIP: usize = CLINT_BASE_ADDR + 0x0008;
-const CLINT_HART3_MSIP: usize = CLINT_BASE_ADDR + 0x000c;
-const CLINT_HART4_MSIP: usize = CLINT_BASE_ADDR + 0x0010;
-
-// see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
-const SPI_FLASH_BASE: usize = 0x2100_0000;
-
-const DRAM_BLOB_BASE: usize = SPI_FLASH_BASE + 0x0001_0000;
-const PAYLOAD_BASE: usize = SPI_FLASH_BASE + 0x0004_0000;
-
-const MAIN_BLOB_BASE: usize = SRAM0_BASE + 30 * 1024;
-const MAIN_BLOB_SIZE: usize = 2 * 1024;
-
-const DTB_ADDR: usize = DRAM_BASE + 0x0020_0000 + 0x0100_0000; // TODO
-const LOAD_ADDR: usize = DRAM_BASE + 0x0002_0000;
-const LOAD_MAIN: bool = false;
-
-const QSPI_XIP_BASE: usize = 0x2100_0000;
-const LOAD_FROM_FLASH: bool = true;
-const DEBUG: bool = false;
 
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
@@ -88,10 +68,11 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
+        "li     a1, 1",
         "csrr   a0, mhartid",
         "bne    a0, a1, .nonboothart",
         // 2. prepare stack
+        // FIXME: each hart needs its own stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
@@ -100,6 +81,7 @@ pub unsafe extern "C" fn start() -> ! {
         ".nonboothart:",
         "csrw   mie, 8", // 1 << 3
         "wfi",
+        "csrw   mip, 0",
         "call   {payload}",
         ".boothart:",
         "call   {reset}",
@@ -135,12 +117,6 @@ pub unsafe extern "C" fn reset() {
     // Call user entry point
     main();
 }
-
-/*
-fn spi_flash_init() {
-    unsafe { write_volatile(QSPI_READ_CMD as *mut u32, SPI_FLASH_READ_CMD) };
-}
-*/
 
 // 0: SPI, 1: MMC2, 2: MMC1, 3: UART
 const MODE_SELECT_REG: usize = 0x1702_002c;
@@ -218,6 +194,22 @@ fn init_logger(s: JH71XXSerial) {
     }
 }
 
+// GPIO 13 is GMAC PHY reset (negative?)
+fn reset_phy() {
+    let gpio12_15_en = read32(init::GPIO12_15_EN);
+    let gpio12_15_data = read32(init::GPIO12_15_DATA);
+    println!("inital GPIO 12-15 en/data {gpio12_15_en:08x}/{gpio12_15_data:08x}");
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x81 << 8),
+    );
+    unsafe { sleep(0x0004_0000) };
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x80 << 8),
+    );
+}
+
 #[no_mangle]
 fn main() {
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
@@ -230,122 +222,50 @@ fn main() {
     init::clk_bus_root();
     init::clocks();
 
+    init::phy_cfg();
+
     // set GPIO to 3.3V
     write32(init::SYS_SYSCON_12, 0x0);
 
     // enable is active low
-    // write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
-    // write32(init::GPIO40_43_DATA, 0x8181_8181);
-    // blink();
+    if false {
+        write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
+        write32(init::GPIO40_43_DATA, 0x8181_8181);
+        unsafe { blink() }
+    }
 
     // TX/RX are GPIOs 5 and 6
     write32(init::GPIO04_07_EN, 0xc0c0_c0c0);
     let mut s = JH71XXSerial::new();
     init_logger(s);
-    println!("oreboot 🦀");
+    println!("oreboot 🦀 bt0");
     print_boot_mode();
     print_ids();
+
+    // reset_phy();
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
     // init::clk_apb_func();
     dram::init();
 
-    // TODO: use this when we put Linux in flash etc
-    println!("Copy payload... ⏳");
-    let mut dtb: usize = 0;
-    if LOAD_FROM_FLASH {
-        let base = QSPI_XIP_BASE;
-        // let size = 0x0100_0000; // 16M
-        let size = 0x0020_0000; // occupied space
-        let dram = DRAM_BASE;
-        // let's find the dtb
+    const MAIN_BLOB_BASE: usize = SRAM0_BASE + 32 * 1024;
+    const MAIN_BLOB_SIZE: usize = 64 * 1024;
 
-        let slice = unsafe {
-            let pointer = transmute(SRAM0_BASE);
-            // The `slice` function creates a slice from the pointer.
-            unsafe { core::slice::from_raw_parts(pointer, size) }
-        };
-        let fdt = find_fdt(slice);
-        match fdt {
-            Err(_) => {
-                println!(
-                    "Could not find an FDT between {:?} and {:?}",
-                    SRAM0_BASE,
-                    SRAM0_BASE + size
-                );
-            }
-            Ok(f) => {
-                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
-                let it = &mut f.find_all_nodes("/flash-info/areas");
-                let a = FdtIterator::new(it);
-                for aa in a {
-                    for c in aa.children() {
-                        for p in c.properties() {
-                            match p.name {
-                                "size" => {
-                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
-                                }
-                                _ => {
-                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    // TODO: Scan SRAM for oreboot dtb
+    let main_size_k = MAIN_BLOB_SIZE / 1024;
+    println!("Copy {main_size_k}k main stage to DRAM... ⏳");
+    for b in (0..MAIN_BLOB_SIZE).step_by(4) {
+        write32(DRAM_BASE + b, read32(MAIN_BLOB_BASE + b));
+        if b % 1024 == 0 {
+            print!(".");
         }
-
-        for b in (0..size).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        let size = 0x0010_0000; // occupied space
-        let base = QSPI_XIP_BASE + 0x0030_00d4; // first 0xd4 is just 0-bytes
-        let target = DRAM_BASE + 0x0020_0000;
-        for b in (0..size).step_by(4) {
-            write32(target + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        println!(" done.");
-        if DEBUG {
-            println!("Start:");
-            dump_block(dram, 0x100, 0x20);
-            println!("Presumably JH7110 recovery:");
-            dump_block(dram + 0x0002_0000, 0x100, 0x20);
-            println!("DTB:");
-            dump_block(dram + 0x0010_0000, 0x100, 0x20);
-            println!("Something:");
-            dump_block(dram + 0x0020_0000, 0x100, 0x20);
-        }
-    } else {
-        let base = 0x0800_0000 + 32 * 1024;
-        let dram = DRAM_BASE;
-        for b in (0..0x100).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        println!("Payload:");
-        dump_block(dram, 0x20, 0x20);
     }
+    println!(" done.");
+    println!("Jump to main stage...");
+    println!();
 
-    println!("lzss compressed Linux");
-    dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
-
-    println!("release non-boot harts =====\n");
-    write32(CLINT_HART1_MSIP, 0x1);
-    write32(CLINT_HART2_MSIP, 0x1);
-    write32(CLINT_HART3_MSIP, 0x1);
-    write32(CLINT_HART4_MSIP, 0x1);
-
-    println!("Jump to payload... with dtb {dtb:#x}");
-    exec_payload(dtb);
+    exec_payload();
     println!("Exit from payload, resetting...");
     unsafe {
         sleep(0x0100_0000);
@@ -354,23 +274,17 @@ fn main() {
     };
 }
 
-fn exec_payload(dtb: usize) {
-    let load_addr = if LOAD_FROM_FLASH {
-        // U-Boot proper expects to be loaded here
-        // see SYS_TEXT_BASE in U-Boot config
-        DRAM_BASE + 0x0020_0000
-    } else {
-        DRAM_BASE
-    };
-    // println!("Payload @{load_addr:08x}");
-
+fn exec_payload() {
     let hart_id = mhartid::read();
-    // U-Boot proper
+    let load_addr = DRAM_BASE;
+    if hart_id == 1 {
+        println!("Payload @{load_addr:08x}");
+    }
+    udelay(150000);
     unsafe {
-        // jump to payload
-        let f = transmute::<usize, EntryPoint>(load_addr);
+        let f: fn() = transmute(load_addr);
         asm!("fence.i");
-        f(hart_id, dtb);
+        f();
     }
 }
 

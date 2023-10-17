@@ -4,12 +4,13 @@ use crate::project_root;
 use crate::{Commands, Env, Memory};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use log::{error, info, trace};
-use lzss::Lzss;
 use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::io::{self, ErrorKind, Seek, SeekFrom};
 use std::process::{self, Command, Stdio};
+
+use oreboot_compression::OreLzss;
 
 pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     match args.command {
@@ -219,17 +220,9 @@ fn align_up_to(len: u64, target_align: u64) -> u64 {
 }
 
 const IMG_SIZE: u64 = 16 * 1024 * 1024;
-const EI: usize = 12; // offset bits
-const MAX_COMPRESSED_SIZE: usize = 0xc00000;
+const MAX_COMPRESSED_SIZE: usize = 0x00d0_0000;
 
 fn xtask_concat_flash_binaries(env: &Env) {
-    // offset_bits aka EI, usually 10..13
-    // length_bits aka EJ, usually 4..5
-    // buf_fill_byte (often 0x20, space) - should we use 0x00, zero byte?
-    // decompress_buf_size, always 1 << EI
-    // compress_buf_size, always 2 << EI
-    type MyLzss = Lzss<EI, 4, 0x00, { 1 << EI }, { 2 << EI }>;
-
     let dist_dir = dist_dir(env, DEFAULT_TARGET);
     let mut bt0_file = File::options()
         .read(true)
@@ -290,7 +283,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
                 .seek(SeekFrom::Start(bt0_len + payloader_len + dtfs_len))
                 .expect("seek after payloader copy");
             let mut compressed = vec![0; MAX_COMPRESSED_SIZE];
-            let result = MyLzss::compress(
+            let result = OreLzss::compress(
                 lzss::SliceReader::new(&payload),
                 lzss::SliceWriter::new(&mut compressed),
             );
