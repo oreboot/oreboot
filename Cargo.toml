@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 # in general, avoid wildcards, to make sure we get only what we want.
 members = [
   "src/arch",
