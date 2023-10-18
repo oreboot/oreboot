@@ -6,69 +6,63 @@ const DEBUG: bool = false;
 const DEBUG_RDCYCLE: bool = true;
 const DEBUG_RDTIME: bool = false;
 
-// 0x4102573
+const RDINS_MASK: usize = 0xFFFF_F07F;
+const RDTIME_INST: usize = 0xC010_2073;
+const RDCYCLE_INST: usize = 0xC000_2073;
+
+// FIXME: DO NOT HARDCODE; use sbi crate definitions etc
+const CLINT_BASE_JH7110: usize = 0x0200_0000;
+const CLINT_MTIMER_OFFSET: usize = 0xbff8;
 
 pub fn read32(reg: usize) -> u32 {
     unsafe { core::ptr::read_volatile(reg as *mut u32) }
 }
 
-const CLINT_BASE: usize = 0x0200_0000;
-const CLINT_MTIMER: usize = CLINT_BASE + 0xbff8;
-fn get_mtime() -> u64 {
-    let l = read32(CLINT_MTIMER) as u64;
-    let h = read32(CLINT_MTIMER + 4) as u64;
+fn get_mtime(clint_base: usize) -> u64 {
+    let mtimer = clint_base + CLINT_MTIMER_OFFSET;
+    let l = read32(mtimer) as u64;
+    let h = read32(mtimer + 4) as u64;
     (h << 32) | l
 }
 
-/*
-
-[SBI] DEBUG: instruction 0xc0102573 at 0xffffffff80406e2e: Exception(IllegalInstruction)
-[    0.007642] sched_clock: 64 bits at 4MHz, resolution 250ns, wraps every 2199023255500ns
-[SBI] DEBUG: instruction 0xc01027f3 at 0xffffffff80406f5a: Exception(IllegalInstruction)
-[SBI] DEBUG: instruction 0xc0102573 at 0x0000000040003f86: Exception(IllegalInstruction)
-[SBI] DEBUG: instruction 0xc0102573 at 0x0000000040003f8a: Exception(IllegalInstruction)
-[SBI] DEBUG: instruction 0x0000000c at 0x000000000000000c: Exception(InstructionFault)
-
-*/
-
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
-    //  c0002573     rdcycle a0
-    if ins & 0xFFFFF07F == 0xC0002073 {
-        if DEBUG && DEBUG_RDCYCLE {
-            println!("[SBI] rdcycle");
+    match ins & RDINS_MASK {
+        RDCYCLE_INST => {
+            //  c0002573     rdcycle a0
+            let reg = ((ins >> 7) & 0b1_1111) as u8;
+            if DEBUG && DEBUG_RDCYCLE {
+                println!("[SBI] rdcycle {ins:08x} ({reg})");
+            }
+            let cycle_usize = cycle::read64() as usize;
+            set_register_xi(ctx, reg, cycle_usize);
+            // skip current instruction, 4 bytes
+            ctx.mepc = ctx.mepc.wrapping_add(4);
+            if DEBUG && DEBUG_RDCYCLE {
+                println!("[SBI] rdcycle {cycle_usize:x}");
+            }
+            true
         }
-        let rd = ((ins >> 7) & 0b1_1111) as u8;
-        let cycle_usize = cycle::read64() as usize;
-        set_register_xi(ctx, rd, cycle_usize);
-        // skip current instruction, 4 bytes
-        ctx.mepc = ctx.mepc.wrapping_add(4);
-        if DEBUG && DEBUG_RDCYCLE {
-            println!("[SBI] rdcycle {cycle_usize:x}");
+        RDTIME_INST => {
+            //  c0102573     rdtime  a0    (reg = 10)
+            //  c01027f3     rdtime  a5    (reg = 15)
+            // rdtime is actually a csrrw instruction
+            let reg = ((ins >> 7) & 0b1_1111) as u8;
+            if DEBUG && DEBUG_RDTIME {
+                println!("[SBI] rdtime {ins:08x} ({reg})");
+            }
+            // let mtime = riscv::register::time::read64();
+            let mtime = get_mtime(CLINT_BASE_JH7110);
+            let time_usize = mtime as usize;
+            set_register_xi(ctx, reg, time_usize);
+            // skip current instruction, 4 bytes
+            ctx.mepc = ctx.mepc.wrapping_add(4);
+            if DEBUG && DEBUG_RDTIME {
+                println!("[SBI] rdtime {time_usize:x}");
+            }
+            true
         }
-        true
-    }
-    // TODO: IS THIS CORRECT? Linux calls rdtime a *lot*.
-    //  c0102573     rdtime  a0
-    //  c01027f3     rdtime  a5
-    else if ins & 0xFFFFF07F == 0xC0102073 {
-        if DEBUG && DEBUG_RDTIME {
-            println!("[SBI] rdtime");
-        }
-        // rdtime is actually a csrrw instruction
-        let rd = ((ins >> 7) & 0b1_1111) as u8;
-        // let mtime = riscv::register::time::read64();
-        let mtime = get_mtime();
-        let time_usize = mtime as usize;
-        set_register_xi(ctx, rd, time_usize);
-        // skip current instruction, 4 bytes
-        ctx.mepc = ctx.mepc.wrapping_add(4);
-        if DEBUG && DEBUG_RDTIME {
-            println!("[SBI] rdtime {time_usize:x}");
-        }
-        true
-    } else {
-        false // is not a rdtime instruction
+        _ => false, // is not an rdXXX instruction
     }
 }
 
