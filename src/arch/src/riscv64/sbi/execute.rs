@@ -145,23 +145,23 @@ pub fn execute_supervisor(
                 if DEBUG && DEBUG_MTIMER {
                     println!("[SBI] M-timer interrupt");
                 }
-                unsafe {
-                    mip::set_stimer();
-                }
+                unsafe { mip::set_stimer() };
             }
             CoroutineState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {
                 if DEBUG && DEBUG_MISALIGNED {
-                    println!("[SBI]: load misaligned");
+                    println!("[SBI] Load misaligned");
                 }
             }
-            CoroutineState::Yielded(MachineTrap::StoreMisaligned(addr)) => {
+            CoroutineState::Yielded(MachineTrap::StoreMisaligned(_addr)) => {
                 if DEBUG && DEBUG_MISALIGNED {
-                    println!("[SBI]: store misaligned");
+                    println!("[SBI] Store misaligned");
                 }
             }
             // NOTE: These are all delegated.
             CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::StoreFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::StoreFault(addr)) => {
+                println!("[SBI]   Attemped to store to ${addr:16x}");
+            }
             CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
             CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}

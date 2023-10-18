@@ -1,6 +1,6 @@
 use core::arch::asm;
 use log::println;
-use riscv::register::{self as reg, mhartid, mie, mip};
+use riscv::register::{self as reg, mhartid, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 use starfive_visionfive2_lib::{clear_ipi, get_mtime, set_ipi, set_mtimecmp};
@@ -53,6 +53,26 @@ fn init_pmp() {
     reg::pmpcfg0::write(cfg);
     reg::pmpcfg2::write(0); // nothing active here
 }
+
+/*
+
+U74-MC core manual 21G3.02.00 p 169f
+
+### 8.7.6 Minimum Interrupt Configuration
+
+The minimum configuration needed to configure an interrupt is shown below.
+
+- Write `mtvec` to configure the interrupt mode and the base address for the
+  interrupt vector table.
+- Enable interrupts in memory-mapped PLIC register space. The CLINT does not
+  contain interrupt enable bits.
+- Write `mie` CSR to enable the software, timer, and external interrupt enables
+  for each privilege mode.
+- Write `mstatus` to enable interrupts globally for each supported privilege
+  mode.
+
+*/
+// TODO: Enable PLIC interrupts, see above
 
 // FIXME: copied from nezha, does this work similar for U7/JH7110?!
 // At least this hangs / crash as it is, can't even read the CSR.
@@ -132,6 +152,7 @@ impl rustsbi::Fence for Rfence {
     }
 }
 
+// see https://github.com/rustsbi/rustsbi-d1/blob/main/see/src/extensions.rs
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
@@ -143,19 +164,8 @@ impl rustsbi::Timer for Timer {
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] timer is set...");
         }
-        // let time = riscv::register::time::read64();
-        let time = get_mtime();
-        unsafe {
-            if time > stime_value {
-                mie::clear_stimer();
-                mip::set_stimer();
-            } else {
-                // clear any pending timer and reenable the interrupt
-                mip::clear_stimer();
-                mie::set_stimer();
-                // mie::set_mtimer();
-            }
-        };
+        // clear any pending timer
+        unsafe { mip::clear_stimer() };
     }
 }
 
