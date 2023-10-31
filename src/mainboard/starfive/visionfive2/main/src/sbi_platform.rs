@@ -40,7 +40,8 @@ pub fn init() {
 fn init_pmp() {
     // A: address matching; 0x01 means TOR (Top of range)
     // [ L  x  x  A1   A0  X  W  R ]
-    let cfg = 0x0000_0000_0f08_0f0f;
+    // let cfg = 0x0000_0000_0f08_0f0f;
+    let cfg = 0x0000_0000_0f0f_0f0f;
     reg::pmpaddr0::write(0x0);
     reg::pmpaddr1::write(0x0000_0000_4000_0000 >> 2);
     reg::pmpaddr2::write(0x0000_0000_4020_0000 >> 2);
