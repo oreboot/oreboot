@@ -12,7 +12,9 @@ use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     gpio::{
         portb::{PB8, PB9},
-        portc, Function, Gpio, Pin,
+        portc,
+        porte::{PE2, PE3},
+        Function, Gpio, Pin,
     },
     jtag::Jtag,
     pac::{Peripherals, SMHC0, SPI0, UART0},
@@ -437,6 +439,9 @@ fn trim_bandgap_ref_voltage() {
     unsafe { write_volatile(AC_SMTH as *mut u32, (val & 0xffffff00) | bg_trim) };
 }
 
+#[cfg(feature = "f133")]
+type Serial = D1Serial<UART0, uart::Pins_E2_E3>;
+#[cfg(any(feature = "lichee", feature = "nezha"))]
 type Serial = D1Serial<UART0, uart::Pins_B8_B9>;
 
 fn init_logger(s: Serial) {
@@ -457,16 +462,33 @@ extern "C" fn main() {
         psi: 600_000_000.hz(),
         apb1: 24_000_000.hz(),
     };
+
+    /*
+    let g = &p.GPIO;
+    g.pe_cfg0
+        .write(|w| w.pe2_select().uart0_tx().pe3_select().uart0_rx());
+    g.pe_pull0
+        .write(|w| w.pe2_pull().pull_up().pe3_pull().pull_up());
+    */
+
     let gpio = Gpio::new(p.GPIO);
 
     // light up led
+    /*
     let mut pb5 = gpio.portb.pb5.into_output();
     pb5.set_high().unwrap();
     let mut pc1 = gpio.portc.pc1.into_output();
     pc1.set_high().unwrap();
+    */
 
     // prepare serial port logger
+    #[cfg(feature = "f133")]
+    let tx = gpio.porte.pe2.into_function_6();
+    #[cfg(feature = "f133")]
+    let rx = gpio.porte.pe3.into_function_6();
+    #[cfg(any(feature = "lichee", feature = "nezha"))]
     let tx = gpio.portb.pb8.into_function_6();
+    #[cfg(any(feature = "lichee", feature = "nezha"))]
     let rx = gpio.portb.pb9.into_function_6();
     let config = Config {
         baudrate: 115200.bps(),
@@ -474,16 +496,15 @@ extern "C" fn main() {
         parity: Parity::None,
         stopbits: StopBits::One,
     };
-    let serial = D1Serial::new(p.UART0, (tx, rx), config, &clocks);
-    init_logger(serial);
-
-    println!("oreboot 🦀");
+    init_logger(D1Serial::new(p.UART0, (tx, rx), config, &clocks));
+    println!();
+    println!("oreboot 🦀 bt0");
 
     // FIXME: Much of the below can be removed or moved over to the main stage.
     trim_bandgap_ref_voltage();
 
     let mut cpu_pll = unsafe { read_volatile(PLL_CPU_CTRL as *mut u32) };
-    println!("cpu_pll {:x}", cpu_pll); // 0xFA00_1000
+    println!("cpu_pll {cpu_pll:x}"); // 0xFA00_1000
     cpu_pll &= 0xFFFF_00FF;
     cpu_pll |= PLL_EN | PLL_N;
     unsafe { write_volatile(PLL_CPU_CTRL as *mut u32, cpu_pll) };

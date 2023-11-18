@@ -208,6 +208,10 @@ define_gpio! {
         PD21: (pd21, 21, Disabled), ("PD21", "V18"), ("LCD0-VSYNC", "TWI2-SDA", "UART1-TX", "PWM5", x, x, x),
         PD22: (pd22, 22, Disabled), ("PD22", "Y18"), ("OWA-OUT", "IR-RX", "UART1-RX", "PWM7", x, x, x),
     ]
+    PortE, porte, 'E', [
+        PE2:  (pe2,   2, Disabled), ("PE2",  "???"), ("DMIC-DATA3", "PWM5", "TWI2-SCK", "SPI1-HOLD/DBI-DCX/DBI-WRX", "UART0-TX", "UART1-TX", x),
+        PE3:  (pe3,   3, Disabled), ("PE3",  "???"), ("DMIC-DATA2", "PWM6", "TWI2-SDA", "SPI1-MISO/DBI-SDI/DBI-TE/DBI-DCX", "UART0-RX", "UART1-RX", x),
+    ]
     PortF, portf, 'F', [
         PF0: (pf0, 0, Disabled), ("PF0", "C2"), ("SDC0-D1", "JTAG-MS", "R-JTAG-MS", "I2S2-DOUT1", "I2S2-DIN0", x, x),
         PF1: (pf1, 1, Disabled), ("PF1", "C1"), ("SDC0-D0", "JTAG-DI", "R-JTAG-DI", "I2S2-DOUT0", "I2S2-DIN1", x, x),
