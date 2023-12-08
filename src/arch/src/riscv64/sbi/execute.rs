@@ -22,8 +22,6 @@ const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
 const DEBUG_MISALIGNED: bool = true;
 
-const D1_PLIC_BASE: usize = 0x1000_0000;
-
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
         0x023A_DC52 => {

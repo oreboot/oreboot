@@ -7,7 +7,7 @@ use rustsbi::HartMask;
 
 const DEBUG: bool = true;
 const DEBUG_IPI: bool = true;
-const DEBUG_FENCE: bool = true;
+const DEBUG_FENCE: bool = false;
 const DEBUG_TIMER: bool = true;
 
 pub fn init() {
@@ -125,10 +125,6 @@ impl rustsbi::Fence for Rfence {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        let time: u64;
-        unsafe {
-            asm!("csrr {}, time", out(reg) time);
-        }
         if DEBUG && DEBUG_TIMER {
             println!("[SBI] setTimer {stime_value}");
         }
