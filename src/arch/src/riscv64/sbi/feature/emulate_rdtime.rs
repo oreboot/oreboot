@@ -46,14 +46,20 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) ->
             if DEBUG && DEBUG_RDTIME {
                 println!("[SBI] rdtime {ins:08x} ({reg})");
             }
-            // let mtime = riscv::register::time::read64();
+            /*
+            let time: u64;
+            unsafe {
+                asm!("csrr {}, time", out(reg) time);
+            }
+            */
             let mtime = get_mtime(mtimer);
+            let mtime = riscv::register::time::read64();
             let time_usize = mtime as usize;
             set_register_xi(ctx, reg, time_usize);
             // skip current instruction, 4 bytes
             ctx.mepc = ctx.mepc.wrapping_add(4);
             if DEBUG && DEBUG_RDTIME {
-                println!("[SBI] rdtime {time_usize:x}");
+                println!("[SBI] rdtime {mtimer:08x}: {time_usize} ({mtime})");
             }
             true
         }
