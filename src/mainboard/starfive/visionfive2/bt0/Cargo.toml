@@ -16,3 +16,12 @@ spin = "0.9"
 
 layoutflash = { path = "../../../../lib/layoutflash" }
 log = { path = "../../../../lib/log" }
+
+[dependencies.jh71xx-pac]
+git = "https://github.com/rmsyn/jh71xx-pac"
+version = "0.2"
+
+[features]
+default = ["12a"]
+12a = ["jh71xx-pac/visionfive2-12a"]
+13b = ["jh71xx-pac/visionfive2-13b"]
