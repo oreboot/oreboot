@@ -178,10 +178,12 @@ pub fn clk_apb0() {
 }
 
 pub fn clk_ddrc_axi(on: bool) {
-    let v = if on { DDR_AXI_ON } else { DDR_AXI_OFF };
-    let ddr_axi = read32(CLK_U0_DDR_AXI);
-    println!("ddr_axi {ddr_axi:x}");
-    write32(CLK_U0_DDR_AXI, ddr_axi & !(1 << 31) | v);
+    syscrg_reg().clk_u0_ddr_axi().modify(|r, w| {
+        let ddr_axi = r.bits();
+        println!("ddr_axi {ddr_axi:x}");
+
+        w.clk_icg().variant(on)
+    });
 }
 
 pub fn clk_ddrc_osc_div2() {
