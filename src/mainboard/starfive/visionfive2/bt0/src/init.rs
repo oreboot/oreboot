@@ -162,12 +162,19 @@ pub fn clocks() {
 }
 
 pub fn clk_apb0() {
-    let clk = read32(CLK_APB0);
-    println!("apb0 {clk:x}");
-    write32(CLK_APB0, 0); // try a reset
-    write32(CLK_APB0, clk | CLK_ICG_ON);
-    let clk = read32(CLK_APB0);
-    println!("apb0 {clk:x}");
+    syscrg_reg().clk_apb0().modify(|r, w| {
+        let clk = r.bits();
+        println!("apb0 {clk:x}");
+
+        // try a reset
+        w.clk_icg().clear_bit();
+        w.clk_icg().set_bit();
+
+        let clk = r.bits();
+        println!("apb0 {clk:x}");
+
+        w
+    });
 }
 
 pub fn clk_ddrc_axi(on: bool) {
