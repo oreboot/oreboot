@@ -106,39 +106,40 @@ const SYSCON44_PLL1_PREDIV_MASK: u32 = !0x0000_003f; // 0-5
 // PLL1: 00b02603 55e00000 00c7a601
 // PLL1: 042a2603 41e00000 00c7a601
 pub fn pll1_set_freq(f: PllFreq) {
-    let v1 = read32(init::SYS_SYSCON_36);
-    let v2 = read32(init::SYS_SYSCON_40);
-    let v3 = read32(init::SYS_SYSCON_44);
-    println!("PLL1: {v1:08x} {v2:08x} {v3:08x}");
-    let pd = read32(init::SYS_SYSCON_40) & PD_MASK;
-    write32(init::SYS_SYSCON_40, pd | PD_OFF << 27);
+    let syscon = sys_syscon_reg();
 
-    let v = read32(init::SYS_SYSCON_36) & SYSCON36_PLL1_DACPD_MASK;
-    write32(init::SYS_SYSCON_36, v | f.dacpd << 15);
-    let v = read32(init::SYS_SYSCON_36) & SYSCON36_PLL1_DSMPD_MASK;
-    write32(init::SYS_SYSCON_36, v | f.dsmpd << 16);
+    let v1 = syscon.sys_syscfg_9().read().bits();
+    let v2 = syscon.sys_syscfg_8().read().bits();
+    let v3 = syscon.sys_syscfg_11().read().bits();
+    println!("PLL1: {v1:08x} {v2:08x} {v3:08x}");
+
+    // Turn off PD by setting the bit 
+    syscon.sys_syscfg_10().modify(|_, w| w.pll1_pd().set_bit());
+
+    syscon.sys_syscfg_9().modify(|_, w| {
+        w.pll1_dacpd().variant(f.dacpd !=0).pll1_dsmpd().variant(f.dsmpd != 0)
+    });
 
     let frac = 0xe00000;
-    let v = read32(init::SYS_SYSCON_40) & SYSCON40_PLL1_FRAC_MASK;
-    write32(init::SYS_SYSCON_40, v | frac);
+    syscon.sys_syscfg_10().modify(|_, w| w.pll1_frac().variant(frac));
 
-    let v = read32(init::SYS_SYSCON_44) & SYSCON44_PLL1_PREDIV_MASK;
-    write32(init::SYS_SYSCON_44, v | f.prediv);
+    syscon.sys_syscfg_11().modify(|_, w| w.pll1_prediv().variant(f.prediv as u8));
 
-    let v = read32(init::SYS_SYSCON_36) & SYSCON36_PLL1_FBDIV_MASK;
-    write32(init::SYS_SYSCON_36, v | f.fbdiv << 17);
+    syscon.sys_syscfg_9().modify(|_, w| w.pll1_fbdiv().variant(f.fbdiv as u16));
 
     let v = read32(init::SYS_SYSCON_40) & SYSCON40_PLL1_POSTDIV1_MASK;
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
     // to 0 here.
-    write32(init::SYS_SYSCON_40, v | ((f.postdiv1 >> 1) << 28));
+    syscon.sys_syscfg_10().modify(|_, w|{ 
+        w.pll1_postdiv1().variant((f.postdiv1 >> 1) as u8);
+        // Turn on PD by clearing the bit 
+        w.pll1_pd().clear_bit()
+    });
 
-    let pd = read32(init::SYS_SYSCON_40) & PD_MASK;
-    write32(init::SYS_SYSCON_40, pd | PD_ON << 27);
-    let v1 = read32(init::SYS_SYSCON_36);
-    let v2 = read32(init::SYS_SYSCON_40);
-    let v3 = read32(init::SYS_SYSCON_44);
+    let v1 = syscon.sys_syscfg_9().read().bits();
+    let v2 = syscon.sys_syscfg_10().read().bits();
+    let v3 = syscon.sys_syscfg_11().read().bits();
     println!("PLL1: {v1:08x} {v2:08x} {v3:08x}");
 }
 
