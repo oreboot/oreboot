@@ -10,12 +10,10 @@ edition = "2021"
 embedded-hal = "1.0.0-alpha.9"
 embedded-hal-nb = "1.0.0-alpha.1"
 fdt = "0.1.4"
+jh71xx-pac = "0.3"
 nb = "1"
 riscv = "0.10.1"
 spin = "0.9"
 
 layoutflash = { path = "../../../../lib/layoutflash" }
 log = { path = "../../../../lib/log" }
-
-[dependencies.jh71xx-pac]
-version = "0.3"
