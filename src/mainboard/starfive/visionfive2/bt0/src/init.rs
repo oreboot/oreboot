@@ -1,7 +1,7 @@
 #[cfg(feature = "12a")]
-use jh71xx_pac::jh7110_vf2_12a_pac as pac;
+pub(crate) use jh71xx_pac::jh7110_vf2_12a_pac as pac;
 #[cfg(feature = "13b")]
-use jh71xx_pac::jh7110_vf2_13b_pac as pac;
+pub(crate) use jh71xx_pac::jh7110_vf2_13b_pac as pac;
 
 use core::arch::asm;
 use core::ptr::{read_volatile, write_volatile};

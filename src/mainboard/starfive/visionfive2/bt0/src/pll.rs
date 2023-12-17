@@ -1,4 +1,4 @@
-use crate::init::{self, read32, udelay, write32};
+use crate::init::{self, pac, read32, udelay, write32};
 
 // see `boot/arch/riscv/cpu/jh7110/pll.c` `pll_set_rate`
 // NOTE: The order may be irrelevant, which would allow for simplification.
@@ -59,29 +59,37 @@ const SYSCON28_PLL0_FBDIV_MASK: u32 = !(0x0000_07ff); // 0-11
 const SYSCON32_PLL0_POSTDIV1_MASK: u32 = !0x3000_0000; // 28-29
 const SYSCON36_PLL0_PREDIV_MASK: u32 = !0x0000_003f; // 0-5
 
+// SAFETY: this function is called during init, when only a single thread on a single core is
+// running, ensuring exclusive access.
+fn sys_syscon_reg<'r>() -> &'r pac::sys_syscon::RegisterBlock {
+    unsafe { &*pac::SYS_SYSCON::ptr() }
+}
+
 pub fn pll0_set_freq(f: PllFreq) {
-    let pd = read32(init::SYS_SYSCON_32) & PD_MASK;
-    write32(init::SYS_SYSCON_32, pd | PD_OFF << 27);
+    let syscon = sys_syscon_reg();
 
-    let v = read32(init::SYS_SYSCON_24) & SYSCON24_PLL0_DACPD_MASK;
-    write32(init::SYS_SYSCON_24, v | f.dacpd << 24);
-    let v = read32(init::SYS_SYSCON_24) & SYSCON24_PLL0_DSMPD_MASK;
-    write32(init::SYS_SYSCON_24, v | f.dsmpd << 25);
+    // NOTE: all register name offset values use zero-indexed, array-based numbering
+    // This is in contrast to the address-offset numbering used in the TRM
+    // Basically, divide the TRM numbering by four to get the PAC numbering
 
-    let v = read32(init::SYS_SYSCON_36) & SYSCON36_PLL0_PREDIV_MASK;
-    write32(init::SYS_SYSCON_36, v | f.prediv);
+    // Turn off PD by setting the bit 
+    syscon.sys_syscfg_8().modify(|_, w| w.pll0_pd().set_bit());
 
-    let v = read32(init::SYS_SYSCON_28) & SYSCON28_PLL0_FBDIV_MASK;
-    write32(init::SYS_SYSCON_28, v | f.fbdiv);
+    syscon.sys_syscfg_6().modify(|_, w| {
+        w.pll0_dacpd().variant(f.dacpd != 0).pll0_dsmpd().variant(f.dsmpd != 0)
+    });
 
-    let v = read32(init::SYS_SYSCON_32) & SYSCON32_PLL0_POSTDIV1_MASK;
+    syscon.sys_syscfg_9().modify(|_, w| w.pll0_prediv().variant(f.prediv as u8));
+    syscon.sys_syscfg_7().modify(|_, w| w.pll0_fbdiv().variant(f.fbdiv as u16));
+
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
     // to 0 here.
-    write32(init::SYS_SYSCON_32, v | ((f.postdiv1 >> 1) << 28));
-
-    let pd = read32(init::SYS_SYSCON_32) & PD_MASK;
-    write32(init::SYS_SYSCON_32, pd | PD_ON << 27);
+    syscon.sys_syscfg_8().modify(|_, w| {
+        w.pll0_postdiv1().variant((f.postdiv1 >> 1) as u8);
+        // Turn on PD by clearing the bit
+        w.pll0_pd().clear_bit()
+    });
 }
 
 const SYSCON36_PLL1_DACPD_MASK: u32 = !(1 << 15);
