@@ -109,10 +109,10 @@ const CLK_ICG_ON: u32 = 1 << 31;
 // 24-29 clk_mux_sel
 const DDR_BUS_MASK: u32 = !(0x3f00_0000);
 
-const DDR_BUS_OSC_DIV2: u32 = 0 << 24;
-const DDR_BUS_PLL1_DIV2: u32 = 1 << 24;
-const DDR_BUS_PLL1_DIV4: u32 = 2 << 24;
-const DDR_BUS_PLL1_DIV8: u32 = 3 << 24;
+const DDR_BUS_OSC_DIV2: u8 = 0;
+const DDR_BUS_PLL1_DIV2: u8 = 1;
+const DDR_BUS_PLL1_DIV4: u8 = 2;
+const DDR_BUS_PLL1_DIV8: u8 = 3;
 
 const CLK_QSPI_REF: usize = SYS_CRG_BASE + 0x0168;
 const CLK_QSPI_REF_MUX_SEL: u8 = 1; // QSPI ref src
@@ -187,23 +187,19 @@ pub fn clk_ddrc_axi(on: bool) {
 }
 
 pub fn clk_ddrc_osc_div2() {
-    let ddr_bus = read32(CLK_U0_DDR_BUS) & DDR_BUS_MASK;
-    write32(CLK_U0_DDR_BUS, ddr_bus | DDR_BUS_OSC_DIV2);
+    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_OSC_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div2() {
-    let ddr_bus = read32(CLK_U0_DDR_BUS) & DDR_BUS_MASK;
-    write32(CLK_U0_DDR_BUS, ddr_bus | DDR_BUS_PLL1_DIV2);
+    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div4() {
-    let ddr_bus = read32(CLK_U0_DDR_BUS) & DDR_BUS_MASK;
-    write32(CLK_U0_DDR_BUS, ddr_bus | DDR_BUS_PLL1_DIV4);
+    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV4));
 }
 
 pub fn clk_ddrc_pll1_div8() {
-    let ddr_bus = read32(CLK_U0_DDR_BUS) & DDR_BUS_MASK;
-    write32(CLK_U0_DDR_BUS, ddr_bus | DDR_BUS_PLL1_DIV8);
+    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
 }
 
 pub const SYS_AON_BASE: usize = 0x1700_0000;
