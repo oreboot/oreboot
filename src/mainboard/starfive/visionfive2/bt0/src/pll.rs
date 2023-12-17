@@ -44,21 +44,6 @@ pub const PLL2_1188000000: PllFreq = PllFreq {
     dsmpd: 1,
 };
 
-// TODO: Tock register?
-
-const PD_MASK: u32 = !(1 << 27);
-// NOTE: active low
-const PD_OFF: u32 = 1;
-const PD_ON: u32 = 0;
-
-// PLL0
-const SYSCON24_PLL0_DACPD_MASK: u32 = !(1 << 24);
-const SYSCON24_PLL0_DSMPD_MASK: u32 = !(1 << 25);
-// NOTE: This feedback divider differs for PLL0. PLL1 and PLL2 use other bits.
-const SYSCON28_PLL0_FBDIV_MASK: u32 = !(0x0000_07ff); // 0-11
-const SYSCON32_PLL0_POSTDIV1_MASK: u32 = !0x3000_0000; // 28-29
-const SYSCON36_PLL0_PREDIV_MASK: u32 = !0x0000_003f; // 0-5
-
 // SAFETY: this function is called during init, when only a single thread on a single core is
 // running, ensuring exclusive access.
 fn sys_syscon_reg<'r>() -> &'r pac::sys_syscon::RegisterBlock {
@@ -92,13 +77,6 @@ pub fn pll0_set_freq(f: PllFreq) {
     });
 }
 
-const SYSCON36_PLL1_DACPD_MASK: u32 = !(1 << 15);
-const SYSCON36_PLL1_DSMPD_MASK: u32 = !(1 << 16);
-const SYSCON36_PLL1_FBDIV_MASK: u32 = !(0x1ffe_0000); // 17-28
-const SYSCON40_PLL1_POSTDIV1_MASK: u32 = !0x3000_0000; // 28-29
-const SYSCON40_PLL1_FRAC_MASK: u32 = !0x00ff_ffff; // 0-23
-const SYSCON44_PLL1_PREDIV_MASK: u32 = !0x0000_003f; // 0-5
-
 // 2133 / 1066 yields:
 // PLL1: 00b02603 55e00000 00c7a601
 // PLL1: 042ba603 41e00000 00c7a60c
@@ -127,7 +105,6 @@ pub fn pll1_set_freq(f: PllFreq) {
 
     syscon.sys_syscfg_9().modify(|_, w| w.pll1_fbdiv().variant(f.fbdiv as u16));
 
-    let v = read32(init::SYS_SYSCON_40) & SYSCON40_PLL1_POSTDIV1_MASK;
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
     // to 0 here.
@@ -143,12 +120,6 @@ pub fn pll1_set_freq(f: PllFreq) {
     println!("PLL1: {v1:08x} {v2:08x} {v3:08x}");
 }
 
-const SYSCON44_PLL2_DACPD_MASK: u32 = !(1 << 15);
-const SYSCON44_PLL2_DSMPD_MASK: u32 = !(1 << 16);
-const SYSCON44_PLL2_FBDIV_MASK: u32 = !(0x1ffe_0000); // 17-28
-const SYSCON48_PLL2_POSTDIV1_MASK: u32 = !0x3000_0000; // 28-29, SYSCON 48
-const SYSCON52_PLL2_PREDIV_MASK: u32 = !0x0000_003f; // 0-5, SYSCON 52
-
 pub fn pll2_set_freq(f: PllFreq) {
     let syscon = sys_syscon_reg();
 
@@ -163,7 +134,6 @@ pub fn pll2_set_freq(f: PllFreq) {
 
     syscon.sys_syscfg_11().modify(|_, w| w.pll2_fbdiv().variant(f.fbdiv as u16));
 
-    let v = read32(init::SYS_SYSCON_48) & SYSCON48_PLL2_POSTDIV1_MASK;
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
     // to 0 here.
