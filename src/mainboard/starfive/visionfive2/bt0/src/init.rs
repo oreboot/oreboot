@@ -1,3 +1,5 @@
+use crate::pac::syscrg_reg;
+
 use core::arch::asm;
 use core::ptr::{read_volatile, write_volatile};
 use core::slice;
@@ -65,7 +67,7 @@ pub const DDR_RATE: u32 = 1066000000;
 pub const SYS_CRG_BASE: usize = 0x1302_0000;
 
 pub const CLK_CPU_ROOT: usize = SYS_CRG_BASE;
-pub const CLK_CPU_ROOT_SW: u32 = 1 << 24; // PLL0 (?)
+pub const CLK_CPU_ROOT_SW: u8 = 1; // PLL0 (?)
 
 const CLK_PERH_ROOT: usize = SYS_CRG_BASE + 0x0010;
 const CLK_PERH_ROOT_MUX_SEL: u32 = 1 << 24; // pll2
@@ -118,8 +120,10 @@ const CLK_AON_APB_FUNC: usize = SYS_AON_BASE + 0x0004;
 const CLK_AON_APB_FUNC_MUX_SEL: u32 = 1 << 24; // OSC
 
 pub fn clk_cpu_root() {
-    let v = read32(CLK_CPU_ROOT) & !(0xcf00_0000); // 24-29
-    write32(CLK_CPU_ROOT, v | CLK_CPU_ROOT_SW);
+    // Select clk_pll0 as the CPU root clock
+    syscrg_reg()
+        .clk_cpu_root()
+        .modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
 }
 
 pub fn clk_bus_root() {

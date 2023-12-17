@@ -28,6 +28,7 @@ mod ddrlib;
 mod ddrphy;
 mod dram;
 mod init;
+mod pac;
 mod pll;
 mod uart;
 
