@@ -76,7 +76,7 @@ const CLK_PERH_ROOT: usize = SYS_CRG_BASE + 0x0010;
 const CLK_PERH_ROOT_MUX_SEL: u32 = 1 << 24; // pll2
 
 pub const CLK_BUS_ROOT: usize = SYS_CRG_BASE + 0x0014;
-pub const CLK_BUS_ROOT_SW: u32 = 1 << 24; // PLL2 (?)
+pub const CLK_BUS_ROOT_SW: u8 = 1; // PLL2 (?)
 
 pub const CLK_AHB0: usize = SYS_CRG_BASE + 0x0024;
 pub const CLK_APB0: usize = SYS_CRG_BASE + 0x0030;
@@ -134,8 +134,8 @@ pub fn clk_cpu_root() {
 }
 
 pub fn clk_bus_root() {
-    let v = read32(CLK_BUS_ROOT) & !(0xcf00_0000);
-    write32(CLK_BUS_ROOT, v | CLK_BUS_ROOT_SW);
+    // Select clk_pll2 as the BUS root clock
+    syscrg_reg().clk_bus_root().modify(|_, w| w.clk_mux_sel().variant(CLK_BUS_ROOT_SW));
 }
 
 pub fn clocks() {
