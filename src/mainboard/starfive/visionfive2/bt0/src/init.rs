@@ -1,3 +1,8 @@
+#[cfg(feature = "12a")]
+use jh71xx_pac::jh7110_vf2_12a_pac as pac;
+#[cfg(feature = "13b")]
+use jh71xx_pac::jh7110_vf2_13b_pac as pac;
+
 use core::arch::asm;
 use core::ptr::{read_volatile, write_volatile};
 use core::slice;
@@ -65,7 +70,7 @@ pub const DDR_RATE: u32 = 1066000000;
 pub const SYS_CRG_BASE: usize = 0x1302_0000;
 
 pub const CLK_CPU_ROOT: usize = SYS_CRG_BASE;
-pub const CLK_CPU_ROOT_SW: u32 = 1 << 24; // PLL0 (?)
+pub const CLK_CPU_ROOT_SW: u8 = 1; // PLL0 (?)
 
 const CLK_PERH_ROOT: usize = SYS_CRG_BASE + 0x0010;
 const CLK_PERH_ROOT_MUX_SEL: u32 = 1 << 24; // pll2
@@ -117,9 +122,15 @@ const CLK_NOC_BUS_STG_AXI_CLK_ICG_EN: u32 = 1 << 31;
 const CLK_AON_APB_FUNC: usize = SYS_AON_BASE + 0x0004;
 const CLK_AON_APB_FUNC_MUX_SEL: u32 = 1 << 24; // OSC
 
+// SAFETY: this function is called during init, when only a single thread on a single core is
+// running, ensuring exclusive access.
+fn syscrg_reg<'r>() -> &'r pac::syscrg::RegisterBlock {
+    unsafe { &*pac::SYSCRG::ptr() }
+}
+
 pub fn clk_cpu_root() {
-    let v = read32(CLK_CPU_ROOT) & !(0xcf00_0000); // 24-29
-    write32(CLK_CPU_ROOT, v | CLK_CPU_ROOT_SW);
+    // Select clk_pll0 as the CPU root clock
+    syscrg_reg().clk_cpu_root().modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
 }
 
 pub fn clk_bus_root() {
