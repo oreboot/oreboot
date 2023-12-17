@@ -73,7 +73,7 @@ pub const CLK_CPU_ROOT: usize = SYS_CRG_BASE;
 pub const CLK_CPU_ROOT_SW: u8 = 1; // PLL0 (?)
 
 const CLK_PERH_ROOT: usize = SYS_CRG_BASE + 0x0010;
-const CLK_PERH_ROOT_MUX_SEL: u32 = 1 << 24; // pll2
+const CLK_PERH_ROOT_MUX_SEL: u8 = 1; // pll2
 
 pub const CLK_BUS_ROOT: usize = SYS_CRG_BASE + 0x0014;
 pub const CLK_BUS_ROOT_SW: u8 = 1; // PLL2 (?)
@@ -115,17 +115,23 @@ const DDR_BUS_PLL1_DIV4: u32 = 2 << 24;
 const DDR_BUS_PLL1_DIV8: u32 = 3 << 24;
 
 const CLK_QSPI_REF: usize = SYS_CRG_BASE + 0x0168;
-const CLK_QSPI_REF_MUX_SEL: u32 = 1 << 24; // QSPI ref src
+const CLK_QSPI_REF_MUX_SEL: u8 = 1; // QSPI ref src
 const CLK_NOC_BUS_STG_AXI: usize = SYS_CRG_BASE + 0x0180;
 const CLK_NOC_BUS_STG_AXI_CLK_ICG_EN: u32 = 1 << 31;
 
 const CLK_AON_APB_FUNC: usize = SYS_AON_BASE + 0x0004;
-const CLK_AON_APB_FUNC_MUX_SEL: u32 = 1 << 24; // OSC
+const CLK_AON_APB_FUNC_MUX_SEL: u8 = 1; // OSC
 
 // SAFETY: this function is called during init, when only a single thread on a single core is
 // running, ensuring exclusive access.
 fn syscrg_reg<'r>() -> &'r pac::syscrg::RegisterBlock {
     unsafe { &*pac::SYSCRG::ptr() }
+}
+
+// SAFETY: this function is called during init, when only a single thread on a single core is
+// running, ensuring exclusive access.
+fn aoncrg_reg<'r>() -> &'r pac::aoncrg::RegisterBlock {
+    unsafe { &*pac::AONCRG::ptr() }
 }
 
 pub fn clk_cpu_root() {
@@ -139,18 +145,20 @@ pub fn clk_bus_root() {
 }
 
 pub fn clocks() {
-    let c = read32(CLK_PERH_ROOT);
-    write32(CLK_PERH_ROOT, c | CLK_PERH_ROOT_MUX_SEL);
+    let syscrg = syscrg_reg();
 
-    let c = read32(CLK_NOC_BUS_STG_AXI);
-    write32(CLK_NOC_BUS_STG_AXI, c | CLK_NOC_BUS_STG_AXI_CLK_ICG_EN);
+    // Set clk_pll2 as the peripheral root clock
+    syscrg.clk_peripheral_root()
+        .modify(|_, w| w.clk_mux_sel().variant(CLK_PERH_ROOT_MUX_SEL));
 
-    // let c = read32(CLK_AON_APB_FUNC);
-    // write32(CLK_AON_APB_FUNC, c | CLK_AON_APB_FUNC_MUX_SEL);
-    write32(CLK_AON_APB_FUNC, 0);
+    // Enable the NOC STG clock
+    syscrg.clk_noc_stg_axi().modify(|_, w| w.clk_icg().set_bit());
 
-    let c = read32(CLK_QSPI_REF);
-    write32(CLK_QSPI_REF, c | CLK_QSPI_REF_MUX_SEL);
+    // Set clk_osc_div4 as the APB clock
+    aoncrg_reg().clk_aon_apb().modify(|_, w| w.clk_mux_sel().variant(0));
+
+    // Set clk_qspi_ref_src as the QSPI clock
+    syscrg.clk_qspi_ref().modify(|_, w| w.clk_mux_sel().variant(CLK_QSPI_REF_MUX_SEL));
 }
 
 pub fn clk_apb0() {
