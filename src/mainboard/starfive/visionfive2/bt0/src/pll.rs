@@ -1,4 +1,5 @@
-use crate::init::{self, pac, read32, udelay, write32};
+use crate::pac;
+use crate::init::{self, read32, udelay, write32};
 
 // see `boot/arch/riscv/cpu/jh7110/pll.c` `pll_set_rate`
 // NOTE: The order may be irrelevant, which would allow for simplification.
@@ -44,14 +45,8 @@ pub const PLL2_1188000000: PllFreq = PllFreq {
     dsmpd: 1,
 };
 
-// SAFETY: this function is called during init, when only a single thread on a single core is
-// running, ensuring exclusive access.
-fn sys_syscon_reg<'r>() -> &'r pac::sys_syscon::RegisterBlock {
-    unsafe { &*pac::SYS_SYSCON::ptr() }
-}
-
 pub fn pll0_set_freq(f: PllFreq) {
-    let syscon = sys_syscon_reg();
+    let syscon = pac::sys_syscon_reg();
 
     // NOTE: all register name offset values use zero-indexed, array-based numbering
     // This is in contrast to the address-offset numbering used in the TRM
@@ -84,7 +79,7 @@ pub fn pll0_set_freq(f: PllFreq) {
 // PLL1: 00b02603 55e00000 00c7a601
 // PLL1: 042a2603 41e00000 00c7a601
 pub fn pll1_set_freq(f: PllFreq) {
-    let syscon = sys_syscon_reg();
+    let syscon = pac::sys_syscon_reg();
 
     let v1 = syscon.sys_syscfg_9().read().bits();
     let v2 = syscon.sys_syscfg_8().read().bits();
@@ -121,7 +116,7 @@ pub fn pll1_set_freq(f: PllFreq) {
 }
 
 pub fn pll2_set_freq(f: PllFreq) {
-    let syscon = sys_syscon_reg();
+    let syscon = pac::sys_syscon_reg();
 
     // Turn PD off by setting the bit
     syscon.sys_syscfg_12().modify(|_, w| w.pll2_pd().set_bit());

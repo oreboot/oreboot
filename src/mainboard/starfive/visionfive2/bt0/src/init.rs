@@ -1,11 +1,8 @@
-#[cfg(feature = "12a")]
-pub(crate) use jh71xx_pac::jh7110_vf2_12a_pac as pac;
-#[cfg(feature = "13b")]
-pub(crate) use jh71xx_pac::jh7110_vf2_13b_pac as pac;
-
 use core::arch::asm;
 use core::ptr::{read_volatile, write_volatile};
 use core::slice;
+
+use crate::pac;
 
 pub fn dump(addr: usize, length: usize) {
     let s = unsafe { slice::from_raw_parts(addr as *const u8, length) };
@@ -122,30 +119,18 @@ const CLK_NOC_BUS_STG_AXI_CLK_ICG_EN: u32 = 1 << 31;
 const CLK_AON_APB_FUNC: usize = SYS_AON_BASE + 0x0004;
 const CLK_AON_APB_FUNC_MUX_SEL: u8 = 1; // OSC
 
-// SAFETY: this function is called during init, when only a single thread on a single core is
-// running, ensuring exclusive access.
-fn syscrg_reg<'r>() -> &'r pac::syscrg::RegisterBlock {
-    unsafe { &*pac::SYSCRG::ptr() }
-}
-
-// SAFETY: this function is called during init, when only a single thread on a single core is
-// running, ensuring exclusive access.
-fn aoncrg_reg<'r>() -> &'r pac::aoncrg::RegisterBlock {
-    unsafe { &*pac::AONCRG::ptr() }
-}
-
 pub fn clk_cpu_root() {
     // Select clk_pll0 as the CPU root clock
-    syscrg_reg().clk_cpu_root().modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
+    pac::syscrg_reg().clk_cpu_root().modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
 }
 
 pub fn clk_bus_root() {
     // Select clk_pll2 as the BUS root clock
-    syscrg_reg().clk_bus_root().modify(|_, w| w.clk_mux_sel().variant(CLK_BUS_ROOT_SW));
+    pac::syscrg_reg().clk_bus_root().modify(|_, w| w.clk_mux_sel().variant(CLK_BUS_ROOT_SW));
 }
 
 pub fn clocks() {
-    let syscrg = syscrg_reg();
+    let syscrg = pac::syscrg_reg();
 
     // Set clk_pll2 as the peripheral root clock
     syscrg.clk_peripheral_root()
@@ -155,14 +140,14 @@ pub fn clocks() {
     syscrg.clk_noc_stg_axi().modify(|_, w| w.clk_icg().set_bit());
 
     // Set clk_osc_div4 as the APB clock
-    aoncrg_reg().clk_aon_apb().modify(|_, w| w.clk_mux_sel().variant(0));
+    pac::aoncrg_reg().clk_aon_apb().modify(|_, w| w.clk_mux_sel().variant(0));
 
     // Set clk_qspi_ref_src as the QSPI clock
     syscrg.clk_qspi_ref().modify(|_, w| w.clk_mux_sel().variant(CLK_QSPI_REF_MUX_SEL));
 }
 
 pub fn clk_apb0() {
-    syscrg_reg().clk_apb0().modify(|r, w| {
+    pac::syscrg_reg().clk_apb0().modify(|r, w| {
         let clk = r.bits();
         println!("apb0 {clk:x}");
 
@@ -178,7 +163,7 @@ pub fn clk_apb0() {
 }
 
 pub fn clk_ddrc_axi(on: bool) {
-    syscrg_reg().clk_u0_ddr_axi().modify(|r, w| {
+    pac::syscrg_reg().clk_u0_ddr_axi().modify(|r, w| {
         let ddr_axi = r.bits();
         println!("ddr_axi {ddr_axi:x}");
 
@@ -187,19 +172,19 @@ pub fn clk_ddrc_axi(on: bool) {
 }
 
 pub fn clk_ddrc_osc_div2() {
-    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_OSC_DIV2));
+    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_OSC_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div2() {
-    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV2));
+    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div4() {
-    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV4));
+    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV4));
 }
 
 pub fn clk_ddrc_pll1_div8() {
-    syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
+    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
 }
 
 pub const SYS_AON_BASE: usize = 0x1700_0000;

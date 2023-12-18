@@ -18,7 +18,6 @@ use core::{
 use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
-use uart::{uart0_reg, JH71XXSerial};
 
 use fdt::Fdt;
 
@@ -28,6 +27,7 @@ mod ddrlib;
 mod ddrphy;
 mod dram;
 mod init;
+mod pac;
 mod pll;
 mod uart;
 
@@ -141,12 +141,6 @@ pub unsafe extern "C" fn reset() {
     main();
 }
 
-/*
-fn spi_flash_init() {
-    unsafe { write_volatile(QSPI_READ_CMD as *mut u32, SPI_FLASH_READ_CMD) };
-}
-*/
-
 // 0: SPI, 1: MMC2, 2: MMC1, 3: UART
 const MODE_SELECT_REG: usize = 0x1702_002c;
 
@@ -212,29 +206,15 @@ unsafe fn blink() {
     write32(init::GPIO40_43_DATA, 0x8080_8080);
 }
 
-static mut SERIAL: Option<JH71XXSerial> = None;
+static mut SERIAL: Option<uart::JH71XXSerial> = None;
 
-fn init_logger(s: JH71XXSerial) {
+fn init_logger(s: uart::JH71XXSerial) {
     unsafe {
         SERIAL.replace(s);
         if let Some(m) = SERIAL.as_mut() {
             log::init(m);
         }
     }
-}
-
-fn uart0_divisor() -> u16 {
-    let uart0 = uart0_reg();
-
-    // Clear FIFOs to set UART0 to idle
-    uart0.fcr().modify(|_, w| w.rfifor().set_bit().xfifor().set_bit());
-    while uart0.usr().read().busy().bit_is_set() {}
-
-    uart0.lcr().modify(|_, w| w.dlab().set_bit());
-    let div = uart0.dll().read().bits() | (uart0.dlh().read().bits() << 8);
-    uart0.lcr().modify(|_, w| w.dlab().clear_bit());
-
-    div as u16
 }
 
 #[no_mangle]
@@ -250,24 +230,27 @@ fn main() {
     init::clocks();
 
     // set GPIO to 3.3V
-    write32(init::SYS_SYSCON_12, 0x0);
-
-    // enable is active low
-    // write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
-    // write32(init::GPIO40_43_DATA, 0x8181_8181);
-    // blink();
+    pac::sys_syscon_reg().sys_syscfg_3().modify(|_, w| {
+        w.vout0_remap_awaddr_gpio0().clear_bit();
+        w.vout0_remap_awaddr_gpio1().clear_bit();
+        w.vout0_remap_awaddr_gpio2().clear_bit();
+        w.vout0_remap_awaddr_gpio3().clear_bit()
+    });
 
     // TX/RX are GPIOs 5 and 6
-    write32(init::GPIO04_07_EN, 0xc0c0_c0c0);
+    pac::sys_pinctrl_reg().gpo_doen_1().modify(|_, w| {
+        w.doen_5().variant(0);
+        w.doen_6().variant(0)
+    });
 
-    let mut s = JH71XXSerial::new();
+    let mut s = uart::JH71XXSerial::new();
     init_logger(s);
     println!("oreboot 🦀");
     print_boot_mode();
     print_ids();
 
-    let uart0_baud_div = uart0_divisor();
-    println!("UART0 BAUD divisor: {uart0_baud_div:#x}");
+    let uart0_div = uart::uart0_divisor();
+    println!("UART0 BAUD divisor: {uart0_div:#x}");
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
@@ -362,10 +345,13 @@ fn main() {
     dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
 
     println!("release non-boot harts =====\n");
-    write32(CLINT_HART1_MSIP, 0x1);
-    write32(CLINT_HART2_MSIP, 0x1);
-    write32(CLINT_HART3_MSIP, 0x1);
-    write32(CLINT_HART4_MSIP, 0x1);
+    {
+        let clint = pac::clint_reg();
+        clint.msip_1().write(|w| w.control().set_bit());
+        clint.msip_2().write(|w| w.control().set_bit());
+        clint.msip_3().write(|w| w.control().set_bit());
+        clint.msip_4().write(|w| w.control().set_bit());
+    }
 
     println!("Jump to payload... with dtb {dtb:#x}");
     exec_payload(dtb);

@@ -1,16 +1,24 @@
 use log::{Error, Serial};
 
-use crate::init::pac;
+use crate::pac;
 
 // UART0 Clock = clk_osc (24Mhz)
 const UART_CLK: u32 = 24_000_000;
 const UART_BAUDRATE_32MCLK_115200: u32 = 115200;
 const DIVISOR: u32 = UART_CLK.saturating_div(16).saturating_div(UART_BAUDRATE_32MCLK_115200);
 
-// SAFETY: this function is called during init, when only a single thread on a single core is
-// running, ensuring exclusive access.
-pub(crate) fn uart0_reg<'r>() -> &'r pac::uart0::RegisterBlock {
-    unsafe { &*pac::UART0::ptr() }
+pub(crate) fn uart0_divisor() -> u16 {
+    let uart0 = pac::uart0_reg();
+
+    // Clear FIFOs to set UART0 to idle
+    uart0.fcr().modify(|_, w| w.rfifor().set_bit().xfifor().set_bit());
+    while uart0.usr().read().busy().bit_is_set() {}
+
+    uart0.lcr().modify(|_, w| w.dlab().set_bit());
+    let div = uart0.dll().read().bits() | (uart0.dlh().read().bits() << 8);
+    uart0.lcr().modify(|_, w| w.dlab().clear_bit());
+
+    div as u16
 }
 
 #[derive(Debug)]
@@ -19,7 +27,7 @@ pub struct JH71XXSerial();
 impl JH71XXSerial {
     #[inline]
     pub fn new() -> Self {
-        let uart0 = uart0_reg();
+        let uart0 = pac::uart0_reg();
 
         /* wair for UART0 to stop being busy */
         while uart0.usr().read().busy().bit_is_set() {}
@@ -71,7 +79,7 @@ impl embedded_hal_nb::serial::ErrorType for JH71XXSerial {
 impl embedded_hal_nb::serial::Write<u8> for JH71XXSerial {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
-        let uart0 = uart0_reg();
+        let uart0 = pac::uart0_reg();
         if uart0.lsr().read().thre().bit_is_clear() {
             return Err(nb::Error::WouldBlock);
         }
