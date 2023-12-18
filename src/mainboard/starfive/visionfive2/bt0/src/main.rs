@@ -18,7 +18,7 @@ use core::{
 use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
-use uart::JH71XXSerial;
+use uart::{uart0_reg, JH71XXSerial};
 
 use fdt::Fdt;
 
@@ -223,6 +223,20 @@ fn init_logger(s: JH71XXSerial) {
     }
 }
 
+fn uart0_divisor() -> u16 {
+    let uart0 = uart0_reg();
+
+    // Clear FIFOs to set UART0 to idle
+    uart0.fcr().modify(|_, w| w.rfifor().set_bit().xfifor().set_bit());
+    while uart0.usr().read().busy().bit_is_set() {}
+
+    uart0.lcr().modify(|_, w| w.dlab().set_bit());
+    let div = uart0.dll().read().bits() | (uart0.dlh().read().bits() << 8);
+    uart0.lcr().modify(|_, w| w.dlab().clear_bit());
+
+    div as u16
+}
+
 #[no_mangle]
 fn main() {
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
@@ -245,11 +259,15 @@ fn main() {
 
     // TX/RX are GPIOs 5 and 6
     write32(init::GPIO04_07_EN, 0xc0c0_c0c0);
+
     let mut s = JH71XXSerial::new();
     init_logger(s);
     println!("oreboot 🦀");
     print_boot_mode();
     print_ids();
+
+    let uart0_baud_div = uart0_divisor();
+    println!("UART0 BAUD divisor: {uart0_baud_div:#x}");
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
