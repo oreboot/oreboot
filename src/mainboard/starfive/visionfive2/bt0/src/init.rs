@@ -69,10 +69,8 @@ pub const SYS_CRG_BASE: usize = 0x1302_0000;
 pub const CLK_CPU_ROOT: usize = SYS_CRG_BASE;
 pub const CLK_CPU_ROOT_SW: u8 = 1; // PLL0 (?)
 
-const CLK_PERH_ROOT: usize = SYS_CRG_BASE + 0x0010;
 const CLK_PERH_ROOT_MUX_SEL: u8 = 1; // pll2
 
-pub const CLK_BUS_ROOT: usize = SYS_CRG_BASE + 0x0014;
 pub const CLK_BUS_ROOT_SW: u8 = 1; // PLL2 (?)
 
 pub const CLK_AHB0: usize = SYS_CRG_BASE + 0x0024;
@@ -115,9 +113,6 @@ const CLK_QSPI_REF: usize = SYS_CRG_BASE + 0x0168;
 const CLK_QSPI_REF_MUX_SEL: u8 = 1; // QSPI ref src
 const CLK_NOC_BUS_STG_AXI: usize = SYS_CRG_BASE + 0x0180;
 const CLK_NOC_BUS_STG_AXI_CLK_ICG_EN: u32 = 1 << 31;
-
-const CLK_AON_APB_FUNC: usize = SYS_AON_BASE + 0x0004;
-const CLK_AON_APB_FUNC_MUX_SEL: u8 = 1; // OSC
 
 pub fn clk_cpu_root() {
     // Select clk_pll0 as the CPU root clock
@@ -186,131 +181,3 @@ pub fn clk_ddrc_pll1_div4() {
 pub fn clk_ddrc_pll1_div8() {
     pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
 }
-
-pub const SYS_AON_BASE: usize = 0x1700_0000;
-
-/* SYS SYSCON */
-pub const SYS_SYSCON_BASE: usize = 0x1303_0000;
-
-pub const SYS_SYSCON_00: usize = SYS_SYSCON_BASE;
-pub const SYS_SYSCON_04: usize = SYS_SYSCON_BASE + 0x0004;
-pub const SYS_SYSCON_08: usize = SYS_SYSCON_BASE + 0x0008;
-pub const SYS_SYSCON_12: usize = SYS_SYSCON_BASE + 0x000c;
-pub const SYS_SYSCON_16: usize = SYS_SYSCON_BASE + 0x0010;
-pub const SYS_SYSCON_20: usize = SYS_SYSCON_BASE + 0x0014;
-pub const SYS_SYSCON_24: usize = SYS_SYSCON_BASE + 0x0018;
-pub const SYS_SYSCON_28: usize = SYS_SYSCON_BASE + 0x001c;
-pub const SYS_SYSCON_32: usize = SYS_SYSCON_BASE + 0x0020;
-pub const SYS_SYSCON_36: usize = SYS_SYSCON_BASE + 0x0024;
-pub const SYS_SYSCON_40: usize = SYS_SYSCON_BASE + 0x0028;
-pub const SYS_SYSCON_44: usize = SYS_SYSCON_BASE + 0x002c;
-pub const SYS_SYSCON_48: usize = SYS_SYSCON_BASE + 0x0030;
-pub const SYS_SYSCON_52: usize = SYS_SYSCON_BASE + 0x0034;
-
-/* GPIO mux */
-
-pub const SYS_IOMUX_BASE: usize = 0x1304_0000;
-
-// NOTE: 4 GPIOs per DWORD
-/*
-const GPIO00_03_EN: usize = SYS_IOMUX_BASE;
-*/
-pub const GPIO04_07_EN: usize = SYS_IOMUX_BASE + 0x0004;
-/*
-const GPIO08_11_EN: usize = SYS_IOMUX_BASE + 0x0008;
-const GPIO12_15_EN: usize = SYS_IOMUX_BASE + 0x000c;
-const GPIO16_19_EN: usize = SYS_IOMUX_BASE + 0x0010;
-const GPIO20_23_EN: usize = SYS_IOMUX_BASE + 0x0014;
-const GPIO24_27_EN: usize = SYS_IOMUX_BASE + 0x0018;
-const GPIO28_31_EN: usize = SYS_IOMUX_BASE + 0x001c;
-const GPIO32_35_EN: usize = SYS_IOMUX_BASE + 0x0020;
-const GPIO36_39_EN: usize = SYS_IOMUX_BASE + 0x0024;
-*/
-pub const GPIO40_43_EN: usize = SYS_IOMUX_BASE + 0x0028;
-/*
-const GPIO44_47_EN: usize = SYS_IOMUX_BASE + 0x002c;
-const GPIO48_51_EN: usize = SYS_IOMUX_BASE + 0x0030;
-const GPIO52_55_EN: usize = SYS_IOMUX_BASE + 0x0034;
-const GPIO56_59_EN: usize = SYS_IOMUX_BASE + 0x0038;
-const GPIO60_63_EN: usize = SYS_IOMUX_BASE + 0x003c;
-
-const GPIO00_03_DATA: usize = SYS_IOMUX_BASE + 0x0040;
-const GPIO04_07_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0004;
-const GPIO08_11_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0008;
-const GPIO12_15_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x000c;
-const GPIO16_19_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0010;
-const GPIO20_23_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0014;
-const GPIO24_27_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0018;
-const GPIO28_31_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x001c;
-const GPIO32_35_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0020;
-const GPIO36_39_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0024;
-*/
-pub const GPIO40_43_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0028;
-/*
-const GPIO44_47_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x002c;
-const GPIO48_51_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0030;
-const GPIO52_55_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0034;
-const GPIO56_59_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x0038;
-const GPIO60_63_DATA: usize = SYS_IOMUX_BASE + 0x0040 + 0x003c;
-*/
-
-// NOTE: we may not need this; copied from StarFive / U-Boot
-// This is the base address for input data, AIUI from the manual.
-// const SYS_IOMUX_32: usize = SYS_IOMUX_BASE + 0x0080;
-
-pub const GPIO_DOEN_MASK: u8 = 0x3f;
-pub const GPIO_DOUT_MASK: u8 = 0x7f;
-
-/*
- * const GPIO_OUT_FUNC_OFF: u8 = 0x00;
- * const GPIO_OUT_FUNC_ON: u8 = 0x01;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x02;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x03;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x04;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x05;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x06;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x07;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x08;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x09;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0a;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0b;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0c;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0d;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0e;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x0f;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x10;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x11;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x12;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x13;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x14;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x15;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x16;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x17;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x18;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x19;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1a;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1b;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1c;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1d;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1e;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x1f;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x20;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x21;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x22;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x23;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x24;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x25;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x26;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x27;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x28;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x29;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2a;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2b;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2c;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2d;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2e;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x2f;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x30;
- * const GPIO_OUT_FUNC_XXX: u8 = 0x31;
- * NOTE: GPIO OUT has 49 functions
- */
