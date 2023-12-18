@@ -39,13 +39,6 @@ const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
 const DRAM_BASE: usize = 0x4000_0000;
 
-// see also SiFive VICU7 manual chapter 6 (p 31)
-const CLINT_BASE_ADDR: usize = 0x0200_0000;
-const CLINT_HART1_MSIP: usize = CLINT_BASE_ADDR + 0x0004;
-const CLINT_HART2_MSIP: usize = CLINT_BASE_ADDR + 0x0008;
-const CLINT_HART3_MSIP: usize = CLINT_BASE_ADDR + 0x000c;
-const CLINT_HART4_MSIP: usize = CLINT_BASE_ADDR + 0x0010;
-
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
 const SPI_FLASH_BASE: usize = 0x2100_0000;
 
@@ -64,12 +57,6 @@ const LOAD_FROM_FLASH: bool = true;
 const DEBUG: bool = false;
 
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
-
-/*
-const QSPI_CSR: usize = 0x1186_0000;
-const QSPI_READ_CMD: usize = QSPI_CSR + 0x0004;
-const SPI_FLASH_READ_CMD: u32 = 0x0003;
-*/
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -197,13 +184,6 @@ unsafe fn sleep(n: u32) {
     for _ in 0..n {
         core::hint::spin_loop();
     }
-}
-
-unsafe fn blink() {
-    sleep(0x0004_0000);
-    write32(init::GPIO40_43_DATA, 0x8181_8181);
-    sleep(0x0004_0000);
-    write32(init::GPIO40_43_DATA, 0x8080_8080);
 }
 
 static mut SERIAL: Option<uart::JH71XXSerial> = None;
