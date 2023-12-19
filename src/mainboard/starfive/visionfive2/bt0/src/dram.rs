@@ -2,7 +2,7 @@ use crate::ddr_start::start;
 use crate::ddrcsr::omc_init;
 use crate::ddrphy::{train, util};
 use crate::init::{self, read32, udelay, write32};
-use crate::pll;
+use crate::{pac, pll};
 
 // see StarFive U-Boot drivers/ram/starfive/starfive_ddr.c
 pub fn init() {
@@ -35,31 +35,75 @@ pub fn init() {
         udelay(200);
 
         println!("[DRAM] asserts");
+        let syscrg = pac::syscrg_reg();
+
         // DDR OSC
-        init::set_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_OSC);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_OSC) & 1 == 1 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_osc().set_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_osc()
+            .bit_is_set()
+        {
             udelay(1);
         }
-        init::clear_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_OSC);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_OSC) & 1 == 0 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_osc().clear_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_osc()
+            .bit_is_clear()
+        {
             udelay(1);
         }
         // DDR APB
-        init::set_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_APB);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_APB) & 1 == 1 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_apb().set_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_apb()
+            .bit_is_set()
+        {
             udelay(1);
         }
-        init::clear_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_APB);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_APB) & 1 == 0 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_apb().clear_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_apb()
+            .bit_is_clear()
+        {
             udelay(1);
         }
         // DDR AXI
-        init::set_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_AXI);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_AXI) & 1 == 1 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_axi().set_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_axi()
+            .bit_is_set()
+        {
             udelay(1);
         }
-        init::clear_bit(init::SYS_CRG_RESET_ASSERT1, init::RSTN_U0_DDR_AXI);
-        while (read32(init::SYS_CRG_RESET_STATUS1) >> init::RSTN_U0_DDR_AXI) & 1 == 0 {
+        syscrg
+            .soft_rst_addr_sel_1()
+            .modify(|_, w| w.u0_ddr_axi().clear_bit());
+        while syscrg
+            .syscrg_rst_status_1()
+            .read()
+            .u0_ddr_axi()
+            .bit_is_clear()
+        {
             udelay(1);
         }
 
