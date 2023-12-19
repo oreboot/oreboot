@@ -116,29 +116,40 @@ const CLK_NOC_BUS_STG_AXI_CLK_ICG_EN: u32 = 1 << 31;
 
 pub fn clk_cpu_root() {
     // Select clk_pll0 as the CPU root clock
-    pac::syscrg_reg().clk_cpu_root().modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
+    pac::syscrg_reg()
+        .clk_cpu_root()
+        .modify(|_, w| w.clk_mux_sel().variant(CLK_CPU_ROOT_SW));
 }
 
 pub fn clk_bus_root() {
     // Select clk_pll2 as the BUS root clock
-    pac::syscrg_reg().clk_bus_root().modify(|_, w| w.clk_mux_sel().variant(CLK_BUS_ROOT_SW));
+    pac::syscrg_reg()
+        .clk_bus_root()
+        .modify(|_, w| w.clk_mux_sel().variant(CLK_BUS_ROOT_SW));
 }
 
 pub fn clocks() {
     let syscrg = pac::syscrg_reg();
 
     // Set clk_pll2 as the peripheral root clock
-    syscrg.clk_peripheral_root()
+    syscrg
+        .clk_peripheral_root()
         .modify(|_, w| w.clk_mux_sel().variant(CLK_PERH_ROOT_MUX_SEL));
 
     // Enable the NOC STG clock
-    syscrg.clk_noc_stg_axi().modify(|_, w| w.clk_icg().set_bit());
+    syscrg
+        .clk_noc_stg_axi()
+        .modify(|_, w| w.clk_icg().set_bit());
 
     // Set clk_osc_div4 as the APB clock
-    pac::aoncrg_reg().clk_aon_apb().modify(|_, w| w.clk_mux_sel().variant(0));
+    pac::aoncrg_reg()
+        .clk_aon_apb()
+        .modify(|_, w| w.clk_mux_sel().variant(0));
 
     // Set clk_qspi_ref_src as the QSPI clock
-    syscrg.clk_qspi_ref().modify(|_, w| w.clk_mux_sel().variant(CLK_QSPI_REF_MUX_SEL));
+    syscrg
+        .clk_qspi_ref()
+        .modify(|_, w| w.clk_mux_sel().variant(CLK_QSPI_REF_MUX_SEL));
 }
 
 pub fn clk_apb0() {
@@ -167,17 +178,25 @@ pub fn clk_ddrc_axi(on: bool) {
 }
 
 pub fn clk_ddrc_osc_div2() {
-    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_OSC_DIV2));
+    pac::syscrg_reg()
+        .clk_ddr_bus()
+        .modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_OSC_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div2() {
-    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV2));
+    pac::syscrg_reg()
+        .clk_ddr_bus()
+        .modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV2));
 }
 
 pub fn clk_ddrc_pll1_div4() {
-    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV4));
+    pac::syscrg_reg()
+        .clk_ddr_bus()
+        .modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV4));
 }
 
 pub fn clk_ddrc_pll1_div8() {
-    pac::syscrg_reg().clk_ddr_bus().modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
+    pac::syscrg_reg()
+        .clk_ddr_bus()
+        .modify(|_, w| w.clk_mux_sel().variant(DDR_BUS_PLL1_DIV8));
 }
