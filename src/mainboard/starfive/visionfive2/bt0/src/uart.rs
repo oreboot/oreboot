@@ -5,13 +5,17 @@ use crate::pac;
 // UART0 Clock = clk_osc (24Mhz)
 const UART_CLK: u32 = 24_000_000;
 const UART_BAUDRATE_32MCLK_115200: u32 = 115200;
-const DIVISOR: u32 = UART_CLK.saturating_div(16).saturating_div(UART_BAUDRATE_32MCLK_115200);
+const DIVISOR: u32 = UART_CLK
+    .saturating_div(16)
+    .saturating_div(UART_BAUDRATE_32MCLK_115200);
 
 pub(crate) fn uart0_divisor() -> u16 {
     let uart0 = pac::uart0_reg();
 
     // Clear FIFOs to set UART0 to idle
-    uart0.fcr().modify(|_, w| w.rfifor().set_bit().xfifor().set_bit());
+    uart0
+        .fcr()
+        .modify(|_, w| w.rfifor().set_bit().xfifor().set_bit());
     while uart0.usr().read().busy().bit_is_set() {}
 
     uart0.lcr().modify(|_, w| w.dlab().set_bit());

@@ -1,5 +1,5 @@
-use crate::pac;
 use crate::init::{self, read32, udelay, write32};
+use crate::pac;
 
 // see `boot/arch/riscv/cpu/jh7110/pll.c` `pll_set_rate`
 // NOTE: The order may be irrelevant, which would allow for simplification.
@@ -52,15 +52,22 @@ pub fn pll0_set_freq(f: PllFreq) {
     // This is in contrast to the address-offset numbering used in the TRM
     // Basically, divide the TRM numbering by four to get the PAC numbering
 
-    // Turn off PD by setting the bit 
+    // Turn off PD by setting the bit
     syscon.sys_syscfg_8().modify(|_, w| w.pll0_pd().set_bit());
 
     syscon.sys_syscfg_6().modify(|_, w| {
-        w.pll0_dacpd().variant(f.dacpd != 0).pll0_dsmpd().variant(f.dsmpd != 0)
+        w.pll0_dacpd()
+            .variant(f.dacpd != 0)
+            .pll0_dsmpd()
+            .variant(f.dsmpd != 0)
     });
 
-    syscon.sys_syscfg_9().modify(|_, w| w.pll0_prediv().variant(f.prediv as u8));
-    syscon.sys_syscfg_7().modify(|_, w| w.pll0_fbdiv().variant(f.fbdiv as u16));
+    syscon
+        .sys_syscfg_9()
+        .modify(|_, w| w.pll0_prediv().variant(f.prediv as u8));
+    syscon
+        .sys_syscfg_7()
+        .modify(|_, w| w.pll0_fbdiv().variant(f.fbdiv as u16));
 
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
@@ -86,26 +93,35 @@ pub fn pll1_set_freq(f: PllFreq) {
     let v3 = syscon.sys_syscfg_11().read().bits();
     println!("PLL1: {v1:08x} {v2:08x} {v3:08x}");
 
-    // Turn off PD by setting the bit 
+    // Turn off PD by setting the bit
     syscon.sys_syscfg_10().modify(|_, w| w.pll1_pd().set_bit());
 
     syscon.sys_syscfg_9().modify(|_, w| {
-        w.pll1_dacpd().variant(f.dacpd !=0).pll1_dsmpd().variant(f.dsmpd != 0)
+        w.pll1_dacpd()
+            .variant(f.dacpd != 0)
+            .pll1_dsmpd()
+            .variant(f.dsmpd != 0)
     });
 
     let frac = 0xe00000;
-    syscon.sys_syscfg_10().modify(|_, w| w.pll1_frac().variant(frac));
+    syscon
+        .sys_syscfg_10()
+        .modify(|_, w| w.pll1_frac().variant(frac));
 
-    syscon.sys_syscfg_11().modify(|_, w| w.pll1_prediv().variant(f.prediv as u8));
+    syscon
+        .sys_syscfg_11()
+        .modify(|_, w| w.pll1_prediv().variant(f.prediv as u8));
 
-    syscon.sys_syscfg_9().modify(|_, w| w.pll1_fbdiv().variant(f.fbdiv as u16));
+    syscon
+        .sys_syscfg_9()
+        .modify(|_, w| w.pll1_fbdiv().variant(f.fbdiv as u16));
 
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
     // to 0 here.
-    syscon.sys_syscfg_10().modify(|_, w|{ 
+    syscon.sys_syscfg_10().modify(|_, w| {
         w.pll1_postdiv1().variant((f.postdiv1 >> 1) as u8);
-        // Turn on PD by clearing the bit 
+        // Turn on PD by clearing the bit
         w.pll1_pd().clear_bit()
     });
 
@@ -122,12 +138,19 @@ pub fn pll2_set_freq(f: PllFreq) {
     syscon.sys_syscfg_12().modify(|_, w| w.pll2_pd().set_bit());
 
     syscon.sys_syscfg_11().modify(|_, w| {
-        w.pll2_dacpd().variant(f.dacpd != 0).pll2_dsmpd().variant(f.dsmpd != 0)
+        w.pll2_dacpd()
+            .variant(f.dacpd != 0)
+            .pll2_dsmpd()
+            .variant(f.dsmpd != 0)
     });
 
-    syscon.sys_syscfg_13().modify(|_, w| w.pll2_prediv().variant(f.prediv as u8));
+    syscon
+        .sys_syscfg_13()
+        .modify(|_, w| w.pll2_prediv().variant(f.prediv as u8));
 
-    syscon.sys_syscfg_11().modify(|_, w| w.pll2_fbdiv().variant(f.fbdiv as u16));
+    syscon
+        .sys_syscfg_11()
+        .modify(|_, w| w.pll2_fbdiv().variant(f.fbdiv as u16));
 
     // NOTE: Not sure why, but the original code does this shift, and defines
     // all postdiv values for all PLLs and config to be 1, effectively dropping
