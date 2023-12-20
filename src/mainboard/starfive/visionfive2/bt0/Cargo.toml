@@ -18,7 +18,6 @@ layoutflash = { path = "../../../../lib/layoutflash" }
 log = { path = "../../../../lib/log" }
 
 [dependencies.jh71xx-pac]
-git = "https://github.com/rmsyn/jh71xx-pac"
 version = "0.2"
 
 [features]
