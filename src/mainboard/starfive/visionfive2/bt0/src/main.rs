@@ -88,20 +88,29 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
         "csrr   a0, mhartid",
-        "bne    a0, a1, .nonboothart",
-        // 2. prepare stack
-        "la     sp, {stack}",
-        "li     t0, {stack_size}",
-        "add    sp, sp, t0",
-        "j      .boothart",
+        "li     a1, 0",
+        "beq    a0, a1, .boothart",
+        "li     a1, 1",
+        "beq    a0, a1, .hart1",
+	// Let's assume we only wake the one we want,
+	// which is more flexible anyway.
+	"j .hart1",
+    ".hart2_4:",
+    "wfi",
+    "j .hart2_4",
         // wait for multihart to get back into the game
-        ".nonboothart:",
+        ".hart1:",
+    // grow hart1 stack DOWN from the bottom of bt0 stack.
+        "la     sp, {stack}",
         "csrw   mie, 8", // 1 << 3
         "wfi",
         "call   {payload}",
         ".boothart:",
+        // 2. prepare stack
+        "la     sp, {stack}",
+        "li     t0, {stack_size}",
+        "add    sp, sp, t0",
         "call   {reset}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
@@ -296,6 +305,7 @@ fn main() {
             }
         }
 
+	println!("dtb {dtb:x}");
         for b in (0..size).step_by(4) {
             write32(dram + b, read32(base + b));
             if b % 0x4_0000 == 0 {
@@ -338,20 +348,26 @@ fn main() {
     println!("lzss compressed Linux");
     dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
 
-    println!("release non-boot harts =====\n");
-    write32(CLINT_HART1_MSIP, 0x1);
-    write32(CLINT_HART2_MSIP, 0x1);
-    write32(CLINT_HART3_MSIP, 0x1);
-    write32(CLINT_HART4_MSIP, 0x1);
+    let hart = 2;
+    println!("release hart {hart} ONLY =====\n");
+    match hart {
+	1 => write32(CLINT_HART1_MSIP, 0x1),
+	2 => write32(CLINT_HART2_MSIP, 0x1),
+	3 => write32(CLINT_HART3_MSIP, 0x1),
+	4 => write32(CLINT_HART4_MSIP, 0x1),
+	_ => {println!("bad hart {hart}, assume 1"); write32(CLINT_HART1_MSIP, 0x1);},
+	}
 
-    println!("Jump to payload... with dtb {dtb:#x}");
-    exec_payload(dtb);
-    println!("Exit from payload, resetting...");
-    unsafe {
-        sleep(0x0100_0000);
-        reset();
-        riscv::asm::wfi()
-    };
+    //println!("Jump to payload... with dtb {dtb:#x}");
+    //exec_payload(dtb);
+    println!("hart {hart} runs payload, hart 0 sleeping.");
+    loop {
+        unsafe {
+            sleep(0x0400_0000);
+            //riscv::asm::wfi();
+            println!("... hart 0 STILL sleeping.");
+        };
+    }
 }
 
 fn exec_payload(dtb: usize) {
@@ -366,6 +382,7 @@ fn exec_payload(dtb: usize) {
 
     let hart_id = mhartid::read();
     // U-Boot proper
+    let dtb:usize = 0x8010000;
     unsafe {
         // jump to payload
         let f = transmute::<usize, EntryPoint>(load_addr);
