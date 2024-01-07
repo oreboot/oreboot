@@ -1,7 +1,4 @@
-#[cfg(feature = "12a")]
-pub(crate) use jh71xx_pac::jh7110_vf2_12a_pac as pac;
-#[cfg(feature = "13b")]
-pub(crate) use jh71xx_pac::jh7110_vf2_13b_pac as pac;
+pub(crate) use jh71xx_pac as pac;
 
 pub use pac::*;
 
