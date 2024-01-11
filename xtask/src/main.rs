@@ -8,17 +8,16 @@ mod sunxi;
 use std::{
     env, fs,
     io::{self, Seek, SeekFrom, Write},
-    path::{Path, PathBuf},
+    path::Path,
     process,
     str::FromStr,
 };
 
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
-use layoutflash::areas::create_areas;
-use layoutflash::areas::find_fdt;
+use log::{error, info};
+
 use layoutflash::areas::Area;
-use log::error;
 
 #[derive(Parser)]
 #[clap(name = "xtask")]
@@ -97,6 +96,7 @@ fn main() {
     env_logger::Builder::new()
         .filter_level(args.verbose.log_level_filter())
         .init();
+    info!("=== oreboot build system ===");
     let cur_path = env::current_dir().unwrap();
     let target = if let Some(target) = target::parse_target(
         &cur_path,
@@ -113,23 +113,6 @@ fn main() {
         process::exit(1)
     };
     target.execute_command(&args);
-}
-
-fn dist_dir(env: &Env, target: &str) -> PathBuf {
-    let mut path_buf = project_root().join("target").join(target);
-    path_buf = match env.release {
-        false => path_buf.join("debug"),
-        true => path_buf.join("release"),
-    };
-    path_buf
-}
-
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
-        .to_path_buf()
 }
 
 // In earlier versions of this function, we assumed all Areas had a non-zero
