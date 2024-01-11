@@ -1,9 +1,9 @@
-use crate::project_root;
 use log::{error, trace};
 use std::path::{Component, Path};
 
 use crate::starfive;
 use crate::sunxi;
+use crate::util::project_root;
 
 pub(crate) struct Target {
     vendor_board: Vendor,
@@ -30,7 +30,7 @@ pub(crate) fn parse_target(
     param_mainboard: Option<&str>,
     param_variant: Option<&str>,
 ) -> Option<Target> {
-    let features_from_variant = if let Some(variant) = param_variant {
+    let features = if let Some(variant) = param_variant {
         vec![variant.to_string()]
     } else {
         vec![]
@@ -44,7 +44,7 @@ pub(crate) fn parse_target(
         };
         return Some(Target {
             vendor_board,
-            features: features_from_variant,
+            features,
         });
     };
     None
