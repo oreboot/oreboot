@@ -1,5 +1,6 @@
 mod gdb_detect;
 mod target;
+mod util;
 
 mod starfive;
 mod sunxi;
