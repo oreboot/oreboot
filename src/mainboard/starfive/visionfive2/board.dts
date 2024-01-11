@@ -4,57 +4,65 @@
     #address-cells = <1>;
     #size-cells = <1>;
 
+    board-info {
+        compatible = "ore-boardinfo";
+        board-name = "VisionFive 2";
+        category = "StarFive";
+        board-url = "https://www.starfivetech.com/en/site/boards";
+    };
+
+    // TODO: flash size/type/brand...?
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "QEMU aarch64";
-        category = "emulation";
-        board-url = "http://wiki.qemu.org/Main_Page";
         areas {
             area@0 {
-                description = "Boot Blob";
-                compatible = "ore-bootblob";
-                size = <0x10000>; // 64k
-                file = "starfive-visionfive2-bt0.bin.normal.out";
+                description = "header";
+                compatible = "none";
+                size = <0x400>; // 1k
             };
+
             area@1 {
+                description = "bt0";
+                compatible = "ore-bt0";
+                size = <0x10000>; // 64k
+                file = "starfive-visionfive2-bt0.bin";
+            };
+
+            area@2 {
                 description = "Fixed DTFS";
                 compatible = "ore-dtfs";
                 size = <0x1000>;
                 file = "starfive-visionfive2-board.dtb";
             };
-            area@2 {
-                description = "main";
-                //size = <0x100000>; // 1MiB
-		//file = "starfive-visionfive2-main.bin";
-            };
+
             area@3 {
-                description = "RomPayload";
-                compatible = "ore-rompayload";
-                //size = <0x2000000>; // 32MiB
-		//file = "$(KERNEL)"; 
+                description = "main";
+                compatible = "ore-main";
+                size = <0x10000>; // 64k
+                file = "starfive-visionfive2-main.bin";
             };
         };
     };
+
     load-info {
         compatible = "ore-loadinfo";
-        board-name = "QEMU aarch64";
-        category = "emulation";
-        board-url = "http://wiki.qemu.org/Main_Page";
-	load-payload {
-	    description = "Payload load address";
-	    addr = <0x41000000>;
-	    size = <0x2000000>;
-	};
-	load-dtb {
-	    description = "DTB load address";
-	    addr = <0x45000000>;
-	    size = <0x100000>;
-	};
 
+        load-payload {
+            description = "Payload load address";
+            addr = <0x41000000>;
+            size = <0x2000000>;
+        };
+
+        load-dtb {
+            description = "DTB load address";
+            addr = <0x45000000>;
+            size = <0x100000>;
+        };
     };
 
-  memory@40000000 {
-    device_type = "memory";
-    reg = <0x40000000 0x20000000>;
-  };
+    // FIXME: evaluate at build time or runtime
+    memory@40000000 {
+        device_type = "memory";
+        reg = <0x40000000 0x20000000>;
+    };
 };
