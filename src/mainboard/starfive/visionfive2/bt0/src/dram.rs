@@ -4,25 +4,24 @@ use crate::ddrphy::{train, util};
 use crate::init::{self, read32, udelay, write32};
 use crate::{pac, pll};
 
+// TODO: support 1G
+#[cfg(not(any(dram_size = "2G", dram_size = "4G", dram_size = "8G")))]
+core::compile_error!("unsupported DRAM size or none set");
+
 // see StarFive U-Boot drivers/ram/starfive/starfive_ddr.c
 pub fn init() {
     // TODO: determine DRAM size from EEPROM at runtime, it's stored on board.
     // That requires I2C first, see `arch/riscv/cpu/jh7110/dram.c` in U-Boot.
-    // FIXME: This does not work as of now. It did in a std test project though.
-    println!(
-        "DRAM: 4G: {} 2G: {}",
-        cfg!(dram_size = "4G"),
-        cfg!(dram_size = "2G")
-    );
-    if cfg!(dram_size = "2G") {
-        println!("2G shitty DRAM");
-    }
-    if cfg!(dram_size = "4G") {
-        println!("4G sparkling DRAM");
-    }
-    if cfg!(dram_size = "8G") {
-        println!("8G shiny DRAM");
-    }
+    let dram_size = if cfg!(dram_size = "2G") {
+        2
+    } else if cfg!(dram_size = "4G") {
+        4
+    } else if cfg!(dram_size = "8G") {
+        8
+    } else {
+        0 // does not actually occur due to build-time check
+    };
+    println!("DRAM size: {dram_size}G");
     unsafe {
         println!("[DRAM] init start");
         println!("[DRAM] set clk to OSC div2");
