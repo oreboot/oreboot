@@ -60,14 +60,30 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
 fn xtask_build_jh7110_bt0(env: &Env, features: &Vec<String>) {
     trace!("build JH7110 bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
-    if features.len() != 0 {
+    if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
         command.arg("--no-default-features");
-        command.args(&["--features", &command_line_features]);
+        command.args(["--features", &command_line_features]);
     } else {
         trace!("no command line features appended");
     }
+    let dram_size = match env.dram_size {
+        Some(crate::DramSize::TwoG) => 2,
+        Some(crate::DramSize::FourG) => 4,
+        Some(crate::DramSize::EightG) => 8,
+        None => {
+            warn!("no DRAM size provided, falling back to 4G");
+            4
+        }
+        _ => {
+            error!("unsupported DRAM size");
+            process::exit(1);
+        }
+    };
+    let rustflags_key = "target.riscv64imac-unknown-none-elf.rustflags";
+    let rustflags_val = &format!("['--cfg=dram_size=\"{dram_size}G\"']");
+    command.args(["--config", &format!("{rustflags_key}={rustflags_val}")]);
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
     if !status.success() {
