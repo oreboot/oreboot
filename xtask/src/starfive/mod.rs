@@ -1,5 +1,7 @@
 mod visionfive1;
 mod visionfive2;
+mod visionfive2_hdr;
+
 use super::Cli;
 
 #[derive(Debug, Clone, Copy)]
