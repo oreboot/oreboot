@@ -1,11 +1,13 @@
 OREBOOT=$(abspath $(CURDIR)/../../../../)
 TARGET     = riscv64imac-unknown-none-elf
+VERBOSE   ?= -vvvv
+PORT      ?= /dev/ttyUSB0
+DRAM_SIZE ?= 4G
+
 # full image path, including multiple stages
-IMAGE_BASE = $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2
-IMAGE_BT0 := $(IMAGE_BASE)-bt0
-IMAGE   := $(IMAGE_BASE)-board.fdtbin
-VERBOSE ?= -vvvv
-PORT    := /dev/ttyUSB0
+IMAGE_BASE  = $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2
+IMAGE_BT0  := $(IMAGE_BASE)-bt0
+IMAGE      := $(IMAGE_BASE).bin
 
 cibuild: mainboard
 
