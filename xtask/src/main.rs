@@ -146,7 +146,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
         }
         last_area_end = offset + a.size;
 
-        println!("<{}> @ 0x{:x}", a.name, last_area_end);
+        println!("<{}> @ 0x{last_area_end:x}", a.name);
         // First fill with 0xff.
         let mut v = Vec::new();
         v.resize(a.size as usize, 0xff);
@@ -158,7 +158,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
             let mut path = path.to_string();
             // Allow environment variables in the path.
             for (key, value) in env::vars() {
-                path = str::replace(&path, &format!("$({})", key), &value);
+                path = str::replace(&path, &format!("$({key})"), &value);
             }
 
             // If the path is an unused environment variable, skip it.
