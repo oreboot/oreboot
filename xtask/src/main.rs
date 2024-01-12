@@ -63,6 +63,26 @@ impl FromStr for Memory {
     }
 }
 
+#[derive(Clone)]
+enum DramSize {
+    TwoG,
+    FourG,
+    EightG,
+}
+
+impl FromStr for DramSize {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "2g" | "2G" => Ok(Self::TwoG),
+            "4g" | "4G" => Ok(Self::FourG),
+            "8g" | "8G" => Ok(Self::EightG),
+            others => Err(format!("unknown DRAM size {others}")),
+        }
+    }
+}
+
 #[derive(Args)]
 struct Env {
     #[clap(
@@ -84,6 +104,8 @@ struct Env {
     #[clap(long, global = true, help = "Target memory description")]
     memory: Option<Memory>,
     #[clap(long, global = true, help = "Board variant")]
+    dram_size: Option<DramSize>,
+    #[clap(long, global = true, help = "DRAM size")]
     variant: Option<String>,
     #[clap(long, global = true, help = "Path to raw payload")]
     payload: Option<String>,
