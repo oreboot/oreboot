@@ -2,7 +2,7 @@ use super::feature;
 use super::runtime::{MachineTrap, Runtime, SupervisorContext};
 use core::{
     arch::asm,
-    ops::{Generator, GeneratorState},
+    ops::{Coroutine, CoroutineState},
     pin::Pin,
 };
 use log::{print, println};
@@ -65,7 +65,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
-            GeneratorState::Yielded(MachineTrap::SbiCall()) => {
+            CoroutineState::Yielded(MachineTrap::SbiCall()) => {
                 let ctx = rt.context_mut();
                 // specific for 1.9.1; see document for details
                 feature::preprocess_supervisor_external(ctx);
@@ -88,7 +88,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 ctx.a1 = ans.value;
                 ctx.mepc = ctx.mepc.wrapping_add(4);
             }
-            GeneratorState::Yielded(MachineTrap::IllegalInstruction()) => {
+            CoroutineState::Yielded(MachineTrap::IllegalInstruction()) => {
                 let ctx = rt.context_mut();
                 let ins = unsafe { get_vaddr_u32(ctx.mepc) } as usize;
                 // NOTE: Not all instructions are 32 bit
@@ -116,8 +116,8 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 }
             }
             // NOTE: These are all delegated.
-            GeneratorState::Yielded(MachineTrap::ExternalInterrupt()) => {}
-            GeneratorState::Yielded(MachineTrap::MachineTimer()) => {
+            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
+            CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
                 // TODO: Check if this actually works
                 if DEBUG {
                     println!("M timer int");
@@ -126,14 +126,14 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     mip::set_stimer();
                 }
             }
-            GeneratorState::Yielded(MachineTrap::MachineSoft()) => {}
-            GeneratorState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::LoadFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::StoreFault(_addr)) => {}
-            GeneratorState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
-            GeneratorState::Complete(()) => unreachable!(),
+            CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
+            CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::StoreFault(_addr)) => {}
+            CoroutineState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
+            CoroutineState::Complete(()) => unreachable!(),
         }
     }
 }
