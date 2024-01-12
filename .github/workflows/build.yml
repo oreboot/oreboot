@@ -12,18 +12,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  QuickFormat:
-    runs-on: ubuntu-latest
-    steps:
-      - name: git-checkout-action
-        uses: actions/checkout@v3
-      - name: dprint-check-action
-        uses: dprint/check@v2.2
-
   LintAndFormat:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 'checkout'
+        uses: actions/checkout@v3
       - name: 'Install Dependencies'
         run: sudo apt-get update && make ciprepare
       - name: 'clippy linter'
@@ -34,10 +27,10 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 'checkout'
+        uses: actions/checkout@v3
       - name: 'Install Dependencies'
-        run: |
-          sudo apt-get update && make ciprepare
+        run: sudo apt-get update && make ciprepare
       - name: 'Create coverage file'
         run: make --keep-going citest
       - name: 'upload the coverage file to server'
@@ -48,7 +41,8 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 'checkout'
+        uses: actions/checkout@v3
       - name: 'Install Dependencies'
         run: sudo apt-get update && make ciprepare
       - name: 'Build all mainboards'
