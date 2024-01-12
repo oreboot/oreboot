@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(naked_functions)]
 #![feature(asm_const)]
-#![feature(generator_trait)]
 #![feature(panic_info_message)]
 
 use core::panic::PanicInfo;

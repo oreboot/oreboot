@@ -1,6 +1,6 @@
 use core::{
     arch::asm,
-    ops::{Generator, GeneratorState},
+    ops::{Coroutine, CoroutineState},
     pin::Pin,
 };
 use log::println;
@@ -94,10 +94,10 @@ fn crap() {
     );
 }
 
-impl Generator for Runtime {
+impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
-    fn resume(mut self: Pin<&mut Self>, _arg: ()) -> GeneratorState<Self::Yield, Self::Return> {
+    fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
         let trap = match mcause::read().cause() {
@@ -124,7 +124,7 @@ impl Generator for Runtime {
                 e, mtval, self.context
             ),
         };
-        GeneratorState::Yielded(trap)
+        CoroutineState::Yielded(trap)
     }
 }
 

@@ -9,7 +9,12 @@ extern crate log;
 extern crate layoutflash;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
-use core::{arch::asm, intrinsics::transmute, panic::PanicInfo, ptr};
+use core::{
+    arch::asm,
+    intrinsics::transmute,
+    panic::PanicInfo,
+    ptr::{self, addr_of, addr_of_mut},
+};
 use init::{dump_block, read32, write32};
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
@@ -127,11 +132,11 @@ pub unsafe extern "C" fn reset() {
         static _sidata: u8;
     }
 
-    let count = &_ebss as *const u8 as usize - &_sbss as *const u8 as usize;
-    ptr::write_bytes(&mut _sbss as *mut u8, 0, count);
+    let count = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
+    ptr::write_bytes(addr_of_mut!(_sbss), 0, count);
 
-    let count = &_edata as *const u8 as usize - &_sdata as *const u8 as usize;
-    ptr::copy_nonoverlapping(&_sidata as *const u8, &mut _sdata as *mut u8, count);
+    let count = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
+    ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), count);
     // Call user entry point
     main();
 }

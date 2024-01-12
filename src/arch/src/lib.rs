@@ -1,6 +1,6 @@
 #![feature(asm_const)]
 #![feature(naked_functions)]
-#![feature(generator_trait)]
+#![feature(coroutine_trait)]
 #![no_std]
 
 #[cfg(feature = "riscv64")]

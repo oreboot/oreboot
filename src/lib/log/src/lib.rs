@@ -132,7 +132,7 @@ pub fn print(args: fmt::Arguments) {
     LOGGER.lock().as_mut().unwrap().write_fmt(args).unwrap();
     #[cfg(not(feature = "mutex"))]
     unsafe {
-        if let Some(l) = &mut LOGGER {
+        if let Some(l) = LOGGER.as_mut() {
             l.write_fmt(args).unwrap();
         }
     }
