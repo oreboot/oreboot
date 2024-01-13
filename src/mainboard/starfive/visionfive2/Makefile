@@ -20,7 +20,7 @@ citest: nop
 checkformat: nop
 
 mainboard:
-	cargo xtask make --release $(VERBOSE)
+	cargo xtask make --release $(VERBOSE) --dram-size $(DRAM_SIZE)
 
 objdump: mainboard
 	riscv64-linux-gnu-objdump -D "$(IMAGE_BT0)"
