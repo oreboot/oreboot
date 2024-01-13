@@ -93,8 +93,8 @@ pub fn execute_supervisor(
         supervisor_mepc, dtb_addr
     );
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
-    // let mtimer = CLINT_MTIMER_JH7110;
     let mtimer = CLINT_MTIMER_D1;
+    let mtimer = CLINT_MTIMER_JH7110;
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
