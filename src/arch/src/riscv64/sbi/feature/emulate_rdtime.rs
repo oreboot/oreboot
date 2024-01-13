@@ -4,7 +4,7 @@ use riscv::register::cycle;
 
 const DEBUG: bool = true;
 const DEBUG_RDCYCLE: bool = false;
-const DEBUG_RDTIME: bool = true;
+const DEBUG_RDTIME: bool = false;
 
 const RDINS_MASK: usize = 0xFFFF_F07F;
 const RDTIME_INST: usize = 0xC010_2073;
