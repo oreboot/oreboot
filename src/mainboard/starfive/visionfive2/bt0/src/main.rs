@@ -69,10 +69,11 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
+        "li     a1, 1",
         "csrr   a0, mhartid",
         "bne    a0, a1, .nonboothart",
         // 2. prepare stack
+        // FIXME: each hart needs its own stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
@@ -81,6 +82,7 @@ pub unsafe extern "C" fn start() -> ! {
         ".nonboothart:",
         "csrw   mie, 8", // 1 << 3
         "wfi",
+        "csrw   mip, 0",
         "call   {payload}",
         ".boothart:",
         "call   {reset}",
@@ -158,20 +160,19 @@ fn print_ids() {
     let aid = marchid::read().map(|r| r.bits()).unwrap_or(0);
     let iid = mimpid::read().map(|r| r.bits()).unwrap_or(0);
     // TODO: This prints 8000000000000007, but should be 80000007.
-    // The long number is what the `mcause` register should hold in case of
-    // a machine timer interrupt. See U74-MC core complex manual 21G3.
+    // See U74-MC core complex manual 21G3.
     println!("RISC-V arch {aid:08x}");
     let vendor_name = vendorid_to_name(vid);
     println!("RISC-V core vendor: {vendor_name} (0x{vid:04x})");
     let imp_name = impid_to_name(iid);
     println!("RISC-V implementation: {imp_name} (0x{iid:08x})");
     let hart_id = mhartid::read();
-    println!("RISC-V hart ID {}", hart_id);
+    println!("RISC-V hart ID {hart_id}");
 }
 
-unsafe fn sleep(n: u32) {
+fn sleep(n: u32) {
     for _ in 0..n {
-        core::hint::spin_loop();
+        unsafe { core::hint::spin_loop() };
     }
 }
 
@@ -276,7 +277,7 @@ fn main() {
 
     let mut s = uart::JH71XXSerial::new();
     init_logger(s);
-    println!("oreboot 🦀");
+    println!("oreboot 🦀 bt0");
     print_boot_mode();
     print_ids();
 
