@@ -256,8 +256,7 @@ fn main() {
         match fdt {
             Err(_) => {
                 println!(
-                    "Could not find an FDT between {:?} and {:?}",
-                    SRAM0_BASE,
+                    "Could not find an FDT between {SRAM0_BASE:08x} and {:08x}",
                     SRAM0_BASE + size
                 );
             }
