@@ -32,7 +32,7 @@ const MEM: usize = 0x4000_0000;
 const PAYLOAD_SIZE: usize = 0x20_0000; // 2 MB
 const PAYLOAD_ADDR: usize = MEM + 0x20_0000;
 
-// compressed image
+// compressed payload
 const LINUXBOOT_TMP_OFFSET: usize = 0x0300_0000;
 const LINUXBOOT_TMP_ADDR: usize = MEM + LINUXBOOT_TMP_OFFSET;
 
@@ -280,6 +280,9 @@ fn init_csrs() {
     dump_csrs();
 }
 
+#[cfg(feature = "f133")]
+type Serial = D1Serial<UART0, uart::Pins_E2_E3>;
+#[cfg(any(feature = "lichee", feature = "nezha"))]
 type Serial = D1Serial<UART0, uart::Pins_B8_B9>;
 
 fn init_logger(s: Serial) {

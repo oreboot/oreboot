@@ -86,12 +86,13 @@ const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
 
 // TODO: determine offets/sizes via dtfs
 // memory load addresses
-const LIN_ADDR: usize = RAM_BASE + 0x0300_0000; // Linux will be decompressed in payloader
+const LB_ADDR: usize = RAM_BASE + 0x0300_0000; // Linux will be decompressed in payloader
 const DTB_ADDR: usize = RAM_BASE + 0x0220_0000; // dtb must be 2MB aligned and behind Linux
-const ORE_ADDR: usize = RAM_BASE;
-const ORE_SIZE: usize = 0x1_8000; // 96K
-const DTF_SIZE: usize = 0x1_0000; // 64K
-const LIN_SIZE: usize = 0x00fc_0000;
+const MAIN_ADDR: usize = RAM_BASE;
+const BT0_SIZE: usize = 0x8000; // 32K
+const MAIN_SIZE: usize = 0x1_8000; // 96K
+const DTFS_SIZE: usize = 0x1_0000; // 64K
+const LB_SIZE: usize = 0x00fc_0000;
 const DTB_SIZE: usize = 0x0001_0000;
 
 // clobber used by KEEP(*(.head.egon)) in link script
@@ -309,8 +310,7 @@ fn load(
 ) {
     let chunks = 16;
     let sz = size >> 2;
-    // println!("load {:x} bytes from {:x} to {:x}", size, skip, base);
-    print!("load {:08x} bytes to {:x}: ", size, base);
+    println!("load {size:08x} bytes to {base:x}: ");
     for i in 0..sz / chunks {
         let off = skip + i * 4 * chunks;
         let buf = f.copy_into([(off >> 16) as u8, (off >> 8) as u8, off as u8]);
@@ -412,7 +412,7 @@ fn udelay(micros: usize) {
 /* Trim bandgap reference voltage. */
 fn trim_bandgap_ref_voltage() {
     let soc_version = (unsafe { read_volatile(SOC_VER_REG as *mut u32) >> 22 }) & 0x3f;
-    println!("v {}", soc_version);
+    println!("SoC version {soc_version}");
 
     let mut bg_trim = (unsafe { read_volatile(BANDGAP_TRIM_REG as *mut u32) } >> 16) & 0xff;
     if bg_trim == 0 {
@@ -529,10 +529,10 @@ extern "C" fn main() {
     for _ in 0..1000 {
         core::hint::spin_loop();
     }
-    println!("cpu_axi {:x}", cpu_axi); // 0xFA00_1000
+    println!("cpu_axi {cpu_axi:x}"); // 0xFA00_1000
 
     let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
-    println!("peri0_ctrl was: {:x}", peri0_ctrl); // f8216300
+    println!("peri0_ctrl was: {peri0_ctrl:x}"); // f8216300
 
     // unsafe { write_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32, 0x63 << 8) };
     // println!("peri0_ctrl default");
@@ -545,7 +545,7 @@ extern "C" fn main() {
     unsafe { write_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32, peri0_ctrl | 1 << 31) };
     println!("peri0_ctrl PLLs");
     let peri0_ctrl = unsafe { read_volatile(CCMU_PLL_PERI0_CTRL_REG as *mut u32) };
-    println!("peri0_ctrl set: {:x}", peri0_ctrl);
+    println!("peri0_ctrl now set to: {peri0_ctrl:x}");
 
     /* Initialize RISCV_CFG. */
     unsafe {
@@ -580,20 +580,21 @@ extern "C" fn main() {
         // e.g., GigaDevice (GD) is 0xC8 and GD25Q128 is 0x4018
         // see flashrom/flashchips.h for details and more
         let id = flash.read_id();
-        println!("NOR flash: {:x}/{:x}{:x}", id[0], id[1], id[2],);
+        println!("NOR flash: {:x}/{:x}{:x}", id[0], id[1], id[2]);
 
         // TODO: Either read sizes from dtfs at runtime or at build time
         println!("Loading... 💾");
-        let skip = 0x1 << 15; // 32K, the size of boot0
-        load(skip, ORE_ADDR, ORE_SIZE, &mut flash);
+        let skip = BT0_SIZE;
+        load(skip, MAIN_ADDR, MAIN_SIZE, &mut flash);
+        mctl::dump(MAIN_ADDR, 12);
 
-        // 32K + oreboot + dtfs, see oreboot dtfs
-        let skip = skip + ORE_SIZE + DTF_SIZE;
-        load(skip, LIN_ADDR, LIN_SIZE, &mut flash);
+        let skip = skip + MAIN_SIZE + DTFS_SIZE;
+        load(skip, LB_ADDR, LB_SIZE, &mut flash);
+        mctl::dump(LB_ADDR, 12);
 
-        // 32K + oreboot + dtfs + payload
-        let skip = skip + LIN_SIZE;
+        let skip = skip + LB_SIZE;
         load(skip, DTB_ADDR, DTB_SIZE, &mut flash);
+        mctl::dump(DTB_ADDR, 12);
 
         let _ = flash.free().free();
     }
@@ -606,15 +607,12 @@ extern "C" fn main() {
         // TODO: Either read sizes from dtfs at runtime or at build time
         let mut main_stage_head = [0u8; 8];
         flash.copy_into(0x60, &mut main_stage_head);
-        let main_stage_head: MainStageHead = unsafe { core::mem::transmute(main_stage_head) };
-        println!(
-            "flash offset: {}, length: {}",
-            main_stage_head.offset, main_stage_head.length
-        );
-        let ddr_buffer = unsafe {
-            core::slice::from_raw_parts_mut(RAM_BASE as *mut u8, main_stage_head.length as usize)
-        };
-        flash.copy_into(main_stage_head.offset, ddr_buffer);
+        let MainStageHead { offset, length }: MainStageHead =
+            unsafe { core::mem::transmute(main_stage_head) };
+        println!("flash offset: {offset}, length: {length}");
+        let ddr_buffer =
+            unsafe { core::slice::from_raw_parts_mut(RAM_BASE as *mut u8, length as usize) };
+        flash.copy_into(offset, ddr_buffer);
         // flash is freed when it goes out of scope
     }
 
@@ -633,25 +631,25 @@ extern "C" fn main() {
         // Mandatory 8K SPL offset on sdcard
         let skip = 8192;
         // SPL is already loaded (by BROM), so skip it
-        let skip = skip + (0x1 << 15); // 32K, the size of SPL/boot0
-        if let Err(e) = load(skip, ORE_ADDR, ORE_SIZE, &mut smhc) {
-            println!("Loading oreboot failed: {:?}", e);
+        let skip = skip + BT0_SIZE;
+        if let Err(e) = load(skip, MAIN_ADDR, MAIN_SIZE, &mut smhc) {
+            println!("Loading oreboot main stage failed: {e:?}");
         }
 
         // Linux is behind oreboot + dtfs
-        let skip = skip + ORE_SIZE + DTF_SIZE;
-        if let Err(e) = load(skip, LIN_ADDR, LIN_SIZE, &mut smhc) {
-            println!("Loading Linux failed: {:?}", e);
+        let skip = skip + MAIN_SIZE + DTFS_SIZE;
+        if let Err(e) = load(skip, LB_ADDR, LB_SIZE, &mut smhc) {
+            println!("Loading Linux failed: {e:?}");
         }
 
         // DTB is behind Linux
-        let skip = skip + LIN_SIZE;
+        let skip = skip + LB_SIZE;
         if let Err(e) = load(skip, DTB_ADDR, DTB_SIZE, &mut smhc) {
-            println!("Loading DTB failed: {:?}", e);
+            println!("Loading DTB failed: {e:?}");
         }
     }
 
-    println!("Running payload at 0x{:x}", RAM_BASE);
+    println!("Jumping to oreboot main at 0x{RAM_BASE:x}");
     unsafe {
         let f: unsafe extern "C" fn() = transmute(RAM_BASE);
         f();
@@ -665,7 +663,9 @@ extern "C" fn main() {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!("panic in '{}' line {}", location.file(), location.line(),);
+        let f = location.file();
+        let l = location.line();
+        println!("panic in '{f}' line {l}");
     } else {
         println!("panic at unknown location");
     };

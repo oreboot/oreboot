@@ -5,15 +5,23 @@ use riscv::register::{self as reg, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 
+const DEBUG: bool = true;
+const DEBUG_IPI: bool = true;
+const DEBUG_FENCE: bool = true;
+const DEBUG_TIMER: bool = true;
+
 pub fn init() {
     init_pmp();
+    println!("[SBI] PLIC init");
     init_plic();
-    println!("timer init");
-    rustsbi::init_timer(&Timer);
-    println!("reset init");
-    rustsbi::init_reset(&Reset);
-    println!("ipi init");
+    println!("[SBI] ipi init");
     rustsbi::init_ipi(&Ipi);
+    println!("[SBI] rfence init");
+    rustsbi::init_remote_fence(&Rfence);
+    println!("[SBI] timer init");
+    rustsbi::init_timer(&Timer);
+    println!("[SBI] reset init");
+    rustsbi::init_reset(&Reset);
 }
 
 /**
@@ -53,6 +61,7 @@ struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
         // TODO: This was a member function in previous RustSBI
+        println!("[SBI] IPI {hart_mask:?}");
         // This needs to become a parameter
         fn max_hart_id() -> usize {
             0
@@ -62,6 +71,49 @@ impl rustsbi::Ipi for Ipi {
                 msip::set_ipi(i);
                 msip::clear_ipi(i);
             }
+        }
+        SbiRet::success(0)
+    }
+}
+
+struct Rfence;
+impl rustsbi::Fence for Rfence {
+    fn remote_fence_i(&self, hart_mask: HartMask) -> SbiRet {
+        println!("[SBI] remote_fence_i {hart_mask:?}");
+        unsafe {
+            asm!(
+                "sfence.vma", // TLB flush
+                "fence.i",    // local hart
+                "fence  w,w", // whatever..?
+            );
+        }
+        if hart_mask.has_bit(0) {
+            msip::set_ipi(0);
+            msip::clear_ipi(0);
+        }
+        SbiRet::success(0)
+    }
+
+    fn remote_sfence_vma_asid(
+        &self,
+        hart_mask: HartMask,
+        start_addr: usize,
+        size: usize,
+        asid: usize,
+    ) -> SbiRet {
+        if DEBUG && DEBUG_FENCE {
+            println!("[SBI] remote_sfence_vma_asid {hart_mask:?}");
+        }
+        SbiRet::success(0)
+    }
+
+    fn remote_sfence_vma(&self, hart_mask: HartMask, start_addr: usize, size: usize) -> SbiRet {
+        if DEBUG && DEBUG_FENCE {
+            println!("[SBI] remote_sfence_vma {hart_mask:?} addr {start_addr:x} size {size}");
+        }
+        if hart_mask.has_bit(0) {
+            msip::set_ipi(0);
+            msip::clear_ipi(0);
         }
         SbiRet::success(0)
     }
