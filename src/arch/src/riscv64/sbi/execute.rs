@@ -18,9 +18,11 @@ const DEBUG: bool = true;
 const DEBUG_ECALL: bool = false;
 const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
-const DEBUG_EMULATE: bool = false;
-const DEBUG_ILLEGAL: bool = false;
+const DEBUG_EMULATE: bool = true;
+const DEBUG_ILLEGAL: bool = true;
 const DEBUG_MISALIGNED: bool = true;
+
+const D1_PLIC_BASE: usize = 0x1000_0000;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -76,6 +78,13 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
     }
 }
 
+// FIXME: DO NOT HARDCODE; use sbi crate definitions etc
+const CLINT_BASE_JH7110: usize = 0x0200_0000;
+const CLINT_MTIMER_JH7110: usize = CLINT_BASE_JH7110 + 0xbff8;
+
+const CLINT_BASE_D1: usize = 0x0400_0000;
+const CLINT_MTIMER_D1: usize = CLINT_BASE_D1 + 0x4000;
+
 pub fn execute_supervisor(
     supervisor_mepc: usize,
     hartid: usize,
@@ -86,6 +95,8 @@ pub fn execute_supervisor(
         supervisor_mepc, dtb_addr
     );
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
+    // let mtimer = CLINT_MTIMER_JH7110;
+    let mtimer = CLINT_MTIMER_D1;
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -123,7 +134,7 @@ pub fn execute_supervisor(
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_instruction(ctx, ins) {
+                } else if !emulate_instruction(ctx, ins, mtimer) {
                     if DEBUG_ILLEGAL {
                         println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
                     }
@@ -191,11 +202,11 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     ans
 }
 
-fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) -> bool {
     if DEBUG && DEBUG_EMULATE {
         println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
     }
-    if feature::emulate_rdtime(ctx, ins) {
+    if feature::emulate_rdtime(ctx, ins, mtimer) {
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {

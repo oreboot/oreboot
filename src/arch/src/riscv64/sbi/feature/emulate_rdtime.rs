@@ -2,31 +2,26 @@ use super::super::runtime::SupervisorContext;
 use log::println;
 use riscv::register::cycle;
 
-const DEBUG: bool = false;
-const DEBUG_RDCYCLE: bool = true;
+const DEBUG: bool = true;
+const DEBUG_RDCYCLE: bool = false;
 const DEBUG_RDTIME: bool = false;
 
 const RDINS_MASK: usize = 0xFFFF_F07F;
 const RDTIME_INST: usize = 0xC010_2073;
 const RDCYCLE_INST: usize = 0xC000_2073;
 
-// FIXME: DO NOT HARDCODE; use sbi crate definitions etc
-const CLINT_BASE_JH7110: usize = 0x0200_0000;
-const CLINT_MTIMER_OFFSET: usize = 0xbff8;
-
 pub fn read32(reg: usize) -> u32 {
     unsafe { core::ptr::read_volatile(reg as *mut u32) }
 }
 
-fn get_mtime(clint_base: usize) -> u64 {
-    let mtimer = clint_base + CLINT_MTIMER_OFFSET;
+fn get_mtime(mtimer: usize) -> u64 {
     let l = read32(mtimer) as u64;
     let h = read32(mtimer + 4) as u64;
     (h << 32) | l
 }
 
 #[inline]
-pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
+pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) -> bool {
     match ins & RDINS_MASK {
         RDCYCLE_INST => {
             //  c0002573     rdcycle a0
@@ -52,7 +47,7 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize) -> bool {
                 println!("[SBI] rdtime {ins:08x} ({reg})");
             }
             // let mtime = riscv::register::time::read64();
-            let mtime = get_mtime(CLINT_BASE_JH7110);
+            let mtime = get_mtime(mtimer);
             let time_usize = mtime as usize;
             set_register_xi(ctx, reg, time_usize);
             // skip current instruction, 4 bytes

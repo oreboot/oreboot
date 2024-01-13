@@ -13,7 +13,7 @@ use riscv::register::{
 };
 
 const DEBUG: bool = true;
-const DEBUG_MTIMER: bool = false;
+const DEBUG_MTIMER: bool = true;
 const HANDLE_MISALIGNED: bool = false;
 
 // mideleg: 0x222
@@ -40,7 +40,8 @@ unsafe fn delegate_interrupt_exception() {
     medeleg::set_instruction_fault();
     // Do not medeleg::set_illegal_instruction();
     // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
-    medeleg::set_breakpoint();
+    // medeleg::set_breakpoint();
+    medeleg::clear_breakpoint();
     if HANDLE_MISALIGNED {
         medeleg::clear_load_misaligned();
     } else {
@@ -59,8 +60,8 @@ unsafe fn delegate_interrupt_exception() {
     medeleg::set_instruction_page_fault();
     medeleg::set_load_page_fault();
     medeleg::set_store_page_fault();
-    // mie::set_mext();
-    // mie::set_mtimer();
+    mie::set_mext();
+    mie::set_mtimer();
     mie::set_msoft();
 }
 
