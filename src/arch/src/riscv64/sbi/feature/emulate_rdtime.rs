@@ -20,10 +20,14 @@ fn get_mtime(mtimer: usize) -> u64 {
     (h << 32) | l
 }
 
+// TODO: make a param
+const HAS_RV_TIME: bool = false;
+
 #[inline]
 pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) -> bool {
     match ins & RDINS_MASK {
         RDCYCLE_INST => {
+            // examples:
             //  c0002573     rdcycle a0
             let reg = ((ins >> 7) & 0b1_1111) as u8;
             if DEBUG && DEBUG_RDCYCLE {
@@ -31,14 +35,15 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) ->
             }
             let cycle_usize = cycle::read64() as usize;
             set_register_xi(ctx, reg, cycle_usize);
-            // skip current instruction, 4 bytes
-            ctx.mepc = ctx.mepc.wrapping_add(4);
             if DEBUG && DEBUG_RDCYCLE {
                 println!("[SBI] rdcycle {cycle_usize:x}");
             }
+            // skip current instruction, 4 bytes
+            ctx.mepc = ctx.mepc.wrapping_add(4);
             true
         }
         RDTIME_INST => {
+            // examples:
             //  c0102573     rdtime  a0    (reg = 10)
             //  c01027f3     rdtime  a5    (reg = 15)
             // rdtime is actually a csrrw instruction
@@ -46,21 +51,18 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimer: usize) ->
             if DEBUG && DEBUG_RDTIME {
                 println!("[SBI] rdtime {ins:08x} ({reg})");
             }
-            /*
-            let time: u64;
-            unsafe {
-                asm!("csrr {}, time", out(reg) time);
-            }
-            */
-            let mtime = get_mtime(mtimer);
-            let mtime = riscv::register::time::read64();
+            let mtime = if HAS_RV_TIME {
+                riscv::register::time::read64()
+            } else {
+                get_mtime(mtimer)
+            };
             let time_usize = mtime as usize;
             set_register_xi(ctx, reg, time_usize);
-            // skip current instruction, 4 bytes
-            ctx.mepc = ctx.mepc.wrapping_add(4);
             if DEBUG && DEBUG_RDTIME {
                 println!("[SBI] rdtime {mtimer:08x}: {time_usize} ({mtime})");
             }
+            // skip current instruction, 4 bytes
+            ctx.mepc = ctx.mepc.wrapping_add(4);
             true
         }
         _ => false, // is not an rdXXX instruction
