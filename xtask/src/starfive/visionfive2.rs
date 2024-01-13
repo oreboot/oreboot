@@ -6,8 +6,7 @@ use crate::{layout_flash, Cli, Commands, Env};
 use fdt::Fdt;
 use log::{error, info, trace, warn};
 use std::{
-    fs::{self, File},
-    io::{self, Seek, SeekFrom},
+    fs::{self},
     path::Path,
     process,
 };
