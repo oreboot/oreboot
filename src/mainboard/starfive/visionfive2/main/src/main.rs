@@ -145,16 +145,6 @@ fn check_kernel(kernel_addr: usize) {
     let r = read32(a);
     if r == u32::from_le_bytes(*b"RISC") {
         println!("Payload at 0x{kernel_addr:08x} looks like Linux Image, yay!");
-        dump_block(LINUXBOOT_ADDR, 0x40, 0x20);
-        dump_block(LINUXBOOT_ADDR + 0x34040, 0x40, 0x20);
-        dump_block(0x4020_FF00, 0x40, 0x20);
-        dump_block(0x4030_0020, 0x40, 0x20);
-        dump_block(0x4030_0800, 0x40, 0x20);
-        dump_block(0x4030_1000, 0x40, 0x20);
-        dump_block(0x4030_2F00, 0x40, 0x20); // all ffffffff..
-        dump_block(0x4080_4F00, 0x40, 0x20); // problem is here
-
-        panic!("THE END");
     } else {
         dump_block(LINUXBOOT_ADDR, 0x40, 0x20);
         panic!("Payload at 0x{kernel_addr:08x} does not look like Linux Image. Expected 'RISC' at +0x30, but got: {r:x}");

@@ -157,16 +157,17 @@ impl rustsbi::Fence for Rfence {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
+        // clear any pending timer
+        unsafe { mip::clear_stimer() };
         let hartid = mhartid::read();
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
         }
-        set_mtimecmp(hartid, stime_value);
+        // FIXME: currently causes infinite M-timer interrupts
+        // set_mtimecmp(hartid, stime_value);
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] timer is set...");
         }
-        // clear any pending timer
-        unsafe { mip::clear_stimer() };
     }
 }
 

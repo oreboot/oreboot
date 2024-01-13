@@ -7,6 +7,8 @@ KDIR=/home/dama/firmware/RISC-V/StarFive/VisionFive2/linux
 PORT=/dev/ttyUSB0
 #PORT=/dev/ttyACM0
 
+DRAM_SIZE=4G
+
 make -C main
-make -C bt0 KERNEL_DIR=$KDIR SERIAL=$PORT runwithpayload
+make -C bt0 KERNEL_DIR=$KDIR SERIAL=$PORT runwithpayload DRAM_SIZE=$DRAM_SIZE
 picocom -b 115200 $PORT
