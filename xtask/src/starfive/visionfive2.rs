@@ -3,7 +3,7 @@ use crate::util::{
     project_root,
 };
 use crate::{layout_flash, Cli, Commands, Env};
-// use fdt;
+use fdt::Fdt;
 use log::{error, info, trace, warn};
 use std::{
     fs::{self, File},
@@ -18,6 +18,7 @@ use layoutflash::areas::{create_areas, Area};
 use super::visionfive2_hdr::spl_create_hdr;
 
 const HEADER_SIZE: usize = 0x400;
+const SRAM_SIZE: usize = 0x2_8000;
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
@@ -105,17 +106,9 @@ fn xtask_build_jh7110_main(env: &Env) {
 
 fn xtask_build_image(env: &Env) {
     let dir = dist_dir(env, TARGET);
-    let dtb_path = dir.join(BOARD_DTFS);
-    let dtb = fs::read(dtb_path).expect("dtb");
-
-    let dtfs_image_path = dir.join(DTFS_IMAGE);
-    let dtfs_image = File::options()
-        .write(true)
-        .create(true)
-        .open(&dtfs_image_path)
-        .expect("create output binary file");
-
-    let fdt = fdt::Fdt::new(&dtb).unwrap();
+    let dtfs_path = dir.join(BOARD_DTFS);
+    let dtfs_file = fs::read(dtfs_path).expect("dtfs");
+    let dtfs = Fdt::new(&dtfs_file).unwrap();
     let mut areas: Vec<Area> = vec![];
     areas.resize(
         16,
@@ -126,14 +119,22 @@ fn xtask_build_image(env: &Env) {
             file: None,
         },
     );
-    let areas = create_areas(&fdt, &mut areas);
+    let areas = create_areas(&dtfs, &mut areas);
 
-    layout_flash(Path::new(&dir), Path::new(&dtfs_image_path), areas.to_vec()).unwrap();
+    let dtfs_image_path = dir.join(DTFS_IMAGE);
+    if let Err(e) = layout_flash(Path::new(&dir), Path::new(&dtfs_image_path), areas.to_vec()) {
+        error!("layoutflash fail: {e}");
+        process::exit(1);
+    }
 
     // TODO: how else do we do layoutflash + header?
     trace!("add header to {dtfs_image_path:?}");
     let dat = fs::read(dtfs_image_path).expect("DTFS image");
-    let out = spl_create_hdr(dat[HEADER_SIZE..].to_vec());
+    // HACK: omit LinuxBoot etc so we fit in SRAM
+    let cut = core::cmp::min(SRAM_SIZE, dat.len());
+    trace!("image size {:08x} cut down to {cut:08x}", dat.len());
+    let out = spl_create_hdr(dat[HEADER_SIZE..cut].to_vec());
+    trace!("final size {:08x}", out.len());
     let out_path = dir.join(IMAGE);
     fs::write(out_path.clone(), out).expect("writing final image");
 

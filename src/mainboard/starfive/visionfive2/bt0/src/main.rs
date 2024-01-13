@@ -6,7 +6,6 @@
 
 #[macro_use]
 extern crate log;
-extern crate layoutflash;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{
@@ -31,30 +30,20 @@ mod pac;
 mod pll;
 mod uart;
 
-pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
+pub type EntryPoint = unsafe extern "C" fn();
 
-// The SRAM is called LIM, LooselyIntegrated Memory
+const DEBUG: bool = false;
+
+// The SRAM is called LIM, Loosely Integrated Memory
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
 const DRAM_BASE: usize = 0x4000_0000;
 
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
-const SPI_FLASH_BASE: usize = 0x2100_0000;
-
-const DRAM_BLOB_BASE: usize = SPI_FLASH_BASE + 0x0001_0000;
-const PAYLOAD_BASE: usize = SPI_FLASH_BASE + 0x0004_0000;
-
-const MAIN_BLOB_BASE: usize = SRAM0_BASE + 30 * 1024;
-const MAIN_BLOB_SIZE: usize = 2 * 1024;
-
-const DTB_ADDR: usize = DRAM_BASE + 0x0020_0000 + 0x0100_0000; // TODO
-const LOAD_ADDR: usize = DRAM_BASE + 0x0002_0000;
-const LOAD_MAIN: bool = false;
-
 const QSPI_XIP_BASE: usize = 0x2100_0000;
-const LOAD_FROM_FLASH: bool = true;
-const DEBUG: bool = false;
+const FLASH_SIZE: usize = 0x0100_0000;
+const LOAD_FROM_FLASH: bool = false;
 
 const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
@@ -119,11 +108,11 @@ pub unsafe extern "C" fn reset() {
         static _sidata: u8;
     }
 
-    let count = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
-    ptr::write_bytes(addr_of_mut!(_sbss), 0, count);
+    let bss_size = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
+    ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
 
-    let count = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
-    ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), count);
+    let data_size = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
+    ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), data_size);
     // Call user entry point
     main();
 }
@@ -197,6 +186,68 @@ fn init_logger(s: uart::JH71XXSerial) {
     }
 }
 
+fn get_main_offset_and_size(slice: &[u8]) -> (usize, usize) {
+    let mut size = 0;
+    if let Ok(fdt) = find_fdt(slice) {
+        let mut offset = 0;
+        let mut found = false;
+        let areas = &mut fdt.find_all_nodes("/flash-info/areas");
+        // TODO: make finding the main stage more sophisticated
+        if DEBUG {
+            dump_block(SRAM0_BASE + offset, 0x20, 0x20);
+        }
+        println!("💾 oreboot DTFS");
+        for a in FdtIterator::new(areas) {
+            for c in a.children() {
+                let cname = c.name;
+                for p in c.properties() {
+                    let pname = p.name;
+                    match pname {
+                        "size" => {
+                            let v = p.as_usize();
+                            println!("  {cname} / {pname}, {v:?}");
+                            let psize = v.unwrap_or(0);
+                            if !found {
+                                if DEBUG {
+                                    println!("No main stage yet, inc offset by 0x{psize:x}");
+                                }
+                                offset += psize;
+                            }
+                            if found && size == 0 {
+                                size = psize;
+                            }
+                            if DEBUG {
+                                dump_block(SRAM0_BASE + offset, 0x20, 0x20);
+                            }
+                        }
+                        _ => {
+                            let s = p.as_str().unwrap_or("[empty]");
+                            println!("  {cname} / {pname}, {s}");
+                            if pname == "compatible" && s == "ore-main" {
+                                found = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // FIXME: When in SRAM, the header is cut off!
+        offset = if LOAD_FROM_FLASH {
+            offset
+        } else {
+            offset - 0x400
+        };
+        (offset, size)
+    } else {
+        // FIXME: return error, let the main function print
+        println!(
+            "Could not find an FDT between {SRAM0_BASE:08x} and {:08x}",
+            SRAM0_BASE + slice.len()
+        );
+        (0, size)
+    }
+}
+
 #[no_mangle]
 fn main() {
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
@@ -232,109 +283,65 @@ fn main() {
     let uart0_div = uart::uart0_divisor();
     println!("UART0 BAUD divisor: {uart0_div:#x}");
 
+    if DEBUG {
+        println!("Stock firmware in flash");
+        println!("Start:");
+        dump_block(QSPI_XIP_BASE, 0x100, 0x20);
+        println!("Presumably JH7110 recovery:");
+        dump_block(QSPI_XIP_BASE + 0x0002_0000, 0x100, 0x20);
+        println!("DTB:");
+        dump_block(QSPI_XIP_BASE + 0x0010_0000, 0x100, 0x20);
+        println!("Something:");
+        dump_block(QSPI_XIP_BASE + 0x0020_0000, 0x100, 0x20);
+        // we put this here
+        println!("lzss compressed Linux");
+        dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
+    }
+
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
     // init::clk_apb_func();
     dram::init();
 
-    // TODO: use this when we put Linux in flash etc
-    println!("Copy payload... ⏳");
-    let mut dtb: usize = 0;
-    if LOAD_FROM_FLASH {
-        let base = QSPI_XIP_BASE;
-        // let size = 0x0100_0000; // 16M
-        let size = 0x0020_0000; // occupied space
-        let dram = DRAM_BASE;
-        // let's find the dtb
-
-        let slice = unsafe {
-            let pointer = transmute(SRAM0_BASE);
-            // The `slice` function creates a slice from the pointer.
-            unsafe { core::slice::from_raw_parts(pointer, size) }
-        };
-        let fdt = find_fdt(slice);
-        match fdt {
-            Err(_) => {
-                println!(
-                    "Could not find an FDT between {SRAM0_BASE:08x} and {:08x}",
-                    SRAM0_BASE + size
-                );
-            }
-            Ok(f) => {
-                dtb = SRAM0_BASE + 0x10000; // unsafe {(&f as *const _ as usize)};
-                let it = &mut f.find_all_nodes("/flash-info/areas");
-                let a = FdtIterator::new(it);
-                for aa in a {
-                    for c in aa.children() {
-                        for p in c.properties() {
-                            match p.name {
-                                "size" => {
-                                    println!("{:?} / {:?}, {:?}", c.name, p.name, p.as_usize());
-                                }
-                                _ => {
-                                    println!("{:?} / {:?} {:?}", c.name, p.name, p.as_str());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for b in (0..size).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        let size = 0x0010_0000; // occupied space
-        let base = QSPI_XIP_BASE + 0x0030_00d4; // first 0xd4 is just 0-bytes
-        let target = DRAM_BASE + 0x0020_0000;
-        for b in (0..size).step_by(4) {
-            write32(target + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
-        }
-        println!(" done.");
-        if DEBUG {
-            println!("Start:");
-            dump_block(dram, 0x100, 0x20);
-            println!("Presumably JH7110 recovery:");
-            dump_block(dram + 0x0002_0000, 0x100, 0x20);
-            println!("DTB:");
-            dump_block(dram + 0x0010_0000, 0x100, 0x20);
-            println!("Something:");
-            dump_block(dram + 0x0020_0000, 0x100, 0x20);
-        }
+    // Find and copy the main stage
+    let (base, size) = if LOAD_FROM_FLASH {
+        (QSPI_XIP_BASE, FLASH_SIZE)
     } else {
-        let base = 0x0800_0000 + 32 * 1024;
-        let dram = DRAM_BASE;
-        for b in (0..0x100).step_by(4) {
-            write32(dram + b, read32(base + b));
-            if b % 0x4_0000 == 0 {
-                print!(".");
-            }
+        (SRAM0_BASE, SRAM0_SIZE) // occupied space
+    };
+    let slice = unsafe { core::slice::from_raw_parts(transmute(base), size) };
+    let (main_offset, main_size) = get_main_offset_and_size(slice);
+    let main_addr = base + main_offset;
+
+    let load_addr = DRAM_BASE;
+
+    let main_size_k = main_size / 1024;
+    println!("Copy {main_size_k}k main stage from {main_addr:08x} to {load_addr:08x}... ⏳");
+    for b in (0..main_size).step_by(4) {
+        write32(load_addr + b, read32(main_addr + b));
+        if b % 0x4_0000 == 0 {
+            print!(".");
         }
-        println!("Payload:");
-        dump_block(dram, 0x20, 0x20);
+    }
+    println!(" done.");
+    if DEBUG {
+        dump_block(load_addr, 0x20, 0x20);
     }
 
-    println!("lzss compressed Linux");
-    dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
-
-    println!("release non-boot harts =====\n");
-    {
+    // .....
+    if false {
+        println!("release non-boot harts =====\n");
         let clint = pac::clint_reg();
-        clint.msip_1().write(|w| w.control().set_bit());
+        clint.msip_0().write(|w| w.control().set_bit());
         clint.msip_2().write(|w| w.control().set_bit());
         clint.msip_3().write(|w| w.control().set_bit());
         clint.msip_4().write(|w| w.control().set_bit());
     }
 
-    println!("Jump to payload... with dtb {dtb:#x}");
-    exec_payload(dtb);
-    println!("Exit from payload, resetting...");
+    // GO!
+    println!("Jump to main stage @{load_addr:08x}");
+    exec_payload(load_addr);
+    println!("Exit from main stage, resetting...");
     unsafe {
         sleep(0x0100_0000);
         reset();
@@ -342,23 +349,12 @@ fn main() {
     };
 }
 
-fn exec_payload(dtb: usize) {
-    let load_addr = if LOAD_FROM_FLASH {
-        // U-Boot proper expects to be loaded here
-        // see SYS_TEXT_BASE in U-Boot config
-        DRAM_BASE + 0x0020_0000
-    } else {
-        DRAM_BASE
-    };
-    // println!("Payload @{load_addr:08x}");
-
-    let hart_id = mhartid::read();
-    // U-Boot proper
+fn exec_payload(addr: usize) {
     unsafe {
-        // jump to payload
-        let f = transmute::<usize, EntryPoint>(load_addr);
+        // jump to main
+        let f: EntryPoint = transmute(addr);
         asm!("fence.i");
-        f(hart_id, dtb);
+        f();
     }
 }
 
