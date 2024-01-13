@@ -3,7 +3,11 @@
 #![no_std]
 #![no_main]
 
-use core::{arch::asm, panic::PanicInfo, ptr};
+use core::{
+    arch::asm,
+    panic::PanicInfo,
+    ptr::{self, addr_of, addr_of_mut},
+};
 use log::{print, println};
 use oreboot_arch::riscv64::sbi::{self, execute::execute_supervisor};
 use oreboot_compression::decompress;
@@ -75,6 +79,10 @@ pub unsafe extern "C" fn start() -> ! {
         "j      .boothart",
         // wait for multihart to get back into the game
         ".nonboothart:",
+        // "csrw   mie, 8", // 1 << 3
+        "csrw   mie, 0", // disable wakeup
+        "wfi",
+        "csrw   mip, 0",
         "call   {resume}",
         ".boothart:",
         "call   {reset}",
@@ -102,11 +110,11 @@ pub unsafe extern "C" fn init() {
         static _sidata: u8;
     }
 
-    let count = &_ebss as *const u8 as usize - &_sbss as *const u8 as usize;
-    ptr::write_bytes(&mut _sbss as *mut u8, 0, count);
+    let bss_size = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
+    ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
 
-    let count = &_edata as *const u8 as usize - &_sdata as *const u8 as usize;
-    ptr::copy_nonoverlapping(&_sidata as *const u8, &mut _sdata as *mut u8, count);
+    let data_size = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
+    ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), data_size);
 }
 
 /// # Safety
