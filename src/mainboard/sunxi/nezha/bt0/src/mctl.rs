@@ -1932,11 +1932,14 @@ pub fn init() -> usize {
         #[cfg(any(feature="lichee",feature="nezha"))]
         dram_tpr2:   0x0008_b061,
 
+        // NOTE: This is unused.
         dram_tpr3:   0xb478_7896,
+
         dram_tpr4:   0x0000_0000,
         dram_tpr5:   0x4848_4848, // IOCVR0
         dram_tpr6:   0x0000_0048, // IOCVR1
-                                  //
+               
+        // NOTE: This is unused.
         #[cfg(feature="f133")]
         dram_tpr7:   0x1621_121e,
         #[cfg(any(feature="lichee",feature="nezha"))]

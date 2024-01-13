@@ -26,10 +26,11 @@ features = ["critical-section-single-hart"]
 [features]
 default = ["nezha"]
 
+# board / SoC variants
 f133 = ["nor"]
+mqpro = ["lichee"]
 nezha = ["nand"]
 lichee = ["nor"]
-mqpro = ["lichee"]
 
 nand = []
 nor = []
