@@ -37,7 +37,7 @@ mod pll;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 const BLINK_LED: bool = false;
 
 // NOTE: JH, as in JH71x0, is short for JingHong, a city in Yunnan
