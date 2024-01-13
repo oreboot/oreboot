@@ -16,30 +16,47 @@
         compatible = "ore-flashinfo";
         areas {
             area@0 {
-                description = "header";
+                description = "JH7110 specific header";
                 compatible = "none";
                 size = <0x400>; // 1k
             };
 
             area@1 {
-                description = "bt0";
+                description = "oreboot bt0";
                 compatible = "ore-bt0";
                 size = <0x10000>; // 64k
                 file = "starfive-visionfive2-bt0.bin";
             };
 
             area@2 {
-                description = "Fixed DTFS";
+                description = "oreboot DTFS";
                 compatible = "ore-dtfs";
                 size = <0x1000>;
                 file = "starfive-visionfive2-board.dtb";
             };
 
             area@3 {
-                description = "main";
+                description = "oreboot main";
                 compatible = "ore-main";
                 size = <0x10000>; // 64k
                 file = "starfive-visionfive2-main.bin";
+            };
+
+            // FIXME: This currently expands the output image.
+            // To run via XMODEM in SRAM, we need to omit the kernel and DTB.
+            area@4 {
+                description = "LinuxBoot image";
+                compatible = "ore-payload";
+                // We put this here right after the vendor code.
+                offset = <0x400000>;
+                size = <0xb80000>; // 12.5 MB
+            };
+
+            area@5 {
+                description = "LinuxBoot dtb";
+                compatible = "linux-dtb";
+                // This occupies the remaining space.
+                size = <0x80000>; // 512K
             };
         };
     };
