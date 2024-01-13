@@ -38,11 +38,16 @@ mod pll;
 pub type EntryPoint = unsafe extern "C" fn();
 
 const DEBUG: bool = false;
+const BLINK_LED: bool = false;
+
+// NOTE: JH, as in JH71x0, is short for JingHong, a city in Yunnan
+// https://en.wikipedia.org/wiki/Jinghong
 
 // The SRAM is called LIM, Loosely Integrated Memory
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
+
 const DRAM_BASE: usize = 0x4000_0000;
 
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/system_memory_map.html
@@ -184,6 +189,16 @@ fn sleep(n: u32) {
 static mut SERIAL: Option<uart::JH71XXSerial> = None;
 
 #[inline]
+// FIXME: restore for debugging
+fn blink() {
+    /*
+    sleep(0x0004_0000);
+    write32(init::GPIO40_43_DATA, 0x8181_8181);
+    sleep(0x0004_0000);
+    write32(init::GPIO40_43_DATA, 0x8080_8080);
+    */
+}
+
 fn init_logger(s: uart::JH71XXSerial) {
     unsafe {
         SERIAL.replace(s);
@@ -191,6 +206,25 @@ fn init_logger(s: uart::JH71XXSerial) {
             log::init(m);
         }
     }
+}
+
+// TODO: registers
+// GPIO 13 is GMAC PHY reset (negative?)
+fn reset_phy() {
+    /*
+    let gpio12_15_en = read32(init::GPIO12_15_EN);
+    let gpio12_15_data = read32(init::GPIO12_15_DATA);
+    println!("inital GPIO 12-15 en/data {gpio12_15_en:08x}/{gpio12_15_data:08x}");
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x81 << 8),
+    );
+    unsafe { sleep(0x0004_0000) };
+    write32(
+        init::GPIO12_15_DATA,
+        (gpio12_15_data & 0xffff00ff) | (0x80 << 8),
+    );
+    */
 }
 
 fn get_main_offset_and_size(slice: &[u8]) -> (usize, usize) {
@@ -275,6 +309,14 @@ fn main() {
         w.vout0_remap_awaddr_gpio3().clear_bit()
     });
 
+    // FIXME: restore for debugging
+    if BLINK_LED {
+        // enable is active low
+        // write32(init::GPIO40_43_EN, 0xc0c0_c0c0);
+        // write32(init::GPIO40_43_DATA, 0x8181_8181);
+        blink();
+    }
+
     // TX/RX are GPIOs 5 and 6
     pac::sys_pinctrl_reg().gpo_doen_1().modify(|_, w| {
         w.doen_5().variant(0);
@@ -320,6 +362,11 @@ fn main() {
         // we put this here
         println!("lzss compressed Linux");
         dump_block(QSPI_XIP_BASE + 0x0040_0000, 0x100, 0x20);
+    }
+
+    // TODO: Does this help?
+    if false {
+        reset_phy();
     }
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
