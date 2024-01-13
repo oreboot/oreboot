@@ -95,6 +95,7 @@ pub fn execute_supervisor(
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
     let mtimer = CLINT_MTIMER_D1;
     let mtimer = CLINT_MTIMER_JH7110;
+    let hart1_mtimecmp: usize = mtimer + 0x4008;
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -154,7 +155,14 @@ pub fn execute_supervisor(
                 if DEBUG && DEBUG_MTIMER {
                     println!("[SBI] M-timer interrupt");
                 }
-                unsafe { mip::set_stimer() };
+                // How do we clear the mtimer? MTIP is read-only in MIP.
+                unsafe {
+                    if true {
+                        core::ptr::write_volatile(hart1_mtimecmp as *mut u32, 0);
+                        core::ptr::write_volatile((hart1_mtimecmp + 4) as *mut u32, 0);
+                    }
+                    mip::set_stimer();
+                };
             }
             CoroutineState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {
                 if DEBUG && DEBUG_MISALIGNED {

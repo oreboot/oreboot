@@ -13,7 +13,7 @@ use riscv::register::{
 };
 
 const DEBUG: bool = true;
-const DEBUG_MTIMER: bool = true;
+const DEBUG_MTIMER: bool = false;
 const HANDLE_MISALIGNED: bool = false;
 
 // mideleg: 0x222
@@ -128,7 +128,11 @@ impl Coroutine for Runtime {
         // NOTE: Debugging highly frequent traps may get tons of logs.
         // If necessary, add prints here, use a counter, apply modulo, etc..
         match cause {
-            Trap::Interrupt(Interrupt::MachineTimer) => {}
+            Trap::Interrupt(Interrupt::MachineTimer) => {
+                if DEBUG_MTIMER {
+                    print_exception_interrupt();
+                }
+            }
             Trap::Exception(Exception::SupervisorEnvCall) => {}
             Trap::Exception(Exception::IllegalInstruction) => {}
             _ => {
@@ -140,12 +144,7 @@ impl Coroutine for Runtime {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
             Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
-            Trap::Interrupt(Interrupt::MachineTimer) => {
-                if DEBUG_MTIMER {
-                    print_exception_interrupt();
-                }
-                MachineTrap::MachineTimer()
-            }
+            Trap::Interrupt(Interrupt::MachineTimer) => MachineTrap::MachineTimer(),
             Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
             Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
