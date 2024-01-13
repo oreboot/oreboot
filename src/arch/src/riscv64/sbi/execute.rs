@@ -18,7 +18,7 @@ const DEBUG: bool = true;
 const DEBUG_ECALL: bool = false;
 const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
-const DEBUG_EMULATE: bool = true;
+const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
 const DEBUG_MISALIGNED: bool = true;
 
