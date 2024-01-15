@@ -75,9 +75,9 @@ impl FromStr for DramSize {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "2g" | "2G" => Ok(Self::TwoG),
-            "4g" | "4G" => Ok(Self::FourG),
-            "8g" | "8G" => Ok(Self::EightG),
+            "2g" => Ok(Self::TwoG),
+            "4g" => Ok(Self::FourG),
+            "8g" => Ok(Self::EightG),
             others => Err(format!("unknown DRAM size {others}")),
         }
     }
@@ -171,7 +171,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
         println!("<{}> @ 0x{last_area_end:x}", a.name);
         // First fill with 0xff.
         let mut v = Vec::new();
-        v.resize(a.size as usize, 0xff);
+        v.resize(a.size, 0xff);
         f.seek(SeekFrom::Start(offset as u64))?;
         f.write_all(&v)?;
 
@@ -206,7 +206,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
                 }
                 Ok(data) => data,
             };
-            if data.len() > a.size as usize {
+            if data.len() > a.size {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!(
