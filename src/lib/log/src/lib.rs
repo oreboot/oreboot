@@ -121,12 +121,12 @@ impl fmt::Write for SerialLogger {
         for &byte in s.as_bytes() {
             // Inject a carriage return before a newline
             if byte == b'\n' {
-                block!(self.write(b'\r')).unwrap();
+                block!(self.write(b'\r')).ok();
             }
-            block!(self.write(byte)).unwrap();
+            block!(self.write(byte)).ok();
         }
         #[cfg(not(feature = "jh71xx"))]
-        block!(self.flush()).unwrap();
+        block!(self.flush()).ok();
         Ok(())
     }
 }
@@ -135,11 +135,13 @@ impl fmt::Write for SerialLogger {
 pub fn print(args: fmt::Arguments) {
     use fmt::Write;
     #[cfg(feature = "mutex")]
-    LOGGER.lock().as_mut().unwrap().write_fmt(args).unwrap();
+    if let Ok(l) = LOGGER.lock().as_mut() {
+        l.write_fmt(args).ok();
+    }
     #[cfg(not(feature = "mutex"))]
     unsafe {
         if let Some(l) = LOGGER.as_mut() {
-            l.write_fmt(args).unwrap();
+            l.write_fmt(args).ok();
         }
     }
 }
