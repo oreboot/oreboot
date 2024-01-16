@@ -44,6 +44,15 @@ const LINUXBOOT_SIZE: usize = 0x0200_0000; // 32 MB
 // TODO: get from dtfs
 const DTB_ADDR: usize = MEM + 0x0220_0000;
 
+pub fn dump(addr: usize, length: usize) {
+    let s = unsafe { core::slice::from_raw_parts(addr as *const u8, length) };
+    println!("dump {length} bytes @{addr:x}");
+    for w in s.iter() {
+        log::print!("{w:02x}");
+    }
+    println!();
+}
+
 fn udelay(micros: usize) {
     unsafe {
         for _ in 0..micros {
@@ -330,7 +339,7 @@ extern "C" fn main() -> usize {
         stopbits: StopBits::One,
     };
     init_logger(D1Serial::new(p.UART0, tx_rx, config, &clocks));
-    udelay(5);
+    udelay(25);
     println!();
     println!("serial uart0 initialized");
     println!("oreboot 🦀 main");
@@ -353,6 +362,8 @@ extern "C" fn main() -> usize {
         sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
+        dump(LINUXBOOT_ADDR, 0x20);
+
         let hartid = mhartid::read();
         let (reset_type, reset_reason) =
             sbi::execute::execute_supervisor(LINUXBOOT_ADDR, hartid, DTB_ADDR);
