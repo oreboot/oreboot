@@ -4,8 +4,11 @@
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
+use embedded_hal_nb::serial::Write;
+
 #[macro_use]
 extern crate log;
+extern crate jh71xx_hal as hal;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{
@@ -19,6 +22,8 @@ use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
 
 use fdt::Fdt;
+
+use hal::uart::Serial;
 
 mod ddr_start;
 mod ddrcsr;
@@ -178,6 +183,7 @@ fn sleep(n: u32) {
 
 static mut SERIAL: Option<uart::JH71XXSerial> = None;
 
+#[inline]
 fn init_logger(s: uart::JH71XXSerial) {
     unsafe {
         SERIAL.replace(s);
@@ -272,17 +278,34 @@ fn main() {
     // TX/RX are GPIOs 5 and 6
     pac::sys_pinctrl_reg().gpo_doen_1().modify(|_, w| {
         w.doen_5().variant(0);
-        w.doen_6().variant(0)
+        w.doen_6().variant(0b1)
     });
 
-    let mut s = uart::JH71XXSerial::new();
+    pac::sys_pinctrl_reg().gpo_dout_1().modify(|_, w| {
+        w.dout_5().variant(20)
+    });
+    pac::sys_pinctrl_reg().gpi_3().modify(|_, w| {
+        w.uart_sin_0().variant(6)
+    });
+
+    let dp = pac::Peripherals::take().unwrap();
+
+    let mut s = uart::JH71XXSerial::new_with_config(
+        dp.UART0,
+        hal::uart::TIMEOUT_US,
+        hal::uart::Config {
+            data_len: hal::uart::DataLength::Eight,
+            stop: hal::uart::Stop::One,
+            parity: hal::uart::Parity::None,
+            baud_rate: hal::uart::BaudRate::B115200,
+            clk_hz: uart::UART_CLK,
+        }
+    );
+
     init_logger(s);
     println!("oreboot 🦀 bt0");
     print_boot_mode();
     print_ids();
-
-    let uart0_div = uart::uart0_divisor();
-    println!("UART0 BAUD divisor: {uart0_div:#x}");
 
     if DEBUG {
         println!("Stock firmware in flash");
@@ -301,7 +324,6 @@ fn main() {
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
-    // init::clk_apb_func();
     dram::init();
 
     // Find and copy the main stage

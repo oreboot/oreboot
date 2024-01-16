@@ -9,8 +9,8 @@ authors = [
 edition = "2021"
 
 [dependencies]
-embedded-hal = "=1.0.0-alpha.9"
-embedded-hal-nb = "=1.0.0-alpha.1"
+embedded-hal = "=1.0.0"
+embedded-hal-nb = "=1.0.0"
 log = { path = "../../../../lib/log" }
 nb = "1"
 spin = "0.9"

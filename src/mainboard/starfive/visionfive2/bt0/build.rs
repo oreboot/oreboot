@@ -12,7 +12,6 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
     SRAM : ORIGIN = 0x08000000, LENGTH = 128k
-    # DRAM : ORIGIN = 0x80000000, LENGTH = 8G
 }
 SECTIONS {
     .head : {

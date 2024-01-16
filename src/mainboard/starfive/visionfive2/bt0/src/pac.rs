@@ -1,4 +1,4 @@
-pub(crate) use jh71xx_pac as pac;
+pub(crate) use jh71xx_hal::pac;
 
 pub use pac::*;
 
@@ -48,4 +48,12 @@ pub(crate) fn clint_reg<'r>() -> &'r pac::clint::RegisterBlock {
 // The reference must be dropped before calling again.
 pub(crate) fn sys_pinctrl_reg<'r>() -> &'r pac::sys_pinctrl::RegisterBlock {
     unsafe { &*pac::SYS_PINCTRL::ptr() }
+}
+
+// SAFETY: this function is called during init, when only a single thread on a single core is
+// running, ensuring exclusive access.
+//
+// The reference must be dropped before calling again.
+pub(crate) fn plic_reg<'r>() -> &'r pac::plic::RegisterBlock {
+    unsafe { &*pac::PLIC::ptr() }
 }

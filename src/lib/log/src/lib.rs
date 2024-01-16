@@ -63,7 +63,7 @@ use core::fmt;
 use embedded_hal_nb::serial::{ErrorType, Write};
 use nb::block;
 
-pub trait Serial: ErrorType + Write + Send {}
+pub trait Serial: ErrorType + Write {}
 
 /// Set the globally available logger that enables the macros.
 pub fn init(serial: &'static mut SerialLogger) {
@@ -94,16 +94,21 @@ macro_rules! println {
 /// Error types that may happen with serial transfer, usually just `WouldBlock`
 #[derive(Debug)]
 pub struct Error {
-    pub kind: embedded_hal::serial::ErrorKind,
+    pub kind: embedded_hal_nb::serial::ErrorKind,
 }
 
-impl embedded_hal::serial::Error for Error {
-    fn kind(&self) -> embedded_hal::serial::ErrorKind {
+impl embedded_hal_nb::serial::Error for Error {
+    fn kind(&self) -> embedded_hal_nb::serial::ErrorKind {
         self.kind
     }
 }
 
+#[cfg(not(feature = "jh71xx"))]
 type SerialLogger = dyn Serial<Error = Error>;
+#[cfg(feature = "jh71xx")]
+type SerialLogger = dyn Serial<Error = jh71xx_hal::uart::Error>;
+#[cfg(feature = "jh71xx")]
+impl<UART: jh71xx_hal::uart::Serial> Serial for jh71xx_hal::uart::Uart<UART> {}
 
 #[cfg(feature = "mutex")]
 static LOGGER: spin::Mutex<Option<&'static mut SerialLogger>> = spin::Mutex::new(None);
@@ -120,6 +125,7 @@ impl fmt::Write for SerialLogger {
             }
             block!(self.write(byte)).unwrap();
         }
+        #[cfg(not(feature = "jh71xx"))]
         block!(self.flush()).unwrap();
         Ok(())
     }
