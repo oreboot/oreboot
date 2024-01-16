@@ -12,13 +12,25 @@ NOTE: The manual does not cover DRAM nor graphics.
 
 ## Running
 
-You will need StarFive's [`spl_tool` to add a header to the binary](https://github.com/starfive-tech/Tools) plus [`vf2-loader`](https://github.com/orangecms/vf2-loader).
+**NOTE**: You will need [`vf2-loader`](https://github.com/orangecms/vf2-loader).
+
 Put the board in UART loader mode.
 
-Run `make run` in the `bt0/` directory. An xtask is to be done.
-You can set the serial to use via the `PORT` environment variable.
-To see the serial output, connect to it right after, e.g.:
+Run `make run` in this directory. This will call xtask.
+
+### Configuration
+
+Set the make variable `DRAM_SIZE` to `2G` or `8G` as needed; default is `4G`.
+Set the serial port to use via the `PORT` variable.
+Set the verbosity level with `VERBOSE`, e.g., `VERBOSE=-v`.
+
+For more notes, look at the `Makefile`.
+
+### Example
+
+The following will build oreboot for 8GB of DRAM, run the code over `ttyUSB0`,
+and connect to the serial port via `picocom` for monitoring its output:
 
 ```sh
-make run PORT=/dev/ttyUSB0 && picocom -b 115200 /dev/ttyUSB0
+make run DRAM_SIZE=8G PORT=/dev/ttyUSB0 && picocom -b 115200 /dev/ttyUSB0
 ```
