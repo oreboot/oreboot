@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 bitflags = "1"
-embedded-hal = "=1.0.0-alpha.9"
-embedded-hal-nb = "=1.0.0-alpha.1"
+embedded-hal = "=1.0.0"
+embedded-hal-nb = "=1.0.0"
 lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"
 riscv = { version = "0.10.0", features = ["critical-section-single-hart"] }
