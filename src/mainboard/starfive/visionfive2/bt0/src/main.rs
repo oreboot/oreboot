@@ -281,12 +281,12 @@ fn main() {
         w.doen_6().variant(0b1)
     });
 
-    pac::sys_pinctrl_reg().gpo_dout_1().modify(|_, w| {
-        w.dout_5().variant(20)
-    });
-    pac::sys_pinctrl_reg().gpi_3().modify(|_, w| {
-        w.uart_sin_0().variant(6)
-    });
+    pac::sys_pinctrl_reg()
+        .gpo_dout_1()
+        .modify(|_, w| w.dout_5().variant(20));
+    pac::sys_pinctrl_reg()
+        .gpi_3()
+        .modify(|_, w| w.uart_sin_0().variant(6));
 
     let dp = pac::Peripherals::take().unwrap();
 
@@ -299,7 +299,7 @@ fn main() {
             parity: hal::uart::Parity::None,
             baud_rate: hal::uart::BaudRate::B115200,
             clk_hz: uart::UART_CLK,
-        }
+        },
     );
 
     init_logger(s);

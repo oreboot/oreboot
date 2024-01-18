@@ -10,12 +10,7 @@ embedded-hal-nb = "=1.0.0"
 nb = "1"
 spin = "0.9"
 
-[dependencies.jh71xx-hal]
-version = "0.1"
-optional = true
-
 [features]
 default = []
 debug = []
 mutex = []
-jh71xx = ["jh71xx-hal/rt"]
