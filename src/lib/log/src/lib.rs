@@ -103,12 +103,7 @@ impl embedded_hal_nb::serial::Error for Error {
     }
 }
 
-#[cfg(not(feature = "jh71xx"))]
 type SerialLogger = dyn Serial<Error = Error>;
-#[cfg(feature = "jh71xx")]
-type SerialLogger = dyn Serial<Error = jh71xx_hal::uart::Error>;
-#[cfg(feature = "jh71xx")]
-impl<UART: jh71xx_hal::uart::Serial> Serial for jh71xx_hal::uart::Uart<UART> {}
 
 #[cfg(feature = "mutex")]
 static LOGGER: spin::Mutex<Option<&'static mut SerialLogger>> = spin::Mutex::new(None);
@@ -125,7 +120,6 @@ impl fmt::Write for SerialLogger {
             }
             block!(self.write(byte)).ok();
         }
-        #[cfg(not(feature = "jh71xx"))]
         block!(self.flush()).ok();
         Ok(())
     }
