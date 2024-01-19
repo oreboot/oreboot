@@ -24,6 +24,9 @@ vcell = { version = "0.1.3", optional = true }
 # PACs for difference SoCs
 d1-pac = { version = "0.0.31", features = ["critical-section"], optional = true }
 
+# HALs for different SoCs
+jh71xx-hal = { version = "0.1", features = ["rt"], optional = true }
+
 [features]
 amd = [
   "util",
@@ -33,3 +36,5 @@ amd = [
 ]
 sunxi = []
 sunxi_d1 = ["sunxi", "d1-pac", "embedded-hal", "embedded-hal-nb", "embedded-sdmmc", "log"]
+starfive = []
+starfive_jh7110 = ["starfive", "embedded-hal-nb", "jh71xx-hal", "log"]

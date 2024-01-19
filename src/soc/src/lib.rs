@@ -12,5 +12,8 @@ pub mod opentitan;
 #[cfg(feature = "sifive")]
 pub mod sifive;
 
+#[cfg(feature = "starfive")]
+pub mod starfive;
+
 #[cfg(feature = "sunxi")]
 pub mod sunxi;
