@@ -27,12 +27,17 @@ const SPI_FLASH_BASE: usize = 0x2100_0000;
 // const LINUXBOOT_SRC_OFFSET: usize = 0x0040_0000; // VF2
 const LINUXBOOT_SRC_OFFSET: usize = 0x0046_0000; // Mars CM
 const LINUXBOOT_SRC_ADDR: usize = SPI_FLASH_BASE + LINUXBOOT_SRC_OFFSET;
-const LINUXBOOT_SRC_SIZE: usize = 0x00c0_0000;
 
 /// This is the Linux DTB in SRAM, copied over by the mask ROM loader.
-const DTB_SRC_OFFSET: usize = 96 * 1024;
+const DTB_SRC_OFFSET: usize = 0x5_1000;
 const DTB_SRC_ADDR: usize = SRAM0_BASE + DTB_SRC_OFFSET;
-const DTB_SIZE: usize = 0x2_0000; // 128K, because 32K was not enough.
+const DTB_SIZE: usize = 0xa000; // 40K, because 32K was not enough.
+
+// const DTB_SRC_OFFSET: usize = 96 * 1024;
+// const DTB_SIZE: usize = 0x2_0000; // 128K, because 32K was not enough.
+
+// const DTB_SRC_OFFSET: usize = 0x1_0000; // oreboot dtb
+// const DTB_SIZE: usize = 0x1000; // oreboot dtb
 
 /// This is where we copy the data to in DRAM.
 /// NOTE: Kernel and DTB must not overlap. We check this after extraction.
@@ -49,7 +54,7 @@ static VERSION: &str = env!("CARGO_PKG_VERSION");
 const STACK_SIZE: usize = 32 * 1024; // 4KiB
 
 #[link_section = ".bss.uninit"]
-static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
 /// Set up stack and jump to executable code.
 ///
@@ -69,9 +74,9 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, zero",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 1",
-        "csrr   a0, mhartid",
-        "bne    a0, a1, .nonboothart",
+        "li     t1, 1",
+        "csrr   t0, mhartid",
+        "bne    t0, t1, .nonboothart",
         // 2. prepare stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
@@ -86,10 +91,10 @@ pub unsafe extern "C" fn start() -> ! {
         "call   {resume}",
         ".boothart:",
         "call   {reset}",
-        stack      =   sym BT0_STACK,
+        stack      = sym STACK,
         stack_size = const STACK_SIZE,
-        reset      =   sym reset,
-        resume    =   sym resume,
+        reset      = sym boot_hart_reset,
+        resume     = sym nonboot_hart_resume,
         options(noreturn)
     )
 }
@@ -120,7 +125,7 @@ pub unsafe extern "C" fn init() {
 /// # Safety
 /// :shrug:
 #[no_mangle]
-pub unsafe extern "C" fn reset() {
+pub unsafe extern "C" fn boot_hart_reset() {
     init();
     // Call user entry point
     main();
@@ -142,9 +147,9 @@ const DTB_HEADER: u32 = 0xedfe0dd0;
 fn check_dtb(dtb_addr: usize) {
     let dtb = read32(dtb_addr);
     if dtb == DTB_HEADER {
-        println!("DTB @0x{dtb_addr:08x} looks fine, yay!");
+        println!("[main] DTB @0x{dtb_addr:08x} looks fine, yay!");
     } else {
-        panic!("DTB @0x{dtb_addr:08x} looks wrong: {dtb:08x}");
+        panic!("[main] DTB @0x{dtb_addr:08x} looks wrong: {dtb:08x}");
     }
 }
 
@@ -152,10 +157,10 @@ fn check_kernel(kernel_addr: usize) {
     let a = kernel_addr + 0x30;
     let r = read32(a);
     if r == u32::from_le_bytes(*b"RISC") {
-        println!("Payload at 0x{kernel_addr:08x} looks like Linux Image, yay!");
+        println!("[main] Payload at 0x{kernel_addr:08x} looks like Linux Image, yay!");
     } else {
         dump_block(LINUXBOOT_ADDR, 0x40, 0x20);
-        panic!("Payload at 0x{kernel_addr:08x} does not look like Linux Image. Expected 'RISC' at +0x30, but got: {r:x}");
+        panic!("[main] Payload at 0x{kernel_addr:08x} does not look like Linux Image. Expected 'RISC' at +0x30, but got: {r:x}");
     }
 }
 
@@ -170,6 +175,13 @@ fn init_logger(s: JH71XXSerial) {
     }
 }
 
+const SMP: bool = false;
+
+const PAYLOAD_SIZE: usize = 192 * 1024;
+const PAYLOAD_SRC_ADDR: usize = SRAM0_BASE + 0x2_1000;
+const DRAM_BASE_X: usize = 0x8000_0000;
+const PAYLOAD_ADDR: usize = DRAM_BASE + 0x0020_0000;
+
 fn main() {
     udelay(200);
 
@@ -177,28 +189,43 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 main");
 
-    println!("Copy DTB to DRAM... ⏳");
+    let payload_addr = PAYLOAD_ADDR;
+    // let payload_addr = LINUXBOOT_ADDR;
+
+    println!("[main] Copy DTB to DRAM... ⏳");
     copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
     check_dtb(DTB_ADDR);
 
-    println!("Decompress payload... ⏳");
-    unsafe {
-        decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+    if false {
+        println!("[main] Decompress payload... ⏳");
+        unsafe {
+            decompress(LINUXBOOT_SRC_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+        }
+        println!("[main] Payload extracted.");
+        check_kernel(LINUXBOOT_ADDR);
+    } else {
+        println!("[main] Copy payload to DRAM... ⏳");
+        dump_block(PAYLOAD_SRC_ADDR, 0x40, 0x20);
+        copy(PAYLOAD_SRC_ADDR, payload_addr, PAYLOAD_SIZE);
+        dump_block(payload_addr, 0x40, 0x20);
     }
-    println!("Payload extracted.");
-    check_kernel(LINUXBOOT_ADDR);
 
     // Recheck on DTB, kernel should not run into it
     check_dtb(DTB_ADDR);
-    // println!("Release non-boot harts =====");
-    // resume_nonboot_harts();
-    payload();
+
+    if SMP {
+        println!("[main] Release non-boot harts =====");
+        resume_nonboot_harts();
+    }
+
+    payload(payload_addr);
 }
 
-fn resume() {
+fn nonboot_hart_resume() {
     unsafe {
         init();
     }
+    let payload_addr = PAYLOAD_ADDR;
     // TODO: What do we do with hart 0, the S7 monitor hart?
     let hartid = mhartid::read();
     if hartid == 0 {
@@ -206,26 +233,30 @@ fn resume() {
             unsafe { asm!("wfi") }
         }
     }
-    payload();
+    payload(payload_addr);
 }
 
-fn payload() {
+fn payload(payload_addr: usize) {
     let hartid = mhartid::read();
     sbi_platform::init();
     sbi::runtime::init();
     if hartid == 1 {
         sbi::info::print_info(PLATFORM, VERSION);
     }
-    let (reset_type, reset_reason) = execute_supervisor(LINUXBOOT_ADDR, hartid, DTB_ADDR);
-    print!("oreboot: reset reason = {reset_reason}");
+    let (reset_type, reset_reason) = execute_supervisor(payload_addr, hartid, DTB_ADDR);
+    print!("[main] oreboot: reset reason = {reset_reason}");
 }
 
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!("panic in '{}' line {}", location.file(), location.line(),);
+        println!(
+            "[main] panic in '{}' line {}",
+            location.file(),
+            location.line(),
+        );
     } else {
-        println!("panic at unknown location");
+        println!("[main] panic at unknown location");
     };
     if let Some(m) = info.message() {
         println!("  {m}");

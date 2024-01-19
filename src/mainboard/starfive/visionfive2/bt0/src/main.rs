@@ -96,10 +96,10 @@ pub unsafe extern "C" fn start() -> ! {
         "call   {payload}",
         ".boothart:",
         "call   {reset}",
-        stack      =   sym BT0_STACK,
+        stack      = sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        payload    =   sym exec_payload,
-        reset      =   sym reset,
+        payload    = sym exec_payload,
+        reset      = sym reset,
         options(noreturn)
     )
 }
@@ -382,10 +382,11 @@ fn main() {
     let (main_offset, main_size) = get_main_offset_and_size(slice);
     let main_addr = base + main_offset;
 
+    let load_addr = DRAM_BASE + 0x0020_0000;
     let load_addr = DRAM_BASE;
 
     let main_size_k = main_size / 1024;
-    println!("Copy {main_size_k}k main stage from {main_addr:08x} to {load_addr:08x}... ⏳");
+    println!("[bt0] Copy {main_size_k}k main stage from {main_addr:08x} to {load_addr:08x}... ⏳");
     for b in (0..main_size).step_by(4) {
         write32(load_addr + b, read32(main_addr + b));
         if b % 0x4_0000 == 0 {
@@ -399,7 +400,7 @@ fn main() {
 
     // .....
     if false {
-        println!("release non-boot harts =====\n");
+        println!("[bt0] Release non-boot harts =====\n");
         let clint = pac::clint_reg();
         clint.msip_0().write(|w| w.control().set_bit());
         clint.msip_2().write(|w| w.control().set_bit());
@@ -408,9 +409,9 @@ fn main() {
     }
 
     // GO!
-    println!("Jump to main stage @{load_addr:08x}");
+    println!("[bt0] Jump to main stage @{load_addr:08x}");
     exec_payload(load_addr);
-    println!("Exit from main stage, resetting...");
+    println!("[bt0] Exit from main stage, resetting...");
     unsafe {
         sleep(0x0100_0000);
         reset();
@@ -430,9 +431,13 @@ fn exec_payload(addr: usize) {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!("panic in '{}' line {}", location.file(), location.line(),);
+        println!(
+            "[bt0] panic in '{}' line {}",
+            location.file(),
+            location.line(),
+        );
     } else {
-        println!("panic at unknown location");
+        println!("[bt0] panic at unknown location");
     };
     loop {
         core::hint::spin_loop();
