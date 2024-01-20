@@ -51,7 +51,7 @@ const DTB_ADDR: usize = DRAM_BASE + DTB_OFFSET;
 static PLATFORM: &str = "StarFive VisionFive 2";
 static VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const STACK_SIZE: usize = 32 * 1024; // 4KiB
+const STACK_SIZE: usize = 32 * 1024;
 
 #[link_section = ".bss.uninit"]
 static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -179,8 +179,7 @@ const SMP: bool = false;
 
 const PAYLOAD_SIZE: usize = 192 * 1024;
 const PAYLOAD_SRC_ADDR: usize = SRAM0_BASE + 0x2_1000;
-const DRAM_BASE_X: usize = 0x8000_0000;
-const PAYLOAD_ADDR: usize = DRAM_BASE + 0x0020_0000;
+const PAYLOAD_ADDR: usize = LINUXBOOT_ADDR;
 
 fn main() {
     udelay(200);
@@ -190,7 +189,6 @@ fn main() {
     println!("oreboot 🦀 main");
 
     let payload_addr = PAYLOAD_ADDR;
-    // let payload_addr = LINUXBOOT_ADDR;
 
     println!("[main] Copy DTB to DRAM... ⏳");
     copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);

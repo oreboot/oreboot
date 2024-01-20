@@ -16,7 +16,7 @@ const EBREAK: u16 = 0x9002;
 
 const DEBUG: bool = true;
 const DEBUG_ECALL: bool = false;
-const DEBUG_MTIMER: bool = true;
+const DEBUG_MTIMER: bool = false;
 const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
@@ -78,10 +78,20 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
 
 // FIXME: DO NOT HARDCODE; use sbi crate definitions etc
 const CLINT_BASE_JH7110: usize = 0x0200_0000;
-const CLINT_MTIMER_JH7110: usize = CLINT_BASE_JH7110 + 0xbff8;
-
 const CLINT_BASE_D1: usize = 0x0400_0000;
-const CLINT_MTIMER_D1: usize = CLINT_BASE_D1 + 0x4000;
+
+// Machine Software Interrupt Pending
+const HART0_MSIP_OFFSET: usize = 0x0000;
+const HART1_MSIP_OFFSET: usize = 0x0004;
+const HART2_MSIP_OFFSET: usize = 0x0008;
+const HART3_MSIP_OFFSET: usize = 0x000c;
+const HART4_MSIP_OFFSET: usize = 0x0010;
+const HART0_MTIMECMP_OFFSET: usize = 0x4000;
+const HART1_MTIMECMP_OFFSET: usize = 0x4008;
+const HART2_MTIMECMP_OFFSET: usize = 0x4010;
+const HART3_MTIMECMP_OFFSET: usize = 0x4018;
+const HART4_MTIMECMP_OFFSET: usize = 0x4020;
+const MTIMER_OFFSET: usize = 0xbff8;
 
 pub fn execute_supervisor(
     supervisor_mepc: usize,
@@ -93,9 +103,10 @@ pub fn execute_supervisor(
         supervisor_mepc, dtb_addr
     );
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
-    let mtimer = CLINT_MTIMER_D1;
-    let mtimer = CLINT_MTIMER_JH7110;
-    let hart1_mtimecmp: usize = mtimer + 0x4008;
+    let clint_base = CLINT_BASE_D1;
+    let clint_base = CLINT_BASE_JH7110;
+    let mtimecmp: usize = clint_base + HART1_MTIMECMP_OFFSET;
+    let hart_msip: usize = clint_base + HART1_MSIP_OFFSET;
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -133,7 +144,7 @@ pub fn execute_supervisor(
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_instruction(ctx, ins, mtimer) {
+                } else if !emulate_instruction(ctx, ins, mtimecmp) {
                     if DEBUG_ILLEGAL {
                         println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
                     }
@@ -158,11 +169,12 @@ pub fn execute_supervisor(
                 // How do we clear the mtimer? MTIP is read-only in MIP.
                 unsafe {
                     if true {
-                        core::ptr::write_volatile(hart1_mtimecmp as *mut u32, 0);
-                        core::ptr::write_volatile((hart1_mtimecmp + 4) as *mut u32, 0);
+                        core::ptr::write_volatile(mtimecmp as *mut u32, 0);
+                        core::ptr::write_volatile((mtimecmp + 4) as *mut u32, 0);
+                        core::ptr::write_volatile(hart_msip as *mut u32, 0);
                     }
                     mip::set_stimer();
-                };
+                }
             }
             CoroutineState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {
                 if DEBUG && DEBUG_MISALIGNED {
@@ -177,7 +189,9 @@ pub fn execute_supervisor(
             // NOTE: These are all delegated.
             CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::StoreFault(addr)) => {
-                println!("[SBI]   Attemped to store to ${addr:16x}");
+                if false {
+                    println!("[SBI]   Attemped to store to ${addr:16x}");
+                }
             }
             CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
