@@ -7,7 +7,7 @@ use log::{print, println};
 
 pub fn dump(addr: usize, length: usize) {
     let s = unsafe { slice::from_raw_parts(addr as *const u8, length) };
-    println!("dump {length} bytes @{addr:x}");
+    println!("dump {length} bytes @{addr:08x}");
     for w in s.iter() {
         print!("{:02x}", w);
     }
@@ -42,6 +42,7 @@ pub fn set_bit(reg: usize, bit: u32) {
 
 // see SiFive U74 MC core complex manual, chapter 9.5, table 123 (p 184)
 const CLINT_BASE: usize = 0x0200_0000;
+// Machine Software Interrupt Pending
 const HART0_MSIP: usize = CLINT_BASE + 0x0000;
 const HART1_MSIP: usize = CLINT_BASE + 0x0004;
 const HART2_MSIP: usize = CLINT_BASE + 0x0008;

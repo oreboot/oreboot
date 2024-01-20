@@ -112,7 +112,7 @@ impl Runtime {
 
 // best debugging function on the planet
 fn print_exception_interrupt() {
-    if DEBUG {
+    if DEBUG && false {
         let cause = mcause::read().cause();
         let epc = mepc::read();
         println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
@@ -125,11 +125,16 @@ impl Coroutine for Runtime {
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
         let mst = mstatus::read();
         let mie = mst.mie();
-        println!("[SBI] resume with {mst:#?} (mie: {mie})");
+        let sie = mst.sie();
+        if false {
+            println!("[SBI] resume with {mst:#?} (mie: {mie}, sie: {sie})");
+        }
         unsafe {
-            if true {
+            if false {
                 mstatus::set_mie();
                 println!("[SBI] machine interrupts enabled");
+                mstatus::set_sie();
+                println!("[SBI] supervisor interrupts enabled");
             }
             do_resume(&mut self.context as *mut _)
         };
@@ -292,12 +297,12 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
         // a0: privileged context
-        "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文
-        "csrw   mscratch, a0", // 新mscratch:特权级上下文
+        "sd     sp,  33*8(a0)", // 机器栈顶放进特权级上下文
+        "csrw   mscratch, a0",  // 新mscratch:特权级上下文
         // mscratch:特权级上下文
-        "mv     sp, a0", // 新sp:特权级上下文
-        "ld     t0, 31*8(sp)
-         ld     t1, 32*8(sp)
+        "mv     sp,  a0", // 新sp:特权级上下文
+        "ld     t0,  31*8(sp)
+         ld     t1,  32*8(sp)
          csrw   mstatus, t0
          csrw   mepc, t1",
         "ld     ra,  0*8(sp)

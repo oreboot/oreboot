@@ -55,7 +55,7 @@ const QSPI_XIP_BASE: usize = 0x2100_0000;
 const FLASH_SIZE: usize = 0x0100_0000;
 const LOAD_FROM_FLASH: bool = false;
 
-const STACK_SIZE: usize = 4 * 1024; // 4KiB
+const STACK_SIZE: usize = 8 * 1024;
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
