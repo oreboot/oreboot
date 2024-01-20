@@ -1,8 +1,10 @@
+use soc::starfive::jh7110::pac;
+
 use crate::ddr_start::start;
 use crate::ddrcsr::omc_init;
 use crate::ddrphy::{train, util};
 use crate::init::{self, read32, udelay, write32};
-use crate::{pac, pll};
+use crate::pll;
 
 // TODO: support 1G
 #[cfg(not(any(dram_size = "2G", dram_size = "4G", dram_size = "8G")))]

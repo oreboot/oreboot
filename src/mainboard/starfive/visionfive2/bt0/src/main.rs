@@ -24,6 +24,7 @@ use riscv::register::{marchid, mimpid, mvendorid};
 use fdt::Fdt;
 
 use hal::uart::Serial;
+use soc::starfive::jh7110::{pac, uart};
 
 mod ddr_start;
 mod ddrcsr;
@@ -31,9 +32,7 @@ mod ddrlib;
 mod ddrphy;
 mod dram;
 mod init;
-mod pac;
 mod pll;
-mod uart;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
@@ -298,7 +297,7 @@ fn main() {
             stop: hal::uart::Stop::One,
             parity: hal::uart::Parity::None,
             baud_rate: hal::uart::BaudRate::B115200,
-            clk_hz: uart::UART_CLK,
+            clk_hz: uart::UART_CLK_OSC,
         },
     );
 
