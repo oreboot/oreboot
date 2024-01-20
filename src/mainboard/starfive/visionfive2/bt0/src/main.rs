@@ -363,7 +363,7 @@ fn main() {
     }
 
     // TODO: Does this help?
-    if true {
+    if false {
         reset_phy();
         init::phy_cfg();
     }

@@ -123,7 +123,16 @@ impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
-        unsafe { do_resume(&mut self.context as *mut _) };
+        let mst = mstatus::read();
+        let mie = mst.mie();
+        println!("[SBI] resume with {mst:#?} (mie: {mie})");
+        unsafe {
+            if true {
+                mstatus::set_mie();
+                println!("[SBI] machine interrupts enabled");
+            }
+            do_resume(&mut self.context as *mut _)
+        };
         let cause = mcause::read().cause();
         // NOTE: Debugging highly frequent traps may get tons of logs.
         // If necessary, add prints here, use a counter, apply modulo, etc..
@@ -240,7 +249,7 @@ pub struct SupervisorContext {
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
     asm!(
-        "j      {from_machine_save}",
+        "j     {from_machine_save}",
         from_machine_save = sym from_machine_save,
         options(noreturn),
     )
@@ -254,23 +263,23 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
         "addi   sp, sp, -15*8",
         // Before entering the function, the caller's register has been saved,
         // and the callee's register should be saved
-        "sd     ra, 0*8(sp)
-        sd      gp, 1*8(sp)
-        sd      tp, 2*8(sp)
-        sd      s0, 3*8(sp)
-        sd      s1, 4*8(sp)
-        sd      s2, 5*8(sp)
-        sd      s3, 6*8(sp)
-        sd      s4, 7*8(sp)
-        sd      s5, 8*8(sp)
-        sd      s6, 9*8(sp)
-        sd      s7, 10*8(sp)
-        sd      s8, 11*8(sp)
-        sd      s9, 12*8(sp)
-        sd      s10, 13*8(sp)
-        sd      s11, 14*8(sp)",
+        "sd     ra,  0*8(sp)
+         sd     gp,  1*8(sp)
+         sd     tp,  2*8(sp)
+         sd     s0,  3*8(sp)
+         sd     s1,  4*8(sp)
+         sd     s2,  5*8(sp)
+         sd     s3,  6*8(sp)
+         sd     s4,  7*8(sp)
+         sd     s5,  8*8(sp)
+         sd     s6,  9*8(sp)
+         sd     s7, 10*8(sp)
+         sd     s8, 11*8(sp)
+         sd     s9, 12*8(sp)
+         sd    s10, 13*8(sp)
+         sd    s11, 14*8(sp)",
         // a0: privileged context
-        "j      {to_supervisor_restore}",
+        "j     {to_supervisor_restore}",
         to_supervisor_restore = sym to_supervisor_restore,
         options(noreturn)
     )
@@ -288,40 +297,40 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
         // mscratch:特权级上下文
         "mv     sp, a0", // 新sp:特权级上下文
         "ld     t0, 31*8(sp)
-        ld      t1, 32*8(sp)
-        csrw    mstatus, t0
-        csrw    mepc, t1",
-        "ld     ra, 0*8(sp)
-        ld      gp, 2*8(sp)
-        ld      tp, 3*8(sp)
-        ld      t0, 4*8(sp)
-        ld      t1, 5*8(sp)
-        ld      t2, 6*8(sp)
-        ld      s0, 7*8(sp)
-        ld      s1, 8*8(sp)
-        ld      a0, 9*8(sp)
-        ld      a1, 10*8(sp)
-        ld      a2, 11*8(sp)
-        ld      a3, 12*8(sp)
-        ld      a4, 13*8(sp)
-        ld      a5, 14*8(sp)
-        ld      a6, 15*8(sp)
-        ld      a7, 16*8(sp)
-        ld      s2, 17*8(sp)
-        ld      s3, 18*8(sp)
-        ld      s4, 19*8(sp)
-        ld      s5, 20*8(sp)
-        ld      s6, 21*8(sp)
-        ld      s7, 22*8(sp)
-        ld      s8, 23*8(sp)
-        ld      s9, 24*8(sp)
-        ld     s10, 25*8(sp)
-        ld     s11, 26*8(sp)
-        ld      t3, 27*8(sp)
-        ld      t4, 28*8(sp)
-        ld      t5, 29*8(sp)
-        ld      t6, 30*8(sp)",
-        "ld     sp, 1*8(sp)", // 新sp:特权级栈
+         ld     t1, 32*8(sp)
+         csrw   mstatus, t0
+         csrw   mepc, t1",
+        "ld     ra,  0*8(sp)
+         ld     gp,  2*8(sp)
+         ld     tp,  3*8(sp)
+         ld     t0,  4*8(sp)
+         ld     t1,  5*8(sp)
+         ld     t2,  6*8(sp)
+         ld     s0,  7*8(sp)
+         ld     s1,  8*8(sp)
+         ld     a0,  9*8(sp)
+         ld     a1, 10*8(sp)
+         ld     a2, 11*8(sp)
+         ld     a3, 12*8(sp)
+         ld     a4, 13*8(sp)
+         ld     a5, 14*8(sp)
+         ld     a6, 15*8(sp)
+         ld     a7, 16*8(sp)
+         ld     s2, 17*8(sp)
+         ld     s3, 18*8(sp)
+         ld     s4, 19*8(sp)
+         ld     s5, 20*8(sp)
+         ld     s6, 21*8(sp)
+         ld     s7, 22*8(sp)
+         ld     s8, 23*8(sp)
+         ld     s9, 24*8(sp)
+         ld    s10, 25*8(sp)
+         ld    s11, 26*8(sp)
+         ld     t3, 27*8(sp)
+         ld     t4, 28*8(sp)
+         ld     t5, 29*8(sp)
+         ld     t6, 30*8(sp)",
+        "ld     sp,  1*8(sp)", // 新sp:特权级栈
         // sp:特权级栈, mscratch:特权级上下文
         "mret",
         options(noreturn)
@@ -337,43 +346,43 @@ pub unsafe extern "C" fn from_supervisor_save() -> ! {
     asm!( // sp:特权级栈,mscratch:特权级上下文
         ".p2align 2",
         "csrrw  sp, mscratch, sp", // 新mscratch:特权级栈, 新sp:特权级上下文
-        "sd     ra, 0*8(sp)
-        sd      gp, 2*8(sp)
-        sd      tp, 3*8(sp)
-        sd      t0, 4*8(sp)
-        sd      t1, 5*8(sp)
-        sd      t2, 6*8(sp)
-        sd      s0, 7*8(sp)
-        sd      s1, 8*8(sp)
-        sd      a0, 9*8(sp)
-        sd      a1, 10*8(sp)
-        sd      a2, 11*8(sp)
-        sd      a3, 12*8(sp)
-        sd      a4, 13*8(sp)
-        sd      a5, 14*8(sp)
-        sd      a6, 15*8(sp)
-        sd      a7, 16*8(sp)
-        sd      s2, 17*8(sp)
-        sd      s3, 18*8(sp)
-        sd      s4, 19*8(sp)
-        sd      s5, 20*8(sp)
-        sd      s6, 21*8(sp)
-        sd      s7, 22*8(sp)
-        sd      s8, 23*8(sp)
-        sd      s9, 24*8(sp)
-        sd     s10, 25*8(sp)
-        sd     s11, 26*8(sp)
-        sd      t3, 27*8(sp)
-        sd      t4, 28*8(sp)
-        sd      t5, 29*8(sp)
-        sd      t6, 30*8(sp)",
+        "sd     ra,  0*8(sp)
+         sd     gp,  2*8(sp)
+         sd     tp,  3*8(sp)
+         sd     t0,  4*8(sp)
+         sd     t1,  5*8(sp)
+         sd     t2,  6*8(sp)
+         sd     s0,  7*8(sp)
+         sd     s1,  8*8(sp)
+         sd     a0,  9*8(sp)
+         sd     a1, 10*8(sp)
+         sd     a2, 11*8(sp)
+         sd     a3, 12*8(sp)
+         sd     a4, 13*8(sp)
+         sd     a5, 14*8(sp)
+         sd     a6, 15*8(sp)
+         sd     a7, 16*8(sp)
+         sd     s2, 17*8(sp)
+         sd     s3, 18*8(sp)
+         sd     s4, 19*8(sp)
+         sd     s5, 20*8(sp)
+         sd     s6, 21*8(sp)
+         sd     s7, 22*8(sp)
+         sd     s8, 23*8(sp)
+         sd     s9, 24*8(sp)
+         sd    s10, 25*8(sp)
+         sd    s11, 26*8(sp)
+         sd     t3, 27*8(sp)
+         sd     t4, 28*8(sp)
+         sd     t5, 29*8(sp)
+         sd     t6, 30*8(sp)",
         "csrr   t0, mstatus
-        sd      t0, 31*8(sp)",
+         sd     t0, 31*8(sp)",
         "csrr   t1, mepc
-        sd      t1, 32*8(sp)",
+         sd     t1, 32*8(sp)",
         // mscratch:特权级栈,sp:特权级上下文
         "csrrw  t2, mscratch, sp", // 新mscratch:特权级上下文,t2:特权级栈
-        "sd     t2, 1*8(sp)", // 保存特权级栈
+        "sd     t2,  1*8(sp)", // 保存特权级栈
         "j      {to_machine_restore}",
         to_machine_restore = sym to_machine_restore,
         options(noreturn)
@@ -387,21 +396,21 @@ unsafe extern "C" fn to_machine_restore() -> ! {
         // mscratch:特权级上下文
         "csrr   sp, mscratch", // sp:特权级上下文
         "ld     sp, 33*8(sp)", // sp:机器栈
-        "ld     ra, 0*8(sp)
-        ld      gp, 1*8(sp)
-        ld      tp, 2*8(sp)
-        ld      s0, 3*8(sp)
-        ld      s1, 4*8(sp)
-        ld      s2, 5*8(sp)
-        ld      s3, 6*8(sp)
-        ld      s4, 7*8(sp)
-        ld      s5, 8*8(sp)
-        ld      s6, 9*8(sp)
-        ld      s7, 10*8(sp)
-        ld      s8, 11*8(sp)
-        ld      s9, 12*8(sp)
-        ld      s10, 13*8(sp)
-        ld      s11, 14*8(sp)",
+        "ld     ra,  0*8(sp)
+         ld     gp,  1*8(sp)
+         ld     tp,  2*8(sp)
+         ld     s0,  3*8(sp)
+         ld     s1,  4*8(sp)
+         ld     s2,  5*8(sp)
+         ld     s3,  6*8(sp)
+         ld     s4,  7*8(sp)
+         ld     s5,  8*8(sp)
+         ld     s6,  9*8(sp)
+         ld     s7, 10*8(sp)
+         ld     s8, 11*8(sp)
+         ld     s9, 12*8(sp)
+         ld    s10, 13*8(sp)
+         ld    s11, 14*8(sp)",
         "addi   sp, sp, 15*8", // sp:机器栈顶
         "jr     ra",           // 其实就是ret
         options(noreturn)
