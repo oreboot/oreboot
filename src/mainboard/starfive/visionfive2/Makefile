@@ -26,5 +26,7 @@ mainboard:
 objdump: mainboard
 	riscv64-linux-gnu-objdump -D "$(IMAGE_BT0)"
 
-run: mainboard
+rerun:
 	$(VF2LOADER) -D ${PORT} $(IMAGE)
+
+run: mainboard rerun
