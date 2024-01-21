@@ -49,14 +49,14 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// Naked function.
 #[naked]
 #[link_section = ".head.text"]
-#[export_name = "head_jump"]
+#[export_name = "_head_jump"]
 pub unsafe extern "C" fn head_jump() {
     asm!(
         ".option push",
         ".option rvc",
         "c.j    0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
         ".option pop",
-        // sym start,
+        // sym _start,
         options(noreturn)
     )
 }
@@ -253,7 +253,7 @@ This bit will be reset to 1’b0.
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
 #[naked]
-#[export_name = "start"]
+#[export_name = "_start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     asm!(

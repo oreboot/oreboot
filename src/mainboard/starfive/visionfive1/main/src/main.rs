@@ -21,7 +21,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 ///
 /// Naked function.
 #[naked]
-#[export_name = "start"]
+#[export_name = "_start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     asm!(
