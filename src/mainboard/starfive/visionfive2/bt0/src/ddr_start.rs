@@ -1,5 +1,6 @@
 use crate::ddrlib::{MemCfg, MemSet};
 use crate::init::{self, read32, write32};
+use crate::pac;
 
 // TODO: define build time parameters (!)
 const VAL_X2: u32 = if cfg!(dram_size = "8G") {
@@ -309,31 +310,33 @@ const START_CFG8: [MemCfg; 25] = crate::ddrlib::mem_cfg_arr![
 const DEBUG: bool = false;
 
 pub unsafe fn start(phy_base: usize, phy_ctrl_base: usize, phy_ac_base: usize) {
+    let phy = &*pac::DMC_PHY::ptr();
+
     START_CFG0.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     START_CFG1.iter().for_each(|cfg| {
-        let addr = (phy_ctrl_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     // NOTE: Commented out in VF1 code
     if cfg!(dram_size = "2G") {
-        let addr = phy_ctrl_base + 44; // 11 << 2
-        let v = read32(addr);
-        write32(addr, (v & 0xfffffff0) | 0x00000005);
+        phy.base(11).modify(|r, w| {
+            w.bits((r.bits() & 0xffff_fff0) | 0x0000_0005)
+        });
     }
     START_CFG2.iter().for_each(|cfg| {
-        let addr = (phy_ctrl_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     START_CFG3.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     // PHY_RPTR_UPDATE_x: bit[11:8]+=3
     // NOTE: Special handling: write back current val + val to register
@@ -342,9 +345,8 @@ pub unsafe fn start(phy_base: usize, phy_ctrl_base: usize, phy_ac_base: usize) {
     // current value on hot reset, it could turn into weird behavior.
     // With `START_CFG0`, we set this to `0x00000400`, so it should now become
     // `0x00000700`.
-    [96, 352, 608, 864].iter().for_each(|&r| {
-        let addr = (phy_ac_base + (r << 2) as usize);
-        write32(addr, read32(addr) + 0x300);
+    [96, 352, 608, 864].iter().for_each(|&reg| {
+        phy.ac_base(reg).modify(|r, w| w.bits(r.bits() + 0x300));
     });
     // PHY_WRLVL_DLY_STEP_X: 8'hC -> 8'h12
     // NOTE: This is h18 in the JH7100 code
@@ -352,34 +354,32 @@ pub unsafe fn start(phy_base: usize, phy_ctrl_base: usize, phy_ac_base: usize) {
     //    G_SPEED_2666: 0x00140000
     //    G_SPEED_3200: 0x00180000
     // TODO: try lower speed?
-    [96, 352, 608, 864].iter().for_each(|&r| {
-        let addr = (phy_ac_base + (r << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & 0xff00ffff) | 0x00120000);
+    [96, 352, 608, 864].iter().for_each(|&reg| {
+        phy.ac_base(reg).modify(|r, w| {
+            w.bits((r.bits() & 0xff00_ffff) | 0x0012_0000)
+        });
     });
 
     START_CFG4.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     START_CFG5.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        write32(addr, cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).write(|w| w.bits(cfg.value));
     });
     START_CFG6.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
     START_CFG7.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        write32(addr, cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).write(|w| w.bits(cfg.value));
     });
     START_CFG8.iter().for_each(|cfg| {
-        let addr = (phy_ac_base + (cfg.reg_nr << 2) as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
-    write32(phy_base, 0x1);
+    phy.csr(0).write(|w| w.bits(0x1));
 }
