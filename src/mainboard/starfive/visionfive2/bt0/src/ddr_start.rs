@@ -309,7 +309,7 @@ const START_CFG8: [MemCfg; 25] = crate::ddrlib::mem_cfg_arr![
 
 const DEBUG: bool = false;
 
-pub unsafe fn start(phy_base: usize, phy_ctrl_base: usize, phy_ac_base: usize) {
+pub unsafe fn start() {
     let phy = &*pac::DMC_PHY::ptr();
 
     START_CFG0.iter().for_each(|cfg| {
