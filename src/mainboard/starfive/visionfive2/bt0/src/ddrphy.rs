@@ -1,4 +1,5 @@
 use crate::init::{read32, write32};
+use crate::pac;
 
 // drivers/ram/starfive/ddrphy_train.c
 pub const TRAIN_DATA: [u32; 363] = [
@@ -512,9 +513,9 @@ const UTIL_DATA2: [u32; 139] = [
 ];
 
 pub fn train(base_addr: usize) {
-    TRAIN_DATA.iter().enumerate().for_each(|(reg_nr, value)| {
-        let addr = (base_addr + (reg_nr << 2));
-        write32(addr, *value);
+    let phy = unsafe { &*pac::DMC_PHY::ptr() };
+    TRAIN_DATA.iter().enumerate().for_each(|(reg_nr, &value)| {
+        phy.base(reg_nr).write(|w| unsafe { w.bits(value) });
     });
 }
 
@@ -538,24 +539,22 @@ const UTIL_DATA1_A2: [u32; 86] = [
 ];
 
 fn util_data1_a(base: usize, v1: u32) {
+    let phy = unsafe { &*pac::DMC_PHY::ptr() };
     UTIL_DATA1_A1
         .iter()
         .enumerate()
-        .for_each(|(reg_nr, value)| {
-            let addr = (base + (reg_nr << 2));
-            write32(addr, *value);
+        .for_each(|(reg_nr, &value)| {
+            phy.ac_base(base + reg_nr).write(|w| unsafe { w.bits(value) });
         });
-    write32(base + (44 << 2), v1);
+    phy.ac_base(base + 44).write(|w| unsafe { w.bits(v1) });
     UTIL_DATA1_A2
         .iter()
         .enumerate()
-        .for_each(|(reg_nr, value)| {
-            let addr = (base + ((45 + reg_nr) << 2));
-            write32(addr, *value);
+        .for_each(|(reg_nr, &value)| {
+            phy.ac_base(base + 45 + reg_nr).write(|w| unsafe { w.bits(value) });
         });
     for r in 131..256 {
-        let addr = (base + (r << 2));
-        write32(addr, 0);
+        phy.ac_base(base + r).write(|w| unsafe { w.bits(0) })
     }
 }
 
@@ -570,43 +569,41 @@ const UTIL_DATA1_B2: [u32; 16] = [
 ];
 
 fn util_data1_b(base: usize, v1: u32, v2: u32, v3: u32) {
+    let phy = unsafe { &*pac::DMC_PHY::ptr() };
     UTIL_DATA1_B1
         .iter()
         .enumerate()
-        .for_each(|(reg_nr, value)| {
-            let addr = (base + (reg_nr << 2));
-            write32(addr, *value);
+        .for_each(|(reg_nr, &value)| {
+            phy.ac_base(base + reg_nr).write(|w| unsafe { w.bits(value) });
         });
-    write32(base + (30 << 2), v1);
-    write32(base + (31 << 2), v2);
-    write32(base + (32 << 2), v3);
+    phy.ac_base(base + 30).write(|w| unsafe { w.bits(v1) });
+    phy.ac_base(base + 31).write(|w| unsafe { w.bits(v2) });
+    phy.ac_base(base + 32).write(|w| unsafe { w.bits(v3) });
     UTIL_DATA1_B2
         .iter()
         .enumerate()
-        .for_each(|(reg_nr, value)| {
-            let addr = (base + ((33 + reg_nr) << 2));
-            write32(addr, *value);
+        .for_each(|(reg_nr, &value)| {
+            phy.ac_base(base + 33 + reg_nr).write(|w| unsafe { w.bits(value) });
         });
     for r in 49..256 {
-        let addr = (base + (r << 2));
-        write32(addr, 0);
+        phy.ac_base(base + r).write(|w| unsafe { w.bits(0) });
     }
 }
 
 // First, we write everything from register 1792 on, then everything up to 1792.
 // We do not know why, just copied it from the reference implementation.
 pub fn util(base_addr: usize) {
-    UTIL_DATA2.iter().enumerate().for_each(|(reg_nr, value)| {
-        let addr = (base_addr + ((1792 + reg_nr) << 2));
-        write32(addr, *value);
+    let phy = unsafe { &*pac::DMC_PHY::ptr() };
+    UTIL_DATA2.iter().enumerate().for_each(|(reg_nr, &value)| {
+        phy.ac_base(1792 + reg_nr).write(|w| unsafe { w.bits(value) });
     });
     // 4 blocks of 256 each
-    util_data1_a(base_addr, 0x1);
-    util_data1_a(base_addr + (256 << 2), 0x0);
-    util_data1_a(base_addr + ((256 * 2) << 2), 0x1);
-    util_data1_a(base_addr + ((256 * 3) << 2), 0x0);
+    util_data1_a(0, 0x1);
+    util_data1_a(256, 0x0);
+    util_data1_a(256 * 2, 0x1);
+    util_data1_a(256 * 3, 0x0);
     // 3 blocks of 256 each
-    util_data1_b(base_addr + ((256 * 4) << 2), 0xa418820, 0x3f0000, 0x13f);
-    util_data1_b(base_addr + ((256 * 5) << 2), 0x0, 0x0, 0x0);
-    util_data1_b(base_addr + ((256 * 6) << 2), 0x0, 0x10000000, 0x0);
+    util_data1_b(256 * 4, 0xa418820, 0x3f0000, 0x13f);
+    util_data1_b(256 * 5, 0x0, 0x0, 0x0);
+    util_data1_b(256 * 6, 0x0, 0x10000000, 0x0);
 }
