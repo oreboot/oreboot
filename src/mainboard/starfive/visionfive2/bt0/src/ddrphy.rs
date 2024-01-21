@@ -512,7 +512,7 @@ const UTIL_DATA2: [u32; 139] = [
     0x200400,   //
 ];
 
-pub fn train(base_addr: usize) {
+pub fn train() {
     let phy = unsafe { &*pac::DMC_PHY::ptr() };
     TRAIN_DATA.iter().enumerate().for_each(|(reg_nr, &value)| {
         phy.base(reg_nr).write(|w| unsafe { w.bits(value) });
@@ -592,7 +592,7 @@ fn util_data1_b(base: usize, v1: u32, v2: u32, v3: u32) {
 
 // First, we write everything from register 1792 on, then everything up to 1792.
 // We do not know why, just copied it from the reference implementation.
-pub fn util(base_addr: usize) {
+pub fn util() {
     let phy = unsafe { &*pac::DMC_PHY::ptr() };
     UTIL_DATA2.iter().enumerate().for_each(|(reg_nr, &value)| {
         phy.ac_base(1792 + reg_nr).write(|w| unsafe { w.bits(value) });

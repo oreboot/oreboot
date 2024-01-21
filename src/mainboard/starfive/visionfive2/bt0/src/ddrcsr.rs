@@ -12,7 +12,7 @@ const TRAINING_STATUS_MAYBE: usize = 0x0518;
 
 const VERBOSE: bool = false;
 
-fn train(phy_base: usize, training_status_reg: usize) {
+fn train(training_status_reg: usize) {
     let mut rounds: usize = 0;
     let freq_change_req = FREQ_CHANGE;
     let phy = unsafe { &*pac::DMC_PHY::ptr() };
@@ -316,12 +316,7 @@ const DDR_CSR_CFG5: [MemSet; 6] = mem_set_arr![
 ];
 
 // NOTE: `reg_nr` here is actually the _offset_! So do not shift << 2.
-pub unsafe fn omc_init(
-    phy_base: usize,
-    cfg_base_addr: usize,
-    sec_base_addr: usize,
-    phy_ctrl_base: usize,
-) {
+pub unsafe fn omc_init() {
     println!("[DRAM] OMC init");
     let ctrl = &*pac::DMC_CTRL::ptr();
     let phy = &*pac::DMC_PHY::ptr();
@@ -397,7 +392,7 @@ pub unsafe fn omc_init(
     }
 
     println!("[DRAM] OMC init train");
-    train(phy_base, TRAINING_STATUS_MAYBE);
+    train(TRAINING_STATUS_MAYBE);
 
     println!("[DRAM] OMC init PHY");
     // NOTE: This here even worked when I was accidentally off to 0x150 / 0x154.
