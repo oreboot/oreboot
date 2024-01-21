@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 const NEZHA_FLASH: &[u8] = b"
 OUTPUT_ARCH(riscv)
-ENTRY(head_jump)
+ENTRY(_head_jump)
 MEMORY {
     SRAM : ORIGIN = 0x00020000, LENGTH = 32K
 }
