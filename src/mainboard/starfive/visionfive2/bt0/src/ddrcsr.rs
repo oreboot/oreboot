@@ -1,8 +1,9 @@
 use crate::ddrlib::*;
 use crate::init::{self, read32, udelay, write32};
+use crate::pac;
 
-const FREQ_CHANGE: usize = 0x0004;
-const FREQ_CHANGE_ACK: usize = 0x0008;
+const FREQ_CHANGE: usize = 0x0001;
+const FREQ_CHANGE_ACK: usize = 0x0002;
 
 const FANCY_REG1: usize = 0x0504;
 const FANCY_REG2: usize = 0x050c;
@@ -12,11 +13,12 @@ const TRAINING_STATUS_MAYBE: usize = 0x0518;
 const VERBOSE: bool = false;
 
 fn train(phy_base: usize, training_status_reg: usize) {
-    let freq_change_req: usize = phy_base + FREQ_CHANGE;
-    let freq_change_ack: usize = phy_base + FREQ_CHANGE_ACK;
     let mut rounds: usize = 0;
-    while (read32(training_status_reg) & 0x2) != 0x0 {
-        let req_type = read32(freq_change_req);
+    let freq_change_req = FREQ_CHANGE;
+    let phy = unsafe { &*pac::DMC_PHY::ptr() };
+    let ctrl = unsafe { &*pac::DMC_CTRL::ptr() };
+    while (ctrl.csr(training_status_reg >> 2).read().bits() & 0x2) != 0x0 {
+        let req_type = phy.csr(freq_change_req).read().bits();
         if (req_type & 0x00000020) == 0x00000020 {
             let freq_change_req = req_type & 0x0000001f;
             match freq_change_req {
@@ -42,8 +44,8 @@ fn train(phy_base: usize, training_status_reg: usize) {
                 rounds += 1;
             }
 
-            write32(freq_change_ack, 0x1);
-            while (read32(freq_change_ack) & 0x1) != 0x0 {
+            phy.csr(FREQ_CHANGE_ACK).write(|w| unsafe { w.bits(0x1) });
+            while (phy.csr(FREQ_CHANGE_ACK).read().bits() & 0x1) != 0x0 {
                 udelay(2);
             }
         }
@@ -321,39 +323,40 @@ pub unsafe fn omc_init(
     phy_ctrl_base: usize,
 ) {
     println!("[DRAM] OMC init");
-    write32(cfg_base_addr, 0x1);
+    let ctrl = &*pac::DMC_CTRL::ptr();
+    let phy = &*pac::DMC_PHY::ptr();
+    ctrl.csr(0).write(|w| w.bits(0x1));
+
     DDR_CSR_CFG0.iter().for_each(|cfg| {
-        let addr = (sec_base_addr + cfg.reg_nr as usize);
-        write32(addr, cfg.value);
+        ctrl.sec((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
     });
     if cfg!(dram_size = "8G") || cfg!(dram_size = "4G") {
-        write32(sec_base_addr + 0xf34, 0x1f000041);
+        ctrl.sec(0xf34 >> 2).write(|w| w.bits(0x1f00_0041));
     } else {
         // skipped in original code
     }
-    write32(sec_base_addr + 0x0110, 0xc0000001);
-    write32(sec_base_addr + 0x0114, 0xffffffff);
+    ctrl.sec(0x0110 >> 2).write(|w| w.bits(0xc000_0001));
+    ctrl.sec(0x0114 >> 2).write(|w| w.bits(0xffff_ffff));
 
     DDR_CSR_CFG1.iter().for_each(|cfg| {
-        let addr = (cfg_base_addr + cfg.reg_nr as usize);
-        write32(addr, cfg.value);
+        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
     });
 
     // This seems to trigger some sort of readiness.
     // Memory frequency should be changed below 50MHz somewhere before here
-    write32(cfg_base_addr + FANCY_REG1, 0x40000000);
-    while read32(cfg_base_addr + FANCY_REG1) & 0x80000000 != 0x80000000 {
+    ctrl.csr(FANCY_REG1 >> 2).write(|w| w.bits(0x4000_0000));
+    while ctrl.csr(FANCY_REG1 >> 2).read().bits() & 0x80000000 != 0x80000000 {
         udelay(1);
     }
-    write32(cfg_base_addr + FANCY_REG1, 0x00000000);
+    ctrl.csr(FANCY_REG1 >> 2).write(|w| w.bits(0x0000_0000));
 
     // tINIT0 is controlled by System
-    write32(cfg_base_addr + FANCY_REG2, 0x0);
+    ctrl.csr(FANCY_REG2 >> 2).write(|w| w.bits(0x0));
     // Waits tINIT1 (300 us): Minimum RESET_n LOW time after completion of
     // voltage ramp
     // NOTE: 200 us in VF1 code
     udelay(300);
-    write32(cfg_base_addr + FANCY_REG2, 0x1);
+    ctrl.csr(FANCY_REG2 >> 2).write(|w| w.bits(0x1));
     udelay(3000);
 
     // Drive CKE high (clock enable)
@@ -363,62 +366,60 @@ pub unsafe fn omc_init(
     } else {
         0x0000001c
     };
-    write32(cfg_base_addr + 0x0010, val);
-    write32(cfg_base_addr + 0x0014, 0x00000001);
+    ctrl.csr(0x0010 >> 2).write(|w| w.bits(val));
+    ctrl.csr(0x0014 >> 2).write(|w| w.bits(0x0000_0001));
     // Waits tINIT5 (2 us): Minimum idle time before first MRW/MRR command
     udelay(4);
     DDR_CSR_CFG2.iter().for_each(|cfg| {
-        let addr = (cfg_base_addr + cfg.reg_nr as usize);
-        write32(addr, cfg.value);
+        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
     });
     // Waits tZQCAL (1 us)
     udelay(4);
-    write32(cfg_base_addr + 0x0010, 0x00000011);
-    write32(cfg_base_addr + 0x0014, 0x00000001);
+    ctrl.csr(0x0010 >> 2).write(|w| w.bits(0x0000_0011));
+    ctrl.csr(0x0014 >> 2).write(|w| w.bits(0x0000_0001));
 
     if cfg!(dram_size = "8G") || cfg!(dram_size = "4G") {
-        write32(cfg_base_addr + 0x0010, 0x00000020);
-        write32(cfg_base_addr + 0x0014, 0x00000001);
+        ctrl.csr(0x0010 >> 2).write(|w| w.bits(0x0000_0020));
+        ctrl.csr(0x0014 >> 2).write(|w| w.bits(0x0000_0001));
         // Waits tZQCAL (1 us)
         udelay(4);
-        write32(cfg_base_addr + 0x0010, 0x00000021);
-        write32(cfg_base_addr + 0x0014, 0x00000001);
+        ctrl.csr(0x0010 >> 2).write(|w| w.bits(0x0000_0021));
+        ctrl.csr(0x0014 >> 2).write(|w| w.bits(0x0000_0001));
     }
-    write32(cfg_base_addr + FANCY_REG3, 0x00000000);
+    ctrl.csr(FANCY_REG3 >> 2).write(|w| w.bits(0x0000_0000));
 
     // This register seems to first indicate that we are ready for training,
     // and then, that training is done. See the train() function using the same
     // mask again.
-    while read32(cfg_base_addr + TRAINING_STATUS_MAYBE) & 0x2 != 0x2 {
+    while ctrl.csr(TRAINING_STATUS_MAYBE >> 2).read().bits() & 0x2 != 0x2 {
+        println!("[DRAM] Training status maybe value: {}", ctrl.csr(TRAINING_STATUS_MAYBE >> 2).read().bits());
         udelay(1);
     }
 
     println!("[DRAM] OMC init train");
-    train(phy_base, cfg_base_addr + TRAINING_STATUS_MAYBE);
+    train(phy_base, TRAINING_STATUS_MAYBE);
 
     println!("[DRAM] OMC init PHY");
     // NOTE: This here even worked when I was accidentally off to 0x150 / 0x154.
-    read32(phy_ctrl_base + 0x14c); // 83 << 2
-    let val = read32(phy_ctrl_base + 0x154); // 84 << 2
-    write32(phy_ctrl_base + 0x150, val & 0xF8000000);
+    phy.base(0x14c >> 2).read().bits();
+    let val = phy.base(85).read().bits(); // 84 << 2
+    phy.base(81).write(|w| w.bits(val & 0xF800_0000));
 
     DDR_CSR_CFG3.iter().for_each(|cfg| {
-        let addr = (phy_ctrl_base + cfg.reg_nr as usize);
-        let v = read32(addr);
-        write32(addr, (v & cfg.mask) | cfg.value);
+        phy.base((cfg.reg_nr >> 2) as usize).modify(|r, w| {
+            w.bits((r.bits() & cfg.mask) | cfg.value)
+        });
     });
 
     DDR_CSR_CFG4.iter().for_each(|cfg| {
-        let addr = (cfg_base_addr + cfg.reg_nr as usize);
-        write32(addr, cfg.value);
+        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
     });
-    write32(sec_base_addr + 0x0704, 0x00000007);
+    ctrl.sec(0x0704 >> 2).write(|w| w.bits(0x0000_0007));
     DDR_CSR_CFG5.iter().for_each(|cfg| {
-        let addr = (cfg_base_addr + cfg.reg_nr as usize);
-        write32(addr, cfg.value);
+        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
     });
-    write32(sec_base_addr + 0x0700, 0x00000003);
-    write32(cfg_base_addr + 0x0514, 0x00000600);
-    write32(cfg_base_addr + 0x0020, 0x00000001);
+    ctrl.sec(0x0700 >> 2).write(|w| w.bits(0x0000_0003));
+    ctrl.csr(0x0514 >> 2).write(|w| w.bits(0x0000_0600));
+    ctrl.csr(0x0020 >> 2).write(|w| w.bits(0x0000_0001));
     println!("[DRAM] OMC init done");
 }
