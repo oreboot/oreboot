@@ -110,24 +110,15 @@ pub fn init() {
 
         // inlined from ddr_setup()
         println!("[DRAM] train"); // dram_pi::init in VF1 code
-        train(init::DDR_PHY_CTRL_BASE);
+        train();
         println!("[DRAM] util"); // dram_phy::init in VF1 code
-        util(init::DDR_PHY_AC_BASE);
+        util();
         println!("[DRAM] start");
-        start(
-            init::DDR_PHY_BASE,
-            init::DDR_PHY_CTRL_BASE,
-            init::DDR_PHY_AC_BASE,
-        );
+        start();
         println!("[DRAM] set clk to OSC div2");
         init::clk_ddrc_osc_div2();
         println!("[DRAM] boot");
-        omc_init(
-            init::DDR_PHY_BASE,
-            init::DDR_CTRL_BASE,
-            init::DDR_SEC_CTRL_BASE,
-            init::DDR_PHY_CTRL_BASE,
-        );
+        omc_init();
         println!("[DRAM] init done");
     }
 }
