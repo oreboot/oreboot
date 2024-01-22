@@ -14,6 +14,7 @@ use riscv::register::{
 
 const DEBUG: bool = true;
 const DEBUG_MTIMER: bool = false;
+const DEBUG_RESUME: bool = false;
 const HANDLE_MISALIGNED: bool = false;
 
 // mideleg: 0x222
@@ -81,9 +82,11 @@ pub struct Runtime {
     context: SupervisorContext,
 }
 
+use core::mem::MaybeUninit as MU;
+
 impl Runtime {
     pub fn new_sbi_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> Self {
-        let context: SupervisorContext = unsafe { core::mem::MaybeUninit::zeroed().assume_init() };
+        let context: SupervisorContext = unsafe { MU::zeroed().assume_init() };
         let mut ans = Runtime { context };
         ans.prepare_supervisor(supervisor_mepc);
         ans.context.a0 = a0;
@@ -123,21 +126,11 @@ impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
-        let mst = mstatus::read();
-        let mie = mst.mie();
-        let sie = mst.sie();
-        if false {
-            println!("[SBI] resume with {mst:#?} (mie: {mie}, sie: {sie})");
+        if DEBUG && DEBUG_RESUME {
+            let mst = mstatus::read();
+            println!("[SBI] resume with {mst:#?}");
         }
-        unsafe {
-            if false {
-                mstatus::set_mie();
-                println!("[SBI] machine interrupts enabled");
-                mstatus::set_sie();
-                println!("[SBI] supervisor interrupts enabled");
-            }
-            do_resume(&mut self.context as *mut _)
-        };
+        unsafe { do_resume(&mut self.context as *mut _) }
         let cause = mcause::read().cause();
         // NOTE: Debugging highly frequent traps may get tons of logs.
         // If necessary, add prints here, use a counter, apply modulo, etc..

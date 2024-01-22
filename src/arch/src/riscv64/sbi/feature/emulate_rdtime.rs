@@ -14,17 +14,21 @@ pub fn read32(reg: usize) -> u32 {
     unsafe { core::ptr::read_volatile(reg as *mut u32) }
 }
 
-fn get_mtime(mtimecmp: usize) -> u64 {
-    let l = read32(mtimecmp) as u64;
-    let h = read32(mtimecmp + 4) as u64;
-    (h << 32) | l
-}
-
-// TODO: make a param
+// TODO: make a param / feature
 const HAS_RV_TIME: bool = false;
 
+pub fn get_mtime(mtime: usize) -> usize {
+    if HAS_RV_TIME {
+        riscv::register::time::read64() as usize
+    } else {
+        let l = read32(mtime) as usize;
+        let h = read32(mtime + 4) as usize;
+        (h << 32) | l
+    }
+}
+
 #[inline]
-pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimecmp: usize) -> bool {
+pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtime: usize) -> bool {
     match ins & RDINS_MASK {
         RDCYCLE_INST => {
             // examples:
@@ -51,15 +55,10 @@ pub fn emulate_rdtime(ctx: &mut SupervisorContext, ins: usize, mtimecmp: usize) 
             if DEBUG && DEBUG_RDTIME {
                 println!("[SBI] rdtime {ins:08x} ({reg})");
             }
-            let mtime = if HAS_RV_TIME {
-                riscv::register::time::read64()
-            } else {
-                get_mtime(mtimecmp)
-            };
-            let time_usize = mtime as usize;
-            set_register_xi(ctx, reg, time_usize);
+            let mtime = get_mtime(mtime);
+            set_register_xi(ctx, reg, mtime);
             if DEBUG && DEBUG_RDTIME {
-                println!("[SBI] rdtime {mtimecmp:08x}: {time_usize} ({mtime})");
+                println!("[SBI] rdtime {mtime:08x}: {mtime}");
             }
             // skip current instruction, 4 bytes
             ctx.mepc = ctx.mepc.wrapping_add(4);
