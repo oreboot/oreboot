@@ -6,17 +6,24 @@ use core::{
     pin::Pin,
 };
 use log::{print, println};
-use riscv::register::mip;
-use riscv::register::scause::{Exception, Trap};
+use riscv::register::{
+    mip,
+    mstatus::{self, MPP},
+    scause::{Exception, Trap},
+};
 use rustsbi::spec::binary::SbiRet;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
+
+// This value is somewhat arbitrary. Taken from xv6:
+// https://github.com/michaelengel/xv6-d1/blob/b1ffbd8930a10dfd616e0aa5543b40dd91a72b28/kernel/kernelvec.S#L104
+const TIME_INC: u64 = 10_000_000;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
 
 const DEBUG: bool = true;
 const DEBUG_ECALL: bool = false;
-const DEBUG_MTIMER: bool = false;
+const DEBUG_MTIMER: bool = true;
 const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
@@ -60,6 +67,14 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     }
 }
 
+pub fn read32(reg: usize) -> u32 {
+    unsafe { core::ptr::read_volatile(reg as *mut u32) }
+}
+
+pub fn write32(reg: usize, val: u32) {
+    unsafe { core::ptr::write_volatile(reg as *mut u32, val) }
+}
+
 // TODO: Check newer specs on out this should work
 fn putchar(_method: usize, args: [usize; 6]) -> SbiRet {
     let char = args[0] as u8 as char;
@@ -76,22 +91,16 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
     }
 }
 
-// FIXME: DO NOT HARDCODE; use sbi crate definitions etc
+// FIXME: DO NOT HARDCODE; pass as parameter
 const CLINT_BASE_JH7110: usize = 0x0200_0000;
 const CLINT_BASE_D1: usize = 0x0400_0000;
 
-// Machine Software Interrupt Pending
+// Machine Software Interrupt Pending registers are 32 bit (4 bytes)
 const HART0_MSIP_OFFSET: usize = 0x0000;
-const HART1_MSIP_OFFSET: usize = 0x0004;
-const HART2_MSIP_OFFSET: usize = 0x0008;
-const HART3_MSIP_OFFSET: usize = 0x000c;
-const HART4_MSIP_OFFSET: usize = 0x0010;
+// Machine Timer Compoare registers are 64 bit (8 bytes)
 const HART0_MTIMECMP_OFFSET: usize = 0x4000;
-const HART1_MTIMECMP_OFFSET: usize = 0x4008;
-const HART2_MTIMECMP_OFFSET: usize = 0x4010;
-const HART3_MTIMECMP_OFFSET: usize = 0x4018;
-const HART4_MTIMECMP_OFFSET: usize = 0x4020;
-const MTIMER_OFFSET: usize = 0xbff8;
+// Machine Time is a 64-bit register
+const MTIME_OFFSET: usize = 0xbff8;
 
 pub fn execute_supervisor(
     supervisor_mepc: usize,
@@ -103,10 +112,12 @@ pub fn execute_supervisor(
         supervisor_mepc, dtb_addr
     );
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
+    // TODO: make a param
     let clint_base = CLINT_BASE_D1;
     let clint_base = CLINT_BASE_JH7110;
-    let mtimecmp: usize = clint_base + HART1_MTIMECMP_OFFSET;
-    let hart_msip: usize = clint_base + HART1_MSIP_OFFSET;
+    let mtime: usize = clint_base + MTIME_OFFSET;
+    let mtimecmp: usize = clint_base + HART0_MTIMECMP_OFFSET + 8 * hartid;
+    let hart_msip: usize = clint_base + HART0_MSIP_OFFSET + 4 * hartid;
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -144,7 +155,7 @@ pub fn execute_supervisor(
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_instruction(ctx, ins, mtimecmp) {
+                } else if !emulate_instruction(ctx, ins, mtime) {
                     if DEBUG_ILLEGAL {
                         println!("[SBI] Illegal instruction {ins:08x} not emulated {ctx:#04X?}");
                     }
@@ -166,14 +177,25 @@ pub fn execute_supervisor(
                 if DEBUG && DEBUG_MTIMER {
                     println!("[SBI] M-timer interrupt");
                 }
-                // How do we clear the mtimer? MTIP is read-only in MIP.
-                unsafe {
-                    if true {
-                        core::ptr::write_volatile(mtimecmp as *mut u32, 0);
-                        core::ptr::write_volatile((mtimecmp + 4) as *mut u32, 0);
-                        core::ptr::write_volatile(hart_msip as *mut u32, 0);
-                    }
-                    mip::set_stimer();
+                // Clear the mtimer interrupt by increasing the respective
+                // hart's mtimecmp register.
+                // Note that the MTIP bit in the MIP register is read-only.
+                // mtimecmp is 64-bit, so stitch together high and low parts.
+                let tl = read32(mtimecmp) as u64;
+                let th = read32(mtimecmp + 4) as u64;
+                let tv = th << 32 | tl;
+                println!("[SBI] M-time cmp{hartid}: {tv}");
+                // Increase whole the value to include overflow and write back.
+                let tn = tv + TIME_INC;
+                write32(mtimecmp, tn as u32);
+                write32(mtimecmp + 4, (tn >> 32) as u32);
+                // Yeet software interrupt pending to signal interrupt to S-mode
+                // for this hart.
+                // write32(hart_msip, 1);
+                // TODO: There is also the Supervisor Timer Interrupt Pending
+                // bit in the MIP register... why anyway?
+                if false {
+                    unsafe { mip::set_stimer() }
                 }
             }
             CoroutineState::Yielded(MachineTrap::LoadMisaligned(_addr)) => {

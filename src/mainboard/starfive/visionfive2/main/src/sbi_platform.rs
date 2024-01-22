@@ -163,7 +163,6 @@ impl rustsbi::Timer for Timer {
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
         }
-        // FIXME: currently causes infinite M-timer interrupts
         set_mtimecmp(hartid, stime_value);
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] timer is set...");
