@@ -163,7 +163,7 @@ impl rustsbi::Timer for Timer {
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] setTimer {stime_value}");
         }
-        set_mtimecmp(hartid, stime_value);
+        // set_mtimecmp(hartid, stime_value);
         if DEBUG && DEBUG_TIMER && hartid == 1 {
             println!("[SBI] timer is set...");
         }
