@@ -107,6 +107,25 @@ enter supervisor at 40200000 with DTB from 41a00000
 
 </details>
 
+## Rust Embedded
+
+![Rust Embedded Working Group Logo](Documentation/img/rust-embedded-logo.png)
+
+We build on top of the abstractions from the [Rust Embedded Working Group](https://github.com/rust-embedded)'s model with its crates and traits, detailed
+in [their book](https://docs.rust-embedded.org/book/portability/index.html).
+
+In a nutshell: ![Rust Embedded Model](Documentation/img/rust-embedded-model.png)
+
+## Vendor support
+
+SoC vendors are expected to provide documentation to their cores, peripherals
+and other blocks and/or their SVD files, so that we can generate the PAC and HAL
+crates, or ideally, the vendor should _provide and maintain_ those as well.
+
+The Rust Embedded book offers [design patterns and implementation guidelines](https://docs.rust-embedded.org/book/design-patterns/hal/index.html) as well as
+a [glossary](https://docs.rust-embedded.org/book/appendix/glossary.html) to gain
+an understanding of the structure.
+
 ## Boot Flow and Setup
 
 To get a general understanding of how oreboot and firmware in general works,
