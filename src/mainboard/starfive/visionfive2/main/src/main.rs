@@ -216,6 +216,9 @@ fn main() {
         resume_nonboot_harts();
     }
 
+    for i in 0..0x1000 {
+        read32(payload_addr);
+    }
     payload(payload_addr);
 }
 
