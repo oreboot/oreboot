@@ -379,7 +379,10 @@ fn main() {
     }
 
     if true {
-        const DTIM_BASE: usize = 0x0110_1000;
+        // Erratum: The manual says that the range is 0x0110_1000:0x0110_1fff,
+        // but also that the size is 8k. From the mask ROM, it is clear that
+        // 0x0110_0000 is the correct start address.
+        const DTIM_BASE: usize = 0x0110_0000;
         const DTIM_SIZE: usize = 8 * 1024;
         dump_block(DTIM_BASE, DTIM_SIZE, 0x20);
     }
