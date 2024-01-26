@@ -19,7 +19,7 @@ use core::{
 };
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
-use starfive_visionfive2_lib::{dump_block, read32, udelay, write32};
+use starfive_visionfive2_lib::{dump, dump_block, read32, udelay, write32};
 use uart::JH71XXSerial;
 
 use fdt::Fdt;
@@ -371,6 +371,44 @@ fn main() {
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
     dram::init();
+
+    if false {
+        const OTPC_BASE: usize = 0x1705_0000;
+        const OTPC_SIZE: usize = 64 * 1024;
+        dump_block(OTPC_BASE, OTPC_SIZE, 0x20);
+    }
+
+    if true {
+        const DTIM_BASE: usize = 0x0110_1000;
+        const DTIM_SIZE: usize = 8 * 1024;
+        dump_block(DTIM_BASE, DTIM_SIZE, 0x20);
+    }
+
+    if false {
+        const SEC_SUB_SYS_BASE: usize = 0x1600_0000;
+        const SEC_SUB_SYS_SMTH: usize = SEC_SUB_SYS_BASE + 0x0404;
+
+        dump(SEC_SUB_SYS_BASE + 0x0100, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0124, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0300, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0304, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0308, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0400, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0404, 4);
+        dump(SEC_SUB_SYS_BASE + 0x040c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0448, 4);
+        dump(SEC_SUB_SYS_BASE + 0x044c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x04cc, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0508, 4);
+        dump(SEC_SUB_SYS_BASE + 0x050c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x054c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0588, 4);
+        dump(SEC_SUB_SYS_BASE + 0x058c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x05cc, 4);
+        dump(SEC_SUB_SYS_BASE + 0x060c, 4);
+    }
+
+    panic!("WELP");
 
     // Find and copy the main stage
     let (base, size) = if LOAD_FROM_FLASH {
