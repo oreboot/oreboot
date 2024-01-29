@@ -1,106 +1,136 @@
-// It is not clear what CRC starfive had in mind, they wrote their own ...
-fn crc32_reverse(x: u32) -> u32 {
-    let mut x = x;
-    x = ((x & 0x55555555) << 1) | ((x >> 1) & 0x55555555);
-    x = ((x & 0x33333333) << 2) | ((x >> 2) & 0x33333333);
-    x = ((x & 0x0F0F0F0F) << 4) | ((x >> 4) & 0x0F0F0F0F);
-    (x << 24) | ((x & 0xFF00) << 8) | ((x >> 8) & 0xFF00) | (x >> 24)
-}
-
-fn crc32(iv: u32, sv: u32, data: Vec<u8>) -> u32 {
-    let mut crc = iv;
-    for v in data {
-        let mut byte = crc32_reverse(v.into());
-        for _x in 0..8 {
-            crc = if ((crc ^ byte) & 0x80000000u32) != 0 {
-                (crc << 1) ^ sv
-            } else {
-                crc << 1
-            };
-            byte <<= 1;
-        }
-    }
-
-    crc
-}
-
-fn crc32_final(iv: u32) -> u32 {
-    crc32_reverse(iv ^ !0u32)
-}
-
-/* version: shall be 0x01010101
- * (from https://doc-en.rvspace.org/VisionFive2/SWTRM/VisionFive2_SW_TRM/create_spl.html) */
-const VERSION: u32 = 0x0101_0101;
-// Offset of backup SBL from Flash info start (from input_sbl_normal.cfg)
-const BACKUP: u32 = 0x20_0000;
 // offset of spl header: 64+256+256 = 0x240
 const HEADER_OFFSET: u32 = 0x0240;
+// Offset of backup SBL from Flash info start (from input_sbl_normal.cfg)
+const BACKUP_OFFSET: u32 = 0x20_0000;
 /* Offset from HDR to SPL_IMAGE, 0x400 (00 04 00 00) currently */
-const HEADER_SIZE: u32 = 0x0400;
+pub const HEADER_SIZE: u32 = 0x0400;
 
-const CRC_IV: u32 = !0;
-const CRC_SV: u32 = 0x04c11db7;
+fn crc32(data: &Vec<u8>) -> u32 {
+    let c = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
+    let mut digest = c.digest();
+    digest.update(&data);
+    digest.finalize().to_le()
+}
 
-// The use of a packed struct is kind of pointless. Just emit the proper things in the proper order.
-// Push them into the output.
-// Also, let's get real: there are no big-endian machines left. Assume LE.
-//        uint32_t sofs;          /* offset of spl header: 64+256+256 = 0x240 */
-//        uint32_t bofs;          /* SBL_BAK_OFFSET: Offset of backup SBL from Flash info start (from input_sbl_normal.cfg) */
-//        uint8_t  zro2[636];
-//        uint32_t vers;          /* version: shall be 0x01010101
-//                                 * (from https://doc-en.rvspace.org/VisionFive2/SWTRM/VisionFive2_SW_TRM/create_spl.html) */
-//        uint32_t fsiz;          /* u-boot-spl.bin size in bytes */
-//        uint32_t res1;          /* Offset from HDR to SPL_IMAGE, 0x400 (00 04 00 00) currently */
-//        uint32_t crcs;          /* CRC32 of u-boot-spl.bin */
-//        uint8_t  zro3[364];
+fn zeroes<const N: usize>() -> [u8; N] {
+    [0u8; N]
+}
 
-pub fn spl_create_hdr(dat: Vec<u8>) -> Vec<u8> {
-    /*
-        // need to find out which one to use, but it's not this one.
-        // CRC-32-IEEE being the most commonly used one
-        let rc32 = crc::Crc::<u32>::new(&crc::CRC_32_ISCSI);
-        let mut digest = rc32.digest();
-        digest.update(&dat);
-        let crcout = digest.finalize();
+#[repr(C)]
+#[derive(Default)]
+struct Version {
+    major: u8,
+    minor: u8,
+    revision: u16,
+}
+
+#[repr(C)]
+struct JH7110CommonHeader {
+    // the offset to the other header
+    size: u32,
+    backup_offset: u32,
+    _unknown1: u64,
+    _skip1: [u8; 48],
+    // 0x040
+    ec_param_p: [u8; 32],
+    ec_param_a: [u8; 32],
+    ec_param_b: [u8; 32],
+    ec_param_gx: [u8; 32],
+    ec_param_gy: [u8; 32],
+    ec_param_n: [u8; 32],
+    _skip2: [u8; 64],
+    // 0x140
+    ec_key_1: [u8; 64],
+    ec_key_2: [u8; 64],
+    ec_key_3: [u8; 64],
+    ec_key_4: [u8; 64],
+}
+
+impl Default for JH7110CommonHeader {
+    fn default() -> Self {
+        JH7110CommonHeader {
+            size: HEADER_OFFSET,
+            backup_offset: BACKUP_OFFSET,
+            _unknown1: 0,
+            _skip1: zeroes(),
+            ec_param_p: zeroes(),
+            ec_param_a: zeroes(),
+            ec_param_b: zeroes(),
+            ec_param_gx: zeroes(),
+            ec_param_gy: zeroes(),
+            ec_param_n: zeroes(),
+            _skip2: zeroes(),
+            ec_key_1: zeroes(),
+            ec_key_2: zeroes(),
+            ec_key_3: zeroes(),
+            ec_key_4: zeroes(),
+        }
     }
-    */
-    let v = crc32(CRC_IV, CRC_SV, dat.clone());
-    let fv = crc32_final(v);
+}
 
-    let mut hdr = vec![];
+type SigPadding = [u8; 0x40];
 
-    let spl_header_offset: [u8; 4] = HEADER_OFFSET.to_le_bytes();
-    hdr.extend_from_slice(&spl_header_offset);
+#[repr(C)]
+struct JH7110SBLHeader {
+    ec_key_select: u32,
+    version: Version,
+    payload_size: u32,
+    header_size: u32,
+    checksum: u32,
+    aes_iv: [u8; 0x10],
+    ec_key_revoke: [u8; 0x20],
+    sbl_ver_cipher: [u8; 0x10],
+    // fill up to 0x180
+    _rest: [u8; 0x12c],
+}
 
-    let backup: [u8; 4] = BACKUP.to_le_bytes();
-    hdr.extend_from_slice(&backup);
+impl Default for JH7110SBLHeader {
+    fn default() -> Self {
+        JH7110SBLHeader {
+            // TODO: This needs to be a parameter for "secure boot" setup.
+            // EC key to use; 0 means use none, 1 means first, 4 is maximum.
+            // Those refer to the ec_key_n in JH7110CommonHeader.
+            ec_key_select: 0,
+            // https://doc-en.rvspace.org/VisionFive2/SWTRM/VisionFive2_SW_TRM/create_spl.html
+            version: Version {
+                major: 1,
+                minor: 1,
+                revision: 0x101,
+            },
+            payload_size: 0,
+            header_size: HEADER_SIZE,
+            checksum: 0,
+            aes_iv: zeroes(),
+            ec_key_revoke: zeroes(),
+            sbl_ver_cipher: zeroes(),
+            _rest: zeroes(),
+        }
+    }
+}
 
-    hdr.resize(hdr.len() + 636, 0);
+pub fn spl_create_hdr(payload: Vec<u8>) -> Vec<u8> {
+    let common_header = JH7110CommonHeader::default();
+    let sig_padding: SigPadding = zeroes();
+    let sbl_header = JH7110SBLHeader {
+        payload_size: payload.len() as u32,
+        checksum: crc32(&payload),
+        ..Default::default()
+    };
 
-    let version: [u8; 4] = VERSION.to_le_bytes();
-    hdr.extend_from_slice(&version);
+    // this should be easier
+    let ch_size = std::mem::size_of::<JH7110CommonHeader>();
+    let ch_ptr = &common_header as *const JH7110CommonHeader as *const u8;
+    let ch = unsafe { std::slice::from_raw_parts(ch_ptr, ch_size) };
+    let sh_size = std::mem::size_of::<JH7110SBLHeader>();
+    let sh_ptr = &sbl_header as *const JH7110SBLHeader as *const u8;
+    let sh = unsafe { std::slice::from_raw_parts(sh_ptr, sh_size) };
 
-    let data_len: [u8; 4] = (dat.len() as u32).to_le_bytes();
-    hdr.extend_from_slice(&data_len); /* u-boot-spl.bin size in bytes */
-
-    println!("boot blob size: {}", dat.len());
-
-    let data_offset: [u8; 4] = HEADER_SIZE.to_le_bytes();
-    hdr.extend_from_slice(&data_offset);
-
-    /* CRC32 of dat */
-    let l: [u8; 4] = fv.to_le_bytes();
-    hdr.extend_from_slice(&l);
-    // fill up to HEADER_SIZE
-    hdr.resize(hdr.len() + 364, 0);
-
-    assert!(
-        hdr.len() == HEADER_SIZE as usize,
-        "hdr is {:x} bytes, not {HEADER_SIZE}",
-        hdr.len()
-    );
-    hdr.extend(&dat);
-    hdr
+    let mut res = vec![];
+    res.extend(ch);
+    res.extend(&sig_padding);
+    res.extend(sh);
+    res.extend(&payload);
+    res
 }
 
 #[test]
