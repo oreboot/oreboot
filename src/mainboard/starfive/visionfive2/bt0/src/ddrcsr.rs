@@ -323,7 +323,8 @@ pub unsafe fn omc_init() {
     ctrl.csr(0).write(|w| w.bits(0x1));
 
     DDR_CSR_CFG0.iter().for_each(|cfg| {
-        ctrl.sec((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
+        ctrl.sec((cfg.reg_nr >> 2) as usize)
+            .write(|w| w.bits(cfg.value));
     });
     if cfg!(dram_size = "8G") || cfg!(dram_size = "4G") {
         ctrl.sec(0xf34 >> 2).write(|w| w.bits(0x1f00_0041));
@@ -334,7 +335,8 @@ pub unsafe fn omc_init() {
     ctrl.sec(0x0114 >> 2).write(|w| w.bits(0xffff_ffff));
 
     DDR_CSR_CFG1.iter().for_each(|cfg| {
-        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
+        ctrl.csr((cfg.reg_nr >> 2) as usize)
+            .write(|w| w.bits(cfg.value));
     });
 
     // This seems to trigger some sort of readiness.
@@ -366,7 +368,8 @@ pub unsafe fn omc_init() {
     // Waits tINIT5 (2 us): Minimum idle time before first MRW/MRR command
     udelay(4);
     DDR_CSR_CFG2.iter().for_each(|cfg| {
-        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
+        ctrl.csr((cfg.reg_nr >> 2) as usize)
+            .write(|w| w.bits(cfg.value));
     });
     // Waits tZQCAL (1 us)
     udelay(4);
@@ -387,7 +390,10 @@ pub unsafe fn omc_init() {
     // and then, that training is done. See the train() function using the same
     // mask again.
     while ctrl.csr(TRAINING_STATUS_MAYBE >> 2).read().bits() & 0x2 != 0x2 {
-        println!("[DRAM] Training status maybe value: {}", ctrl.csr(TRAINING_STATUS_MAYBE >> 2).read().bits());
+        println!(
+            "[DRAM] Training status maybe value: {}",
+            ctrl.csr(TRAINING_STATUS_MAYBE >> 2).read().bits()
+        );
         udelay(1);
     }
 
@@ -401,17 +407,18 @@ pub unsafe fn omc_init() {
     phy.base(81).write(|w| w.bits(val & 0xF800_0000));
 
     DDR_CSR_CFG3.iter().for_each(|cfg| {
-        phy.base((cfg.reg_nr >> 2) as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.base((cfg.reg_nr >> 2) as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
 
     DDR_CSR_CFG4.iter().for_each(|cfg| {
-        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
+        ctrl.csr((cfg.reg_nr >> 2) as usize)
+            .write(|w| w.bits(cfg.value));
     });
     ctrl.sec(0x0704 >> 2).write(|w| w.bits(0x0000_0007));
     DDR_CSR_CFG5.iter().for_each(|cfg| {
-        ctrl.csr((cfg.reg_nr >> 2) as usize).write(|w| w.bits(cfg.value));
+        ctrl.csr((cfg.reg_nr >> 2) as usize)
+            .write(|w| w.bits(cfg.value));
     });
     ctrl.sec(0x0700 >> 2).write(|w| w.bits(0x0000_0003));
     ctrl.csr(0x0514 >> 2).write(|w| w.bits(0x0000_0600));
