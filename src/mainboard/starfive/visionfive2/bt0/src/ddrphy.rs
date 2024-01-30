@@ -544,14 +544,16 @@ fn util_data1_a(base: usize, v1: u32) {
         .iter()
         .enumerate()
         .for_each(|(reg_nr, &value)| {
-            phy.ac_base(base + reg_nr).write(|w| unsafe { w.bits(value) });
+            phy.ac_base(base + reg_nr)
+                .write(|w| unsafe { w.bits(value) });
         });
     phy.ac_base(base + 44).write(|w| unsafe { w.bits(v1) });
     UTIL_DATA1_A2
         .iter()
         .enumerate()
         .for_each(|(reg_nr, &value)| {
-            phy.ac_base(base + 45 + reg_nr).write(|w| unsafe { w.bits(value) });
+            phy.ac_base(base + 45 + reg_nr)
+                .write(|w| unsafe { w.bits(value) });
         });
     for r in 131..256 {
         phy.ac_base(base + r).write(|w| unsafe { w.bits(0) })
@@ -574,7 +576,8 @@ fn util_data1_b(base: usize, v1: u32, v2: u32, v3: u32) {
         .iter()
         .enumerate()
         .for_each(|(reg_nr, &value)| {
-            phy.ac_base(base + reg_nr).write(|w| unsafe { w.bits(value) });
+            phy.ac_base(base + reg_nr)
+                .write(|w| unsafe { w.bits(value) });
         });
     phy.ac_base(base + 30).write(|w| unsafe { w.bits(v1) });
     phy.ac_base(base + 31).write(|w| unsafe { w.bits(v2) });
@@ -583,7 +586,8 @@ fn util_data1_b(base: usize, v1: u32, v2: u32, v3: u32) {
         .iter()
         .enumerate()
         .for_each(|(reg_nr, &value)| {
-            phy.ac_base(base + 33 + reg_nr).write(|w| unsafe { w.bits(value) });
+            phy.ac_base(base + 33 + reg_nr)
+                .write(|w| unsafe { w.bits(value) });
         });
     for r in 49..256 {
         phy.ac_base(base + r).write(|w| unsafe { w.bits(0) });
@@ -595,7 +599,8 @@ fn util_data1_b(base: usize, v1: u32, v2: u32, v3: u32) {
 pub fn util() {
     let phy = unsafe { &*pac::DMC_PHY::ptr() };
     UTIL_DATA2.iter().enumerate().for_each(|(reg_nr, &value)| {
-        phy.ac_base(1792 + reg_nr).write(|w| unsafe { w.bits(value) });
+        phy.ac_base(1792 + reg_nr)
+            .write(|w| unsafe { w.bits(value) });
     });
     // 4 blocks of 256 each
     util_data1_a(0, 0x1);

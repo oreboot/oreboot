@@ -313,30 +313,25 @@ pub unsafe fn start() {
     let phy = &*pac::DMC_PHY::ptr();
 
     START_CFG0.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.ac_base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     START_CFG1.iter().for_each(|cfg| {
-        phy.base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     // NOTE: Commented out in VF1 code
     if cfg!(dram_size = "2G") {
-        phy.base(11).modify(|r, w| {
-            w.bits((r.bits() & 0xffff_fff0) | 0x0000_0005)
-        });
+        phy.base(11)
+            .modify(|r, w| w.bits((r.bits() & 0xffff_fff0) | 0x0000_0005));
     }
     START_CFG2.iter().for_each(|cfg| {
-        phy.base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     START_CFG3.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.ac_base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     // PHY_RPTR_UPDATE_x: bit[11:8]+=3
     // NOTE: Special handling: write back current val + val to register
@@ -355,31 +350,29 @@ pub unsafe fn start() {
     //    G_SPEED_3200: 0x00180000
     // TODO: try lower speed?
     [96, 352, 608, 864].iter().for_each(|&reg| {
-        phy.ac_base(reg).modify(|r, w| {
-            w.bits((r.bits() & 0xff00_ffff) | 0x0012_0000)
-        });
+        phy.ac_base(reg)
+            .modify(|r, w| w.bits((r.bits() & 0xff00_ffff) | 0x0012_0000));
     });
 
     START_CFG4.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.ac_base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     START_CFG5.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).write(|w| w.bits(cfg.value));
+        phy.ac_base(cfg.reg_nr as usize)
+            .write(|w| w.bits(cfg.value));
     });
     START_CFG6.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.ac_base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     START_CFG7.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).write(|w| w.bits(cfg.value));
+        phy.ac_base(cfg.reg_nr as usize)
+            .write(|w| w.bits(cfg.value));
     });
     START_CFG8.iter().for_each(|cfg| {
-        phy.ac_base(cfg.reg_nr as usize).modify(|r, w| {
-            w.bits((r.bits() & cfg.mask) | cfg.value)
-        });
+        phy.ac_base(cfg.reg_nr as usize)
+            .modify(|r, w| w.bits((r.bits() & cfg.mask) | cfg.value));
     });
     phy.csr(0).write(|w| w.bits(0x1));
 }
