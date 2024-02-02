@@ -35,15 +35,24 @@
                 file = "starfive-visionfive2-board.dtb";
             };
 
+/*
             area@3 {
                 description = "oreboot main";
                 compatible = "ore-main";
                 size = <0x10000>; // 64k
                 file = "starfive-visionfive2-main.bin";
-                // size = <0x30000>; // 192k
-                // file = "lk.bin";
+            };
+*/
+
+            area@4 {
+                description = "payload";
+                compatible = "ore-payload";
+                size = <0x10000>; // 64k
+                file = "zephyr.bin";
             };
 
+            // LK
+            /*
             area@4 {
                 description = "payload";
                 compatible = "ore-payload";
@@ -57,9 +66,12 @@
                 size = <0x1000>; // 4k
                 file = "jh7110-lk.dtb";
             };
-            /*
+            */
+
             // FIXME: This currently expands the output image.
             // To run via XMODEM in SRAM, we need to omit the kernel and DTB.
+            // Linux
+            /*
             area@4 {
                 description = "LinuxBoot image";
                 compatible = "ore-payload";

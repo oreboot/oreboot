@@ -12,7 +12,7 @@ use layoutflash::areas::{create_areas, Area};
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
-const SRAM_SIZE: usize = 0x1_3000;
+const SRAM_SIZE: usize = 0x20_0000;
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
