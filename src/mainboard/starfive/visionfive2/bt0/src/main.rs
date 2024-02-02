@@ -1,4 +1,5 @@
 #![feature(naked_functions, asm_const)]
+#![feature(panic_info_message)]
 #![no_std]
 #![no_main]
 // TODO: remove when done debugging crap
@@ -39,6 +40,7 @@ pub type EntryPoint = unsafe extern "C" fn();
 
 const DEBUG: bool = false;
 const BLINK_LED: bool = false;
+const DUMP_PAYLOAD: bool = true;
 
 // NOTE: JH, as in JH71x0, is short for JingHong, a city in Yunnan
 // https://en.wikipedia.org/wiki/Jinghong
@@ -47,6 +49,8 @@ const BLINK_LED: bool = false;
 // see https://doc-en.rvspace.org/JH7110/TRM/JH7110_TRM/u74_memory_map.html
 const SRAM0_BASE: usize = 0x0800_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
+
+const ZEPHYR_LOAD_ADDR: usize = SRAM0_BASE + 0x0004_0000;
 
 const DRAM_BASE: usize = 0x4000_0000;
 
@@ -76,10 +80,11 @@ pub unsafe extern "C" fn start() -> ! {
         "csrwi  0x7c1, 0",
         "csrw   mie, zero",
         "csrw   mstatus, zero",
-        "csrw   mtvec, zero",
+        "ld     t0, {start}",
+        "csrw   mtvec, t0",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 1",
+        "li     a1, 0",
         "csrr   a0, mhartid",
         "bne    a0, a1, .nonboothart",
         // 2. prepare stack
@@ -100,6 +105,7 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         payload    = sym exec_payload,
         reset      = sym reset,
+        start      = sym start,
         options(noreturn)
     )
 }
@@ -180,23 +186,15 @@ fn print_ids() {
     println!("RISC-V hart ID {hart_id}");
 }
 
-fn sleep(n: u32) {
-    for _ in 0..n {
-        unsafe { core::hint::spin_loop() };
-    }
-}
-
 static mut SERIAL: Option<uart::JH71XXSerial> = None;
 
 #[inline]
 // FIXME: restore for debugging
 fn blink() {
-    /*
-    sleep(0x0004_0000);
-    write32(init::GPIO40_43_DATA, 0x8181_8181);
-    sleep(0x0004_0000);
-    write32(init::GPIO40_43_DATA, 0x8080_8080);
-    */
+    udelay(0x0004_0000);
+    // write32(init::GPIO40_43_DATA, 0x8181_8181);
+    udelay(0x0004_0000);
+    // write32(init::GPIO40_43_DATA, 0x8080_8080);
 }
 
 fn init_logger(s: uart::JH71XXSerial) {
@@ -218,7 +216,7 @@ fn reset_phy() {
         init::GPIO12_15_DATA,
         (gpio12_15_data & 0xffff00ff) | (0x81 << 8),
     );
-    unsafe { sleep(0x0004_0000) };
+    udelay(0x0004_0000);
     write32(
         init::GPIO12_15_DATA,
         (gpio12_15_data & 0xffff00ff) | (0x80 << 8),
@@ -287,6 +285,69 @@ fn get_main_offset_and_size(slice: &[u8]) -> (usize, usize) {
     }
 }
 
+// FIXME: just a quick hack
+fn get_payload_offset_and_size(slice: &[u8]) -> (usize, usize) {
+    (0x1_1000, 0x10000)
+}
+
+const REV: bool = false;
+
+// Erratum: The manual says that the range is 0x0110_1000:0x0110_1fff,
+// but also that the size is 8k. From the mask ROM, it is clear that
+// 0x0110_0000 is the correct start address.
+const DTIM_BASE: usize = 0x0110_0000;
+const DTIM_SIZE: usize = 8 * 1024;
+
+const OTPC_BASE: usize = 0x1705_0000;
+const OTPC_SIZE: usize = 64 * 1024;
+
+const SEC_SUB_SYS_BASE: usize = 0x1600_0000;
+
+fn dump_cfg() {
+    if false {
+        dump_block(DTIM_BASE, DTIM_SIZE, 0x20);
+    }
+
+    if false {
+        dump_block(OTPC_BASE, OTPC_SIZE, 0x20);
+    }
+
+    if false {
+        dump(SEC_SUB_SYS_BASE + 0x0100, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0124, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0300, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0304, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0308, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0400, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0404, 4);
+        dump(SEC_SUB_SYS_BASE + 0x040c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0448, 4);
+        dump(SEC_SUB_SYS_BASE + 0x044c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x04cc, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0508, 4);
+        dump(SEC_SUB_SYS_BASE + 0x050c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x054c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x0588, 4);
+        dump(SEC_SUB_SYS_BASE + 0x058c, 4);
+        dump(SEC_SUB_SYS_BASE + 0x05cc, 4);
+        dump(SEC_SUB_SYS_BASE + 0x060c, 4);
+    }
+
+    dump_block(SEC_SUB_SYS_BASE, 2 * 1024, 0x20);
+
+    panic!("WELP");
+}
+
+fn copy(source: usize, target: usize, size: usize) {
+    for b in (0..size).step_by(4) {
+        write32(target + b, read32(source + b));
+        if b % 0x4_0000 == 0 {
+            print!(".");
+        }
+    }
+    println!(" done.");
+}
+
 #[no_mangle]
 fn main() {
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
@@ -348,6 +409,16 @@ fn main() {
     print_boot_mode();
     print_ids();
 
+    const DISP_SUBSYS: usize = 0x2940_0000;
+    const VOUT_SYSCON: usize = DISP_SUBSYS + 0x001B_0000;
+    const VOUT_CRG: usize = DISP_SUBSYS + 0x001C_0000;
+    const DSI_TX: usize = DISP_SUBSYS + 0x001D_0000;
+    //  dump_block(VOUT_CRG + 0x0010, 0x80, 0x20);
+
+    let vout_src = dp.SYSCRG.clk_u0_vout_src();
+    let data = vout_src.read().bits();
+    println!("vout_src: {data:#010x}");
+
     if DEBUG {
         println!("Stock firmware in flash");
         println!("Start:");
@@ -373,70 +444,47 @@ fn main() {
     init::clk_apb0();
     dram::init();
 
-    if false {
-        const OTPC_BASE: usize = 0x1705_0000;
-        const OTPC_SIZE: usize = 64 * 1024;
-        dump_block(OTPC_BASE, OTPC_SIZE, 0x20);
+    if REV {
+        dump_cfg();
     }
 
-    if true {
-        // Erratum: The manual says that the range is 0x0110_1000:0x0110_1fff,
-        // but also that the size is 8k. From the mask ROM, it is clear that
-        // 0x0110_0000 is the correct start address.
-        const DTIM_BASE: usize = 0x0110_0000;
-        const DTIM_SIZE: usize = 8 * 1024;
-        dump_block(DTIM_BASE, DTIM_SIZE, 0x20);
-    }
-
-    if false {
-        const SEC_SUB_SYS_BASE: usize = 0x1600_0000;
-        const SEC_SUB_SYS_SMTH: usize = SEC_SUB_SYS_BASE + 0x0404;
-
-        dump(SEC_SUB_SYS_BASE + 0x0100, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0124, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0300, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0304, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0308, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0400, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0404, 4);
-        dump(SEC_SUB_SYS_BASE + 0x040c, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0448, 4);
-        dump(SEC_SUB_SYS_BASE + 0x044c, 4);
-        dump(SEC_SUB_SYS_BASE + 0x04cc, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0508, 4);
-        dump(SEC_SUB_SYS_BASE + 0x050c, 4);
-        dump(SEC_SUB_SYS_BASE + 0x054c, 4);
-        dump(SEC_SUB_SYS_BASE + 0x0588, 4);
-        dump(SEC_SUB_SYS_BASE + 0x058c, 4);
-        dump(SEC_SUB_SYS_BASE + 0x05cc, 4);
-        dump(SEC_SUB_SYS_BASE + 0x060c, 4);
-    }
-
-    panic!("WELP");
-
-    // Find and copy the main stage
+    // Get slice to search for DTFS
     let (base, size) = if LOAD_FROM_FLASH {
         (QSPI_XIP_BASE, FLASH_SIZE)
     } else {
         (SRAM0_BASE, SRAM0_SIZE) // occupied space
     };
     let slice = unsafe { core::slice::from_raw_parts(transmute(base), size) };
-    let (main_offset, main_size) = get_main_offset_and_size(slice);
-    let main_addr = base + main_offset;
 
-    let load_addr = DRAM_BASE + 0x0020_0000;
-    let load_addr = DRAM_BASE;
+    let mut load_addr = SRAM0_BASE + 0x1_1000;
 
-    let main_size_k = main_size / 1024;
-    println!("[bt0] Copy {main_size_k}k main stage from {main_addr:08x} to {load_addr:08x}... ⏳");
-    for b in (0..main_size).step_by(4) {
-        write32(load_addr + b, read32(main_addr + b));
-        if b % 0x4_0000 == 0 {
-            print!(".");
-        }
+    if false {
+        // Find and copy the payload
+        let (src_offset, src_size) = get_payload_offset_and_size(slice);
+        let src_addr = base + src_offset;
+        load_addr = ZEPHYR_LOAD_ADDR;
+
+        println!(
+            "[bt0] Copy {}k payload from {src_addr:08x} to {load_addr:08x}... ⏳",
+            src_size / 1024
+        );
+        copy(src_addr, load_addr, src_size);
     }
-    println!(" done.");
-    if DEBUG {
+
+    if false {
+        // Find and copy the main stage
+        let (main_offset, main_size) = get_main_offset_and_size(slice);
+        let main_addr = base + main_offset;
+        load_addr = DRAM_BASE;
+
+        println!(
+            "[bt0] Copy {}k main stage from {main_addr:08x} to {load_addr:08x}... ⏳",
+            main_size / 1024
+        );
+        copy(main_addr, load_addr, main_size);
+    }
+
+    if DUMP_PAYLOAD {
         dump_block(load_addr, 0x20, 0x20);
     }
 
@@ -455,7 +503,7 @@ fn main() {
     exec_payload(load_addr);
     println!("[bt0] Exit from main stage, resetting...");
     unsafe {
-        sleep(0x0100_0000);
+        udelay(0x0100_0000);
         reset();
         riscv::asm::wfi()
     };
@@ -465,7 +513,7 @@ fn exec_payload(addr: usize) {
     unsafe {
         // jump to main
         let f: EntryPoint = transmute(addr);
-        asm!("fence.i");
+        // asm!("fence.i");
         f();
     }
 }
@@ -481,6 +529,9 @@ fn panic(info: &PanicInfo) -> ! {
     } else {
         println!("[bt0] panic at unknown location");
     };
+    if let Some(msg) = info.message() {
+        println!("[bt0]   {msg}");
+    }
     loop {
         core::hint::spin_loop();
     }

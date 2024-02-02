@@ -422,7 +422,7 @@ pub unsafe fn omc_init() {
             .write(|w| w.bits(cfg.value));
     });
     ctrl.sec(0x0700 >> 2).write(|w| w.bits(0x0000_0003));
-    ctrl.csr(0x0514 >> 2).write(|w| w.bits(0x0000_0600));
+    ctrl.csr(FANCY_REG3 >> 2).write(|w| w.bits(0x0000_0600));
     ctrl.csr(0x0020 >> 2).write(|w| w.bits(0x0000_0001));
     println!("[DRAM] OMC init done");
 }
