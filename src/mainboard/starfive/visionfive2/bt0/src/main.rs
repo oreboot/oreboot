@@ -330,6 +330,7 @@ fn main() {
 
     let dp = pac::Peripherals::take().unwrap();
 
+    while dp.UART0.usr().read().busy() == true {}
     let mut s = uart::JH71XXSerial::new_with_config(
         dp.UART0,
         hal::uart::TIMEOUT_US,
