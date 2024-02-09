@@ -15,6 +15,7 @@ members = [
   "src/mainboard/starfive/visionfive1/*",
   "src/mainboard/starfive/visionfive2/*",
   "src/mainboard/sunxi/nezha/*",
+  "src/mainboard/mangopi/mq-quad/*",
   "src/mainboard/emulation/*",
 
   "xtask",
