@@ -38,6 +38,7 @@ mod pll;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
+const DUMP_OTP: bool = false;
 const DEBUG: bool = false;
 const BLINK_LED: bool = false;
 const DUMP_PAYLOAD: bool = true;
@@ -70,7 +71,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 ///
 /// Naked function.
 #[naked]
-#[export_name = "_start"]
+#[export_name = "start"]
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
@@ -290,8 +291,6 @@ fn get_payload_offset_and_size(slice: &[u8]) -> (usize, usize) {
     (0x1_1000, 0x10000)
 }
 
-const REV: bool = false;
-
 // Erratum: The manual says that the range is 0x0110_1000:0x0110_1fff,
 // but also that the size is 8k. From the mask ROM, it is clear that
 // 0x0110_0000 is the correct start address.
@@ -303,15 +302,17 @@ const OTPC_SIZE: usize = 64 * 1024;
 
 const SEC_SUB_SYS_BASE: usize = 0x1600_0000;
 
-fn dump_cfg() {
+fn dump_dtim_otpc_sec() {
     if false {
         dump_block(DTIM_BASE, DTIM_SIZE, 0x20);
     }
 
     if false {
         dump_block(OTPC_BASE, OTPC_SIZE, 0x20);
+        dump_block(OTPC_BASE, OTPC_SIZE, 0x20);
     }
 
+    // those registers appear in the mask ROM; what are they?
     if false {
         dump(SEC_SUB_SYS_BASE + 0x0100, 4);
         dump(SEC_SUB_SYS_BASE + 0x0124, 4);
@@ -333,9 +334,49 @@ fn dump_cfg() {
         dump(SEC_SUB_SYS_BASE + 0x060c, 4);
     }
 
-    dump_block(SEC_SUB_SYS_BASE, 2 * 1024, 0x20);
+    if false {
+        dump_block(SEC_SUB_SYS_BASE, 2 * 1024, 0x20);
+    }
+}
 
-    panic!("WELP");
+fn print_otp_cfg(aon_syscon: &pac::AON_SYSCON) {
+    println!("OTP config");
+    let otp_cfg_1 = aon_syscon.aon_syscfg_6().read().bits();
+    /*
+     * | bit | name               | mode | default |
+     * | --- | ------------------ | ---- | ------- |
+     * | [0] | u0_otpc_chip_mode  | RO   | 0x0     |
+     * | [1] | u0_otpc_crc_pass   | RO   | 0x0     |
+     * | [2] | u0_otpc_dbg_enable | RO   | 0x0     |
+     */
+    println!("   {otp_cfg_1:032b}");
+    let otp_cfg_2 = aon_syscon.aon_syscfg_7().read().bits();
+    /*
+     * [0:31] u0_otpc_fl_func_lock RO 0x0
+     */
+    println!("   {otp_cfg_2:032b}");
+    let otp_cfg_3 = aon_syscon.aon_syscfg_8().read().bits();
+    /*
+     * [0:31] u0_otpc_fl_pll0_lock RO 0x0
+     */
+    println!("   {otp_cfg_3:032b}");
+    let otp_cfg_4 = aon_syscon.aon_syscfg_9().read().bits();
+    /*
+     * [0:31] u0_otpc_fl_pll1_lock RO 0x0
+     */
+    println!("   {otp_cfg_4:032b}");
+    let otp_cfg_5 = aon_syscon.aon_syscfg_10().read().bits();
+    /*
+     * | bit   | name                             | mode | default |
+     * | ----- | -------------------------------- | ---- | ------- |
+     * | [1]   | u0_otpc_fl_xip                   |  RO  | 0x0     |
+     * | [2]   | u0_otpc_load_busy                |  RO  | 0x0     |
+     * | [3]   | u0_reset_ctrl_clr_reset_status   |  WR  | 0x0     |
+     * | [4]   | u0_reset_ctrl_pll_timecnt_finish |  RO  | 0x0     |
+     * | [5]   | u0_reset_ctrl_rstn_sw            |  WR  | 0x1     |
+     * | [9:6] | u0_reset_ctrl_sys_reset_status   |  RO  | 0x0     |
+     */
+    println!("   {otp_cfg_5:032b}");
 }
 
 fn copy(source: usize, target: usize, size: usize) {
@@ -415,9 +456,27 @@ fn main() {
     const DSI_TX: usize = DISP_SUBSYS + 0x001D_0000;
     //  dump_block(VOUT_CRG + 0x0010, 0x80, 0x20);
 
+    const VOUT_RESET_STATUS: usize = VOUT_CRG + 0x004c;
+    let vout_reset_status = read32(VOUT_RESET_STATUS);
+    println!("vout_reset_status: {vout_reset_status:#010x}");
+    write32(VOUT_RESET_STATUS, vout_reset_status | 0x0fff);
+    let vout_reset_status = read32(VOUT_RESET_STATUS);
+    println!("vout_reset_status: {vout_reset_status:#010x}");
+
     let vout_src = dp.SYSCRG.clk_u0_vout_src();
     let data = vout_src.read().bits();
     println!("vout_src: {data:#010x}");
+    if false {
+        vout_src.write(|w| unsafe { w.bits(data | 0x0fff) });
+        let data = vout_src.read().bits();
+        println!("vout_src: {data:#010x}");
+    }
+
+    if DUMP_OTP {
+        print_otp_cfg(&dp.AON_SYSCON);
+        dump_dtim_otpc_sec();
+        panic!("WELP");
+    }
 
     if DEBUG {
         println!("Stock firmware in flash");
@@ -443,10 +502,6 @@ fn main() {
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
     init::clk_apb0();
     dram::init();
-
-    if REV {
-        dump_cfg();
-    }
 
     // Get slice to search for DTFS
     let (base, size) = if LOAD_FROM_FLASH {
