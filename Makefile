@@ -19,7 +19,7 @@ help:
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
 # NOTE: These are the host utilities, requiring their own recent Rust version.
-RUST_VER := 1.73
+RUST_VER := 1.74
 BINUTILS_VER := 0.3.6
 TARPAULIN_VER := 0.27.1
 DPRINT_VER := 0.41.0
