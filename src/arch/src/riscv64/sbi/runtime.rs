@@ -61,9 +61,9 @@ unsafe fn delegate_interrupt_exception() {
     medeleg::set_instruction_page_fault();
     medeleg::set_load_page_fault();
     medeleg::set_store_page_fault();
-    mie::set_mext();
-    mie::set_mtimer();
-    mie::set_msoft();
+    // mie::set_mext();
+    // mie::set_mtimer();
+    // mie::set_msoft();
 }
 
 pub fn init() {
