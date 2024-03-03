@@ -456,13 +456,31 @@ fn main() {
     const DSI_TX: usize = DISP_SUBSYS + 0x001D_0000;
     //  dump_block(VOUT_CRG + 0x0010, 0x80, 0x20);
 
+    const VOUT_CLK_AXI: usize = VOUT_CRG + 0x0010;
+    const VOUT_CLK_CORE: usize = VOUT_CRG + 0x0014;
+    const VOUT_CLK_AHB: usize = VOUT_CRG + 0x0018;
+    let v = read32(VOUT_CLK_AXI);
+    println!("vout clk axi: {v:#010x}");
+    let v = read32(VOUT_CLK_CORE);
+    println!("vout clk core: {v:#010x}");
+    let v = read32(VOUT_CLK_AHB);
+    println!("vout clk ahb: {v:#010x}");
+
+    const VOUT_RESET_CONTROL: usize = VOUT_CRG + 0x0038;
     const VOUT_RESET_STATUS: usize = VOUT_CRG + 0x004c;
     let vout_reset_status = read32(VOUT_RESET_STATUS);
     println!("vout_reset_status: {vout_reset_status:#010x}");
-    write32(VOUT_RESET_STATUS, vout_reset_status | 0x0fff);
+
+    let vout_reset_control = read32(VOUT_RESET_CONTROL);
+    println!("vout_reset_control: {vout_reset_control:#010x}");
+    write32(VOUT_RESET_CONTROL, vout_reset_control | 0x0fff);
+
+    udelay(1000);
+
     let vout_reset_status = read32(VOUT_RESET_STATUS);
     println!("vout_reset_status: {vout_reset_status:#010x}");
 
+    // 0x1302_0000 + 0xe8
     let vout_src = dp.SYSCRG.clk_u0_vout_src();
     let data = vout_src.read().bits();
     println!("vout_src: {data:#010x}");
