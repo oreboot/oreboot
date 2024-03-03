@@ -5,10 +5,14 @@ use riscv::register::{
     mtval, scause, sepc, stval, stvec,
 };
 
+/// # Safety
+/// YOLO
 pub unsafe fn should_transfer_trap(ctx: &mut SupervisorContext) -> bool {
     ctx.mstatus.mpp() != MPP::Machine
 }
 
+/// # Safety
+/// YOLO
 pub unsafe fn do_transfer_trap(ctx: &mut SupervisorContext, cause: scause::Trap) {
     // 设置S层异常原因为：非法指令
     // The reason for setting S-layer exception is: illegal instruction
@@ -16,9 +20,8 @@ pub unsafe fn do_transfer_trap(ctx: &mut SupervisorContext, cause: scause::Trap)
     // 填写异常指令的指令内容
     // Fill in the instruction content of the abnormal instruction
     let ins = mtval::read();
-    println!("[rustsbi] It's a trap! SCAUSE: {:x?}\r", cause);
-    println!("[rustsbi] INSTRUCTION: 0x{:x?}\r", ins);
-    // println!("[rustsbi] STATE: {:#04X?}\r", ctx);
+    println!("[SBI] It's a trap!\n\tSCAUSE: {cause:x?}\n\tINSTRUCTION: 0x{ins:x?}");
+    // println!("[SBI] STATE: {ctx:#04X?}\r");
     stval::write(ins);
     // 填写S层需要返回到的地址，这里的mepc会被随后的代码覆盖掉
     // Fill in the address that the S layer needs to return to, the mepc here

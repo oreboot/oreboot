@@ -2,6 +2,7 @@
 use super::ccu::{Clocks, Gating, Reset};
 use super::gpio::{
     portb::{PB8, PB9},
+    porte::{PE2, PE3},
     Function,
 };
 use super::time::Bps;
@@ -27,8 +28,10 @@ pub trait Pins<UART>: Send {}
 
 #[allow(non_camel_case_types)]
 pub type Pins_B8_B9 = (PB8<Function<6>>, PB9<Function<6>>);
+pub type Pins_E2_E3 = (PE2<Function<6>>, PE3<Function<6>>);
 
 impl Pins<d1_pac::UART0> for Pins_B8_B9 {}
+impl Pins<d1_pac::UART0> for Pins_E2_E3 {}
 
 /// D1 serial peripheral
 #[derive(Debug)]

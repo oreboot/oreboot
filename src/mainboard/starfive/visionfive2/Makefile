@@ -1,8 +1,9 @@
 OREBOOT=$(abspath $(CURDIR)/../../../../)
 TARGET     = riscv64imac-unknown-none-elf
+DRAM_SIZE ?= 4G
 VERBOSE   ?= -vvvv
 PORT      ?= /dev/ttyUSB0
-DRAM_SIZE ?= 4G
+VF2LOADER ?= vf2-loader
 
 # full image path, including multiple stages
 IMAGE_BASE  = $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2
@@ -25,5 +26,7 @@ mainboard:
 objdump: mainboard
 	riscv64-linux-gnu-objdump -D "$(IMAGE_BT0)"
 
-run: mainboard
-	sudo `which vf2-loader` -D ${PORT} $(IMAGE)
+rerun:
+	$(VF2LOADER) -D ${PORT} $(IMAGE)
+
+run: mainboard rerun

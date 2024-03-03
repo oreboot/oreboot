@@ -8,6 +8,7 @@ OBJCOPY    ?= rust-objcopy
 ELF      = $(TARGET_DIR)/$(BOARD)
 BOOTBLOB = $(TARGET_DIR)/$(VENDOR)-$(BOARD)-bootblob.bin
 IMAGE    = $(TARGET_DIR)/$(VENDOR)-$(BOARD).bin
+IMAGE_SIZE ?= 16M
 
 $(shell echo "VENDOR       = $(VENDOR)" 1>&2)
 $(shell echo "BOARD        = $(BOARD)" 1>&2)
@@ -16,6 +17,8 @@ $(IMAGE): $(BOOTBLOB) $(FIXED_DTFS)
 # These two environment variable parameters are used in fixed-dtfs.dts
 	echo "Not running layoutflash any more, it needs to be in xtask"
 	BOOTBLOB=$(BOOTBLOB) FIXED_DTFS=$(FIXED_DTFS) echo NOT cargo run --target $(TOOLS_TARGET) --manifest-path $(TOOLS_DIR)/layoutflash/Cargo.toml -- $(FIXED_DTFS) $@
+	cp $(BOOTBLOB) $(IMAGE)
+	truncate -s $(IMAGE_SIZE) $(IMAGE)
 	@printf "**\n** Output: $@\n**\n"
 
 $(BOOTBLOB): $(ELF)

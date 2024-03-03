@@ -4,18 +4,23 @@
 #![feature(asm_const)]
 #![feature(panic_info_message)]
 
-use core::panic::PanicInfo;
-use core::{arch::asm, ptr::read_volatile};
+use core::{arch::asm, mem::transmute, panic::PanicInfo, ptr::read_volatile};
 use embedded_hal::digital::OutputPin;
-use log::{print, println};
+use log::println;
+use oreboot_arch::riscv64::sbi;
 use oreboot_compression::decompress;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
-    gpio::Gpio,
+    gpio::{
+        portb::{PB8, PB9},
+        porte::{PE2, PE3},
+        Gpio, Pin,
+    },
     pac::{Peripherals, UART0},
     time::U32Ext,
     uart::{self, Config, D1Serial, Parity, StopBits, WordLength},
 };
+use riscv::register::mhartid;
 use spin;
 
 mod sbi_platform;
@@ -27,26 +32,42 @@ const MEM: usize = 0x4000_0000;
 const PAYLOAD_SIZE: usize = 0x20_0000; // 2 MB
 const PAYLOAD_ADDR: usize = MEM + 0x20_0000;
 
-// compressed image
-const LINUXBOOT_TMP_OFFSET: usize = 0x0400_0000;
+// compressed payload
+const LINUXBOOT_TMP_OFFSET: usize = 0x0300_0000;
 const LINUXBOOT_TMP_ADDR: usize = MEM + LINUXBOOT_TMP_OFFSET;
 
 // target location for decompressed image
 const LINUXBOOT_OFFSET: usize = 0x0020_0000;
 const LINUXBOOT_ADDR: usize = MEM + LINUXBOOT_OFFSET;
-const LINUXBOOT_SIZE: usize = 0x0180_0000;
-// DTB_OFFSET should be >=LINUXBOOT_OFFSET+LINUXBOOT_SIZE and match bt0
-// TODO: Should we just copy it to a higher address before decompressing Linux?
-const DTB_OFFSET: usize = 0x01a0_0000;
-const DTB_ADDR: usize = MEM + DTB_OFFSET;
+const LINUXBOOT_SIZE: usize = 0x0200_0000; // 32 MB
+
+// TODO: get from dtfs
+const DTB_ADDR: usize = MEM + 0x0220_0000;
+
+pub fn dump(addr: usize, length: usize) {
+    let s = unsafe { core::slice::from_raw_parts(addr as *const u8, length) };
+    println!("dump {length} bytes @{addr:x}");
+    for w in s.iter() {
+        log::print!("{w:02x}");
+    }
+    println!();
+}
+
+fn udelay(micros: usize) {
+    unsafe {
+        for _ in 0..micros {
+            core::arch::asm!("nop")
+        }
+    }
+}
 
 fn decompress_lb() {
     // check for Device Tree header, d00dfeed
     let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
     if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x}\n", dtb);
+        panic!("DTB looks wrong: {dtb:08x}");
     } else {
-        print!("DTB looks fine, yay!\n");
+        println!("DTB looks fine, yay!");
     }
 
     unsafe {
@@ -57,16 +78,16 @@ fn decompress_lb() {
     let a = LINUXBOOT_ADDR + 0x30;
     let r = unsafe { read_volatile(a as *mut u32) };
     if r == u32::from_le_bytes(*b"RISC") {
-        print!("Payload looks like Linux Image, yay!\n");
+        println!("Payload looks like Linux Image, yay!");
     } else {
-        panic!("Payload does not look like Linux Image: {:x}\n", r);
+        panic!("Payload does not look like Linux Image: {r:x}");
     }
     // Recheck on DTB, kernel should not run into it
     let dtb = unsafe { read_volatile(DTB_ADDR as *mut u32) };
     if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x} - was it overridden?\n", dtb);
+        panic!("DTB looks wrong: {:08x} - was it overridden?", dtb);
     } else {
-        print!("DTB still fine, yay!\n");
+        println!("DTB still fine, yay!");
     }
 }
 
@@ -223,9 +244,9 @@ unsafe extern "C" fn start() -> ! {
 }
 
 // stack which the bootloader environment would make use of.
+const STACK_SIZE: usize = 8 * 1024;
 #[link_section = ".bss.uninit"]
 static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-const STACK_SIZE: usize = 8 * 1024; // 8KiB
 
 static PLATFORM: &str = "T-HEAD Xuantie Platform";
 static VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -233,22 +254,22 @@ static VERSION: &str = env!("CARGO_PKG_VERSION");
 fn dump_csrs() {
     let mut v: usize;
     unsafe {
-        print!("==== platform CSRs ====\r\n");
+        println!("==== platform CSRs ====");
         asm!("csrr {}, 0x7c0", out(reg) v);
-        print!("   MXSTATUS  {:08x}\r\n", v);
+        println!("   MXSTATUS  {v:08x}");
         asm!("csrr {}, 0x7c1", out(reg) v);
-        print!("   MHCR      {:08x}\r\n", v);
+        println!("   MHCR      {v:08x}");
         asm!("csrr {}, 0x7c2", out(reg) v);
-        print!("   MCOR      {:08x}\r\n", v);
+        println!("   MCOR      {v:08x}");
         asm!("csrr {}, 0x7c5", out(reg) v);
-        print!("   MHINT     {:08x}\r\n", v);
-        print!("see C906 manual p581 ff\r\n");
-        print!("=======================\r\n");
+        println!("   MHINT     {v:08x}");
+        println!("see C906 manual p581 ff");
+        println!("=======================");
     }
 }
 
 fn init_csrs() {
-    print!("Set up extension CSRs\n");
+    println!("Set up extension CSRs");
     dump_csrs();
     unsafe {
         // MXSTATUS: T-Head ISA extension enable, MAEE, MM, UCME, CLINTEE
@@ -268,6 +289,9 @@ fn init_csrs() {
     dump_csrs();
 }
 
+#[cfg(feature = "f133")]
+type Serial = D1Serial<UART0, uart::Pins_E2_E3>;
+#[cfg(any(feature = "lichee", feature = "nezha"))]
 type Serial = D1Serial<UART0, uart::Pins_B8_B9>;
 
 fn init_logger(s: Serial) {
@@ -298,19 +322,27 @@ extern "C" fn main() -> usize {
     pb5.set_low().unwrap();
 
     // prepare serial port logger
-    let tx = gpio.portb.pb8.into_function_6();
-    let rx = gpio.portb.pb9.into_function_6();
+    #[cfg(feature = "f133")]
+    let tx_rx = (
+        gpio.porte.pe2.into_function_6(),
+        gpio.porte.pe3.into_function_6(),
+    );
+    #[cfg(any(feature = "lichee", feature = "nezha"))]
+    let tx_rx = (
+        gpio.portb.pb8.into_function_6(),
+        gpio.portb.pb9.into_function_6(),
+    );
     let config = Config {
         baudrate: 115200.bps(),
         wordlength: WordLength::Eight,
         parity: Parity::None,
         stopbits: StopBits::One,
     };
-
-    let serial = D1Serial::new(p.UART0, (tx, rx), config, &clocks);
-    init_logger(serial);
-
-    print!("oreboot: serial uart0 initialized\n");
+    init_logger(D1Serial::new(p.UART0, tx_rx, config, &clocks));
+    udelay(25);
+    println!();
+    println!("serial uart0 initialized");
+    println!("oreboot 🦀 main");
 
     // how we figured out https://github.com/rust-embedded/riscv/pull/107
     if true {
@@ -318,12 +350,11 @@ extern "C" fn main() -> usize {
         let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
         let arch = marchid::read().map(|r| r.bits()).unwrap_or(0);
         let imp = mimpid::read().map(|r| r.bits()).unwrap_or(0);
-        print!("RISC-V vendor {:x} arch {:x} imp {:x}\r\n", vid, arch, imp);
+        println!("RISC-V vendor {vid:x} arch {arch:x} imp {imp:x}");
     }
 
     let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
-        use oreboot_arch::riscv64::sbi;
         sbi_platform::init();
         init_csrs();
 
@@ -331,13 +362,12 @@ extern "C" fn main() -> usize {
         sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
-        println!(
-            "Enter supervisor at {:x} with DTB from {:x}",
-            LINUXBOOT_ADDR, DTB_ADDR
-        );
+        dump(LINUXBOOT_ADDR, 0x20);
+
+        let hartid = mhartid::read();
         let (reset_type, reset_reason) =
-            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, 0, DTB_ADDR);
-        print!("oreboot: reset reason = {}", reset_reason);
+            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, hartid, DTB_ADDR);
+        println!("oreboot: reset reason = {reset_reason}");
         reset_type
     } else {
         // TODO: Do we need more stuff here?
@@ -350,7 +380,7 @@ extern "C" fn main() -> usize {
         }
         println!("Running payload at 0x{:x}", PAYLOAD_ADDR);
         unsafe {
-            let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
+            let f: unsafe extern "C" fn() = transmute(PAYLOAD_ADDR);
             f();
         }
         println!("Unexpected return from payload");
@@ -377,8 +407,8 @@ extern "C" fn finish(reset_type: u32) -> ! {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!("panic in '{}' line {}", location.file(), location.line(),);
-        print!("{:?}", info.message());
+        println!("panic in '{}' line {}", location.file(), location.line());
+        println!("{:?}", info.message());
     } else {
         println!("panic at unknown location");
     };

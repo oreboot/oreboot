@@ -1,5 +1,5 @@
 [alias]
-xtask = "run --package xtask --"
+xtask = "run --release --package xtask --"
 make = "xtask make"
 asm = "xtask asm"
 flash = "xtask flash"
