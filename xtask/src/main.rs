@@ -225,6 +225,8 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
 
 #[test]
 fn read_create() {
+    use layoutflash::areas::{create_areas, find_fdt};
+
     static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
     let fdt = fdt::Fdt::new(&DATA).unwrap();
     let mut areas: Vec<Area> = vec![];
