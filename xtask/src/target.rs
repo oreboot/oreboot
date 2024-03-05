@@ -1,6 +1,7 @@
 use log::{error, trace};
 use std::path::{Component, Path};
 
+use crate::qemu;
 use crate::starfive;
 use crate::sunxi;
 use crate::util::project_root;
@@ -14,6 +15,7 @@ pub(crate) struct Target {
 enum Vendor {
     StarFive(crate::starfive::Board),
     Sunxi(crate::sunxi::Board),
+    Emulation(crate::qemu::Board),
 }
 
 impl Target {
@@ -21,6 +23,7 @@ impl Target {
         match self.vendor_board {
             Vendor::Sunxi(sunxi) => sunxi.execute_command(command, self.features),
             Vendor::StarFive(starfive) => starfive.execute_command(command, self.features),
+            Vendor::Emulation(qemu) => qemu.execute_command(command, self.features),
         };
     }
 }
@@ -40,6 +43,7 @@ pub(crate) fn parse_target(
             ("sunxi", "nezha") => Vendor::Sunxi(sunxi::Board::Nezha),
             ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
             ("starfive", "visionfive2") => Vendor::StarFive(starfive::Board::VisionFive2),
+            ("emulation", "qemu-riscv") => Vendor::Emulation(qemu::Board::RiscV),
             _ => return None,
         };
         return Some(Target {
