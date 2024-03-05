@@ -2,6 +2,7 @@ mod gdb_detect;
 mod target;
 mod util;
 
+mod qemu;
 mod starfive;
 mod sunxi;
 
