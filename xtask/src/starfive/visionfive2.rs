@@ -53,7 +53,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7110_bt0(env: &Env, features: &Vec<String>) {
+fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
     trace!("build JH7110 bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
     if !features.is_empty() {

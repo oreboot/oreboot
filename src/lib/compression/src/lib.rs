@@ -13,7 +13,7 @@ const DECOMP_BUF_SIZE: usize = 1 << EI;
 const COMP_BUF_SIZE: usize = 2 << EI;
 pub type OreLzss = lzss::Lzss<EI, 4, 0x00, DECOMP_BUF_SIZE, COMP_BUF_SIZE>;
 
-/// Safety:
+/// # Safety
 ///
 /// The caller needs to ensure correctness of source and target addresses.
 /// The first four bytes at source address must hold the compressed size.
