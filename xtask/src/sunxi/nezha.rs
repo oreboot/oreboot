@@ -68,7 +68,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn build_image(env: &Env, features: &Vec<String>) {
+fn build_image(env: &Env, features: &[String]) {
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     // Build the stages - should we parallelize this?
@@ -80,7 +80,7 @@ fn build_image(env: &Env, features: &Vec<String>) {
     concat_binaries(env);
 }
 
-fn build_d1_bt0(env: &Env, features: &Vec<String>) {
+fn build_d1_bt0(env: &Env, features: &[String]) {
     trace!("build D1 bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
     if !features.is_empty() {

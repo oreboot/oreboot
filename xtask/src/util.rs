@@ -24,7 +24,7 @@ pub fn get_cargo_cmd_in(env: &Env, root: PathBuf, dir: &str, command: &str) -> C
 }
 
 /// Compile the board device tree.
-pub fn compile_board_dt(env: &Env, target: &str, root: &PathBuf, dtb: &str) {
+pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
     trace!("compile board device tree {dtb}");
     let cwd = dist_dir(env, target);
     let mut command = Command::new("dtc");

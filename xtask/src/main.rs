@@ -185,7 +185,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
             }
 
             // If the path is an unused environment variable, skip it.
-            if path.starts_with("$(") && path.ends_with(")") {
+            if path.starts_with("$(") && path.ends_with(')') {
                 continue;
             }
 

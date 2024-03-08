@@ -55,14 +55,14 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7100_flash_bt0(env: &Env, features: &Vec<String>) {
+fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
     trace!("build JH7100 flash bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
-    if features.len() != 0 {
+    if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
         command.arg("--no-default-features");
-        command.args(&["--features", &command_line_features]);
+        command.args(["--features", &command_line_features]);
     } else {
         trace!("no command line features appended");
     }
