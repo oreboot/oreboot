@@ -21,7 +21,6 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 # NOTE: These are the host utilities, requiring their own recent Rust version.
 RUST_VER := 1.74
 BINUTILS_VER := 0.3.6
-TARPAULIN_VER := 0.27.1
 DPRINT_VER := 0.41.0
 
 CARGOINST := rustup run --install $(RUST_VER) cargo install
@@ -33,12 +32,10 @@ $(MAINBOARDS):
 
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	$(CARGOINST) $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	$(CARGOINST) $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 nexttime:
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	$(CARGOINST) --force $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	$(CARGOINST) --force $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 
