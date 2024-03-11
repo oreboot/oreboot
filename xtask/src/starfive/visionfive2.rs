@@ -5,12 +5,7 @@ use crate::util::{
 use crate::{layout_flash, Cli, Commands, Env};
 use fdt::Fdt;
 use log::{error, info, trace, warn};
-use std::{
-    fs::{self, File},
-    io::{self, Seek, SeekFrom},
-    path::Path,
-    process,
-};
+use std::{fs, path::Path, process};
 
 extern crate layoutflash;
 use layoutflash::areas::{create_areas, Area};
@@ -58,7 +53,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7110_bt0(env: &Env, features: &Vec<String>) {
+fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
     trace!("build JH7110 bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
     if !features.is_empty() {
@@ -76,10 +71,6 @@ fn xtask_build_jh7110_bt0(env: &Env, features: &Vec<String>) {
         None => {
             warn!("no DRAM size provided, falling back to 4G");
             4
-        }
-        _ => {
-            error!("unsupported DRAM size");
-            process::exit(1);
         }
     };
     let rustflags_key = "target.riscv64imac-unknown-none-elf.rustflags";

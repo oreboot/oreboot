@@ -7,4 +7,6 @@ rustflags = [
   "link-arg=-Tlink-nezha-main.ld",
   "-Z",
   "emit-stack-sizes",
+  "-C",
+  "target-feature=+zicsr,+zifencei",
 ]

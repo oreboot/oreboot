@@ -19,7 +19,7 @@ help:
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
 # NOTE: These are the host utilities, requiring their own recent Rust version.
-RUST_VER := 1.73
+RUST_VER := 1.74
 BINUTILS_VER := 0.3.6
 TARPAULIN_VER := 0.27.1
 DPRINT_VER := 0.41.0
@@ -29,7 +29,7 @@ CARGOINST := rustup run --install $(RUST_VER) cargo install
 .PHONY: $(MAINBOARDS)
 mainboards: $(MAINBOARDS)
 $(MAINBOARDS):
-	cd $(dir $@) && make cibuild
+	make --no-print-directory -C $(dir $@) cibuild
 
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
@@ -81,7 +81,7 @@ ALLMAKEFILE := \
 # Ron still doesn't understand this
 TEST_ALL_MAKE_DEFAULT := $(patsubst %/Makefile,%/Makefile.default,$(ALLMAKEFILE))
 $(TEST_ALL_MAKE_DEFAULT):
-	cd $(dir $@) && make default
+	make --no-print-directory -C $(dir $@) default
 .PHONY: testdefault $(TEST_ALL_MAKE_DEFAULT)
 testdefault: $(TEST_ALL_MAKE_DEFAULT)
 
@@ -97,7 +97,7 @@ checkformat:
 # Once those are fixed, we can just use a test target.
 CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.test,$(ALLMAKEFILE))
 $(CRATES_TO_TEST):
-	cd $(dir $@) && make test
+	make --no-print-directory -C $(dir $@) test
 .PHONY: test $(CRATES_TO_TEST)
 
 # NOTE: In CI, we run tests with coverage report.
@@ -108,7 +108,7 @@ $(CRATES_TO_TEST):
 # the multiple reports. See ./Makefile.inc for details.
 CRATES_TO_CITEST := $(patsubst %/Makefile,%/Makefile.citest,$(ALLMAKEFILE))
 $(CRATES_TO_CITEST):
-	cd $(dir $@) && make citest
+	make --no-print-directory -C $(dir $@) citest
 .PHONY: test $(CRATES_TO_CITEST)
 citest: $(CRATES_TO_CITEST)
 	# concatenate all the results from the indidividual directories
@@ -119,7 +119,7 @@ citest: $(CRATES_TO_CITEST)
 # TODO: Remove write_with_newline
 CRATES_TO_CLIPPY := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
 $(CRATES_TO_CLIPPY):
-	cd $(dir $@) && make ciclippy
+	make --no-print-directory -C $(dir $@) ciclippy
 .PHONY: clippy $(CRATES_TO_CLIPPY)
 clippy: $(CRATES_TO_CLIPPY)
 

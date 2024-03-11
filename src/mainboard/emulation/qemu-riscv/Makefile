@@ -1,10 +1,21 @@
 OREBOOT=$(abspath $(CURDIR)/../../../../)
 TARGET     = riscv64imac-unknown-none-elf
-QEMU       ?= qemu-system-riscv64
-QEMU_FLAGS += -m 1g -machine virt -nographic -bios none -drive format=raw,if=pflash,file=$(IMAGE)
-include ../../../../Makefile.inc
-include ../../../../Makefile.qemu.inc
-include ../../../../Makefile.mainboard.inc
-cibuild: $(IMAGE)
-ciclippy: clippy
-citest: skiptest
+# full image path, including multiple stages
+IMAGE_BASE = $(OREBOOT)/target/$(TARGET)/release/emulation-qemu-riscv
+IMAGE   := $(IMAGE_BASE).bin
+VERBOSE ?= -vvvv
+
+cibuild: mainboard
+
+# TODO
+nop:
+	echo nope...
+
+ciclippy: nop
+citest: nop
+checkformat: nop
+objdump: nop
+run: nop
+
+mainboard:
+	cargo xtask make --release $(VERBOSE)

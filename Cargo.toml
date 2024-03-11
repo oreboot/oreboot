@@ -15,11 +15,12 @@ members = [
   "src/mainboard/starfive/visionfive1/*",
   "src/mainboard/starfive/visionfive2/*",
   "src/mainboard/sunxi/nezha/*",
-  "src/mainboard/emulation/*",
+  "src/mainboard/emulation/qemu-riscv/*",
 
   "xtask",
 ]
 default-members = ["xtask"]
+resolver = "2"
 
 [profile.release]
 opt-level = 'z' # Optimize for size.
