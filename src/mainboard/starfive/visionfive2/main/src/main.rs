@@ -251,11 +251,9 @@ fn payload(payload_addr: usize) {
 #[cfg_attr(not(test), panic_handler)]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
-        println!(
-            "[main] panic in '{}' line {}",
-            location.file(),
-            location.line(),
-        );
+        let f = location.file();
+        let l = location.line();
+        println!("[main] panic in '{f}' line {l}");
     } else {
         println!("[main] panic at unknown location");
     };
