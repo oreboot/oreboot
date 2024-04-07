@@ -259,36 +259,29 @@ fn get_uboot_offset_and_size(fdt: &Fdt) -> (usize, usize) {
     for a in FdtIterator::new(areas) {
         for c in a.children() {
             let cname = c.name;
-            for p in c.properties() {
-                let pname = p.name;
-                match pname {
-                    "size" => {
-                        let psize = p.as_usize().unwrap_or(0);
-                        if !found {
-                            if DEBUG {
-                                println!("No U-Boot yet, inc offset by 0x{psize:x}");
-                            }
-                            offset += psize;
-                        }
-                        if found && size == 0 {
-                            size = psize;
-                        }
-                        if DEBUG {
-                            dump_block(SRAM0_BASE + offset, 0x20, 0x20);
-                        }
-                    }
-                    _ => {
-                        let s = p.as_str().unwrap_or("[empty]");
-                        if pname == "compatible" && s == "uboot-main" {
-                            found = true;
-                        }
-                    }
+            if let Some(p) = c.property("compatible") {
+                let str = p.as_str().unwrap_or("[empty]");
+                if str == "uboot-main" {
+                    found = true;
+                }
+            }
+            // Add up sizes to get the respective area's offset.
+            if let Some(p) = c.property("size") {
+                let s = p.as_usize().unwrap_or(0);
+                offset += s;
+                if found {
+                    size = s;
+                }
+            }
+            // If an offset itself is provided, just take it directly.
+            if let Some(p) = c.property("offset") {
+                let o = p.as_usize().unwrap_or(0);
+                if o > 0 {
+                    offset = o;
                 }
             }
         }
     }
-    // NOTE: When in SRAM, the header is cut off!
-    offset = offset - 0x400;
     (offset, size)
 }
 
@@ -363,6 +356,8 @@ fn main() {
     let (offset, size) = find_and_process_dtfs(slice).unwrap();
     let addr = QSPI_XIP_BASE + offset;
     println!("U-Boot @ {addr:08x} ({size} bytes)");
+    // should be: 213000d4
+    // was: 2103a000
     // let payload_addr = SRAM0_BASE + offset;
 
     let payload_addr = PAYLOAD_ADDR;
