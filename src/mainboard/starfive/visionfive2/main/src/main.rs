@@ -5,21 +5,31 @@
 
 use core::{
     arch::asm,
+    intrinsics::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
+    slice::from_raw_parts as slice_from,
 };
+use jh71xx_hal as hal;
+use riscv::register::mhartid;
+
+use layoutflash::areas::{find_fdt, Fdt, FdtIterator};
 use log::{print, println};
+// use soc::starfive::jh7110::{pac, uart};
+use starfive_visionfive2_lib::{dump_block, read32, resume_nonboot_harts, udelay, write32};
+
 use oreboot_arch::riscv64::sbi::{self, execute::execute_supervisor};
 use oreboot_compression::decompress;
-use riscv::register::mhartid;
-use starfive_visionfive2_lib::{dump_block, read32, resume_nonboot_harts, udelay, write32};
 use uart::JH71XXSerial;
 
 mod sbi_platform;
 mod uart;
 
+const DEBUG: bool = true;
+
 const DRAM_BASE: usize = 0x4000_0000;
 const SRAM0_BASE: usize = 0x0800_0000;
+const SRAM0_SIZE: usize = 2 * 1024 * 1024;
 const SPI_FLASH_BASE: usize = 0x2100_0000;
 
 /// This is the compressed Linux image in boot storage (flash).
@@ -181,18 +191,169 @@ const PAYLOAD_SIZE: usize = 192 * 1024;
 const PAYLOAD_SRC_ADDR: usize = SRAM0_BASE + 0x2_1000;
 const PAYLOAD_ADDR: usize = LINUXBOOT_ADDR;
 
+const QSPI_XIP_BASE: usize = 0x2100_0000;
+
+fn load_uboot() {
+    // Find and copy the main stage
+    let uboot_offset = 0x0030_00d4;
+    let uboot_size = 0x0016_0000;
+    let uboot_addr = QSPI_XIP_BASE + uboot_offset;
+    // U-Boot is linked to run from here
+    let load_addr = LINUXBOOT_ADDR;
+
+    println!(
+        "[bt0] Copy {}k U-Boot from {uboot_addr:08x} to {load_addr:08x}... ⏳",
+        uboot_size / 1024
+    );
+    copy(uboot_addr, load_addr, uboot_size);
+    dump_block(load_addr, 0x100, 0x20);
+
+    // whatevs
+    let uboot_dtb_addr = QSPI_XIP_BASE + 0x0011_90d4;
+    let uboot_dtb_size = 0xb638;
+    copy(uboot_dtb_addr, DTB_ADDR, uboot_dtb_size);
+}
+
+fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
+    let nodes = &mut fdt.find_all_nodes(path);
+    println!(" {path}");
+    for n in FdtIterator::new(nodes) {
+        for c in n.children() {
+            let cname = c.name;
+            println!("    ↪ {cname}");
+            for p in c.properties() {
+                let pname = p.name;
+                match pname {
+                    "size" => {
+                        let size = p.as_usize().unwrap_or(0);
+                        println!("      {pname}: {size} (0x{size:x})");
+                    }
+                    "addr" => {
+                        let size = p.as_usize().unwrap_or(0);
+                        println!("      {pname}: {size:08x}");
+                    }
+                    _ => {
+                        let s = p.as_str().unwrap_or("[empty]");
+                        println!("      {pname}: {s}");
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn get_uboot_offset_and_size(fdt: &Fdt) -> (usize, usize) {
+    let mut offset = 0;
+    let mut found = false;
+    let mut size = 0;
+    let areas = &mut fdt.find_all_nodes("/flash-info/areas");
+    // TODO: make finding more sophisticated
+    for a in FdtIterator::new(areas) {
+        for c in a.children() {
+            let cname = c.name;
+            for p in c.properties() {
+                let pname = p.name;
+                match pname {
+                    "size" => {
+                        let psize = p.as_usize().unwrap_or(0);
+                        if !found {
+                            if DEBUG {
+                                println!("No U-Boot yet, inc offset by 0x{psize:x}");
+                            }
+                            offset += psize;
+                        }
+                        if found && size == 0 {
+                            size = psize;
+                        }
+                        if DEBUG {
+                            dump_block(SRAM0_BASE + offset, 0x20, 0x20);
+                        }
+                    }
+                    _ => {
+                        let s = p.as_str().unwrap_or("[empty]");
+                        if pname == "compatible" && s == "uboot-main" {
+                            found = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // NOTE: When in SRAM, the header is cut off!
+    offset = offset - 0x400;
+    (offset, size)
+}
+
+fn dump_fdt_board_info(fdt: &Fdt) {
+    let nodes = &mut fdt.find_all_nodes("/board-info");
+    println!("ℹ️ Board information");
+    for n in FdtIterator::new(nodes) {
+        for p in n.properties() {
+            let pname = p.name;
+            let s = p.as_str().unwrap_or("[empty]");
+            println!("  {pname}: {s}");
+        }
+    }
+}
+
+fn find_and_process_dtfs(slice: &[u8]) -> Result<(usize, usize), &str> {
+    if let Ok(fdt) = find_fdt(slice) {
+        dump_fdt_board_info(&fdt);
+        println!("💾 DTFS");
+        dump_fdt_nodes(&fdt, "/flash-info/areas");
+        dump_fdt_nodes(&fdt, "/load-info");
+        let (offset, size) = get_uboot_offset_and_size(&fdt);
+        Ok((offset, size))
+    } else {
+        Err("DTFS blob not found")
+    }
+}
+
 fn main() {
-    udelay(200);
+    /*
+    let dp = pac::Peripherals::take().unwrap();
+
+    for i in 0..1000 {
+        if dp.UART0.usr().read().busy() == false {
+            break;
+        }
+    }
+    // let s = JH71XXSerial(hal::uart::Uart(dp.UART0));
+    // write32(0x1000_0000, 0x42);
+    // we get here
+    let s = JH71XXSerial::new_with_config(
+        dp.UART0,
+        hal::uart::TIMEOUT_US,
+        hal::uart::Config {
+            data_len: hal::uart::DataLength::Eight,
+            stop: hal::uart::Stop::One,
+            parity: hal::uart::Parity::None,
+            baud_rate: hal::uart::BaudRate::B115200,
+            clk_hz: uart::UART_CLK_OSC,
+        },
+    );
+    // we do not get here
+    write32(0x1000_0000, 0x44);
+    */
 
     let s = JH71XXSerial::new();
     init_logger(s);
     println!("oreboot 🦀 main");
 
+    let base = SRAM0_BASE;
+    let size = SRAM0_SIZE;
+    let slice = unsafe { slice_from(transmute(base), size) };
+    let (offset, size) = find_and_process_dtfs(slice).unwrap();
+
     let payload_addr = PAYLOAD_ADDR;
 
-    println!("[main] Copy DTB to DRAM... ⏳");
-    copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
-    check_dtb(DTB_ADDR);
+    let payload_addr = SRAM0_BASE + offset;
+
+    if false {
+        println!("[main] Copy DTB to DRAM... ⏳");
+        copy(DTB_SRC_ADDR, DTB_ADDR, DTB_SIZE);
+        check_dtb(DTB_ADDR);
+    }
 
     if false {
         println!("[main] Decompress payload... ⏳");
@@ -201,13 +362,17 @@ fn main() {
         }
         println!("[main] Payload extracted.");
         check_kernel(LINUXBOOT_ADDR);
-    } else {
+    }
+
+    if false {
         println!("[main] Copy payload to DRAM... ⏳");
         dump_block(PAYLOAD_SRC_ADDR, 0x40, 0x20);
         copy(PAYLOAD_SRC_ADDR, payload_addr, PAYLOAD_SIZE);
         dump_block(payload_addr, 0x40, 0x20);
     }
 
+    load_uboot();
+    let payload_addr = LINUXBOOT_ADDR;
     // Recheck on DTB, kernel should not run into it
     check_dtb(DTB_ADDR);
 
@@ -245,7 +410,7 @@ fn payload(payload_addr: usize) {
         sbi::info::print_info(PLATFORM, VERSION);
     }
     let (reset_type, reset_reason) = execute_supervisor(payload_addr, hartid, DTB_ADDR);
-    print!("[main] oreboot: reset reason = {reset_reason}");
+    print!("[main] oreboot: reset, type = {reset_type}, reason = {reset_reason}");
 }
 
 #[cfg_attr(not(test), panic_handler)]

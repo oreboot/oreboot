@@ -9,24 +9,21 @@ use embedded_hal_nb::serial::Write;
 
 #[macro_use]
 extern crate log;
-extern crate jh71xx_hal as hal;
-use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{
     arch::asm,
     intrinsics::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
+    slice::from_raw_parts as slice_from,
 };
+use jh71xx_hal as hal;
 use riscv::register::mhartid;
 use riscv::register::{marchid, mimpid, mvendorid};
-use starfive_visionfive2_lib::{dump, dump_block, read32, udelay, write32};
-use uart::JH71XXSerial;
 
-use fdt::Fdt;
-
-use hal::uart::Serial;
+use layoutflash::areas::{find_fdt, FdtIterator};
 use soc::starfive::jh7110::{pac, uart};
+use starfive_visionfive2_lib::{dump, dump_block, read32, udelay, write32};
 
 mod ddr_start;
 mod ddrcsr;
@@ -85,7 +82,7 @@ pub unsafe extern "C" fn start() -> ! {
         "csrw   mtvec, t0",
         // 1. suspend non-boot hart
         // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 0",
+        "li     a1, 1",
         "csrr   a0, mhartid",
         "bne    a0, a1, .nonboothart",
         // 2. prepare stack
@@ -433,7 +430,7 @@ fn main() {
     let dp = pac::Peripherals::take().unwrap();
 
     while dp.UART0.usr().read().busy() == true {}
-    let mut s = uart::JH71XXSerial::new_with_config(
+    let s = uart::JH71XXSerial::new_with_config(
         dp.UART0,
         hal::uart::TIMEOUT_US,
         hal::uart::Config {
@@ -527,7 +524,7 @@ fn main() {
     } else {
         (SRAM0_BASE, SRAM0_SIZE) // occupied space
     };
-    let slice = unsafe { core::slice::from_raw_parts(transmute(base), size) };
+    let slice = unsafe { slice_from(transmute(base), size) };
 
     let mut load_addr = SRAM0_BASE + 0x1_1000;
 
@@ -544,7 +541,7 @@ fn main() {
         copy(src_addr, load_addr, src_size);
     }
 
-    if false {
+    if true {
         // Find and copy the main stage
         let (main_offset, main_size) = get_main_offset_and_size(slice);
         let main_addr = base + main_offset;

@@ -9,7 +9,6 @@ edition = "2021"
 [dependencies]
 embedded-hal = "1.0.0"
 embedded-hal-nb = "1.0.0"
-fdt = "0.1.4"
 jh71xx-hal = { version = "0.1", features = ["rt"] }
 jh71xx-pac = "0.3.2"
 nb = "1"
@@ -19,4 +18,5 @@ spin = "0.9"
 layoutflash = { path = "../../../../lib/layoutflash" }
 log = { path = "../../../../lib/log" }
 soc = { path = "../../../../soc", package = "oreboot-soc", features = ["starfive_jh7110"] }
+
 starfive-visionfive2-lib = { path = "../lib" }

@@ -31,24 +31,34 @@
             area@2 {
                 description = "oreboot DTFS";
                 compatible = "ore-dtfs";
-                size = <0x1000>;
+                size = <0x2000>; // 8k
                 file = "starfive-visionfive2-board.dtb";
             };
 
-/*
             area@3 {
                 description = "oreboot main";
                 compatible = "ore-main";
-                size = <0x10000>; // 64k
+                size = <0x18000>; // 96k
                 file = "starfive-visionfive2-main.bin";
             };
-*/
 
+            // FIXME: Those additional areas expand the output image.
+            // To run via XMODEM in SRAM, we need to omit them.
+
+            // Zephyr
             area@4 {
                 description = "payload";
                 compatible = "ore-payload";
                 size = <0x10000>; // 64k
                 file = "zephyr.bin";
+            };
+
+            // U-Boot
+            area@5 {
+                description = "U-Boot main";
+                compatible = "uboot-main";
+                offset = <0x3000d4>;
+                size = <0x160000>;
             };
 
             // LK
@@ -61,27 +71,26 @@
             };
 
             area@5 {
-                description = "payload";
+                description = "payload device tree";
                 compatible = "payload-dtb";
                 size = <0x1000>; // 4k
                 file = "jh7110-lk.dtb";
             };
             */
 
-            // FIXME: This currently expands the output image.
-            // To run via XMODEM in SRAM, we need to omit the kernel and DTB.
             // Linux
             /*
             area@4 {
                 description = "LinuxBoot image";
                 compatible = "ore-payload";
                 // We put this here right after the vendor code.
-                offset = <0x400000>;
+                // offset = <0x400000>;
+                offset = <0x460000>;
                 size = <0xb80000>; // 12.5 MB
             };
 
             area@5 {
-                description = "LinuxBoot dtb";
+                description = "LinuxBoot device tree";
                 compatible = "linux-dtb";
                 // This occupies the remaining space.
                 size = <0x80000>; // 512K
@@ -93,22 +102,91 @@
     load-info {
         compatible = "ore-loadinfo";
 
-        load-payload {
+        payload {
             description = "Payload load address";
-            addr = <0x41000000>;
+            addr = <0x40200000>;
             size = <0x2000000>;
         };
 
-        load-dtb {
+        dtb {
             description = "DTB load address";
             addr = <0x45000000>;
             size = <0x100000>;
         };
+
+        clusters {
+            cluster@0 {
+                mode = "M";
+                // We can probably just do everything from the main stage.
+                // Then we need not worry about code size. In stage bt0,
+                // only care about loading the main stage to keep it small.
+                stage = "bt0";
+                // harts = <0>;
+                harts {
+                    hart@0 {};
+                };
+
+                shared-memory {
+                    addr = <0x44000000>;
+                    size = <0x1000>;
+                };
+
+                payload {
+                    binary {
+                        description = "Payload load address";
+                        compatible = "zephyr";
+                        format = "bin";
+                        addr = <0x8021000>;
+                        size = <0x10000>;
+                    };
+                };
+            };
+
+            cluster@1 {
+                mode = "S";
+                stage = "main";
+                // harts = <1 2 3 4>;
+                harts {
+                    hart@1 {};
+                    hart@2 {};
+                    hart@3 {};
+                    hart@4 {};
+                };
+
+                shared-memory {
+                    addr = <0x44000000>;
+                    size = <0x1000>;
+                };
+
+                payload {
+                    binary {
+                        description = "Payload load address";
+                        compatible = "linux";
+                        format = "bin";
+                        compression = "lzss";
+                        addr = <0x40200000>;
+                        size = <0x2000000>;
+                    };
+
+                    dtb {
+                        description = "DTB load address";
+                        compatible = "dtb";
+                        addr = <0x45000000>;
+                        size = <0x100000>;
+                    };
+                };
+            };
+        };
     };
 
-    // FIXME: evaluate at build time or runtime
-    memory@40000000 {
+    // TODO: evaluate at build time or runtime?
+    dram: memory@40000000 {
         device_type = "memory";
         reg = <0x40000000 0x20000000>;
+    };
+
+    l2lim: memory@8000000 {
+        device_type = "memory";
+        reg = <0x8000000 0x200000>;
     };
 };

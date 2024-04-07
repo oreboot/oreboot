@@ -12,7 +12,10 @@ use layoutflash::areas::{create_areas, Area};
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
-const SRAM_SIZE: usize = 0x20_0000;
+// The real SRAM size is stated to be 2M, but the mask ROM loader will take a
+// maximum of ???.
+// const SRAM_SIZE: usize = 0x20_0000;
+const SRAM_SIZE: usize = 0x3_b000;
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
