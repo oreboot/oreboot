@@ -1,7 +1,50 @@
-use layoutflash::areas::{find_fdt, Fdt, FdtIterator};
-use std::{error::Error, fs::read};
+use layoutflash::areas::{find_fdt, Fdt, FdtIterator, FdtNode};
+use std::fs::read;
 
 const DEBUG: bool = false;
+
+fn dump_props(n: &FdtNode, pre: &str) {
+    for p in n.properties() {
+        let pname = p.name;
+        match pname {
+            "addr" => {
+                let addr = p.as_usize().unwrap_or(0);
+                println!("{pre}{pname}: {addr:08x}");
+            }
+            "size" => {
+                let size = p.as_usize().unwrap_or(0);
+                println!("{pre}{pname}: {size} (0x{size:x})");
+            }
+            // Previous attempt: `harts = <1, 2, 3, 4>;`
+            // However, the parser turns that into [u8;n*4], BE
+            // i.e. [1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0]
+            "harts" => {
+                // let l = p.value.len();
+                // let (_pre, v, _suf) = unsafe { p.value.align_to::<u32>() };
+                // This is std...
+                let vals: Vec<u32> = p
+                    .value
+                    .chunks(4)
+                    .map(|c| {
+                        let mut v: u32 = 0;
+                        // These are always 4 u8 each.
+                        for (i, e) in c.iter().enumerate() {
+                            if i < 4 {
+                                v |= (*e as u32) << (24 - i * 8);
+                            }
+                        }
+                        v
+                    })
+                    .collect();
+                println!("{pre}{pname}: {vals:?}");
+            }
+            _ => {
+                let str = p.as_str().unwrap_or("[empty]");
+                println!("{pre}{pname}: {str}");
+            }
+        }
+    }
+}
 
 fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
     let nodes = &mut fdt.find_all_nodes(path);
@@ -10,99 +53,15 @@ fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
         for c in n.children() {
             let cname = c.name;
             println!("    ↪ {cname}");
+            dump_props(&c, "      ");
             for cc in c.children() {
                 let ccname = cc.name;
                 println!("      ↪ {ccname}");
+                dump_props(&cc, "        ");
                 for ccc in cc.children() {
                     let cccname = ccc.name;
                     println!("        ↪ {cccname}");
-                    for p in ccc.properties() {
-                        let pname = p.name;
-                        match pname {
-                            "size" => {
-                                let size = p.as_usize().unwrap_or(0);
-                                println!("          {pname}: {size} (0x{size:x})");
-                            }
-                            "addr" => {
-                                let size = p.as_usize().unwrap_or(0);
-                                println!("          {pname}: {size:08x}");
-                            }
-                            _ => {
-                                let str = p.as_str().unwrap_or("[empty]");
-                                println!("          {pname}: {str}");
-                            }
-                        }
-                    }
-                }
-                for p in cc.properties() {
-                    let pname = p.name;
-                    match pname {
-                        "size" => {
-                            let size = p.as_usize().unwrap_or(0);
-                            println!("        {pname}: {size} (0x{size:x})");
-                        }
-                        "addr" => {
-                            let size = p.as_usize().unwrap_or(0);
-                            println!("        {pname}: {size:08x}");
-                        }
-                        _ => {
-                            let str = p.as_str().unwrap_or("[empty]");
-                            println!("        {pname}: {str}");
-                        }
-                    }
-                }
-            }
-            for p in c.properties() {
-                let pname = p.name;
-                match pname {
-                    "size" => {
-                        let size = p.as_usize().unwrap_or(0);
-                        println!("      {pname}: {size} (0x{size:x})");
-                    }
-                    "addr" => {
-                        let size = p.as_usize().unwrap_or(0);
-                        println!("      {pname}: {size:08x}");
-                    }
-                    "harts" => {
-                        let l = p.value.len();
-                        // This is std...
-                        /*
-                        let vals: Vec<u32> = p
-                            .value
-                            .chunks(4)
-                            .map(|c| {
-                                let mut v: u32 = 0;
-                                // These are always 4 u8 each.
-                                for (i, e) in c.iter().enumerate() {
-                                    if i < 4 {
-                                        v |= (*e as u32) << (24 - i * 8);
-                                    }
-                                }
-                                v
-                            })
-                            .collect();
-                        */
-                        let (pre, v, suf) = unsafe { p.value.align_to::<u32>() };
-                        let vals: Vec<u32> = p
-                            .value
-                            .chunks(4)
-                            .map(|c| {
-                                let mut v: u32 = 0;
-                                // These are always 4 u8 each.
-                                for (i, e) in c.iter().enumerate() {
-                                    if i < 4 {
-                                        v |= (*e as u32) << (24 - i * 8);
-                                    }
-                                }
-                                v
-                            })
-                            .collect();
-                        println!("      {pname}: {vals:?}");
-                    }
-                    _ => {
-                        let str = p.as_str().unwrap_or("[empty]");
-                        println!("      {pname}: {str}");
-                    }
+                    dump_props(&ccc, "          ");
                 }
             }
         }
@@ -117,10 +76,8 @@ fn get_uboot_offset_and_size(fdt: &Fdt) -> (usize, usize) {
     // TODO: make finding more sophisticated
     for a in FdtIterator::new(areas) {
         for c in a.children() {
-            let cname = c.name;
             for p in c.properties() {
-                let pname = p.name;
-                match pname {
+                match p.name {
                     "size" => {
                         let psize = p.as_usize().unwrap_or(0);
                         if !found {
@@ -135,7 +92,7 @@ fn get_uboot_offset_and_size(fdt: &Fdt) -> (usize, usize) {
                     }
                     _ => {
                         let s = p.as_str().unwrap_or("[empty]");
-                        if pname == "compatible" && s == "uboot-main" {
+                        if p.name == "compatible" && s == "uboot-main" {
                             found = true;
                         }
                     }
@@ -178,5 +135,5 @@ fn main() {
     let f = read("./fixture.dtb").unwrap();
     let s = f.as_slice();
     let r = find_and_process_dtfs(s).unwrap();
-    println!("{r:08x?}");
+    println!("U-Boot @ {r:08x?}");
 }
