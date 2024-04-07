@@ -11,7 +11,7 @@ use core::{
 use jh71xx_hal as hal;
 use riscv::register::mhartid;
 
-use layoutflash::areas::{find_fdt, Fdt, FdtIterator};
+use layoutflash::areas::{find_fdt, Fdt, FdtIterator, FdtNode};
 use log::{print, println};
 // use soc::starfive::jh7110::{pac, uart};
 use starfive_visionfive2_lib::{dump_block, read32, resume_nonboot_harts, udelay, write32};
@@ -192,14 +192,9 @@ const PAYLOAD_ADDR: usize = LINUXBOOT_ADDR;
 const QSPI_XIP_BASE: usize = 0x2100_0000;
 
 // FIXME: This is all hardcoded for now, just for testing. Use DTFS otherwise.
-fn load_uboot() {
-    // Find and copy the main stage
-    let uboot_offset = 0x0030_00d4;
-    let uboot_size = 0x0016_0000;
-    let uboot_addr = QSPI_XIP_BASE + uboot_offset;
+fn load_uboot(uboot_addr: usize, uboot_size: usize) {
     // U-Boot is linked to run from here
     let load_addr = LINUXBOOT_ADDR;
-
     println!(
         "[bt0] Copy {}k U-Boot from {uboot_addr:08x} to {load_addr:08x}... ⏳",
         uboot_size / 1024
@@ -213,6 +208,26 @@ fn load_uboot() {
     copy(uboot_dtb_addr, DTB_ADDR, uboot_dtb_size);
 }
 
+fn dump_props(n: &FdtNode, pre: &str) {
+    for p in n.properties() {
+        let pname = p.name;
+        match pname {
+            "addr" => {
+                let addr = p.as_usize().unwrap_or(0);
+                println!("{pre}{pname}: {addr:08x}");
+            }
+            "size" => {
+                let size = p.as_usize().unwrap_or(0);
+                println!("{pre}{pname}: {size} (0x{size:x})");
+            }
+            _ => {
+                let str = p.as_str().unwrap_or("[empty]");
+                println!("{pre}{pname}: {str}");
+            }
+        }
+    }
+}
+
 fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
     let nodes = &mut fdt.find_all_nodes(path);
     println!(" {path}");
@@ -220,21 +235,15 @@ fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
         for c in n.children() {
             let cname = c.name;
             println!("    ↪ {cname}");
-            for p in c.properties() {
-                let pname = p.name;
-                match pname {
-                    "size" => {
-                        let size = p.as_usize().unwrap_or(0);
-                        println!("      {pname}: {size} (0x{size:x})");
-                    }
-                    "addr" => {
-                        let size = p.as_usize().unwrap_or(0);
-                        println!("      {pname}: {size:08x}");
-                    }
-                    _ => {
-                        let s = p.as_str().unwrap_or("[empty]");
-                        println!("      {pname}: {s}");
-                    }
+            dump_props(&c, "      ");
+            for cc in c.children() {
+                let ccname = cc.name;
+                println!("      ↪ {ccname}");
+                dump_props(&cc, "        ");
+                for ccc in cc.children() {
+                    let cccname = ccc.name;
+                    println!("        ↪ {cccname}");
+                    dump_props(&ccc, "          ");
                 }
             }
         }
@@ -312,10 +321,10 @@ fn find_and_process_dtfs(slice: &[u8]) -> Result<(usize, usize), &str> {
 
 /// Get a slice of memory. You need to ensure that it is a valid, aligned block.
 /// TODO: factor out to a library
-fn get_slice(addr: usize, size: usize) -> &[u8] {
+fn get_slice<'a>(addr: &'a usize, size: &'a usize) -> &'a [u8] {
     unsafe {
-        let p = core::mem::transmute(base);
-        core::slice::from_raw_parts(p, size)
+        let p = core::mem::transmute(*addr);
+        core::slice::from_raw_parts(p, *size)
     }
 }
 
@@ -350,12 +359,14 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 main");
 
-    let slice = get_slice(SRAM0_BASE, SRAM0_SIZE);
+    let slice = get_slice(&SRAM0_BASE, &SRAM0_SIZE);
     let (offset, size) = find_and_process_dtfs(slice).unwrap();
+    let addr = QSPI_XIP_BASE + offset;
+    println!("U-Boot @ {addr:08x} ({size} bytes)");
     // let payload_addr = SRAM0_BASE + offset;
 
     let payload_addr = PAYLOAD_ADDR;
-    load_uboot();
+    load_uboot(addr, size);
 
     if false {
         println!("[main] Copy DTB to DRAM... ⏳");
@@ -379,7 +390,7 @@ fn main() {
         dump_block(payload_addr, 0x40, 0x20);
     }
 
-    // Recheck on DTB, kernel should not run into it
+    // Recheck on DTB, payload should not run into it
     check_dtb(DTB_ADDR);
 
     if SMP {
@@ -387,9 +398,6 @@ fn main() {
         resume_nonboot_harts();
     }
 
-    for i in 0..0x1000 {
-        read32(payload_addr);
-    }
     payload(payload_addr);
 }
 

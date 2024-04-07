@@ -118,7 +118,7 @@
             cluster@0 {
                 mode = "M";
                 // We can probably just do everything from the main stage.
-                // Then we need not worry about code size. In stage bt0,
+                // Then we do not need to worry about code size. In stage bt0,
                 // only care about loading the main stage to keep it small.
                 stage = "bt0";
                 // harts = <0>;
