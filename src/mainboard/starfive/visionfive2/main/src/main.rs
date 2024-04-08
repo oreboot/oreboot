@@ -208,42 +208,54 @@ fn load_uboot(uboot_addr: usize, uboot_size: usize) {
     copy(uboot_dtb_addr, DTB_ADDR, uboot_dtb_size);
 }
 
+/// Dump DT node properties, prefixed for indentation.
 fn dump_props(n: &FdtNode, pre: &str) {
     for p in n.properties() {
         let pname = p.name;
         match pname {
             "addr" => {
                 let addr = p.as_usize().unwrap_or(0);
-                println!("{pre}{pname}: {addr:08x}");
+                println!("{pre}  - {pname}: {addr:08x}");
             }
             "size" => {
                 let size = p.as_usize().unwrap_or(0);
-                println!("{pre}{pname}: {size} (0x{size:x})");
+                println!("{pre}  - {pname}: {size} (0x{size:x})");
             }
             _ => {
                 let str = p.as_str().unwrap_or("[empty]");
-                println!("{pre}{pname}: {str}");
+                println!("{pre}  - {pname}: {str}");
             }
         }
     }
 }
 
+// TODO: Should we do recursion? It's possible, but... not really necessary.
+// While being less repetitive, it imposes new challenges.
 fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
     let nodes = &mut fdt.find_all_nodes(path);
     println!(" {path}");
     for n in FdtIterator::new(nodes) {
-        for c in n.children() {
-            let cname = c.name;
-            println!("    ↪ {cname}");
-            dump_props(&c, "      ");
-            for cc in c.children() {
-                let ccname = cc.name;
-                println!("      ↪ {ccname}");
-                dump_props(&cc, "        ");
-                for ccc in cc.children() {
-                    let cccname = ccc.name;
-                    println!("        ↪ {cccname}");
-                    dump_props(&ccc, "          ");
+        for n in n.children() {
+            let c = n.name;
+            let pre = "  ";
+            println!("{pre}↪ {c}");
+            dump_props(&n, pre);
+            for n in n.children() {
+                let c = n.name;
+                let pre = "    ";
+                println!("{pre}↪ {c}");
+                dump_props(&n, pre);
+                for n in n.children() {
+                    let c = n.name;
+                    let pre = "      ";
+                    println!("{pre}↪ {c}");
+                    dump_props(&n, pre);
+                    for n in n.children() {
+                        let c = n.name;
+                        let pre = "        ";
+                        println!("{pre}↪ {c}");
+                        dump_props(&n, pre);
+                    }
                 }
             }
         }
