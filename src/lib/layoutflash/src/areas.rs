@@ -1,8 +1,6 @@
 use core::option::Option;
-use core::result::Result;
-use core::result::Result::Err;
-use core::result::Result::Ok;
-use fdt::node::FdtNode;
+use core::result::Result::{self, Err, Ok};
+pub use fdt::{node::FdtNode, Fdt, FdtError};
 
 pub struct FdtIterator<'a, 'b> {
     iter: &'a mut dyn Iterator<Item = FdtNode<'b, 'b>>,
@@ -32,13 +30,13 @@ pub struct Area<'a> {
     pub file: Option<&'a str>,
 }
 
-pub fn find_fdt(data: &[u8]) -> Result<fdt::Fdt, fdt::FdtError> {
+pub fn find_fdt(data: &[u8]) -> Result<Fdt, FdtError> {
     // The informal standard is that the fdt must be on a 0x1000
     // boundary. It is a fine line between too coarse a boundary
     // and falling into an false positive.
     // yuck. Make a better iterator.
     for pos in (0..data.len() - 0x1000).step_by(0x1000) {
-        match fdt::Fdt::new(&data[pos..]) {
+        match Fdt::new(&data[pos..]) {
             Err(_) => {}
             Ok(fdt) => {
                 return Ok(fdt);
@@ -46,12 +44,12 @@ pub fn find_fdt(data: &[u8]) -> Result<fdt::Fdt, fdt::FdtError> {
         };
     }
 
-    Err(fdt::FdtError::BadMagic)
+    Err(FdtError::BadMagic)
 }
 
 // create_areas: create the areas from the fdt. This is unnecessarily messy,
 // as we want to use this same code in std and no_std.
-pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a mut [Area<'a>] {
+pub fn create_areas<'a>(fdt: &'a Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a mut [Area<'a>] {
     // Assemble the bits of the fdt we care about into Areas.
 
     let mut i = 0;
@@ -93,7 +91,7 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a
 #[test]
 fn read_create() {
     static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
-    let fdt = fdt::Fdt::new(&DATA).unwrap();
+    let fdt = Fdt::new(&DATA).unwrap();
     let it = &mut fdt.find_all_nodes("/flash-info/areas");
     let a = FdtIterator::new(it);
     let mut i = 0;

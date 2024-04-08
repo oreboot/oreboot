@@ -21,5 +21,11 @@ oreboot-soc = { path = "../../../../soc", features = ["sunxi_d1"] }
 oreboot_compression = { path = "../../../../lib/compression" }
 
 [features]
-default = []
+default = ["nezha"]
 supervisor = []
+
+# board / SoC variants
+f133 = []
+lichee = []
+mqpro = []
+nezha = []

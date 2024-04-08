@@ -8,7 +8,7 @@ edition = "2021"
 log = { path = "../lib/log" }
 
 # RISC-V
-riscv = { version = "=0.10.1", features = ["critical-section-single-hart"] }
+riscv = { version = "=0.10.1" }
 rustsbi = { version = "0.3.2", features = ["legacy"] }
 sbi-spec = { version = "0.0.4", features = ["legacy"] }
 

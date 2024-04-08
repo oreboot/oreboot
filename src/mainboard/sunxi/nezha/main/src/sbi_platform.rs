@@ -1,19 +1,27 @@
 use core::arch::asm;
 use log::println;
 use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
-use riscv::register::{mie, mip};
+use riscv::register::{self as reg, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::HartMask;
 
+const DEBUG: bool = true;
+const DEBUG_IPI: bool = true;
+const DEBUG_FENCE: bool = false;
+const DEBUG_TIMER: bool = true;
+
 pub fn init() {
     init_pmp();
+    println!("[SBI] PLIC init");
     init_plic();
-    println!("timer init");
-    rustsbi::init_timer(&Timer);
-    println!("reset init");
-    rustsbi::init_reset(&Reset);
-    println!("ipi init");
+    println!("[SBI] ipi init");
     rustsbi::init_ipi(&Ipi);
+    println!("[SBI] rfence init");
+    rustsbi::init_remote_fence(&Rfence);
+    println!("[SBI] timer init");
+    rustsbi::init_timer(&Timer);
+    println!("[SBI] reset init");
+    rustsbi::init_reset(&Reset);
 }
 
 /**
@@ -26,15 +34,13 @@ pub fn init() {
 // see privileged spec v1.10 p44 ff
 // https://riscv.org/wp-content/uploads/2017/05/riscv-privileged-v1.10.pdf
 fn init_pmp() {
-    use riscv::register::*;
-    let cfg = 0x0f090f090fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
-    pmpcfg0::write(cfg);
-    pmpcfg2::write(0); // nothing active here
-    pmpaddr0::write(0x40000000usize >> 2);
-    pmpaddr1::write(0x40200000usize >> 2);
-    pmpaddr2::write(0x80000000usize >> 2);
-    pmpaddr3::write(0x80200000usize >> 2);
-    pmpaddr4::write(0xffffffffusize >> 2);
+    let cfg = 0x0f0f0f0f0fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
+    reg::pmpcfg0::write(cfg);
+    reg::pmpcfg2::write(0); // nothing active here
+    reg::pmpaddr0::write(0x40000000usize >> 2);
+    reg::pmpaddr1::write(0x40200000usize >> 2);
+    reg::pmpaddr2::write(0x80000000usize >> 2);
+    reg::pmpaddr3::write(0x80200000usize >> 2);
 }
 
 fn init_plic() {
@@ -44,7 +50,7 @@ fn init_plic() {
         asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
         let a = addr + 0x001ffffc; // 0x101f_fffc
         if false {
-            println!("BADADDR {:x} SOME ADDR {:x}", addr, a);
+            println!("BADADDR {addr:x} SOME ADDR {a:x}");
         }
         // allow S-mode to access PLIC regs, D1 manual p210
         core::ptr::write_volatile(a as *mut u8, 0x1);
@@ -54,10 +60,12 @@ fn init_plic() {
 struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
-        // TODO: This was a member function in previous RustSBI
         // This needs to become a parameter
         fn max_hart_id() -> usize {
             0
+        }
+        if DEBUG && DEBUG_IPI {
+            println!("[SBI] IPI {hart_mask:?}");
         }
         for i in 0..=max_hart_id() {
             if hart_mask.has_bit(i) {
@@ -69,24 +77,60 @@ impl rustsbi::Ipi for Ipi {
     }
 }
 
+struct Rfence;
+impl rustsbi::Fence for Rfence {
+    fn remote_fence_i(&self, hart_mask: HartMask) -> SbiRet {
+        if DEBUG && DEBUG_FENCE {
+            println!("[SBI] remote_fence_i {hart_mask:?}");
+        }
+        unsafe {
+            asm!(
+                "sfence.vma", // TLB flush
+                "fence.i",    // local hart
+                "fence  w,w", // whatever..?
+            );
+        }
+        if hart_mask.has_bit(0) {
+            msip::set_ipi(0);
+            msip::clear_ipi(0);
+        }
+        SbiRet::success(0)
+    }
+
+    fn remote_sfence_vma_asid(
+        &self,
+        hart_mask: HartMask,
+        start_addr: usize,
+        size: usize,
+        asid: usize,
+    ) -> SbiRet {
+        if DEBUG && DEBUG_FENCE {
+            println!("[SBI] remote_sfence_vma_asid {hart_mask:?}");
+        }
+        SbiRet::success(0)
+    }
+
+    fn remote_sfence_vma(&self, hart_mask: HartMask, start_addr: usize, size: usize) -> SbiRet {
+        if DEBUG && DEBUG_FENCE {
+            println!("[SBI] remote_sfence_vma {hart_mask:?} addr {start_addr:x} size {size}");
+        }
+        if hart_mask.has_bit(0) {
+            msip::set_ipi(0);
+            msip::clear_ipi(0);
+        }
+        SbiRet::success(0)
+    }
+}
+
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        let time: u64;
-        unsafe {
-            asm!("csrr {}, time", out(reg) time);
+        if DEBUG && DEBUG_TIMER {
+            println!("[SBI] setTimer {stime_value}");
         }
-        println!("[rustsbi] setTimer {}", stime_value);
         mtimecmp::write(stime_value);
-        unsafe {
-            if time > stime_value {
-                mip::set_stimer();
-            } else {
-                // clear any pending timer and reenable the interrupt
-                mip::clear_stimer();
-                mie::set_mtimer();
-            }
-        };
+        // clear any pending timer
+        unsafe { mip::clear_stimer() };
     }
 }
 

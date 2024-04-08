@@ -1,4 +1,4 @@
-#![feature(naked_functions, asm_sym, asm_const)]
+#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 // TODO: remove when done debugging crap
@@ -44,16 +44,16 @@ const DRAM_BLOB_BASE: usize = SPI_FLASH_BASE + 0x0001_0000;
 const PAYLOAD_BASE: usize = SPI_FLASH_BASE + 0x0004_0000;
 const DTB_ADDR: usize = DRAM_BASE + 0x0020_0000 + 0x0100_0000; // TODO
 const LOAD_ADDR: usize = DRAM_BASE;
-const LOAD_MAIN: bool = false;
+const LOAD_MAIN: bool = true;
 const DEBUG: bool = false;
-
-const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
 const QSPI_CSR: usize = 0x1186_0000;
 const QSPI_READ_CMD: usize = QSPI_CSR + 0x0004;
 const SPI_FLASH_READ_CMD: u32 = 0x0003;
 
 pub type EntryPoint = unsafe extern "C" fn(r0: usize, dtb: usize);
+
+const STACK_SIZE: usize = 4 * 1024; // 4KiB
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -228,18 +228,6 @@ fn exec_payload() {
         let f = transmute::<usize, EntryPoint>(LOAD_ADDR);
         asm!("fence.i");
         f(hart_id, 0);
-    }
-}
-
-fn peek32(a: u32) -> u32 {
-    let y = a as *const u32;
-    unsafe { read_volatile(y) }
-}
-
-fn poke32(a: u32, v: u32) {
-    let y = a as *mut u32;
-    unsafe {
-        write_volatile(y, v);
     }
 }
 

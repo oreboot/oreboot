@@ -1,0 +1,10 @@
+[package]
+name = "starfive-visionfive2-lib"
+version = "0.1.0"
+authors = [
+  "Daniel Maslowski <info@orangecms.org>",
+]
+edition = "2021"
+
+[dependencies]
+log = { path = "../../../../lib/log" }

@@ -6,39 +6,64 @@ use core::{
 use log::println;
 use riscv::register::{
     mcause::{self, Exception, Interrupt, Trap},
-    medeleg, mepc, mideleg, mie,
+    medeleg, mepc, mideleg, mie, mip,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
 };
 
-fn delegate_interrupt_exception() {
-    unsafe {
-        mideleg::set_sext();
-        mideleg::set_stimer();
-        mideleg::set_ssoft();
-        // p 35, table 3.6
-        medeleg::set_instruction_misaligned();
-        medeleg::set_instruction_fault();
-        // Do not medeleg::set_illegal_instruction();
-        // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
-        // medeleg::set_breakpoint();
+const DEBUG: bool = true;
+const DEBUG_MTIMER: bool = false;
+const DEBUG_RESUME: bool = false;
+const HANDLE_MISALIGNED: bool = false;
+
+// mideleg: 0x222
+// medeleg: 0xb151
+// OpenSBI medeleg: 0xb109
+// NOTE: OpenSBI does not delegate store/load misaligned.
+// Pending patches for Linux allow for it to handle misaligned access itself.
+// If delegated, Linux may send a SIGBUS to userspace and dump if unhandled:
+// `status: 8000000200006020 badaddr: 0000000000d608e6 cause: 0000000000000006`
+// Exception 6 on RISC-V means "Store/AMO address misaligned".
+unsafe fn delegate_interrupt_exception() {
+    mip::clear_stimer();
+    mip::clear_sext();
+    mip::clear_ssoft();
+    mip::clear_utimer();
+    mip::clear_uext();
+    mip::clear_usoft();
+
+    mideleg::set_sext();
+    mideleg::set_stimer();
+    mideleg::set_ssoft();
+    // p 35, table 3.6
+    medeleg::set_instruction_misaligned();
+    medeleg::set_instruction_fault();
+    // Do not medeleg::set_illegal_instruction();
+    // We need to handle sfence.VMA and timer access in SBI, i.e., rdtime.
+    // medeleg::set_breakpoint();
+    medeleg::clear_breakpoint();
+    if HANDLE_MISALIGNED {
+        medeleg::clear_load_misaligned();
+    } else {
         medeleg::set_load_misaligned();
-        medeleg::set_load_fault(); // PMP violation, shouldn't be hit
-        medeleg::set_store_misaligned();
-        medeleg::set_store_fault();
-        medeleg::set_user_env_call();
-        // Do not delegate env call from S-mode nor M-mode; we handle it :)
-        medeleg::set_instruction_page_fault();
-        medeleg::set_load_page_fault();
-        medeleg::set_store_page_fault();
-        mie::set_mext();
-        mie::set_mtimer();
-        mie::set_msoft();
-        mie::set_sext();
-        mie::set_stimer();
-        mie::set_ssoft();
     }
+    // load fault means PMP violation, shouldn't be hit
+    medeleg::set_load_fault();
+    if HANDLE_MISALIGNED {
+        medeleg::clear_store_misaligned();
+    } else {
+        medeleg::set_store_misaligned();
+    }
+    medeleg::set_store_fault();
+    medeleg::set_user_env_call();
+    // Do not delegate env call from S-mode nor M-mode; we handle it :)
+    medeleg::set_instruction_page_fault();
+    medeleg::set_load_page_fault();
+    medeleg::set_store_page_fault();
+    // mie::set_mext();
+    // mie::set_mtimer();
+    // mie::set_msoft();
 }
 
 pub fn init() {
@@ -47,17 +72,21 @@ pub fn init() {
     if addr & 0x2 != 0 {
         addr += 0x2;
     }
+    println!("[SBI] set mtvec: {addr:x}");
     unsafe { mtvec::write(addr, TrapMode::Direct) };
-    delegate_interrupt_exception();
+    println!("[SBI] delegate interrupts and exceptions");
+    unsafe { delegate_interrupt_exception() };
 }
 
 pub struct Runtime {
     context: SupervisorContext,
 }
 
+use core::mem::MaybeUninit as MU;
+
 impl Runtime {
     pub fn new_sbi_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> Self {
-        let context: SupervisorContext = unsafe { core::mem::MaybeUninit::zeroed().assume_init() };
+        let context: SupervisorContext = unsafe { MU::zeroed().assume_init() };
         let mut ans = Runtime { context };
         ans.prepare_supervisor(supervisor_mepc);
         ans.context.a0 = a0;
@@ -85,43 +114,72 @@ impl Runtime {
 }
 
 // best debugging function on the planet
-fn crap() {
-    println!(
-        "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
-        mtval::read(),
-        mepc::read(),
-        mcause::read().cause()
-    );
+fn print_exception_interrupt() {
+    if DEBUG && false {
+        let cause = mcause::read().cause();
+        let epc = mepc::read();
+        println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
+    }
 }
 
 impl Coroutine for Runtime {
     type Yield = MachineTrap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
-        unsafe { do_resume(&mut self.context as *mut _) };
+        if DEBUG && DEBUG_RESUME {
+            let mst = mstatus::read();
+            println!("[SBI] resume with {mst:#?}");
+        }
+        unsafe { do_resume(&mut self.context as *mut _) }
+        let cause = mcause::read().cause();
+        // NOTE: Debugging highly frequent traps may get tons of logs.
+        // If necessary, add prints here, use a counter, apply modulo, etc..
+        match cause {
+            Trap::Interrupt(Interrupt::MachineTimer) => {
+                if DEBUG_MTIMER {
+                    print_exception_interrupt();
+                }
+            }
+            Trap::Exception(Exception::SupervisorEnvCall) => {}
+            Trap::Exception(Exception::IllegalInstruction) => {}
+            _ => {
+                print_exception_interrupt();
+            }
+        }
         let mtval = mtval::read();
-        let trap = match mcause::read().cause() {
+        let trap = match cause {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
-            Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
+            Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
+            Trap::Interrupt(Interrupt::MachineTimer) => MachineTrap::MachineTimer(),
+            Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
             Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
             Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
-            Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
-            Trap::Interrupt(Interrupt::MachineTimer) => {
-                println!("mtimer traaaaap");
-                crap();
-                MachineTrap::MachineTimer()
-            }
-            Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
+            Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
+            Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
+            Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
             Trap::Exception(Exception::InstructionPageFault) => {
                 MachineTrap::InstructionPageFault(mtval)
             }
-            Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
-            Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
+            // NOTE: We intend to always delegate misaligned traps to S-mode.
+            // However, you may want to debug S-mode behavior and may wish to do
+            // a round-trip via M-mode. In that case, set `HANDLE_MISALIGNED`.
+            Trap::Exception(Exception::StoreMisaligned) => {
+                if HANDLE_MISALIGNED {
+                    println!("[SBI]: StoreMisaligned");
+                }
+                MachineTrap::StoreMisaligned(mtval)
+            }
+            Trap::Exception(Exception::LoadMisaligned) => {
+                if HANDLE_MISALIGNED {
+                    println!("[SBI]: LoadMisaligned");
+                }
+                MachineTrap::LoadMisaligned(mtval)
+            }
             e => panic!(
-                "unhandled exception: {:?}! mtval: {:#x?}, ctx: {:#x?}",
-                e, mtval, self.context
+                "[SBI] unhandled: {e:?}! mtval: {mtval:08x}, ctx: {:#x?}",
+                self.context
             ),
         };
         CoroutineState::Yielded(trap)
@@ -142,6 +200,8 @@ pub enum MachineTrap {
     InstructionPageFault(usize),
     LoadPageFault(usize),
     StorePageFault(usize),
+    LoadMisaligned(usize),
+    StoreMisaligned(usize),
 }
 
 #[derive(Debug)]
@@ -187,7 +247,7 @@ pub struct SupervisorContext {
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
     asm!(
-        "j      {from_machine_save}",
+        "j     {from_machine_save}",
         from_machine_save = sym from_machine_save,
         options(noreturn),
     )
@@ -201,72 +261,74 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
         "addi   sp, sp, -15*8",
         // Before entering the function, the caller's register has been saved,
         // and the callee's register should be saved
-        "sd     ra, 0*8(sp)
-        sd      gp, 1*8(sp)
-        sd      tp, 2*8(sp)
-        sd      s0, 3*8(sp)
-        sd      s1, 4*8(sp)
-        sd      s2, 5*8(sp)
-        sd      s3, 6*8(sp)
-        sd      s4, 7*8(sp)
-        sd      s5, 8*8(sp)
-        sd      s6, 9*8(sp)
-        sd      s7, 10*8(sp)
-        sd      s8, 11*8(sp)
-        sd      s9, 12*8(sp)
-        sd      s10, 13*8(sp)
-        sd      s11, 14*8(sp)",
+        "sd     ra,  0*8(sp)
+         sd     gp,  1*8(sp)
+         sd     tp,  2*8(sp)
+         sd     s0,  3*8(sp)
+         sd     s1,  4*8(sp)
+         sd     s2,  5*8(sp)
+         sd     s3,  6*8(sp)
+         sd     s4,  7*8(sp)
+         sd     s5,  8*8(sp)
+         sd     s6,  9*8(sp)
+         sd     s7, 10*8(sp)
+         sd     s8, 11*8(sp)
+         sd     s9, 12*8(sp)
+         sd    s10, 13*8(sp)
+         sd    s11, 14*8(sp)",
         // a0: privileged context
-        "j      {to_supervisor_restore}",
+        "j     {to_supervisor_restore}",
         to_supervisor_restore = sym to_supervisor_restore,
         options(noreturn)
     )
 }
 
+/// # Safety
+/// YOLO
 #[naked]
 #[link_section = ".text"]
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
         // a0: privileged context
-        "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文
-        "csrw   mscratch, a0", // 新mscratch:特权级上下文
+        "sd     sp,  33*8(a0)", // 机器栈顶放进特权级上下文
+        "csrw   mscratch, a0",  // 新mscratch:特权级上下文
         // mscratch:特权级上下文
-        "mv     sp, a0", // 新sp:特权级上下文
-        "ld     t0, 31*8(sp)
-        ld      t1, 32*8(sp)
-        csrw    mstatus, t0
-        csrw    mepc, t1",
-        "ld     ra, 0*8(sp)
-        ld      gp, 2*8(sp)
-        ld      tp, 3*8(sp)
-        ld      t0, 4*8(sp)
-        ld      t1, 5*8(sp)
-        ld      t2, 6*8(sp)
-        ld      s0, 7*8(sp)
-        ld      s1, 8*8(sp)
-        ld      a0, 9*8(sp)
-        ld      a1, 10*8(sp)
-        ld      a2, 11*8(sp)
-        ld      a3, 12*8(sp)
-        ld      a4, 13*8(sp)
-        ld      a5, 14*8(sp)
-        ld      a6, 15*8(sp)
-        ld      a7, 16*8(sp)
-        ld      s2, 17*8(sp)
-        ld      s3, 18*8(sp)
-        ld      s4, 19*8(sp)
-        ld      s5, 20*8(sp)
-        ld      s6, 21*8(sp)
-        ld      s7, 22*8(sp)
-        ld      s8, 23*8(sp)
-        ld      s9, 24*8(sp)
-        ld     s10, 25*8(sp)
-        ld     s11, 26*8(sp)
-        ld      t3, 27*8(sp)
-        ld      t4, 28*8(sp)
-        ld      t5, 29*8(sp)
-        ld      t6, 30*8(sp)",
-        "ld     sp, 1*8(sp)", // 新sp:特权级栈
+        "mv     sp,  a0", // 新sp:特权级上下文
+        "ld     t0,  31*8(sp)
+         ld     t1,  32*8(sp)
+         csrw   mstatus, t0
+         csrw   mepc, t1",
+        "ld     ra,  0*8(sp)
+         ld     gp,  2*8(sp)
+         ld     tp,  3*8(sp)
+         ld     t0,  4*8(sp)
+         ld     t1,  5*8(sp)
+         ld     t2,  6*8(sp)
+         ld     s0,  7*8(sp)
+         ld     s1,  8*8(sp)
+         ld     a0,  9*8(sp)
+         ld     a1, 10*8(sp)
+         ld     a2, 11*8(sp)
+         ld     a3, 12*8(sp)
+         ld     a4, 13*8(sp)
+         ld     a5, 14*8(sp)
+         ld     a6, 15*8(sp)
+         ld     a7, 16*8(sp)
+         ld     s2, 17*8(sp)
+         ld     s3, 18*8(sp)
+         ld     s4, 19*8(sp)
+         ld     s5, 20*8(sp)
+         ld     s6, 21*8(sp)
+         ld     s7, 22*8(sp)
+         ld     s8, 23*8(sp)
+         ld     s9, 24*8(sp)
+         ld    s10, 25*8(sp)
+         ld    s11, 26*8(sp)
+         ld     t3, 27*8(sp)
+         ld     t4, 28*8(sp)
+         ld     t5, 29*8(sp)
+         ld     t6, 30*8(sp)",
+        "ld     sp,  1*8(sp)", // 新sp:特权级栈
         // sp:特权级栈, mscratch:特权级上下文
         "mret",
         options(noreturn)
@@ -274,50 +336,51 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 }
 
 // 中断开始
-
+/// # Safety
+/// YOLO
 #[naked]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {
     asm!( // sp:特权级栈,mscratch:特权级上下文
         ".p2align 2",
         "csrrw  sp, mscratch, sp", // 新mscratch:特权级栈, 新sp:特权级上下文
-        "sd     ra, 0*8(sp)
-        sd      gp, 2*8(sp)
-        sd      tp, 3*8(sp)
-        sd      t0, 4*8(sp)
-        sd      t1, 5*8(sp)
-        sd      t2, 6*8(sp)
-        sd      s0, 7*8(sp)
-        sd      s1, 8*8(sp)
-        sd      a0, 9*8(sp)
-        sd      a1, 10*8(sp)
-        sd      a2, 11*8(sp)
-        sd      a3, 12*8(sp)
-        sd      a4, 13*8(sp)
-        sd      a5, 14*8(sp)
-        sd      a6, 15*8(sp)
-        sd      a7, 16*8(sp)
-        sd      s2, 17*8(sp)
-        sd      s3, 18*8(sp)
-        sd      s4, 19*8(sp)
-        sd      s5, 20*8(sp)
-        sd      s6, 21*8(sp)
-        sd      s7, 22*8(sp)
-        sd      s8, 23*8(sp)
-        sd      s9, 24*8(sp)
-        sd     s10, 25*8(sp)
-        sd     s11, 26*8(sp)
-        sd      t3, 27*8(sp)
-        sd      t4, 28*8(sp)
-        sd      t5, 29*8(sp)
-        sd      t6, 30*8(sp)",
+        "sd     ra,  0*8(sp)
+         sd     gp,  2*8(sp)
+         sd     tp,  3*8(sp)
+         sd     t0,  4*8(sp)
+         sd     t1,  5*8(sp)
+         sd     t2,  6*8(sp)
+         sd     s0,  7*8(sp)
+         sd     s1,  8*8(sp)
+         sd     a0,  9*8(sp)
+         sd     a1, 10*8(sp)
+         sd     a2, 11*8(sp)
+         sd     a3, 12*8(sp)
+         sd     a4, 13*8(sp)
+         sd     a5, 14*8(sp)
+         sd     a6, 15*8(sp)
+         sd     a7, 16*8(sp)
+         sd     s2, 17*8(sp)
+         sd     s3, 18*8(sp)
+         sd     s4, 19*8(sp)
+         sd     s5, 20*8(sp)
+         sd     s6, 21*8(sp)
+         sd     s7, 22*8(sp)
+         sd     s8, 23*8(sp)
+         sd     s9, 24*8(sp)
+         sd    s10, 25*8(sp)
+         sd    s11, 26*8(sp)
+         sd     t3, 27*8(sp)
+         sd     t4, 28*8(sp)
+         sd     t5, 29*8(sp)
+         sd     t6, 30*8(sp)",
         "csrr   t0, mstatus
-        sd      t0, 31*8(sp)",
+         sd     t0, 31*8(sp)",
         "csrr   t1, mepc
-        sd      t1, 32*8(sp)",
+         sd     t1, 32*8(sp)",
         // mscratch:特权级栈,sp:特权级上下文
         "csrrw  t2, mscratch, sp", // 新mscratch:特权级上下文,t2:特权级栈
-        "sd     t2, 1*8(sp)", // 保存特权级栈
+        "sd     t2,  1*8(sp)", // 保存特权级栈
         "j      {to_machine_restore}",
         to_machine_restore = sym to_machine_restore,
         options(noreturn)
@@ -331,21 +394,21 @@ unsafe extern "C" fn to_machine_restore() -> ! {
         // mscratch:特权级上下文
         "csrr   sp, mscratch", // sp:特权级上下文
         "ld     sp, 33*8(sp)", // sp:机器栈
-        "ld     ra, 0*8(sp)
-        ld      gp, 1*8(sp)
-        ld      tp, 2*8(sp)
-        ld      s0, 3*8(sp)
-        ld      s1, 4*8(sp)
-        ld      s2, 5*8(sp)
-        ld      s3, 6*8(sp)
-        ld      s4, 7*8(sp)
-        ld      s5, 8*8(sp)
-        ld      s6, 9*8(sp)
-        ld      s7, 10*8(sp)
-        ld      s8, 11*8(sp)
-        ld      s9, 12*8(sp)
-        ld      s10, 13*8(sp)
-        ld      s11, 14*8(sp)",
+        "ld     ra,  0*8(sp)
+         ld     gp,  1*8(sp)
+         ld     tp,  2*8(sp)
+         ld     s0,  3*8(sp)
+         ld     s1,  4*8(sp)
+         ld     s2,  5*8(sp)
+         ld     s3,  6*8(sp)
+         ld     s4,  7*8(sp)
+         ld     s5,  8*8(sp)
+         ld     s6,  9*8(sp)
+         ld     s7, 10*8(sp)
+         ld     s8, 11*8(sp)
+         ld     s9, 12*8(sp)
+         ld    s10, 13*8(sp)
+         ld    s11, 14*8(sp)",
         "addi   sp, sp, 15*8", // sp:机器栈顶
         "jr     ra",           // 其实就是ret
         options(noreturn)
