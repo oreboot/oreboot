@@ -10,7 +10,7 @@ pub use pac::*;
 ///
 /// The reference must be dropped before calling again.
 pub fn syscrg_reg<'r>() -> &'r pac::syscrg::RegisterBlock {
-    unsafe { &*pac::SYSCRG::ptr() }
+    unsafe { &*pac::Syscrg::ptr() }
 }
 
 /// Gets a reference to the AONCRG register.
@@ -21,7 +21,7 @@ pub fn syscrg_reg<'r>() -> &'r pac::syscrg::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn aoncrg_reg<'r>() -> &'r pac::aoncrg::RegisterBlock {
-    unsafe { &*pac::AONCRG::ptr() }
+    unsafe { &*pac::Aoncrg::ptr() }
 }
 
 /// Gets a reference to the AONCRG register.
@@ -32,7 +32,7 @@ pub fn aoncrg_reg<'r>() -> &'r pac::aoncrg::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn sys_syscon_reg<'r>() -> &'r pac::sys_syscon::RegisterBlock {
-    unsafe { &*pac::SYS_SYSCON::ptr() }
+    unsafe { &*pac::SysSyscon::ptr() }
 }
 
 /// Gets a reference to the UART0 register.
@@ -43,7 +43,7 @@ pub fn sys_syscon_reg<'r>() -> &'r pac::sys_syscon::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn uart0_reg<'r>() -> &'r pac::uart0::RegisterBlock {
-    unsafe { &*pac::UART0::ptr() }
+    unsafe { &*pac::Uart0::ptr() }
 }
 
 /// Gets a reference to the SYS_PINCTRL register.
@@ -54,7 +54,7 @@ pub fn uart0_reg<'r>() -> &'r pac::uart0::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn sys_pinctrl_reg<'r>() -> &'r pac::sys_pinctrl::RegisterBlock {
-    unsafe { &*pac::SYS_PINCTRL::ptr() }
+    unsafe { &*pac::SysPinctrl::ptr() }
 }
 
 /// Gets a reference to the CLINT register.
@@ -65,7 +65,7 @@ pub fn sys_pinctrl_reg<'r>() -> &'r pac::sys_pinctrl::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn clint_reg<'r>() -> &'r pac::clint::RegisterBlock {
-    unsafe { &*pac::CLINT::ptr() }
+    unsafe { &*pac::Clint::ptr() }
 }
 
 /// Gets a reference to the PLIC register.
@@ -76,5 +76,5 @@ pub fn clint_reg<'r>() -> &'r pac::clint::RegisterBlock {
 ///
 /// The reference must be dropped before calling again.
 pub fn plic_reg<'r>() -> &'r pac::plic::RegisterBlock {
-    unsafe { &*pac::PLIC::ptr() }
+    unsafe { &*pac::Plic::ptr() }
 }
