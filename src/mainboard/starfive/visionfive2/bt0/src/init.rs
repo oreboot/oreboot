@@ -2,8 +2,6 @@ use core::arch::asm;
 use core::ptr::{read_volatile, write_volatile};
 use core::slice;
 
-use soc::starfive::jh7110::pac;
-
 pub fn dump(addr: usize, length: usize) {
     let s = unsafe { slice::from_raw_parts(addr as *const u8, length) };
     println!("dump {length} bytes @{addr:x}");
