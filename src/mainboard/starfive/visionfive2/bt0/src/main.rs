@@ -340,7 +340,31 @@ fn main() {
 
     println!("Initializing DRAM...");
     let mut dram = ddr::Ddr::new(dp.dmc_ctrl, dp.dmc_phy, clock_syscrg.release(), sys_syscon);
-    dram.init();
+    let mut udelay = hal::delay::u74_mdelay();
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkOscDiv2);
+
+    dram.set_pll1(pll::Freq::pll1_ddr2133_1066mhz());
+
+    udelay.delay_ns(500);
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkPll1Div2);
+    udelay.delay_ns(200);
+
+    // init the clocks.
+    dram.init_osc(&mut udelay);
+    dram.init_apb(&mut udelay);
+    dram.init_axi(&mut udelay);
+
+    // init the OMC PHY.
+    dram.phy_train();
+    dram.phy_util();
+    dram.phy_start();
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkOscDiv2);
+
+    // init the OMC (Orbit Memory Controller).
+    dram.omc_init();
     println!("Initializing DRAM done.");
 
     // Find and copy the main stage
