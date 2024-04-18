@@ -14,6 +14,10 @@
     // TODO: flash size/type/brand...?
     flash-info {
         compatible = "ore-flashinfo";
+        // SPI flash is mapped to memory
+        addr = <0x21000000>;
+        size = <0x1000000>;
+
         areas {
             area@0 {
                 description = "JH7110 specific header";

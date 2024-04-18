@@ -232,8 +232,8 @@ fn dump_props(n: &FdtNode, pre: &str) {
 // TODO: Should we do recursion? It's possible, but... not really necessary.
 // While being less repetitive, it imposes new challenges.
 fn dump_fdt_nodes(fdt: &Fdt, path: &str) {
-    let nodes = &mut fdt.find_all_nodes(path);
     println!(" {path}");
+    let nodes = &mut fdt.find_all_nodes(path);
     for n in FdtIterator::new(nodes) {
         for n in n.children() {
             let c = n.name;
@@ -315,7 +315,7 @@ fn find_and_process_dtfs(slice: &[u8]) -> Result<(usize, usize), &str> {
     if let Ok(fdt) = find_fdt(slice) {
         dump_fdt_board_info(&fdt);
         println!("💾 DTFS");
-        dump_fdt_nodes(&fdt, "/flash-info/areas");
+        dump_fdt_nodes(&fdt, "/flash-info");
         dump_fdt_nodes(&fdt, "/load-info");
         let (offset, size) = get_payload_offset_and_size(&fdt, "uboot-main");
         Ok((offset, size))
