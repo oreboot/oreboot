@@ -3,9 +3,20 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-// see https://github.com/sophgo/fsbl plat/cv181x/include/platform_def.h
+// see https://github.com/sophgo/fsbl
+//
+//  plat/cv181x/include/platform_def.h
 // #define TPU_SRAM_ORIGIN_BASE 0x0C000000
 // #define TPU_SRAM_SIZE 0x40000 // 256KiB
+
+//  plat/cv180x/bl2/bl2.ld.S
+//  19:    RAM (rwx): ORIGIN = BL2_BASE, LENGTH = BL2_SIZE
+//
+//  plat/cv180x/include/mmap.h
+//  48:#define BL2_BASE (VC_RAM_BASE)
+//
+//  plat/cv180x/include/platform_def.h
+//  296:    #define VC_RAM_BASE 0x3BC00000 // Shadow_vc_mem
 
 const LINKERSCRIPT_FILENAME: &str = "link-duo_s-bt0.ld";
 
@@ -13,7 +24,7 @@ const LINKERSCRIPT: &[u8] = b"
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
-    SRAM : ORIGIN = 0xc000000, LENGTH = 256k
+    SRAM : ORIGIN = 0x3bc00000, LENGTH = 256k
 }
 SECTIONS {
     .head : {
