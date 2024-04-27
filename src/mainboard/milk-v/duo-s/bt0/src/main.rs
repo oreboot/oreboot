@@ -225,15 +225,20 @@ fn main() {
     println!();
     let chip_type_v = (conf >> 28) & 0b111;
     let chip_type = match chip_type_v {
-        3 => "CV1800B / 64MB DDR2 RAM 1333",
+        1 => "SG20000 / 512MB DDR3 RAM @1866",
+        3 => "CV1800B / 64MB DDR2 RAM @1333",
         _ => "unknown",
     };
     println!("TYPE:          {chip_type} ({chip_type_v})");
     println!();
 
+    // fsbl plat/cv181x/ddr/ddr_pkg_info.c
+
+    // 1: NY 4Gbit DDR3
     // 4: ESMT 512Mbit DDR2
     let dram_vendor = (efuse_leakage >> 21) & 0b11111;
     // 1: 512Mbit
+    // 4: 4Gbit
     let dram_capacity = (efuse_leakage >> 26) & 0b111;
 
     println!("dram_vendor {dram_vendor}, dram_capacity {dram_capacity}");
@@ -241,6 +246,15 @@ fn main() {
 
     let cp_state = read32(CP_STATE);
     println!("CP_STATE:      {cp_state:08x}");
+    println!();
+
+    let ddr_rate = match chip_type_v {
+        1 => 1866,
+        3 => 1333,
+        _ => panic!("DDR rate not supported"),
+    };
+
+    dram::init(ddr_rate);
 
     /*
     * CV1800B / Duo
