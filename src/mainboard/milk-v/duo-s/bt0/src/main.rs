@@ -191,6 +191,7 @@ const MASK_ROM_BASE: usize = 0x0440_0000;
 // const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0001_8020;
 // plat/cv180x/include/riscv/rom_api_refer.h
 const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0000_0020;
+const P_ROM_API_GET_NUMBER_OF_RETRIES: usize = MASK_ROM_BASE + 0x0000_00C0;
 
 const BOOT_SRC_TAG: u32 = 0xCE00;
 
@@ -235,6 +236,10 @@ fn main() {
         let get_boot_src: GetBootSrc = transmute(P_ROM_API_GET_BOOT_SRC);
         let boot_src = get_boot_src();
         println!("boot src: {boot_src}");
+
+        let get_entry_count: GetBootSrc = transmute(P_ROM_API_GET_NUMBER_OF_RETRIES);
+        let entry_count = get_entry_count();
+        println!("entries: {entry_count}");
     }
 
     let w_lock0 = read32(EFUSE_W_LOCK0);
