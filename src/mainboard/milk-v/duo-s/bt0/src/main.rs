@@ -23,14 +23,13 @@ use riscv::register::{marchid, mimpid, mvendorid};
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 mod dram;
+mod rom;
 mod uart;
 mod util;
 
 use util::{read32, write32};
 
 pub type EntryPoint = unsafe extern "C" fn();
-
-type GetBootSrc = unsafe extern "C" fn() -> BootSrc;
 
 const DEBUG: bool = false;
 
@@ -180,47 +179,15 @@ const CONF: usize = TOP_MISC + 0x0004;
 
 const EFUSE: usize = TOP_BASE + 0x0005_0000;
 const EFUSE_STATUS: usize = EFUSE + 0x0010;
+const EFUSE_SHADOW: usize = EFUSE + 0x0100;
+const EFUSE_CUSTOMER: usize = EFUSE_SHADOW + 0x0004;
 const EFUSE_LEAKAGE: usize = EFUSE + 0x0108;
 const FTSN3: usize = EFUSE + 0x010C;
 const FTSN4: usize = EFUSE + 0x0110;
 const EFUSE_W_LOCK0: usize = EFUSE + 0x0198;
 
-// 64k mask ROM
-const MASK_ROM_BASE: usize = 0x0440_0000;
-// plat/cv181x/include/riscv/rom_api_refer.h
-// const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0001_8020;
-// plat/cv180x/include/riscv/rom_api_refer.h
-const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0000_0020;
-const P_ROM_API_GET_NUMBER_OF_RETRIES: usize = MASK_ROM_BASE + 0x0000_00C0;
-
-const BOOT_SRC_TAG: u32 = 0xCE00;
-
 const AXI_SRAM_BASE: usize = 0x0E00_0000;
 const CP_STATE: usize = AXI_SRAM_BASE + 0x0018;
-
-#[derive(Debug)]
-#[repr(u32)]
-enum BootSrc {
-    SpiNand = BOOT_SRC_TAG | 0x00,
-    SpiNor = BOOT_SRC_TAG | 0x02,
-    Emmc = BOOT_SRC_TAG | 0x03,
-    Sd = BOOT_SRC_TAG | 0xa0,
-    Usb = BOOT_SRC_TAG | 0xa3,
-    Uart = BOOT_SRC_TAG | 0xa5,
-}
-
-impl core::fmt::Display for BootSrc {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        match *self {
-            BootSrc::SpiNand => write!(f, "SPI NAND"),
-            BootSrc::SpiNor => write!(f, "SPI NOR"),
-            BootSrc::Emmc => write!(f, "EMMC"),
-            BootSrc::Sd => write!(f, "SD card"),
-            BootSrc::Usb => write!(f, "USB"),
-            BootSrc::Uart => write!(f, "UART"),
-        }
-    }
-}
 
 #[no_mangle]
 fn main() {
@@ -233,14 +200,13 @@ fn main() {
     print_ids();
 
     unsafe {
-        let get_boot_src: GetBootSrc = transmute(P_ROM_API_GET_BOOT_SRC);
-        let boot_src = get_boot_src();
+        let boot_src = rom::get_boot_src();
         println!("boot src: {boot_src}");
 
-        let get_entry_count: GetBootSrc = transmute(P_ROM_API_GET_NUMBER_OF_RETRIES);
-        let entry_count = get_entry_count();
-        println!("entries: {entry_count}");
+        let retry_count = rom::get_retry_count();
+        println!("retries:  {retry_count}");
     }
+    println!();
 
     let w_lock0 = read32(EFUSE_W_LOCK0);
     println!("W_LOCK0:       {w_lock0:08x}");
@@ -256,31 +222,50 @@ fn main() {
     let v = read32(FTSN4);
     println!("FTSN4:         {v:08x}");
 
-    let chip_type = (conf >> 28) & 0b111;
-    let chip_type = match chip_type {
+    println!();
+    let chip_type_v = (conf >> 28) & 0b111;
+    let chip_type = match chip_type_v {
         3 => "CV1800B / 64MB DDR2 RAM 1333",
         _ => "unknown",
     };
-    println!("TYPE:          {chip_type}");
+    println!("TYPE:          {chip_type} ({chip_type_v})");
+    println!();
 
-    // 1: 512Mbit
-    let dram_capacity = (efuse_leakage >> 26) & 0b111;
     // 4: ESMT 512Mbit DDR2
     let dram_vendor = (efuse_leakage >> 21) & 0b11111;
+    // 1: 512Mbit
+    let dram_capacity = (efuse_leakage >> 26) & 0b111;
+
+    println!("dram_vendor {dram_vendor}, dram_capacity {dram_capacity}");
+    println!();
 
     let cp_state = read32(CP_STATE);
     println!("CP_STATE:      {cp_state:08x}");
 
     /*
-     * W_LOCK0:       00000000
-     * EFUSE_STATUS:  00000070
-     * CONF:          3500032a
-     * EFUSE_LEAKAGE: 64800024
-     * FTSN3:         e1a5e4ca
-     * FTSN4:         15274190
-     * TYPE:          CV1800B / 64MB DDR2 RAM 1333
-     * CP_STATE:      00000000
-     */
+    * CV1800B / Duo
+       W_LOCK0:       00000000
+       EFUSE_STATUS:  00000070
+       CONF:          3500032a
+       EFUSE_LEAKAGE: 64800024
+       FTSN3:         e1a5e4ca
+       FTSN4:         15274190
+       TYPE:          CV1800B / 64MB DDR2 RAM 1333
+       CP_STATE:      00000000
+    */
+
+    /*
+    * SG2000 / Duo S
+       W_LOCK0:       00000018
+       EFUSE_STATUS:  00000070
+       CONF:          170003ab
+       EFUSE_LEAKAGE: 5020002d
+       FTSN3:         d1c21ea5
+       FTSN4:         1526b59a
+       TYPE:          unknown
+       CP_STATE:      00000000
+       [bt0] Jump to main stage @80200000
+    */
 
     let load_addr = DRAM_BASE + 0x0020_0000;
     println!("[bt0] Jump to main stage @{load_addr:08x}");
