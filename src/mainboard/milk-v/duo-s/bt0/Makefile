@@ -13,10 +13,18 @@ ciclippy: nop
 citest: nop
 checkformat: nop
 
-mainboard:
+mainboard: build
+
+build:
 	# TODO: cargo make
 	cargo build --release
 	riscv64-unknown-elf-objcopy -O binary $(RELEASE_ELF) $(RELEASE_BIN)
 
-hexdump: mainboard
+run: build
+	sg_boot run $(RELEASE_BIN)
+
+objdump: build
+	riscv64-unknown-elf-dump -D $(RELEASE_ELF)
+
+hexdump: build
 	xxd $(RELEASE_BIN)

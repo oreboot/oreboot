@@ -10,7 +10,6 @@ use embedded_hal_nb::serial::Write;
 #[macro_use]
 extern crate log;
 
-use core::ptr::{read_volatile, write_volatile};
 use core::{
     arch::asm,
     mem::transmute,
@@ -23,7 +22,11 @@ use riscv::register::{marchid, mimpid, mvendorid};
 
 use layoutflash::areas::{find_fdt, FdtIterator};
 
+mod dram;
 mod uart;
+mod util;
+
+use util::{read32, write32};
 
 pub type EntryPoint = unsafe extern "C" fn();
 
@@ -128,12 +131,13 @@ pub unsafe extern "C" fn reset() {
 fn vendorid_to_name<'a>(vendorid: usize) -> &'a str {
     match vendorid {
         0x0489 => "SiFive",
+        0x05b7 => "T-Head",
         _ => "unknown",
     }
 }
 
-fn impid_to_name<'a>(vendorid: usize) -> &'a str {
-    match vendorid {
+fn impid_to_name<'a>(impid: usize) -> &'a str {
+    match impid {
         0x0421_0427 => "21G1.02.00 / llama.02.00-general",
         _ => "unknown",
     }
@@ -170,31 +174,28 @@ fn init_logger(s: uart::SGSerial) {
     }
 }
 
-pub fn write32(reg: usize, val: u32) {
-    unsafe {
-        write_volatile(reg as *mut u32, val);
-    }
-}
+const TOP_BASE: usize = 0x0300_0000;
+const TOP_MISC: usize = TOP_BASE;
+const CONF: usize = TOP_MISC + 0x0004;
 
-pub fn read32(reg: usize) -> u32 {
-    unsafe { read_volatile(reg as *mut u32) }
-}
-
-fn copy(source: usize, target: usize, size: usize) {
-    for b in (0..size).step_by(4) {
-        write32(target + b, read32(source + b));
-        if b % 0x4_0000 == 0 {
-            print!(".");
-        }
-    }
-    println!(" done.");
-}
+const EFUSE: usize = TOP_BASE + 0x0005_0000;
+const EFUSE_STATUS: usize = EFUSE + 0x0010;
+const EFUSE_LEAKAGE: usize = EFUSE + 0x0108;
+const FTSN3: usize = EFUSE + 0x010C;
+const FTSN4: usize = EFUSE + 0x0110;
+const EFUSE_W_LOCK0: usize = EFUSE + 0x0198;
 
 // 64k mask ROM
 const MASK_ROM_BASE: usize = 0x0440_0000;
-const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0001_8020;
+// plat/cv181x/include/riscv/rom_api_refer.h
+// const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0001_8020;
+// plat/cv180x/include/riscv/rom_api_refer.h
+const P_ROM_API_GET_BOOT_SRC: usize = MASK_ROM_BASE + 0x0000_0020;
 
 const BOOT_SRC_TAG: u32 = 0xCE00;
+
+const AXI_SRAM_BASE: usize = 0x0E00_0000;
+const CP_STATE: usize = AXI_SRAM_BASE + 0x0018;
 
 #[derive(Debug)]
 #[repr(u32)]
@@ -236,11 +237,51 @@ fn main() {
         println!("boot src: {boot_src}");
     }
 
+    let w_lock0 = read32(EFUSE_W_LOCK0);
+    println!("W_LOCK0:       {w_lock0:08x}");
+    let efuse_status = read32(EFUSE_STATUS);
+    println!("EFUSE_STATUS:  {efuse_status:08x}");
+
+    let conf = read32(CONF);
+    println!("CONF:          {conf:08x}");
+    let efuse_leakage = read32(EFUSE_LEAKAGE);
+    println!("EFUSE_LEAKAGE: {efuse_leakage:08x}");
+    let v = read32(FTSN3);
+    println!("FTSN3:         {v:08x}");
+    let v = read32(FTSN4);
+    println!("FTSN4:         {v:08x}");
+
+    let chip_type = (conf >> 28) & 0b111;
+    let chip_type = match chip_type {
+        3 => "CV1800B / 64MB DDR2 RAM 1333",
+        _ => "unknown",
+    };
+    println!("TYPE:          {chip_type}");
+
+    // 1: 512Mbit
+    let dram_capacity = (efuse_leakage >> 26) & 0b111;
+    // 4: ESMT 512Mbit DDR2
+    let dram_vendor = (efuse_leakage >> 21) & 0b11111;
+
+    let cp_state = read32(CP_STATE);
+    println!("CP_STATE:      {cp_state:08x}");
+
+    /*
+     * W_LOCK0:       00000000
+     * EFUSE_STATUS:  00000070
+     * CONF:          3500032a
+     * EFUSE_LEAKAGE: 64800024
+     * FTSN3:         e1a5e4ca
+     * FTSN4:         15274190
+     * TYPE:          CV1800B / 64MB DDR2 RAM 1333
+     * CP_STATE:      00000000
+     */
+
     let load_addr = DRAM_BASE + 0x0020_0000;
     println!("[bt0] Jump to main stage @{load_addr:08x}");
     exec_payload(load_addr);
 
-    // println!("[bt0] Exit from main stage, resetting...");
+    println!("[bt0] Exit from main stage, resetting...");
 
     unsafe {
         reset();
