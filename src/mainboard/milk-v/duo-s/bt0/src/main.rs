@@ -22,7 +22,9 @@ use riscv::register::{marchid, mimpid, mvendorid};
 
 use layoutflash::areas::{find_fdt, FdtIterator};
 
+mod ddr_phy;
 mod dram;
+mod mem_map;
 mod rom;
 mod uart;
 mod util;
@@ -32,8 +34,6 @@ use util::{read32, write32};
 pub type EntryPoint = unsafe extern "C" fn();
 
 const DEBUG: bool = false;
-
-const DRAM_BASE: usize = 0x8000_0000;
 
 const STACK_SIZE: usize = 512;
 
@@ -173,11 +173,11 @@ fn init_logger(s: uart::SGSerial) {
     }
 }
 
-const TOP_BASE: usize = 0x0300_0000;
-const TOP_MISC: usize = TOP_BASE;
-const CONF: usize = TOP_MISC + 0x0004;
+const CONF: usize = mem_map::TOP_MISC + 0x0004;
 
-const EFUSE: usize = TOP_BASE + 0x0005_0000;
+// https://github.com/sophgo/cvi_alios_open
+//   components/chip_cv181x/src/drivers/efuse/wj/cvi/cvi_efuse.c
+const EFUSE: usize = mem_map::TOP_BASE + 0x0005_0000;
 const EFUSE_STATUS: usize = EFUSE + 0x0010;
 const EFUSE_SHADOW: usize = EFUSE + 0x0100;
 const EFUSE_CUSTOMER: usize = EFUSE_SHADOW + 0x0004;
@@ -254,7 +254,7 @@ fn main() {
         _ => panic!("DDR rate not supported"),
     };
 
-    dram::init(ddr_rate);
+    dram::init(ddr_rate, dram_vendor);
 
     /*
     * CV1800B / Duo
@@ -281,7 +281,7 @@ fn main() {
        [bt0] Jump to main stage @80200000
     */
 
-    let load_addr = DRAM_BASE + 0x0020_0000;
+    let load_addr = mem_map::DRAM_BASE + 0x0020_0000;
     println!("[bt0] Jump to main stage @{load_addr:08x}");
     exec_payload(load_addr);
 
