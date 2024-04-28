@@ -1,5 +1,5 @@
 use crate::ddr_phy::phy_init;
-use crate::mem_map::{DDR_CFG_BASE, DDR_TOP_BASE, PHYD_APB, PHYD_BASE_ADDR, TOP_BASE};
+use crate::mem_map::{DDR_CFG_BASE, DDR_TOP_BASE, DRAM_BASE, PHYD_APB, PHYD_BASE_ADDR, TOP_BASE};
 use crate::util::{read32, write32};
 
 // plat/cv181x/include/ddr/bitwise_ops.h
@@ -1365,7 +1365,7 @@ fn cvx16_set_dfi_init_complete() {
     println!("/ cvx16_set_dfi_init_complete start");
     // opdelay(20000);
     // HACK
-    for _ in [0..20000] {
+    for _ in 0..20000 {
         read32(PHYD_BASE_ADDR + 0x0118);
     }
     // rddata[8] = 1;
@@ -1518,7 +1518,7 @@ fn change_pll_freq(reg_set: u32, reg_span: u32, reg_step: u32) {
     while read32(PHYD_APB + 0x10) & (1 << 15) == 0 {
         // opdelay(200);
         // HACK
-        for _ in [0..200] {
+        for _ in 0..200 {
             read32(PHYD_APB + 0x10);
         }
     }
@@ -1553,14 +1553,20 @@ fn cvx16_ddr_phy_power_on_seq3() {
 
 fn cvx16_wait_for_dfi_init_complete() {
     println!("/ wait_for_dfi_init_complete start");
-    while read32(DDR_CFG_BASE + 0x000001bc) & 0x1 == 0 {}
+    while read32(DDR_CFG_BASE + 0x01bc) & 0x1 == 0 {}
     dfi_init();
     println!("\\ wait_for_dfi_init_complete finish");
 }
 
 fn cvx16_polling_synp_normal_mode() {
     println!("/ polling_synp_normal_mode start");
-    //
+    // synp ctrl operating_mode
+    while let v = read32(DDR_CFG_BASE + 0x0004) & 0b111 {
+        println!("  operating_mode {v}");
+        if v == 1 {
+            break;
+        }
+    }
     println!("\\ polling_synp_normal_mode finish");
 }
 
@@ -1630,6 +1636,27 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
     cvx16_wait_for_dfi_init_complete();
 
     cvx16_polling_synp_normal_mode();
+
+    let offset1 = 0x3000;
+    let offset2 = 0x6000;
+    for i in (0..128).step_by(4) {
+        let a = DRAM_BASE + offset1 + i as usize;
+        let v = 0xff00_0000 | i as u32;
+        write32(a, v);
+        let a = DRAM_BASE + offset2 + i as usize;
+        let v = 0x0f0f_0000 | i as u32;
+        write32(a, v);
+    }
+    for i in (0..128).step_by(4) {
+        let a = DRAM_BASE + offset1 + i as usize;
+        let e = 0xff00_0000 | i as u32;
+        let v = read32(a);
+        println!("{a:08x} {e:08x} {v:08x}");
+        let a = DRAM_BASE + offset2 + i as usize;
+        let e = 0x0f0f_0000 | i as u32;
+        let v = read32(a);
+        println!("{a:08x} {e:08x} {v:08x}");
+    }
 
     /*
     #ifdef DO_BIST
