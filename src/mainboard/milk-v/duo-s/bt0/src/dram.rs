@@ -488,7 +488,7 @@ const PHY_REG_VERSION: usize = PHYD_BASE_ADDR + 0x3000;
 
 // plat/cv181x/ddr/ddr_sys.c
 fn cvx16_setting_check() {
-    println!("| cvx16_setting_check");
+    println!("/ cvx16_setting_check");
 
     // NOTE: On Duo S, I get 20210920 - looking like year/month/day
     let phy_reg_version = read32(PHY_REG_VERSION);
@@ -529,12 +529,12 @@ fn cvx16_setting_check() {
     if (dfi_t_wrdata_delay != 0x7) {
         println!("ERR !!! dfi_t_wrdata_delay not 0x7");
     }
-    println!("| cvx16_setting_check finish");
+    println!("\\ cvx16_setting_check finish");
 }
 
 // plat/cv181x/ddr/cvx16_pinmux.c
 pub fn cvx16_pinmux(ddr_vendor: DramVendor) {
-    println!("| cvx16_pinmux start");
+    println!("/ cvx16_pinmux start");
     match ddr_vendor {
         // Duo S
         DramVendor::NY4GbitDDR3 => {
@@ -1081,14 +1081,14 @@ pub fn cvx16_pinmux(ddr_vendor: DramVendor) {
         KC_MSG("pin mux setting }\n");
     #endif
     */
-    println!("| cvx16_pinmux finish");
+    println!("\\ cvx16_pinmux finish");
 }
 
 // This is a full duplicate in the vendor code:
 // plat/cv181x/ddr/ddr_config/ddr_auto_x16/ddr_patch_regs.c
 // plat/cv181x/ddr/ddr_config/ddr3_1866_x16/ddr_patch_regs.c
 fn ddr_patch_set() {
-    println!("| ddr_patch_set start");
+    println!("/ ddr_patch_set start");
     const DDR3_1866: bool = true;
     if DDR3_1866 {
         // tune damp //////
@@ -1187,38 +1187,42 @@ fn ddr_patch_set() {
         // CSB dline + shift CSB0 [6:0]+[13:8] ; CSB1 [22:16]+[29:24]
         write32(0x08000934, 0x04000400);
     }
-    println!("| ddr_patch_set finish");
+    println!("\\ ddr_patch_set finish");
 }
 
 // plat/cv181x/ddr/ddr_sys.c
 fn cvx16_en_rec_vol_mode() {
-    println!("| cvx16_en_rec_vol_mode start");
+    println!("/ cvx16_en_rec_vol_mode start");
     const DDR2: bool = false;
     if DDR2 {
         write32(0x0500 + PHYD_BASE_ADDR, 0x00001001);
         write32(0x0540 + PHYD_BASE_ADDR, 0x00001001);
     }
-    println!("| cvx16_en_rec_vol_mode finish");
+    println!("\\ cvx16_en_rec_vol_mode finish");
+}
+
+fn dfi_init() {
+    // synp setting
+    // phy is ready for initial dfi_init_start request
+    // set umctl2 to trigger dfi_init_start
+    write32(DDR_CFG_BASE + 0x00000320, 0x0);
+    // dfi_init_start @ rddata[5];
+    let v = read32(DDR_CFG_BASE + 0x000001b0);
+    write32(DDR_CFG_BASE + 0x000001b0, v | 1 << 5);
+    write32(DDR_CFG_BASE + 0x00000320, 0x1);
 }
 
 // DFI = DDR PHY Interface
 // https://www.synopsys.com/blogs/chip-design/mastering-ddr-phy-interoperability-dfi.html
 // plat/cv181x/ddr/ddr_sys.c
 fn cvx16_set_dfi_init_start() {
-    // synp setting
-    // phy is ready for initial dfi_init_start request
-    // set umctl2 to tigger dfi_init_start
-    println!("| cvx16_set_dfi_init start");
-    write32(DDR_CFG_BASE + 0x00000320, 0x0);
-    // dfi_init_start @ rddata[5];
-    let v = read32(DDR_CFG_BASE + 0x000001b0);
-    write32(DDR_CFG_BASE + 0x000001b0, v | 1 << 5);
-    write32(DDR_CFG_BASE + 0x00000320, 0x1);
-    println!("| set_dfi_init_start finish");
+    println!("/ cvx16_set_dfi_init start");
+    dfi_init();
+    println!("\\ set_dfi_init_start finish");
 }
 
 fn cvx16_ddr_phy_power_on_seq1() {
-    println!("| ddr_phy_power_on_seq1 start");
+    println!("/ ddr_phy_power_on_seq1 start");
     // RESETZ/CKE PD=0
     let v = read32(0x40 + PHYD_APB);
     // TOP_REG_TX_CA_PD_CKE0
@@ -1249,33 +1253,55 @@ fn cvx16_ddr_phy_power_on_seq1() {
     write32(0x1c + PHYD_APB, v & !(1 << 7));
     println!("  TOP_REG_TX_SEL_GPIO = 0");
 
-    println!("| ddr_phy_power_on_seq1 finish");
+    println!("\\ ddr_phy_power_on_seq1 finish");
 }
 
 fn cvx16_polling_dfi_init_start() {
-    println!("| first dfi_init_start");
+    println!("/ first dfi_init_start");
     while (read32(0x3028 + PHYD_BASE_ADDR) >> 8) & 0x1 == 0 {}
-    println!("| cvx16_polling_dfi_init_start finish");
+    println!("\\ cvx16_polling_dfi_init_start finish");
 }
 
-fn cvx16_INT_ISR_08() {
-    //
-    println!("| cvx16_INT_ISR_08 finish");
+fn cvx16_int_isr_08() {
+    println!("/ cvx16_int_isr_08 start");
+    write32(0x0118 + PHYD_BASE_ADDR, 0x0);
+    let v = read32(0x4c + PHYD_APB);
+    let en_pll_speed_chg = v & 0b1;
+    let cur_pll_speed = v & (0b11 << 4);
+    let next_pll_speed = v & (0b11 << 8);
+    println!("  cur_pll_speed    {cur_pll_speed}");
+    println!("  next_pll_speed   {next_pll_speed}");
+    println!("  en_pll_speed_chg {en_pll_speed_chg}");
+    println!("\\ cvx16_int_isr_08 finish");
+}
+
+fn cvx16_ddr_phy_power_on_seq2() {
+    println!("/ cvx16_ddr_phy_power_on_seq2 start");
+    println!("\\ cvx16_ddr_phy_power_on_seq2 finish");
+}
+
+fn cvx16_set_dfi_init_complete() {
+    println!("/ cvx16_set_dfi_init_complete start");
+    println!("\\ cvx16_set_dfi_init_complete finish");
 }
 
 fn cvx16_ddr_phy_power_on_seq3() {
+    println!("/ ddr_phy_power_on_seq3 start");
     //
-    println!("| ddr_phy_power_on_seq3 finish");
+    println!("\\ ddr_phy_power_on_seq3 finish");
 }
 
 fn cvx16_wait_for_dfi_init_complete() {
-    //
-    println!("| wait_for_dfi_init_complete finish");
+    println!("/ wait_for_dfi_init_complete start");
+    while read32(DDR_CFG_BASE + 0x000001bc) & 0x1 == 0 {}
+    dfi_init();
+    println!("\\ wait_for_dfi_init_complete finish");
 }
 
 fn cvx16_polling_synp_normal_mode() {
+    println!("/ polling_synp_normal_mode start");
     //
-    println!("| polling_synp_normal_mode finish");
+    println!("\\ polling_synp_normal_mode finish");
 }
 
 // plat/cv181x/include/ddr/ddr_pkg_info.h
@@ -1330,7 +1356,11 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
 
     cvx16_polling_dfi_init_start();
 
-    cvx16_INT_ISR_08();
+    cvx16_int_isr_08();
+
+    cvx16_ddr_phy_power_on_seq2();
+
+    cvx16_set_dfi_init_complete();
 
     cvx16_ddr_phy_power_on_seq3();
 
