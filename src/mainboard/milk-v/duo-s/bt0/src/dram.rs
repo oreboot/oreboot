@@ -1,5 +1,7 @@
 use crate::ddr_phy::phy_init;
-use crate::mem_map::{DDR_CFG_BASE, DDR_TOP_BASE, DRAM_BASE, PHYD_APB, PHYD_BASE_ADDR, TOP_BASE};
+use crate::mem_map::{
+    DDR_BIST_BASE, DDR_CFG_BASE, DDR_TOP_BASE, DRAM_BASE, PHYD_APB, PHYD_BASE_ADDR, TOP_BASE,
+};
 use crate::util::{read32, write32};
 
 // plat/cv181x/include/ddr/bitwise_ops.h
@@ -472,6 +474,17 @@ fn ddrc_init() {
     write32(DDR_CFG_BASE + 0x600, 0x01a801a8);
     // PCFGWQOS1_2.wqos_map_timeout2:16:16:=0x1a8
     // PCFGWQOS1_2.wqos_map_timeout1:0:16:=0x1a8
+}
+
+fn ctrl_init_low_patch() {
+    // disable auto PD/SR
+    write32(DDR_CFG_BASE + 0x0030, 0x00000000);
+    // disable auto ctrl_upd
+    write32(DDR_CFG_BASE + 0x01a0, 0xC0400018);
+    // disable clock gating
+    write32(DDR_CFG_BASE + 0x0014, 0x00000fff);
+    // change xpi to single DDR burst
+    // write32(DDR_CFG_BASE + 0x000c, 0x63746371);
 }
 
 const PHY_REG_VERSION: usize = PHYD_BASE_ADDR + 0x3000;
@@ -1400,14 +1413,14 @@ fn cvx16_clk_normal(reg_set: u32, reg_span: u32, reg_step: u32) {
     // NOTE: similar to cvx16_pll_init
     if SSC_EN {
         /*
-        mmio_wr32(0x54 + 0x03002900, reg_set);
+        write32(0x54 + 0x03002900, reg_set);
         // TOP_REG_SSC_SPAN
         rddata = get_bits_from_value(reg_span, 15, 0);
-        mmio_wr32(0x58 + 0x03002900, rddata);
+        write32(0x58 + 0x03002900, rddata);
         // TOP_REG_SSC_STEP
         rddata = get_bits_from_value(reg_step, 23, 0);
-        mmio_wr32(0x5C + 0x03002900, rddata);
-        rddata = mmio_rd32(0x50 + 0x03002900);
+        write32(0x5C + 0x03002900, rddata);
+        rddata = read32(0x50 + 0x03002900);
         // TOP_REG_SSC_SW_UP
         rddata = modified_bits_by_value(rddata, ~get_bits_from_value(rddata, 0, 0), 0, 0);
         // TOP_REG_SSC_EN_SSC
@@ -1420,7 +1433,7 @@ fn cvx16_clk_normal(reg_set: u32, reg_span: u32, reg_step: u32) {
         rddata = modified_bits_by_value(rddata, 1, 5, 5);
         // ssc_syn_fix_div
         rddata = modified_bits_by_value(rddata, 0, 6, 6);
-        mmio_wr32(0x50 + 0x03002900, rddata);
+        write32(0x50 + 0x03002900, rddata);
         */
         println!("SSC_EN");
     }
@@ -1428,14 +1441,14 @@ fn cvx16_clk_normal(reg_set: u32, reg_span: u32, reg_step: u32) {
         /*
         // TOP_REG_SSC_SET
         rddata = (reg_set & 0xfc000000) + 0x04000000;
-        mmio_wr32(0x54 + 0x03002900, rddata);
+        write32(0x54 + 0x03002900, rddata);
         // TOP_REG_SSC_SPAN
         rddata = get_bits_from_value(reg_span, 15, 0);
-        mmio_wr32(0x58 + 0x03002900, rddata);
+        write32(0x58 + 0x03002900, rddata);
         // TOP_REG_SSC_STEP
         rddata = get_bits_from_value(reg_step, 23, 0);
-        mmio_wr32(0x5C + 0x03002900, rddata);
-        rddata = mmio_rd32(0x50 + 0x03002900);
+        write32(0x5C + 0x03002900, rddata);
+        rddata = read32(0x50 + 0x03002900);
         // TOP_REG_SSC_SW_UP
         rddata = modified_bits_by_value(rddata, ~get_bits_from_value(rddata, 0, 0), 0, 0);
         // TOP_REG_SSC_EN_SSC
@@ -1587,6 +1600,140 @@ pub enum DramVendor {
     ESMTN251GbitDDR3 = 10,
 }
 
+fn cvx16_bist_wr_prbs_init() {
+    println!("    bist_wr_prbs_init");
+    // bist clock enable
+    write32(DDR_BIST_BASE + 0x0, 0x00060006);
+
+    // command queue: 6 registers
+    let base_cmd = (0 << 21) | (511 << 12) | (0b0101 << 9);
+    // 31..30: op code; 1: write, 2: read
+    // 29..21: start
+    // 20..12: stop
+    // 8: DQ invert
+    // 7: DM invert
+    // 6..4: DQ rotate
+    // 3..0: repetitions
+    let op_write = 1 << 30;
+    let op_read = 2 << 30;
+    // W  1~17  prbs  repeat0
+    let cmd1 = op_write | base_cmd;
+    // write cmd queue
+    write32(DDR_BIST_BASE + 0x40, cmd1);
+    // R  1~17  prbs  repeat0
+    let cmd2 = op_read | base_cmd;
+    write32(DDR_BIST_BASE + 0x44, cmd2);
+    // NOP
+    for i in 0..4 {
+        write32(DDR_BIST_BASE + 0x48 + i * 4, 0);
+    }
+
+    // specified DDR space
+    write32(DDR_BIST_BASE + 0x10, 0x00000000);
+    write32(DDR_BIST_BASE + 0x14, 0x000fffff);
+    // specified AXI address step
+    let v = if X16_MODE { 0x00000004 } else { 0x00000008 };
+    write32(DDR_BIST_BASE + 0x18, v);
+    println!("    bist_wr_prbs_init done");
+}
+
+fn cvx16_bist_wr_sram_init() {
+    //
+}
+
+fn cvx16_rdlvl_req(x: u32) {
+    //
+}
+
+fn cvx16_rdlvl_sw_req(x: u32) {
+    //
+}
+
+fn cvx16_rdglvl_req() {
+    //
+}
+
+fn cvx16_wrlvl_req() {
+    //
+}
+
+fn cvx16_wdqlvl_req(x: u32, y: u32) {
+    //
+}
+
+fn cvx16_wdqlvl_sw_req(x: u32, y: u32) {
+    //
+}
+
+fn ctrl_init_high_patch() {
+    //
+}
+
+fn ctrl_init_detect_dram_size() -> u32 {
+    0
+}
+
+fn ctrl_init_update_by_dram_size(x: u32) {
+    //
+}
+
+fn cvx16_dram_cap_check(x: u32) {
+    //
+}
+
+fn cvx16_clk_gating_enable() {
+    //
+}
+
+const X16_MODE: bool = true;
+const DO_BIST: bool = true;
+const DBG_SHMOO: bool = false;
+const DDR2: bool = false;
+
+fn bist() -> Result<(), ()> {
+    // bist enable
+    let v = if X16_MODE { 0x00030003 } else { 0x00010001 };
+    write32(DDR_BIST_BASE + 0x0, v);
+    println!(">> BIST start");
+    while let v = read32(DDR_BIST_BASE + 0x0080) {
+        if v & (1 << 2) != 0 {
+            break;
+        }
+    }
+    println!("<< BIST: {v:08x}");
+    let mut success = v & (1 << 3) == 0;
+    let mut data_odd = 0;
+    let mut data_even = 0;
+    if success {
+        // read err_data
+        let ol = read32(DDR_BIST_BASE + 0x88) as u64;
+        let oh = read32(DDR_BIST_BASE + 0x8c) as u64;
+        let el = read32(DDR_BIST_BASE + 0x90) as u64;
+        let eh = read32(DDR_BIST_BASE + 0x94) as u64;
+        data_odd = oh << 32 | ol;
+        data_even = eh << 32 | el;
+    }
+    // bist disable
+    write32(DDR_BIST_BASE + 0x0, 0x00050000);
+
+    println!("-  BIST success  {success}");
+    println!("-  err_data_odd  {data_odd:016x}");
+    println!("-  err_data_even {data_even:016x}");
+    if success {
+        Ok(())
+    } else {
+        Err(())
+    }
+}
+
+fn axi_mon_latency_setting(x: u32) {
+    //
+}
+
+fn axi_mon_start_all() {
+    //
+}
+
 // fsbl plat/cv181x/ddr/ddr_sys_bring_up.c ddr_sys_bring_up
 pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
     let (reg_set, reg_span, reg_step) = get_pll_settings(ddr_data_rate);
@@ -1608,129 +1755,98 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
     write32(TOP_BASE + 0x01DC, 0x00002299);
 
     phy_init();
-
     cvx16_setting_check();
-
     cvx16_pinmux(unsafe { core::mem::transmute(dram_vendor) });
-
     ddr_patch_set();
-
     cvx16_en_rec_vol_mode();
-
     cvx16_set_dfi_init_start();
-
     cvx16_ddr_phy_power_on_seq1();
-
     cvx16_polling_dfi_init_start();
-
     cvx16_int_isr_08();
-
     cvx16_ddr_phy_power_on_seq2();
-
     cvx16_set_dfi_init_complete();
-
     change_pll_freq(reg_set, reg_span, reg_step);
-
     cvx16_ddr_phy_power_on_seq3();
-
     cvx16_wait_for_dfi_init_complete();
-
     cvx16_polling_synp_normal_mode();
 
-    let offset1 = 0x3000;
-    let offset2 = 0x6000;
-    for i in (0..128).step_by(4) {
-        let a = DRAM_BASE + offset1 + i as usize;
-        let v = 0xff00_0000 | i as u32;
-        write32(a, v);
-        let a = DRAM_BASE + offset2 + i as usize;
-        let v = 0x0f0f_0000 | i as u32;
-        write32(a, v);
+    const DRAM_TEST: bool = false;
+    // a very simple write+read check
+    if DRAM_TEST {
+        let offset1 = 0x3000;
+        let offset2 = 0x6000;
+        for i in (0..128).step_by(4) {
+            let a = DRAM_BASE + offset1 + i as usize;
+            let v = 0xff00_0000 | i as u32;
+            write32(a, v);
+            let a = DRAM_BASE + offset2 + i as usize;
+            let v = 0x0f0f_0000 | i as u32;
+            write32(a, v);
+        }
+        for i in (0..128).step_by(4) {
+            let a = DRAM_BASE + offset1 + i as usize;
+            let e = 0xff00_0000 | i as u32;
+            let v = read32(a);
+            if v != e {
+                panic!("@{a:08x} expected {e:08x} got {v:08x}");
+            }
+            let a = DRAM_BASE + offset2 + i as usize;
+            let e = 0x0f0f_0000 | i as u32;
+            let v = read32(a);
+            if v != e {
+                panic!("@{a:08x} expected {e:08x} got {v:08x}");
+            }
+        }
     }
-    for i in (0..128).step_by(4) {
-        let a = DRAM_BASE + offset1 + i as usize;
-        let e = 0xff00_0000 | i as u32;
-        let v = read32(a);
-        println!("{a:08x} {e:08x} {v:08x}");
-        let a = DRAM_BASE + offset2 + i as usize;
-        let e = 0x0f0f_0000 | i as u32;
-        let v = read32(a);
-        println!("{a:08x} {e:08x} {v:08x}");
+
+    if DO_BIST {
+        cvx16_bist_wr_prbs_init();
+        if let Err(()) = bist() {
+            panic!("ERROR bist_fail");
+        }
     }
+
+    ctrl_init_low_patch();
+    println!("ctrl_low_patch finish");
 
     /*
-    #ifdef DO_BIST
-        cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            ERROR("ERROR bist_fail\n");
-            ERROR("bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-                  err_data_even);
-        }
-    #endif
-
-        ctrl_init_low_patch();
-        KC_MSG("ctrl_low_patch finish\n");
-
-        // cvx16_wrlvl_req
-    #ifndef DDR2
-    #ifdef DDR2_3
-        if (get_ddr_type() == DDR_TYPE_DDR3) {
-            cvx16_wrlvl_req();
-            KC_MSG("cvx16_wrlvl_req finish\n");
-        }
-    #else
+    if !DDR2 {
         cvx16_wrlvl_req();
-        KC_MSG("cvx16_wrlvl_req finish\n");
-    #endif
-    #endif
+        println!("cvx16_wrlvl_req finish");
+    }
 
-    #ifdef DO_BIST
+    if DO_BIST {
         cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            ERROR("ERROR bist_fail\n");
-            ERROR("bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-                  err_data_even);
+        if let Err(()) = bist() {
+            panic!("ERROR bist_fail");
         }
-    #endif
-        // cvx16_rdglvl_req
-        cvx16_rdglvl_req();
-        KC_MSG("cvx16_rdglvl_req finish\n");
-    #ifdef DO_BIST
+    }
+
+    cvx16_rdglvl_req();
+    println!("cvx16_rdglvl_req finish");
+
+    if DO_BIST {
         cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            ERROR("ERROR bist_fail\n");
-            ERROR("bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-                  err_data_even);
+        if let Err(()) = bist() {
+            panic!("ERROR bist_fail");
         }
-    #endif
+    }
 
-        //ERROR("AXI mon setting for latency histogram.\n");
-        //axi_mon_set_lat_bin_size(0x5);
+    //ERROR("AXI mon setting for latency histogram.\n");
+    //axi_mon_set_lat_bin_size(0x5);
 
-    #ifdef DBG_SHMOO
+    if DBG_SHMOO {
         // DPHY WDQ
         // param_phyd_dfi_wdqlvl_vref_start [6:0]
         // param_phyd_dfi_wdqlvl_vref_end [14:8]
         // param_phyd_dfi_wdqlvl_vref_step [19:16]
         write32(0x08000190, 0x00021E02);
-
         // param_phyd_piwdqlvl_dly_step[23:20]
         write32(0x080000a4, 0x01220504);
-
         // write start   shift = 5  /  dline = 78
         write32(0x080000a0, 0x0d400578);
-
         //write
-        KC_MSG("wdqlvl_M1_ALL_DQ_DM\n");
+        println!("wdqlvl_M1_ALL_DQ_DM\n");
         // data_mode = 'h0 : phyd pattern
         // data_mode = 'h1 : bist read/write
         // data_mode = 'h11: with Error enject,  multi- bist write/read
@@ -1739,25 +1855,28 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         // lvl_mode  = 'h1 : wdqlvl
         // lvl_mode  = 'h2 : wdqlvl and wdmlvl
         // cvx16_wdqlvl_req(data_mode, lvl_mode)
-        NOTICE("cvx16_wdqlvl_sw_req dq/dm\n"); console_getc();
+        println!("cvx16_wdqlvl_sw_req dq/dm");
+        // console_getc();
         cvx16_wdqlvl_sw_req(1, 2);
         // cvx16_wdqlvl_status();
-        KC_MSG("cvx16_wdqlvl_req dq/dm finish\n");
+        println!("cvx16_wdqlvl_req dq/dm finish");
 
-        NOTICE("cvx16_wdqlvl_sw_req dq\n"); console_getc();
+        println!("cvx16_wdqlvl_sw_req dq");
+        // console_getc();
         cvx16_wdqlvl_sw_req(1, 1);
         // cvx16_wdqlvl_status();
-        KC_MSG("cvx16_wdqlvl_req dq finish\n");
+        println!("cvx16_wdqlvl_req dq finish");
 
-        NOTICE("cvx16_wdqlvl_sw_req dm\n"); console_getc();
+        println!("cvx16_wdqlvl_sw_req dm");
+        // console_getc();
         cvx16_wdqlvl_sw_req(1, 0);
         // cvx16_wdqlvl_status();
-        NOTICE("cvx16_wdqlvl_req dm finish\n");
-    #else //DBG_SHMOO
+        println!("cvx16_wdqlvl_req dm finish");
+    } else {
         // cvx16_wdqlvl_req
-        KC_MSG("wdqlvl_M1_ALL_DQ_DM\n");
+        println!("wdqlvl_M1_ALL_DQ_DM");
         // sso_8x1_c(5, 15, 0, 1, &sram_sp);//mode = write, input int fmin = 5, input int fmax = 15,
-                            //input int sram_st = 0, output int sram_sp
+        //input int sram_st = 0, output int sram_sp
 
         // data_mode = 'h0 : phyd pattern
         // data_mode = 'h1 : bist read/write
@@ -1768,126 +1887,124 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         // lvl_mode  = 'h2 : wdqlvl and wdmlvl
         // cvx16_wdqlvl_req(data_mode, lvl_mode);
         cvx16_wdqlvl_req(1, 2);
-        KC_MSG("cvx16_wdqlvl_req dq/dm finish\n");
-
+        println!("cvx16_wdqlvl_req dq/dm finish");
         cvx16_wdqlvl_req(1, 1);
-        KC_MSG("cvx16_wdqlvl_req dq finish\n");
-
+        println!("cvx16_wdqlvl_req dq finish");
         cvx16_wdqlvl_req(1, 0);
-        KC_MSG("cvx16_wdqlvl_req dm finish\n");
+        println!("cvx16_wdqlvl_req dm finish");
 
-    #ifdef DO_BIST
-        cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            KC_MSG("ERROR bist_fail\n");
+        if DO_BIST {
+            cvx16_bist_wr_prbs_init();
+            if let Err(()) = bist() {
+                panic!("ERROR bist_fail");
+            }
         }
-    #endif
-    #endif //!DBG_SHMOO
+    }
+    */
 
-    #ifdef DBG_SHMOO
+    /*
+    if DBG_SHMOO {
         // param_phyd_pirdlvl_dly_step [3:0]
         // param_phyd_pirdlvl_vref_step [11:8]
         write32(0x08000088, 0x0A010212);
 
         //read
-        NOTICE("cvx16_rdlvl_req start\n"); console_getc();
-        NOTICE("SW mode 1, sram write/read continuous goto\n");
+        println!("cvx16_rdlvl_req start");
+        // console_getc();
+        println!("SW mode 1, sram write/read continuous goto");
         cvx16_rdlvl_sw_req(1);
         // cvx16_rdlvl_status();
-        NOTICE("cvx16_rdlvl_req finish\n");
-    #else //DBG_SHMOO
+        println!("cvx16_rdlvl_req finish");
+    } else {
         // cvx16_rdlvl_req
         // mode = 'h0  : MPR mode, DDR3 only.
         // mode = 'h1  : sram write/read continuous goto
         // mode = 'h2  : multi- bist write/read
         // mode = 'h10 : with Error enject,  multi- bist write/read
         // mode = 'h12 : with Error enject,  multi- bist write/read
-        rddata = read32(0x008c + PHYD_BASE_ADDR);
-        rddata = modified_bits_by_value(rddata, 1, 7, 4); // param_phyd_pirdlvl_capture_cnt
-        write32(0x008c + PHYD_BASE_ADDR, rddata);
+        let v = read32(PHYD_BASE_ADDR + 0x008c);
+        // param_phyd_pirdlvl_capture_cnt
+        let v = (v & (0b1111 << 4)) | 0x1;
+        write32(PHYD_BASE_ADDR + 0x008c + PHYD_BASE_ADDR, v);
 
-        KC_MSG("mode multi- bist write/read\n");
-        // cvx16_rdlvl_req(2); // mode multi- PRBS bist write/read
-        cvx16_rdlvl_req(1); // mode multi- SRAM bist write/read
-        KC_MSG("cvx16_rdlvl_req finish\n");
-    #ifdef DO_BIST
-        cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            KC_MSG("ERROR bist_fail\n");
+        println!("mode multi- bist write/read");
+        // mode multi- PRBS bist write/read
+        // cvx16_rdlvl_req(2);
+        // mode multi- SRAM bist write/read
+        cvx16_rdlvl_req(1);
+        println!("cvx16_rdlvl_req finish");
+
+        if DO_BIST {
+            cvx16_bist_wr_prbs_init();
+            if let Err(()) = bist() {
+                panic!("ERROR bist_fail");
+            }
         }
-    #endif
-    #endif //!DBG_SHMOO
+    }
+    */
 
-    #ifdef DBG_SHMOO_CA
+    /*
+    if DBG_SHMOO_CA {
         //CA training
         NOTICE("\n===== calvl_req =====\n"); console_getc();
         // sso_8x1_c(5, 15, sram_sp, 1, &sram_sp_1);
         calvl_req(cap);
-    #endif //DBG_SHMOO_CA
+    }
 
-    #ifdef DBG_SHMOO_CS
+    if DBG_SHMOO_CS {
         //CS training
         NOTICE("\n===== cslvl_req =====\n"); console_getc();
         // sso_8x1_c(5, 15, sram_sp, 1, &sram_sp_1);
         cslvl_req(cap);
-    #endif // DBG_SHMOO_CS
+    }
+    */
 
-    #ifdef DBG_SHMOO
+    if DBG_SHMOO {
+        /*
         cvx16_dll_cal_status();
         cvx16_wrlvl_status();
         cvx16_rdglvl_status();
         cvx16_rdlvl_status();
         cvx16_wdqlvl_status();
-    #endif // DBG_SHMOO
+        */
+    }
 
-        // ctrl_high_patch
-        ctrl_init_high_patch();
+    /*
+    ctrl_init_high_patch();
 
-        ctrl_init_detect_dram_size(&dram_cap_in_mbyte);
-        KC_MSG("ctrl_init_detect_dram_size finish\n");
+    let dram_cap_in_mbyte = ctrl_init_detect_dram_size();
+    println!("ctrl_init_detect_dram_size finish");
 
-        ctrl_init_update_by_dram_size(dram_cap_in_mbyte);
-        KC_MSG("ctrl_init_update_by_dram_size finish\n");
+    println!("dram_cap_in_mbyte: {dram_cap_in_mbyte}");
+    ctrl_init_update_by_dram_size(dram_cap_in_mbyte);
+    println!("ctrl_init_update_by_dram_size finish");
+    println!("dram_cap_in_mbyte: {dram_cap_in_mbyte}");
+    cvx16_dram_cap_check(dram_cap_in_mbyte);
+    println!("cvx16_dram_cap_check finish");
 
-        KC_MSG("dram_cap_in_mbyte = %x\n", dram_cap_in_mbyte);
-        cvx16_dram_cap_check(dram_cap_in_mbyte);
-        KC_MSG("cvx16_dram_cap_check finish\n");
+    // clk_gating_enable
+    cvx16_clk_gating_enable();
+    println!("cvx16_clk_gating_enable finish");
+    */
 
-        // clk_gating_enable
-        cvx16_clk_gating_enable();
-        KC_MSG("cvx16_clk_gating_enable finish\n");
-
-    #ifdef DO_BIST
+    /*
+    if DO_BIST {
         cvx16_bist_wr_prbs_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            KC_MSG("ERROR prbs bist_fail\n");
-            NOTICE("DDR BIST FAIL\n");
-            while (1) {
-            }
+        if let Err(()) = bist() {
+            println!("ERROR prbs bist_fail");
+            panic!("DDR BIST FAIL");
         }
 
         cvx16_bist_wr_sram_init();
-        cvx16_bist_start_check(&bist_result, &err_data_odd, &err_data_even);
-        KC_MSG(", bist_result = %x, err_data_odd = %lx, err_data_even = %lx\n", bist_result, err_data_odd,
-               err_data_even);
-        if (bist_result == 0) {
-            KC_MSG("ERROR sram bist_fail\n");
-            NOTICE("DDR BIST FAIL\n");
-            while (1) {
-            }
+        if let Err(()) = bist() {
+            println!("ERROR sram bist_fail");
+            panic!("ERROR bist_fail");
         }
-        NOTICE("DDR BIST PASS\n");
-    #endif
+        println!("DDR BIST PASS");
+    }
+    */
 
+    /*
     #ifdef FULL_MEM_BIST
         //full memory
         // sso_8x1_c(5, 15, 0, 1, &sram_sp);
@@ -1917,20 +2034,22 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
 
         NOTICE("===== BIST END ======\n");
     #endif //FULL_MEM_BIST
-
-    #ifdef FULL_MEM_BIST_FOREVER
-        NOTICE("Press any key to start stress test\n"); console_getc();
-        bist_all_dram_forever(cap);
-    #endif //FULL_MEM_BIST_FOREVER
-
-        //ERROR("AXI mon setting for latency histogram.\n");
-        axi_mon_latency_setting(0x5);
-
-        //ERROR("AXI mon 0 register dump before start.\n");
-        //dump_axi_mon_reg(AXIMON_M1_WRITE);
-        //ERROR("AXI mon 1 register dump before start.\n");
-        //dump_axi_mon_reg(AXIMON_M1_READ);
-
-        axi_mon_start_all();
     */
+
+    /*
+    if FULL_MEM_BIST_FOREVER {
+        println!("Start DRAM stress test");
+        bist_all_dram_forever(cap);
+    }
+    */
+
+    // ERROR("AXI mon setting for latency histogram.\n");
+    axi_mon_latency_setting(0x5);
+
+    // ERROR("AXI mon 0 register dump before start.\n");
+    // dump_axi_mon_reg(AXIMON_M1_WRITE);
+    // ERROR("AXI mon 1 register dump before start.\n");
+    // dump_axi_mon_reg(AXIMON_M1_READ);
+
+    axi_mon_start_all();
 }
