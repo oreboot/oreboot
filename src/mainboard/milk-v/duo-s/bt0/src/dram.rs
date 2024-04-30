@@ -1751,8 +1751,57 @@ fn cvx16_bist_wdmlvl_init() {
     // TODO
 }
 
-fn cvx16_bist_wdqlvl_init(data_mode: u32) {
-    // TODO
+fn cvx16_bist_wdqlvl_init(mode: u32) {
+    println!("    bist_wdqlvl_init");
+    // bist clock enable
+    write32(DDR_BIST_BASE + 0x0, 0x00060006);
+
+    let op_write = 1 << 30;
+    let op_read = 2 << 30;
+    if mode == 0 {
+        // phyd pattern
+        let base_cmd = (0 << 21) | (3 << 12) | (0b0101 << 9);
+        let cmd1 = op_write | base_cmd;
+        let cmd2 = op_read | base_cmd;
+        write32(DDR_BIST_BASE + 0x40, cmd1);
+        write32(DDR_BIST_BASE + 0x44, cmd2);
+        // NOP
+        for i in 0..4 {
+            write32(DDR_BIST_BASE + 0x48 + i * 4, 0);
+        }
+    } else if mode == 0x1 {
+        // bist write/read
+        let fmin = 5;
+        let fmax = 15;
+        let sram_st = 0;
+        let sram_sp = 9 * (fmin + fmax) * (fmax - fmin + 1) / 8 + (fmax - fmin + 1);
+        println!("sram_sp = {sram_sp:08x}");
+
+        // bist sso_period
+        write32(DDR_BIST_BASE + 0x24, (fmax << 8) + fmin);
+        let base1 = (sram_st << 21) | (511 << 12) | (0b0101 << 9);
+        let base2 = (sram_st << 21) | (sram_sp << 12) | (0b0110 << 9);
+        write32(DDR_BIST_BASE + 0x40, op_write | base1);
+        write32(DDR_BIST_BASE + 0x44, op_read | base1);
+        write32(DDR_BIST_BASE + 0x48, op_write | base2);
+        write32(DDR_BIST_BASE + 0x4c, op_read | base2);
+        let op_goto = 3;
+        //       GOTO      addr_not_reset loop_cnt
+        write32(DDR_BIST_BASE + 0x50, op_goto | (0 << 20) | (1 << 0));
+        // NOP
+        write32(DDR_BIST_BASE + 0x54, 0);
+    } else if (mode == 0x11) {
+        // bist write/read
+        // TODO
+    } else if (mode == 0x12) {
+        // bist write/read
+        // TODO
+    } else {
+        // TODO
+    }
+
+    bist_x_init_finish();
+    println!("    bist_wdqlvl_done");
 }
 
 fn cvx16_bist_wr_sram_init() {
@@ -2131,9 +2180,9 @@ fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
     let (selfref_sw, en_dfi_dram_clk_disable, powerdown_en, selfref_en) = pwrctl_init();
 
     cvx16_clk_gating_disable();
-    println!("cvx16_wdqlvl_req");
+    println!("cvx16_wdqlvl_req  cvx16_dfi_ca_park_prbs  start");
     cvx16_dfi_ca_park_prbs(true);
-    println!("cvx16_wdqlvl_req");
+    println!("cvx16_wdqlvl_req  cvx16_dfi_ca_park_prbs  done");
 
     // param_phyd_piwdqlvl_dq_mode
     // <= #RD (~pwstrb_mask[12] & param_phyd_piwdqlvl_dq_mode) | pwstrb_mask_pwdata[12];
@@ -2166,7 +2215,7 @@ fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
             cvx16_bist_wdqlvl_init(data_mode);
         }
     }
-    println!("cvx16_wdqlvl_req");
+    println!("cvx16_wdqlvl_req   init done");
 
     // param_phyd_dfi_wdqlvl
     let v = read32(0x018C + PHYD_BASE_ADDR);
@@ -2440,9 +2489,10 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         println!("cvx16_wdqlvl_req dq/dm finish");
         cvx16_wdqlvl_req(1, LvlMode::WdqLvl);
         println!("cvx16_wdqlvl_req dq finish");
+        /*
         cvx16_wdqlvl_req(1, LvlMode::WdmLvl);
         println!("cvx16_wdqlvl_req dm finish");
-
+        */
         if DO_BIST {
             cvx16_bist_wr_prbs_init();
             if let Err(()) = bist() {
