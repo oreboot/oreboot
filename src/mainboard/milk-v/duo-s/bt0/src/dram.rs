@@ -1843,7 +1843,7 @@ fn cvx16_bist_wdqlvl_init(mode: u32) {
 }
 
 fn cvx16_bist_wr_sram_init() {
-    //
+    // TODO
 }
 
 fn cvx16_rdlvl_req(x: u32) {
@@ -2248,7 +2248,7 @@ fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
     }
 
     // param_phyd_dfi_wdqlvl
-    let v = read32(0x018C + PHYD_BASE_ADDR);
+    let v = read32(PHYD_BASE_ADDR + 0x018C);
     println!("      phyd_dfi_wdqlvl {v:08x}");
     // req
     let v = v | 0b1;
@@ -2262,7 +2262,7 @@ fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
     };
     let clr_mask = !((1 << 10) | (1 << 4));
     let v = (v & clr_mask) | (vref_train_en << 10) | (bist_data_en << 4);
-    write32(0x018C + PHYD_BASE_ADDR, v);
+    write32(PHYD_BASE_ADDR + 0x018C, v);
     println!("      phyd_dfi_wdqlvl {v:08x}");
 
     println!("    wait retraining finish ...");
@@ -2478,12 +2478,85 @@ fn bist() -> Result<(), ()> {
     }
 }
 
-fn axi_mon_latency_setting(x: u32) {
-    //
+use crate::mem_map::AXI_MON_BASE;
+
+const REMAPPING_BASE: usize = 0;
+const AXIMON_M1_WRITE: usize = REMAPPING_BASE + 0x0;
+const AXIMON_M1_READ: usize = REMAPPING_BASE + 0x80;
+const AXIMON_M2_WRITE: usize = REMAPPING_BASE + 0x100;
+const AXIMON_M2_READ: usize = REMAPPING_BASE + 0x180;
+const AXIMON_M3_WRITE: usize = REMAPPING_BASE + 0x200;
+const AXIMON_M3_READ: usize = REMAPPING_BASE + 0x280;
+const AXIMON_M4_WRITE: usize = REMAPPING_BASE + 0x300;
+const AXIMON_M4_READ: usize = REMAPPING_BASE + 0x380;
+const AXIMON_M5_WRITE: usize = REMAPPING_BASE + 0x400;
+const AXIMON_M5_READ: usize = REMAPPING_BASE + 0x480;
+const AXIMON_M6_WRITE: usize = REMAPPING_BASE + 0x500;
+const AXIMON_M6_READ: usize = REMAPPING_BASE + 0x580;
+
+const AXIMON_OFFSET_LAT_BIN_SIZE_SEL: usize = 0x50;
+
+fn axi_mon_latency_setting(lat_bin_size_sel: u32) {
+    // for ddr3 1866: bin_size_sel=0d'5
+    write32(
+        (AXI_MON_BASE + AXIMON_M1_WRITE + AXIMON_OFFSET_LAT_BIN_SIZE_SEL),
+        lat_bin_size_sel,
+    );
+    write32(
+        (AXI_MON_BASE + AXIMON_M1_READ + AXIMON_OFFSET_LAT_BIN_SIZE_SEL),
+        lat_bin_size_sel,
+    );
+
+    // input clk sel
+    write32(AXI_MON_BASE + AXIMON_M1_WRITE + 0x00, 0x01000100);
+    // hit sel setting
+    let rdata = read32(AXI_MON_BASE + AXIMON_M1_WRITE + 0x04);
+    write32(AXI_MON_BASE + AXIMON_M1_WRITE + 0x04, rdata & 0xfffffc00);
+
+    write32(AXI_MON_BASE + AXIMON_M1_READ + 0x00, 0x01000100);
+    let rdata = read32(AXI_MON_BASE + AXIMON_M1_READ + 0x04);
+    write32(AXI_MON_BASE + AXIMON_M1_READ + 0x04, rdata & 0xfffffc00);
+
+    write32(
+        AXI_MON_BASE + AXIMON_M5_WRITE + AXIMON_OFFSET_LAT_BIN_SIZE_SEL,
+        lat_bin_size_sel,
+    );
+    write32(
+        AXI_MON_BASE + AXIMON_M5_READ + AXIMON_OFFSET_LAT_BIN_SIZE_SEL,
+        lat_bin_size_sel,
+    );
+
+    write32(AXI_MON_BASE + AXIMON_M5_WRITE + 0x00, 0x01000100);
+    let rdata = read32(AXI_MON_BASE + AXIMON_M5_WRITE + 0x04);
+    write32(AXI_MON_BASE + AXIMON_M5_WRITE + 0x04, rdata & 0xfffffc00);
+
+    write32(AXI_MON_BASE + AXIMON_M5_READ + 0x00, 0x01000100);
+    let rdata = read32(AXI_MON_BASE + AXIMON_M5_READ + 0x04);
+    write32(AXI_MON_BASE + AXIMON_M5_READ + 0x04, rdata & 0xfffffc00);
+
+    // ERROR("mon cg en.\n");
+    let rdata = read32(DDR_TOP_BASE + 0x14);
+    write32((DDR_TOP_BASE + 0x14), rdata | 0x00000100);
+}
+
+const AXIMON_START_REGVALUE: u32 = 0x30001;
+fn axi_mon_start(b: usize) {
+    write32(AXI_MON_BASE + b, AXIMON_START_REGVALUE);
 }
 
 fn axi_mon_start_all() {
-    //
+    axi_mon_start(AXIMON_M1_WRITE);
+    axi_mon_start(AXIMON_M1_READ);
+    axi_mon_start(AXIMON_M2_WRITE);
+    axi_mon_start(AXIMON_M2_READ);
+    axi_mon_start(AXIMON_M3_WRITE);
+    axi_mon_start(AXIMON_M3_READ);
+    axi_mon_start(AXIMON_M4_WRITE);
+    axi_mon_start(AXIMON_M4_READ);
+    axi_mon_start(AXIMON_M5_WRITE);
+    axi_mon_start(AXIMON_M5_READ);
+    axi_mon_start(AXIMON_M6_WRITE);
+    axi_mon_start(AXIMON_M6_READ);
 }
 
 // fsbl plat/cv181x/ddr/ddr_sys_bring_up.c ddr_sys_bring_up
@@ -2734,22 +2807,21 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
     cvx16_clk_gating_enable();
     println!("cvx16_clk_gating_enable finish");
 
-    /*
     if DO_BIST {
         cvx16_bist_wr_prbs_init();
         if let Err(()) = bist() {
             println!("ERROR prbs bist_fail");
             panic!("DDR BIST FAIL");
         }
-
+        /*
         cvx16_bist_wr_sram_init();
         if let Err(()) = bist() {
             println!("ERROR sram bist_fail");
             panic!("ERROR bist_fail");
         }
+        */
         println!("DDR BIST PASS");
     }
-    */
 
     /*
     #ifdef FULL_MEM_BIST
