@@ -43,6 +43,21 @@ const DPLL_SSC_SYN_SET: usize = PLL_G6_BASE + 0x0054;
 const DPLL_SSC_SYN_SPAN: usize = PLL_G6_BASE + 0x0058;
 const DPLL_SSC_SYN_STEP: usize = PLL_G6_BASE + 0x005C;
 
+// TODO: All of this would be a build-time config.
+const X16_MODE: bool = true;
+const DO_BIST: bool = true;
+const DBG_SHMOO: bool = false;
+const DDR2: bool = false;
+const DDR2_3: bool = false;
+const DDR3: bool = true;
+const DDR4: bool = false;
+// TODO: enum
+const DDR_TYPE_DDR2: u32 = 0;
+const DDR_TYPE_DDR3: u32 = 1;
+fn get_ddr_type() -> u32 {
+    DDR_TYPE_DDR3
+}
+
 // NOTE: CTRL settings are hardcoded; for SSC, add params to this fn
 fn set_dpll_ssc_syn(reg_set: u32, reg_span: u32, reg_step: u32) {
     let ctrl_cfg = 0b010000;
@@ -1196,7 +1211,6 @@ fn ddr_patch_set() {
 // plat/cv181x/ddr/ddr_sys.c
 fn cvx16_en_rec_vol_mode() {
     println!("/ cvx16_en_rec_vol_mode start");
-    const DDR2: bool = false;
     if DDR2 {
         write32(0x0500 + PHYD_BASE_ADDR, 0x00001001);
         write32(0x0540 + PHYD_BASE_ADDR, 0x00001001);
@@ -1261,7 +1275,7 @@ fn cvx16_ddr_phy_power_on_seq1() {
 
 fn cvx16_polling_dfi_init_start() {
     println!("/ first dfi_init_start");
-    while (read32(0x3028 + PHYD_BASE_ADDR) >> 8) & 0x1 == 0 {}
+    while read32(0x3028 + PHYD_BASE_ADDR) & (1 << 8) == 0 {}
     println!("\\ cvx16_polling_dfi_init_start finish");
 }
 
@@ -1680,28 +1694,31 @@ fn bist_x_init_finish() {
     write32(DDR_BIST_BASE + 0x18, v);
 }
 
+const BIST_OP_WRITE: u32 = 1 << 30;
+const BIST_OP_READ: u32 = 2 << 30;
+const BIST_OP_GOTO: u32 = 3 << 30;
+
+// command queue: 6 registers
+// 31..30: op code; 1: write, 2: read
+// 29..21: start
+// 20..12: stop
+// 8: DQ invert
+// 7: DM invert
+// 6..4: DQ rotate
+// 3..0: repetitions
+
 fn cvx16_bist_wr_prbs_init() {
     println!("    bist_wr_prbs_init");
     // bist clock enable
     write32(DDR_BIST_BASE + 0x0, 0x00060006);
 
-    // command queue: 6 registers
     let base_cmd = (0 << 21) | (511 << 12) | (0b0101 << 9);
-    // 31..30: op code; 1: write, 2: read
-    // 29..21: start
-    // 20..12: stop
-    // 8: DQ invert
-    // 7: DM invert
-    // 6..4: DQ rotate
-    // 3..0: repetitions
-    let op_write = 1 << 30;
-    let op_read = 2 << 30;
     // W  1~17  prbs  repeat0
-    let cmd1 = op_write | base_cmd;
+    let cmd1 = BIST_OP_WRITE | base_cmd;
+    // R  1~17  prbs  repeat0
+    let cmd2 = BIST_OP_READ | base_cmd;
     // write cmd queue
     write32(DDR_BIST_BASE + 0x40, cmd1);
-    // R  1~17  prbs  repeat0
-    let cmd2 = op_read | base_cmd;
     write32(DDR_BIST_BASE + 0x44, cmd2);
     // NOP
     for i in 0..4 {
@@ -1717,8 +1734,7 @@ fn cvx16_bist_wrlvl_init() {
     // bist clock enable
     write32(DDR_BIST_BASE + 0x0, 0x00060006);
 
-    let op_write = 1 << 30;
-    let cmd = op_write | (0b0101 << 9);
+    let cmd = BIST_OP_WRITE | (0b0101 << 9);
     write32(DDR_BIST_BASE + 0x40, cmd);
     // NOP
     for i in 0..5 {
@@ -1734,10 +1750,8 @@ fn cvx16_bist_rdglvl_init() {
     // bist clock enable
     write32(DDR_BIST_BASE + 0x0, 0x00060006);
 
-    let op_read = 2 << 30;
-    let cmd = op_read | (0 << 21) | (3 << 12) | (0b0101 << 9);
-    write32(DDR_BIST_BASE + 0x44, cmd);
-
+    let cmd = BIST_OP_READ | (0 << 21) | (3 << 12) | (0b0101 << 9);
+    write32(DDR_BIST_BASE + 0x40, cmd);
     // NOP
     for i in 0..5 {
         write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
@@ -1748,7 +1762,33 @@ fn cvx16_bist_rdglvl_init() {
 }
 
 fn cvx16_bist_wdmlvl_init() {
-    // TODO
+    println!("    bist_wdmlvl_init");
+    // bist clock enable
+    write32(DDR_BIST_BASE + 0x0, 0x00060006);
+
+    let fmax = 15;
+    let fmin = 5;
+    let fdiff = (fmax - fmin + 1);
+    // 8*f/4 -1
+    let sram_sp = 9 * (fmin + fmax) * fdiff / 2 / 4 + fdiff;
+    println!("      sram_sp = {sram_sp:08x}");
+
+    // bist sso_period
+    write32(DDR_BIST_BASE + 0x24, (fmax << 8) + fmin);
+
+    let cmd1 = BIST_OP_WRITE | (sram_sp << 12) | (0b0011 << 9);
+    let cmd2 = BIST_OP_WRITE | (sram_sp << 12) | (0b0111 << 9);
+    let cmd3 = BIST_OP_READ | (sram_sp << 12) | (0b0111 << 9);
+    write32(DDR_BIST_BASE + 0x40, cmd1);
+    write32(DDR_BIST_BASE + 0x44, cmd2);
+    write32(DDR_BIST_BASE + 0x48, cmd3);
+    // NOP
+    for i in 0..5 {
+        write32(DDR_BIST_BASE + 0x4c + i * 4, 0);
+    }
+
+    bist_x_init_finish();
+    println!("    bist_wdmlvl_init done");
 }
 
 fn cvx16_bist_wdqlvl_init(mode: u32) {
@@ -1756,13 +1796,11 @@ fn cvx16_bist_wdqlvl_init(mode: u32) {
     // bist clock enable
     write32(DDR_BIST_BASE + 0x0, 0x00060006);
 
-    let op_write = 1 << 30;
-    let op_read = 2 << 30;
     if mode == 0 {
         // phyd pattern
         let base_cmd = (0 << 21) | (3 << 12) | (0b0101 << 9);
-        let cmd1 = op_write | base_cmd;
-        let cmd2 = op_read | base_cmd;
+        let cmd1 = BIST_OP_WRITE | base_cmd;
+        let cmd2 = BIST_OP_READ | base_cmd;
         write32(DDR_BIST_BASE + 0x40, cmd1);
         write32(DDR_BIST_BASE + 0x44, cmd2);
         // NOP
@@ -1773,21 +1811,21 @@ fn cvx16_bist_wdqlvl_init(mode: u32) {
         // bist write/read
         let fmin = 5;
         let fmax = 15;
-        let sram_st = 0;
-        let sram_sp = 9 * (fmin + fmax) * (fmax - fmin + 1) / 8 + (fmax - fmin + 1);
-        println!("sram_sp = {sram_sp:08x}");
+        let fdiff = fmax - fmin + 1;
+        // 8*f/4 -1
+        let sram_sp = 9 * (fmin + fmax) * fdiff / 2 / 4 + fdiff;
+        println!("      sram_sp = {sram_sp:08x}");
 
         // bist sso_period
         write32(DDR_BIST_BASE + 0x24, (fmax << 8) + fmin);
-        let base1 = (sram_st << 21) | (511 << 12) | (0b0101 << 9);
-        let base2 = (sram_st << 21) | (sram_sp << 12) | (0b0110 << 9);
-        write32(DDR_BIST_BASE + 0x40, op_write | base1);
-        write32(DDR_BIST_BASE + 0x44, op_read | base1);
-        write32(DDR_BIST_BASE + 0x48, op_write | base2);
-        write32(DDR_BIST_BASE + 0x4c, op_read | base2);
-        let op_goto = 3;
+        let base1 = (511 << 12) | (0b0101 << 9);
+        let base2 = (sram_sp << 12) | (0b0110 << 9);
+        write32(DDR_BIST_BASE + 0x40, BIST_OP_WRITE | base1);
+        write32(DDR_BIST_BASE + 0x44, BIST_OP_READ | base1);
+        write32(DDR_BIST_BASE + 0x48, BIST_OP_WRITE | base2);
+        write32(DDR_BIST_BASE + 0x4c, BIST_OP_READ | base2);
         //       GOTO      addr_not_reset loop_cnt
-        write32(DDR_BIST_BASE + 0x50, op_goto | (0 << 20) | (1 << 0));
+        write32(DDR_BIST_BASE + 0x50, BIST_OP_GOTO | (0 << 20) | (1 << 0));
         // NOP
         write32(DDR_BIST_BASE + 0x54, 0);
     } else if (mode == 0x11) {
@@ -1801,7 +1839,7 @@ fn cvx16_bist_wdqlvl_init(mode: u32) {
     }
 
     bist_x_init_finish();
-    println!("    bist_wdqlvl_done");
+    println!("    bist_wdqlvl_init done");
 }
 
 fn cvx16_bist_wr_sram_init() {
@@ -1818,7 +1856,12 @@ fn cvx16_rdlvl_sw_req(x: u32) {
 
 fn cvx16_rdglvl_req() {
     // NOTE: training need ctrl_low_patch first
-    let (selfref_sw, en_dfi_dram_clk_disable, powerdown_en, selfref_en) = pwrctl_init();
+    let (
+        selfref_sw,
+        en_dfi_dram_clk_disable,
+        powerdown_en,
+        selfref_en, //
+    ) = pwrctl_init();
 
     cvx16_clk_gating_disable();
 
@@ -1827,8 +1870,8 @@ fn cvx16_rdglvl_req() {
     // write32(DDR_CFG_BASE + 0x60, v | 1);
 
     let ddr3 = DDR3 || (DDR2_3 && (get_ddr_type() == DDR_TYPE_DDR3));
-    let v = read32(PHYD_BASE_ADDR + 0x0184);
-    let ddr3_mpr_mode = (v >> 4) & 0b1 == 1;
+    let ddr3_mpr_mode = read32(PHYD_BASE_ADDR + 0x0184) & (1 << 4) != 0;
+
     if ddr3 && ddr3_mpr_mode {
         // RFSHCTL3.dis_auto_refresh =1
         let v = read32(DDR_CFG_BASE + 0x60);
@@ -1843,23 +1886,18 @@ fn cvx16_rdglvl_req() {
     // bist setting for dfi rdglvl
     cvx16_bist_rdglvl_init();
 
-    let v = read32(PHYD_BASE_ADDR + 0x0184);
     // param_phyd_dfi_rdglvl_req
-    let v = v | 1;
-    write32(PHYD_BASE_ADDR + 0x0184, v);
-    println!("wait retraining finish ...");
+    let v = read32(PHYD_BASE_ADDR + 0x0184);
+    write32(PHYD_BASE_ADDR + 0x0184, v | 1);
 
+    println!("wait retraining finish ...");
     //[0] param_phyd_dfi_wrlvl_done
     //[1] param_phyd_dfi_rdglvl_done
     //[2] param_phyd_dfi_rdlvl_done
     //[3] param_phyd_dfi_wdqlvl_done
-    while let v = read32(PHYD_BASE_ADDR + 0x3444) {
-        if (v & (1 << 1) >> 1) == 1 {
-            // BIST clock disable
-            write32(DDR_BIST_BASE + 0x0, 0x00040000);
-            break;
-        }
-    }
+    while read32(PHYD_BASE_ADDR + 0x3444) & (1 << 1) == 0 {}
+    // BIST clock disable
+    write32(DDR_BIST_BASE + 0x0, 0x00040000);
 
     if ddr3 && ddr3_mpr_mode {
         // MR3
@@ -1970,11 +2008,7 @@ fn cvx16_synp_mrw(addr: u32, data: u32) {
     };
     // Poll MRSTAT.mr_wr_busy until it is 0
     println!("  Poll MRSTAT.mr_wr_busy until it is 0");
-    while let v = read32(DDR_CFG_BASE + 0x18) {
-        if v & 0b1 == 0 {
-            break;
-        }
-    }
+    while read32(DDR_CFG_BASE + 0x18) & (1 << 0) != 0 {}
     println!("    non-lp4 Poll MRSTAT.mr_wr_busy finish");
     // Write the MRCTRL0.mr_type, MRCTRL0.mr_addr, MRCTRL0.mr_rank
     // and (for MRWs) MRCTRL1.mr_data
@@ -2001,22 +2035,18 @@ fn cvx16_synp_mrw(addr: u32, data: u32) {
     }
 }
 
-const DDR2_3: bool = false;
-const DDR3: bool = true;
-const DDR4: bool = false;
-
-const DDR_TYPE_DDR3: u32 = 1;
-fn get_ddr_type() -> u32 {
-    DDR_TYPE_DDR3
-}
-
 fn cvx16_wrlvl_req() {
     // NOTE: training need ctrl_low_patch first
     // wrlvl response only DQ0
     write32(0x005C + PHYD_BASE_ADDR, 0x00FE0000);
 
     // Note: training need ctrl_low_patch first
-    let (selfref_sw, en_dfi_dram_clk_disable, powerdown_en, selfref_en) = pwrctl_init();
+    let (
+        selfref_sw,
+        en_dfi_dram_clk_disable,
+        powerdown_en,
+        selfref_en, //
+    ) = pwrctl_init();
 
     cvx16_clk_gating_disable();
 
@@ -2096,13 +2126,9 @@ fn cvx16_wrlvl_req() {
     //[1] param_phyd_dfi_rdglvl_done
     //[2] param_phyd_dfi_rdlvl_done
     //[3] param_phyd_dfi_wdqlvl_done
-    while let v = read32(PHYD_BASE_ADDR + 0x3444) {
-        if (v & 0b1 == 1) {
-            // BIST clock disable
-            write32(DDR_BIST_BASE + 0x0, 0x00040000);
-            break;
-        }
-    }
+    while read32(PHYD_BASE_ADDR + 0x3444) & (1 << 0) == 0 {}
+    // BIST clock disable
+    write32(DDR_BIST_BASE + 0x0, 0x00040000);
 
     // RFSHCTL3.dis_auto_refresh =0
     let v = read32(DDR_CFG_BASE + 0x60);
@@ -2156,7 +2182,7 @@ fn cvx16_dfi_ca_park_prbs(cap_enable: bool) {
 
     let dfi_ca_park_misc = if cap_enable { 0x1B } else { 0 };
     write32(DDR_TOP_BASE + 0x00, dfi_ca_park_misc);
-    println!("dfi_ca_park_prbs enable = {cap_enable}");
+    println!("    dfi_ca_park_prbs enable = {cap_enable}");
 
     // dfi_ca_park_retain_cycle;
     write32(DDR_TOP_BASE + 0x04, 0x1);
@@ -2177,12 +2203,17 @@ enum LvlMode {
 
 fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
     // NOTE: training need ctrl_low_patch first
-    let (selfref_sw, en_dfi_dram_clk_disable, powerdown_en, selfref_en) = pwrctl_init();
+    let (
+        selfref_sw,
+        en_dfi_dram_clk_disable,
+        powerdown_en,
+        selfref_en, //
+    ) = pwrctl_init();
 
     cvx16_clk_gating_disable();
-    println!("cvx16_wdqlvl_req  cvx16_dfi_ca_park_prbs  start");
+    println!("   cvx16_dfi_ca_park_prbs  start");
     cvx16_dfi_ca_park_prbs(true);
-    println!("cvx16_wdqlvl_req  cvx16_dfi_ca_park_prbs  done");
+    println!("   cvx16_dfi_ca_park_prbs  done");
 
     // param_phyd_piwdqlvl_dq_mode
     // <= #RD (~pwstrb_mask[12] & param_phyd_piwdqlvl_dq_mode) | pwstrb_mask_pwdata[12];
@@ -2215,33 +2246,31 @@ fn cvx16_wdqlvl_req(data_mode: u32, lvl_mode: LvlMode) {
             cvx16_bist_wdqlvl_init(data_mode);
         }
     }
-    println!("cvx16_wdqlvl_req   init done");
 
     // param_phyd_dfi_wdqlvl
     let v = read32(0x018C + PHYD_BASE_ADDR);
+    println!("      phyd_dfi_wdqlvl {v:08x}");
     // req
-    let v = v & 0b1;
+    let v = v | 0b1;
     let vref_train_en = match lvl_mode {
         LvlMode::WdmLvl => 0,
         _ => 1,
-    } << 10;
+    };
     let bist_data_en = match data_mode {
         0x1 | 0x11 | 0x12 => 1,
         _ => 0,
-    } << 4;
-    let v = v & !((1 << 10) | (1 << 4)) | vref_train_en | bist_data_en;
+    };
+    let clr_mask = !((1 << 10) | (1 << 4));
+    let v = (v & clr_mask) | (vref_train_en << 10) | (bist_data_en << 4);
     write32(0x018C + PHYD_BASE_ADDR, v);
+    println!("      phyd_dfi_wdqlvl {v:08x}");
 
-    println!("wait retraining finish ...");
+    println!("    wait retraining finish ...");
     //[0] param_phyd_dfi_wrlvl_done
     //[1] param_phyd_dfi_rdglvl_done
     //[2] param_phyd_dfi_rdlvl_done
     //[3] param_phyd_dfi_wdqlvl_done
-    while let v = read32(PHYD_BASE_ADDR + 0x3444) {
-        if (v & (1 << 3) >> 3) == 1 {
-            break;
-        }
-    }
+    while read32(PHYD_BASE_ADDR + 0x3444) & (1 << 3) == 0 {}
 
     let v = read32(DDR_CFG_BASE + 0xC);
     let v = v & !(1 << 7);
@@ -2267,58 +2296,184 @@ fn cvx16_wdqlvl_sw_req(x: u32, y: u32) {
 }
 
 fn ctrl_init_high_patch() {
-    //
+    // enable auto PD/SR
+    write32(0x08004000 + 0x30, 0x00000002);
+    // enable auto ctrl_upd
+    write32(0x08004000 + 0x1a0, 0x00400018);
+    // enable clock gating
+    write32(0x0800a000 + 0x14, 0x00000000);
+    // change xpi to multi DDR burst
+    // write32(0x08004000 + 0xc, 0x63786370);
 }
 
 fn ctrl_init_detect_dram_size() -> u32 {
-    0
+    let mut cap_in_mbyte = 4;
+
+    if DDR3 || DDR2_3 && get_ddr_type() == DDR_TYPE_DDR3 {
+        fn bist_poll() -> u32 {
+            // bist_enable
+            write32(DDR_BIST_BASE + 0x0, 0x00010001);
+            // poll for BIST done
+            let res = loop {
+                let r = read32(DDR_BIST_BASE + 0x80);
+                if r & (1 << 2) != 0 {
+                    break r;
+                }
+            };
+            // bist disable
+            write32(DDR_BIST_BASE + 0x0, 0x00010000);
+
+            res
+        }
+
+        // Axsize = 3, axlen = 4, cgen
+        write32(DDR_BIST_BASE + 0x0, 0x000e0006);
+
+        // DDR space
+        write32(DDR_BIST_BASE + 0x10, 0x00000000);
+        write32(DDR_BIST_BASE + 0x14, 0xffffffff);
+
+        // specified AXI address step
+        write32(DDR_BIST_BASE + 0x18, 0x00000004);
+
+        // write PRBS to 0x0 as background {{{
+        let cmd = BIST_OP_WRITE | (3 << 12) | (0b0101 << 9);
+        write32(DDR_BIST_BASE + 0x40, cmd);
+        // NOP
+        for i in 0..5 {
+            write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
+        }
+
+        bist_poll();
+
+        // (get_bits_from_value(rddata, 3, 3) == 0) &&
+        // BIST may fail stop the loop (?)
+        while (cap_in_mbyte < 15) {
+            cap_in_mbyte += 1;
+            println!("cap_in_mbyte = {cap_in_mbyte}");
+
+            // DDR space
+            write32(DDR_BIST_BASE + 0x10, 1 << (cap_in_mbyte + 20 - 4));
+
+            // write ~PRBS to (0x1 << *dram_cap_in_mbyte) {{{
+            let cmd = BIST_OP_WRITE | (3 << 12) | (0b0101 << 9) | (1 << 8);
+            write32(DDR_BIST_BASE + 0x40, cmd);
+            // NOP
+            for i in 0..5 {
+                write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
+            }
+
+            bist_poll();
+
+            // check PRBS at 0x0 {{{
+            let cmd = BIST_OP_READ | (3 << 12) | (0b0101 << 9);
+            write32(DDR_BIST_BASE + 0x40, cmd);
+            // NOP
+            for i in 0..5 {
+                write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
+            }
+
+            let res = bist_poll();
+            if res & (1 << 3) != 0 {
+                break;
+            }
+        }
+    }
+
+    if DDR2 || DDR2_3 && get_ddr_type() == DDR_TYPE_DDR2 {
+        cap_in_mbyte = 6;
+    }
+
+    // save dram_cap_in_mbyte
+    write32(PHYD_BASE_ADDR + 0x0208, cap_in_mbyte);
+
+    // clock gen: BIST clock disable
+    write32(DDR_BIST_BASE + 0x0, 0x00040000);
+
+    cap_in_mbyte
 }
 
-fn ctrl_init_update_by_dram_size(x: u32) {
-    //
+fn ctrl_init_update_by_dram_size(size: u32) {
+    let v = read32(0x08004000 + 0x0);
+    // DRAM cap in megabytes per cap
+    let dram_cap_in_mbyte = v;
+    let s1 = (v >> 12) & 0b11;
+    let s2 = (v >> 30) & 0b11;
+    // change sys cap to x16 cap
+    let dram_cap_in_mbyte = dram_cap_in_mbyte >> (1 - s1);
+    // change x16 cap to device cap
+    let dram_cap_in_mbyte = dram_cap_in_mbyte >> (2 - s2);
+    /*
+    dram_cap_in_mbyte_per_dev >>= (1 - get_bits_from_value(rddata, 13, 12));
+    dram_cap_in_mbyte_per_dev >>= (2 - get_bits_from_value(rddata, 31, 30));
+    */
+    println!("   DRAM cap in MB per dev: {dram_cap_in_mbyte}");
+    match dram_cap_in_mbyte {
+        6 => {
+            write32(0x08004000 + 0x64, 0x0071002A);
+            write32(0x08004000 + 0x120, 0x00000903);
+        }
+        7 => {
+            write32(0x08004000 + 0x64, 0x00710034);
+            write32(0x08004000 + 0x120, 0x00000903);
+        }
+        8 => {
+            write32(0x08004000 + 0x64, 0x0071004B);
+            write32(0x08004000 + 0x120, 0x00000904);
+        }
+        9 => {
+            write32(0x08004000 + 0x64, 0x0071007A);
+            write32(0x08004000 + 0x120, 0x00000905);
+        }
+        10 => {
+            write32(0x08004000 + 0x64, 0x007100A4);
+            write32(0x08004000 + 0x120, 0x00000907);
+        }
+        _ => {
+            // not supposed to happen, but you never know...
+            println!("  WARNING: unsupported DRAM cap in MB per dev");
+        }
+    }
+    // toggle refresh_update_level
+    write32(0x08004000 + 0x60, 0x00000002);
+    write32(0x08004000 + 0x60, 0x00000000);
 }
 
-fn cvx16_dram_cap_check(x: u32) {
-    //
+fn cvx16_dram_cap_check(size: u32) {
+    // TODO
 }
-
-const X16_MODE: bool = true;
-const DO_BIST: bool = true;
-const DBG_SHMOO: bool = false;
-const DDR2: bool = false;
 
 fn bist() -> Result<(), ()> {
     // bist enable
     let v = if X16_MODE { 0x00030003 } else { 0x00010001 };
     write32(DDR_BIST_BASE + 0x0, v);
     println!(">> BIST start");
-    while let v = read32(DDR_BIST_BASE + 0x0080) {
-        if v & (1 << 2) != 0 {
-            break;
+    let res = loop {
+        let r = read32(DDR_BIST_BASE + 0x0080);
+        if r & (1 << 2) != 0 {
+            break r;
         }
-    }
-    println!("<< BIST: {v:08x}");
-    let mut success = v & (1 << 3) == 0;
-    let mut data_odd = 0;
-    let mut data_even = 0;
-    if success {
+    };
+    let success = res & (1 << 3) == 0;
+    let (odd, even) = if success {
         // read err_data
         let ol = read32(DDR_BIST_BASE + 0x88) as u64;
         let oh = read32(DDR_BIST_BASE + 0x8c) as u64;
         let el = read32(DDR_BIST_BASE + 0x90) as u64;
         let eh = read32(DDR_BIST_BASE + 0x94) as u64;
-        data_odd = oh << 32 | ol;
-        data_even = eh << 32 | el;
-    }
+        (oh << 32 | ol, eh << 32 | el)
+    } else {
+        (0, 0)
+    };
     // bist disable
     write32(DDR_BIST_BASE + 0x0, 0x00050000);
 
-    println!("-  BIST success  {success}");
-    println!("-  err_data_odd  {data_odd:016x}");
-    println!("-  err_data_even {data_even:016x}");
     if success {
+        println!("-  BIST success");
         Ok(())
     } else {
+        println!("-  BIST err_data_odd  {odd:016x}");
+        println!("-  BIST err_data_even {even:016x}");
         Err(())
     }
 }
@@ -2472,10 +2627,10 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         println!("cvx16_wdqlvl_req dm finish");
     } else {
         // cvx16_wdqlvl_req
-        println!("wdqlvl_M1_ALL_DQ_DM");
+        println!(" wdqlvl_M1_ALL_DQ_DM");
         // sso_8x1_c(5, 15, 0, 1, &sram_sp);
         // mode = write, input int fmin = 5, input int fmax = 15,
-        //input int sram_st = 0, output int sram_sp
+        // input int sram_st = 0, output int sram_sp
 
         // data_mode = 'h0 : phyd pattern
         // data_mode = 'h1 : bist read/write
@@ -2484,19 +2639,16 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         // lvl_mode  = 'h0 : wdmlvl
         // lvl_mode  = 'h1 : wdqlvl
         // lvl_mode  = 'h2 : wdqlvl and wdmlvl
-        // cvx16_wdqlvl_req(data_mode, lvl_mode);
         cvx16_wdqlvl_req(1, LvlMode::WdqAndWdmLvl);
-        println!("cvx16_wdqlvl_req dq/dm finish");
+        println!("  cvx16_wdqlvl_req dq/dm finish");
         cvx16_wdqlvl_req(1, LvlMode::WdqLvl);
-        println!("cvx16_wdqlvl_req dq finish");
-        /*
+        println!("  cvx16_wdqlvl_req dq finish");
         cvx16_wdqlvl_req(1, LvlMode::WdmLvl);
-        println!("cvx16_wdqlvl_req dm finish");
-        */
+        println!("  cvx16_wdqlvl_req dm finish");
         if DO_BIST {
             cvx16_bist_wr_prbs_init();
             if let Err(()) = bist() {
-                panic!("ERROR bist_fail");
+                panic!("-- ERROR bist_fail");
             }
         }
     }
@@ -2568,12 +2720,9 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
         */
     }
 
-    /*
     ctrl_init_high_patch();
 
     let dram_cap_in_mbyte = ctrl_init_detect_dram_size();
-    println!("ctrl_init_detect_dram_size finish");
-
     println!("dram_cap_in_mbyte: {dram_cap_in_mbyte}");
     ctrl_init_update_by_dram_size(dram_cap_in_mbyte);
     println!("ctrl_init_update_by_dram_size finish");
@@ -2584,7 +2733,6 @@ pub fn init(ddr_data_rate: usize, dram_vendor: u32) {
     // clk_gating_enable
     cvx16_clk_gating_enable();
     println!("cvx16_clk_gating_enable finish");
-    */
 
     /*
     if DO_BIST {
