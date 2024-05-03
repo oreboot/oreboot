@@ -14,13 +14,14 @@ use std::path::PathBuf;
 //  48:#define BL2_BASE (VC_RAM_BASE)
 //
 //  plat/cv180x/include/platform_def.h
+//  289:    #define TPU_SRAM_SIZE 0x10000 // 64KiB
 //  296:    #define VC_RAM_BASE 0x3BC00000 // Shadow_vc_mem
 //
 // Latere SoCs (SG200x, Milk-V Duo 256M, Duo S)
 //
 //  plat/cv181x/include/platform_def.h
-// #define TPU_SRAM_ORIGIN_BASE 0x0C000000
-// #define TPU_SRAM_SIZE 0x40000 // 256KiB
+//          #define TPU_SRAM_ORIGIN_BASE 0x0C000000
+//          #define TPU_SRAM_SIZE 0x40000 // 256KiB
 
 const LINKERSCRIPT_FILENAME: &str = "link-duo_s-bt0.ld";
 
@@ -68,7 +69,7 @@ const LINKERSCRIPT: &[u8] = b"
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
-    SRAM : ORIGIN = 0x0C000000, LENGTH = 256k
+    SRAM : ORIGIN = 0x0C000000, LENGTH = 64k
 }
 SECTIONS {
     .head : {

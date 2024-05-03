@@ -178,16 +178,252 @@ const CONF: usize = mem_map::TOP_MISC + 0x0004;
 // https://github.com/sophgo/cvi_alios_open
 //   components/chip_cv181x/src/drivers/efuse/wj/cvi/cvi_efuse.c
 const EFUSE: usize = mem_map::TOP_BASE + 0x0005_0000;
+// plat/cv181x/include/security/efuse.h
+const EFUSE_MODE: usize = EFUSE;
+const EFUSE_ADDR: usize = EFUSE + 0x0004;
 const EFUSE_STATUS: usize = EFUSE + 0x0010;
 const EFUSE_SHADOW: usize = EFUSE + 0x0100;
 const EFUSE_CUSTOMER: usize = EFUSE_SHADOW + 0x0004;
+const FTSN0: usize = EFUSE + 0x0100;
+const FTSN1: usize = EFUSE + 0x0104;
+// A bit of an odd name? Taken from vendor code, alias of FTSN2.
+// It is locked and contains the DRAM vendor and capacity.
 const EFUSE_LEAKAGE: usize = EFUSE + 0x0108;
+const FTSN2: usize = EFUSE + 0x0108;
 const FTSN3: usize = EFUSE + 0x010C;
 const FTSN4: usize = EFUSE + 0x0110;
+const SW_INFO: usize = EFUSE + 0x012c;
 const EFUSE_W_LOCK0: usize = EFUSE + 0x0198;
 
+const EFUSE_MODE_ON: u32 = 0x10;
+const EFUSE_MODE_SET_BIT: u32 = 0x14;
+const EFUSE_MODE_OFF: u32 = 0x18;
+const EFUSE_MODE_REFRESH_SHADOW: u32 = 0x30;
+
+const BIT_FTSN0_LOCK: u32 = 0;
+const BIT_FTSN1_LOCK: u32 = 1;
+const BIT_FTSN2_LOCK: u32 = 2;
+const BIT_FTSN3_LOCK: u32 = 3;
+const BIT_FTSN4_LOCK: u32 = 4;
+
 const AXI_SRAM_BASE: usize = 0x0E00_0000;
+const BOOT_SOURCE_FLAG: usize = AXI_SRAM_BASE + 0x0004;
+const BOOT_LOG_LEN: usize = AXI_SRAM_BASE + 0x0008;
 const CP_STATE: usize = AXI_SRAM_BASE + 0x0018;
+
+const TPU_SRAM_BASE: usize = 0x0C00_0000;
+// Our code runs from TPU SRAM, +4k for the header.
+const HEADER_SIZE: usize = 0x1000;
+const CODE_SIZE_MAX: usize = 0x0003_6000;
+// To avoid colliding with the boot log, our maximum size is 0x3_6000;
+// plat/cv181x/include/mmap.h
+//     #define BOOT_LOG_BUF_BASE (BL2_BASE + BL2_SIZE)
+const BOOT_LOG_BASE: usize = TPU_SRAM_BASE + HEADER_SIZE + CODE_SIZE_MAX;
+
+// The mask ROM stores its own boot log in SRAM.
+fn print_boot_log() {
+    let boot_log_len = read32(BOOT_LOG_LEN) as usize;
+    println!("boot_log_len: {boot_log_len}");
+    println!();
+    println!(">>> BEGIN OF BOOT LOG");
+
+    for i in (0..boot_log_len).step_by(4) {
+        let e = read32(BOOT_LOG_BASE + i);
+        let b = e.to_le_bytes();
+        if i + 4 < boot_log_len {
+            for c in b {
+                print!("{}", c as char);
+            }
+        } else {
+            for cc in 0..boot_log_len % 4 {
+                print!("{}", b[cc] as char);
+            }
+        }
+    }
+    println!();
+    println!("<<< END OF BOOT LOG");
+    println!();
+}
+
+fn poll_efuse() {
+    while read32(EFUSE_STATUS) & 0x1 != 0 {}
+}
+
+fn efuse_program_bit(addr: u32, bit: u32) {
+    let v = 0xfff & ((bit << 7) | ((addr & 0x3f) << 1));
+    poll_efuse();
+    write32(EFUSE_ADDR, v);
+    write32(EFUSE_MODE, EFUSE_MODE_SET_BIT);
+    poll_efuse();
+    write32(EFUSE_ADDR, v | 1);
+    write32(EFUSE_MODE, EFUSE_MODE_SET_BIT);
+}
+
+// after lock_efuse_chipsn() in plat/cv181x/bl2/bl2_opt.c
+fn efuse_setup() -> u32 {
+    // let efuse_mode = read32(EFUSE_MODE);
+    // println!("efuse mode: {efuse_mode:08x}");
+    poll_efuse();
+    write32(EFUSE_MODE, EFUSE_MODE_ON);
+
+    let info = read32(SW_INFO);
+    println!("SW INFO:       {info:08x}");
+    let efuse_status = read32(EFUSE_STATUS);
+    println!("EFUSE_STATUS:  {efuse_status:08x}");
+
+    let w_lock0 = read32(EFUSE_W_LOCK0);
+    let v = read32(FTSN0);
+    println!("FTSN0:         {v:08x}");
+    if w_lock0 & (1 << BIT_FTSN0_LOCK) == 0 {
+        println!("efuse: FTSN0 is NOT locked");
+    } else {
+        println!("efuse: FTSN0 is locked");
+    }
+    let v = read32(FTSN1);
+    println!("FTSN1:         {v:08x}");
+    if w_lock0 & (1 << BIT_FTSN1_LOCK) == 0 {
+        println!("efuse: FTSN1 is NOT locked");
+    } else {
+        println!("efuse: FTSN1 is locked");
+    }
+    let efuse_leakage = read32(EFUSE_LEAKAGE);
+    println!("EFUSE_LEAKAGE: {efuse_leakage:08x}");
+    if w_lock0 & (1 << BIT_FTSN2_LOCK) != 0 {
+        println!("efuse: FTSN2 is NOT locked");
+    } else {
+        println!("efuse: FTSN2 is locked");
+    }
+    let v = read32(FTSN3);
+    println!("FTSN3:         {v:08x}");
+    if w_lock0 & (1 << BIT_FTSN3_LOCK) == 0 {
+        println!("efuse: FTSN3 is NOT locked");
+        // efuse_program_bit(0x26, BIT_FTSN3_LOCK);
+    } else {
+        println!("efuse: FTSN3 is locked");
+    }
+    let v = read32(FTSN4);
+    println!("FTSN4:         {v:08x}");
+    if w_lock0 & (1 << BIT_FTSN4_LOCK) == 0 {
+        println!("efuse: FTSN4 is NOT locked");
+        // efuse_program_bit(0x26, BIT_FTSN4_LOCK);
+    } else {
+        println!("efuse: FTSN4 is locked");
+    }
+
+    poll_efuse();
+    write32(EFUSE_MODE, EFUSE_MODE_REFRESH_SHADOW);
+
+    poll_efuse();
+    write32(EFUSE_MODE, EFUSE_MODE_OFF);
+
+    efuse_leakage
+}
+
+const RTC_SYS_BASE: usize = 0x0500_0000;
+const RTC_CTRL_BASE: usize = RTC_SYS_BASE + 0x0002_5000;
+const RTC_CTRL0_UNLOCKKEY: usize = RTC_CTRL_BASE + 0x0004;
+const RTC_CTRL0: usize = RTC_CTRL_BASE + 0x0008;
+const RTC_CTRL0_STATUS0: usize = RTC_CTRL_BASE + 0x000c;
+const RTC_POR_RST_CTRL: usize = RTC_CTRL_BASE + 0x00ac;
+
+const RTC_BASE: usize = RTC_SYS_BASE + 0x0002_6000;
+const RTC_ST_ON_REASON: usize = RTC_BASE + 0x00f8;
+const RTC_ST_OFF_REASON: usize = RTC_BASE + 0x00fc;
+
+const RTC_MACRO_BASE: usize = RTC_SYS_BASE + 0x0002_6400;
+
+const RTC_EN_SHUTDOWN_REQUEST: usize = RTC_BASE + 0x00c0;
+const RTC_EN_POWER_CYCLE_REQUEST: usize = RTC_BASE + 0x00c8;
+const RTC_EN_WARM_RESET_REQUEST: usize = RTC_BASE + 0x00cc;
+const RTC_EN_PWR_VBAT_DET: usize = RTC_BASE + 0x00d0;
+const RTC_EN_WATCHDOG_TIMER_RESET_REQUEST: usize = RTC_BASE + 0x00e0;
+
+fn rtc_setup() {
+    const CV181X_SUPPORT_SUSPEND_RESUME: bool = false;
+    if CV181X_SUPPORT_SUSPEND_RESUME {
+        /*
+        if get_warmboot_entry() == BL31_WARMBOOT_ENTRY {
+            return;
+        }
+        */
+    }
+
+    // reg_rtc_mode = rtc_ctrl0[10]
+    if read32(RTC_CTRL0) & (1 << 10) != 0 {
+        println!("Bypass RTC mode switch");
+        return;
+    }
+
+    write32(RTC_CTRL0_UNLOCKKEY, 0xAB18);
+
+    // reg_clk32k_cg_en = rtc_ctrl0[11] -> 0
+    let v = read32(RTC_CTRL0);
+    let v = 0x08000000 | (v & 0xfffff7ff);
+    write32(RTC_CTRL0, v);
+
+    // cg_en_out_clk_32k = rtc_ctrl_status0[25]
+    while read32(RTC_CTRL0_STATUS0) & (1 << 25) != 0x00 {}
+
+    //r eg_rtc_mode = rtc_ctrl0[10];
+    let v = read32(RTC_CTRL0);
+    let v = 0x04000000 | (v & 0xfffffbff) | (0x1 << 10);
+    write32(RTC_CTRL0, v);
+
+    // DA_SOC_READY = 1
+    write32(RTC_MACRO_BASE + 0x8C, 0x1);
+    // DA_SOC_READY = 0
+    write32(RTC_MACRO_BASE + 0x8C, 0x0);
+
+    // udelay(200); // delay ~200us
+    for i in 0..200 {
+        // hack
+        read32(RTC_CTRL0);
+    }
+
+    // reg_clk32k_cg_en = rtc_ctrl0[11] -> 1
+    let v = read32(RTC_CTRL0);
+    let v = 0x0C000000 | (v & 0xffffffff) | (0x1 << 11);
+    write32(RTC_CTRL0, v);
+}
+
+fn rtc_en() {
+    let v = read32(RTC_ST_ON_REASON);
+    println!("st_on_reason  {v:08x}");
+    let v = read32(RTC_ST_OFF_REASON);
+    println!("st_off_reason {v:08x}");
+
+    write32(RTC_EN_SHUTDOWN_REQUEST, 0x01);
+    while read32(RTC_EN_SHUTDOWN_REQUEST) != 0x01 {}
+    write32(RTC_EN_WARM_RESET_REQUEST, 0x01);
+    while read32(RTC_EN_WARM_RESET_REQUEST) != 0x01 {}
+    write32(RTC_EN_POWER_CYCLE_REQUEST, 0x01);
+    while read32(RTC_EN_POWER_CYCLE_REQUEST) != 0x01 {}
+    write32(RTC_EN_WATCHDOG_TIMER_RESET_REQUEST, 0x01);
+    while read32(RTC_EN_WATCHDOG_TIMER_RESET_REQUEST) != 0x01 {}
+
+    // Set rtcsys_rst_ctrl[24] = 1; bit 24 is reg_rtcsys_reset_en
+    let v = read32(RTC_POR_RST_CTRL);
+    write32(RTC_POR_RST_CTRL, 1 << 1);
+
+    write32(RTC_CTRL0_UNLOCKKEY, 0xAB18);
+
+    // Enable hw_wdg_rst_en
+    let v = read32(RTC_CTRL0);
+    let v = v | 0xffff0000 | (0x1 << 11) | (0x01 << 6);
+    write32(RTC_CTRL0, v);
+
+    // Avoid power up again after poweroff
+    let v = read32(RTC_EN_PWR_VBAT_DET);
+    write32(RTC_EN_PWR_VBAT_DET, v & !(1 << 2));
+}
+
+const GP_REG1: usize = mem_map::TOP_BASE + 0x0084;
+const ATF_STATE: usize = GP_REG1;
+
+const ATF_STATE_MASK_ROM: u32 = 0xB100_F000;
+// NOTE: Vendor calls bt0 "bl2" (boot loader 2? after mask ROM...)
+// NOTE: ATF is probably meant to resemble Arm Trusted Firmware.
+const ATF_STATE_BL2_MAIN: u32 = 0xB200_F000;
 
 #[no_mangle]
 fn main() {
@@ -199,30 +435,22 @@ fn main() {
     println!("oreboot 🦀 bt0");
     print_ids();
 
-    unsafe {
-        let boot_src = rom::get_boot_src();
-        println!("boot src: {boot_src}");
+    let boot_src = rom::get_boot_src();
+    println!("boot src: {boot_src}");
+    let retry_count = rom::get_retry_count();
+    println!("retries:  {retry_count}");
 
-        let retry_count = rom::get_retry_count();
-        println!("retries:  {retry_count}");
-    }
     println!();
 
-    let w_lock0 = read32(EFUSE_W_LOCK0);
-    println!("W_LOCK0:       {w_lock0:08x}");
-    let efuse_status = read32(EFUSE_STATUS);
-    println!("EFUSE_STATUS:  {efuse_status:08x}");
+    let atf_state = read32(ATF_STATE);
+    println!("ATF state:     {atf_state:08x}");
+    write32(ATF_STATE, ATF_STATE_BL2_MAIN);
 
+    let cp_state = read32(CP_STATE);
+    println!("CP_STATE:      {cp_state:08x}");
     let conf = read32(CONF);
     println!("CONF:          {conf:08x}");
-    let efuse_leakage = read32(EFUSE_LEAKAGE);
-    println!("EFUSE_LEAKAGE: {efuse_leakage:08x}");
-    let v = read32(FTSN3);
-    println!("FTSN3:         {v:08x}");
-    let v = read32(FTSN4);
-    println!("FTSN4:         {v:08x}");
 
-    println!();
     let chip_type_v = (conf >> 28) & 0b111;
     let chip_type = match chip_type_v {
         1 => "SG20000 / 512MB DDR3 RAM @1866",
@@ -231,6 +459,13 @@ fn main() {
     };
     println!("TYPE:          {chip_type} ({chip_type_v})");
     println!();
+
+    let efuse_leakage = efuse_setup();
+    println!();
+
+    if false {
+        print_boot_log();
+    }
 
     // fsbl plat/cv181x/ddr/ddr_pkg_info.c
 
@@ -244,8 +479,6 @@ fn main() {
     println!("dram_vendor {dram_vendor}, dram_capacity {dram_capacity}");
     println!();
 
-    let cp_state = read32(CP_STATE);
-    println!("CP_STATE:      {cp_state:08x}");
     println!();
 
     let ddr_rate = match chip_type_v {
@@ -254,10 +487,8 @@ fn main() {
         _ => panic!("DDR rate not supported"),
     };
 
-    dram::init(ddr_rate, dram_vendor);
-
     /*
-    * CV1800B / Duo
+     CV1800B / Duo
        W_LOCK0:       00000000
        EFUSE_STATUS:  00000070
        CONF:          3500032a
@@ -269,7 +500,7 @@ fn main() {
     */
 
     /*
-    * SG2000 / Duo S
+     SG2000 / Duo S
        W_LOCK0:       00000018
        EFUSE_STATUS:  00000070
        CONF:          170003ab
@@ -281,16 +512,49 @@ fn main() {
        [bt0] Jump to main stage @80200000
     */
 
-    let load_addr = mem_map::DRAM_BASE + 0x0020_0000;
-    println!("[bt0] Jump to main stage @{load_addr:08x}");
-    exec_payload(load_addr);
+    {
+        let src = rom::get_boot_src();
+        println!("boot from {src}");
+
+        let flag = read32(BOOT_SOURCE_FLAG);
+        println!("boot flag {flag:08x}");
+
+        const BOOT_SRC_USB: [u8; 4] = *b"MGN1";
+        let v = u32::from_be_bytes(BOOT_SRC_USB);
+        write32(BOOT_SOURCE_FLAG, v);
+
+        let flag = read32(BOOT_SOURCE_FLAG);
+        println!("boot flag {flag:08x}");
+    }
+
+    rtc_setup();
+    rtc_en();
+
+    // Our current size + header is less than 0x1_0000.
+    // rom::load_image(TPU_SRAM_BASE, 0x1_0000, 0x1000, 0);
+
+    if true {
+        // print_boot_log();
+
+        dram::init(ddr_rate, dram_vendor);
+
+        let load_addr = mem_map::DRAM_BASE;
+        rom::load_image(load_addr, 0x0, 0x1000, 0);
+
+        // print_boot_log();
+
+        println!("[bt0] Jump to main stage @{load_addr:08x}");
+        exec_payload(load_addr);
+    }
 
     println!("[bt0] Exit from main stage, resetting...");
+    if false {
+        unsafe {
+            reset();
+        }
+    }
 
-    unsafe {
-        reset();
-        riscv::asm::wfi()
-    };
+    unsafe { riscv::asm::wfi() };
 }
 
 fn exec_payload(addr: usize) {

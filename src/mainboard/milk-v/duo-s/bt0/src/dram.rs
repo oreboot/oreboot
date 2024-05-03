@@ -2322,7 +2322,7 @@ fn ctrl_init_detect_dram_size() -> u32 {
             };
             // bist disable
             write32(DDR_BIST_BASE + 0x0, 0x00010000);
-
+            println!("          BIST poll: {res:08x}");
             res
         }
 
@@ -2344,18 +2344,20 @@ fn ctrl_init_detect_dram_size() -> u32 {
             write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
         }
 
-        bist_poll();
+        let mut res = bist_poll();
 
         // (get_bits_from_value(rddata, 3, 3) == 0) &&
         // BIST may fail stop the loop (?)
-        while (cap_in_mbyte < 15) {
+        while (res & (1 << 3) == 0 && cap_in_mbyte < 15) {
             cap_in_mbyte += 1;
-            println!("cap_in_mbyte = {cap_in_mbyte}");
+            println!("    cap_in_mbyte = {cap_in_mbyte}");
 
             // DDR space
             write32(DDR_BIST_BASE + 0x10, 1 << (cap_in_mbyte + 20 - 4));
 
             // write ~PRBS to (0x1 << *dram_cap_in_mbyte) {{{
+
+            // write 16 UI~prbs
             let cmd = BIST_OP_WRITE | (3 << 12) | (0b0101 << 9) | (1 << 8);
             write32(DDR_BIST_BASE + 0x40, cmd);
             // NOP
@@ -2363,9 +2365,10 @@ fn ctrl_init_detect_dram_size() -> u32 {
                 write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
             }
 
-            bist_poll();
+            res = bist_poll();
 
             // check PRBS at 0x0 {{{
+            // read 16 UI prbs
             let cmd = BIST_OP_READ | (3 << 12) | (0b0101 << 9);
             write32(DDR_BIST_BASE + 0x40, cmd);
             // NOP
@@ -2373,10 +2376,7 @@ fn ctrl_init_detect_dram_size() -> u32 {
                 write32(DDR_BIST_BASE + 0x44 + i * 4, 0);
             }
 
-            let res = bist_poll();
-            if res & (1 << 3) != 0 {
-                break;
-            }
+            res = bist_poll();
         }
     }
 
@@ -2395,10 +2395,11 @@ fn ctrl_init_detect_dram_size() -> u32 {
 
 fn ctrl_init_update_by_dram_size(size: u32) {
     let v = read32(0x08004000 + 0x0);
-    // DRAM cap in megabytes per cap
-    let dram_cap_in_mbyte = v;
     let s1 = (v >> 12) & 0b11;
     let s2 = (v >> 30) & 0b11;
+    println!("   DRAM cap shift vals: x16 {s1}, dev {s2}");
+    // DRAM cap in megabytes per cap
+    let dram_cap_in_mbyte = size;
     // change sys cap to x16 cap
     let dram_cap_in_mbyte = dram_cap_in_mbyte >> (1 - s1);
     // change x16 cap to device cap

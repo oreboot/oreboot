@@ -8,12 +8,13 @@ const MASK_ROM_FN_BASE: usize = MASK_ROM_BASE;
 // On later SoCs, the mask ROM functions are off
 #[cfg(not(soc = "CV1800B"))]
 const MASK_ROM_FN_BASE: usize = MASK_ROM_BASE + 0x0001_8000;
+
 const ROM_GET_BOOT_SRC: usize = MASK_ROM_FN_BASE + 0x0020;
 const ROM_SET_BOOT_SRC: usize = MASK_ROM_FN_BASE + 0x0040;
 const ROM_LOAD_IMAGE: usize = MASK_ROM_FN_BASE + 0x0060;
 const ROM_FLASH_INIT: usize = MASK_ROM_FN_BASE + 0x0080;
 const ROM_IMAGE_CRC: usize = MASK_ROM_FN_BASE + 0x00A0;
-const ROM_GET_NUMBER_OF_RETRIES: usize = MASK_ROM_FN_BASE + 0x00C0;
+const ROM_GET_RETRY_COUNT: usize = MASK_ROM_FN_BASE + 0x00C0;
 const ROM_VERIFY_RSA: usize = MASK_ROM_FN_BASE + 0x00E0;
 const ROM_CRYPTODMA_AES_DECRYPT: usize = MASK_ROM_FN_BASE + 0x0100;
 
@@ -44,9 +45,11 @@ impl core::fmt::Display for BootSrc {
 }
 
 type GetBootSrc = unsafe extern "C" fn() -> BootSrc;
+type SetBootSrc = unsafe extern "C" fn(src: BootSrc) -> usize;
+type LoadImage = unsafe extern "C" fn(addr: usize, offset: u32, size: usize, retry: u32) -> usize;
 type GetRetryCount = unsafe extern "C" fn() -> usize;
 
-use core::mem::transmute;
+use core::{fmt::Pointer, mem::transmute};
 
 pub fn get_boot_src() -> BootSrc {
     unsafe {
@@ -57,7 +60,23 @@ pub fn get_boot_src() -> BootSrc {
 
 pub fn get_retry_count() -> usize {
     unsafe {
-        let f: GetRetryCount = transmute(ROM_GET_NUMBER_OF_RETRIES);
+        let f: GetRetryCount = transmute(ROM_GET_RETRY_COUNT);
         f()
+    }
+}
+
+pub fn set_boot_src(src: BootSrc) {
+    unsafe {
+        let f: SetBootSrc = transmute(ROM_GET_BOOT_SRC);
+        let r = f(src);
+        println!("set boot src: {r:08x}");
+    }
+}
+
+pub fn load_image(addr: usize, offset: u32, size: usize, retry: u32) {
+    unsafe {
+        let f: LoadImage = transmute(ROM_LOAD_IMAGE);
+        let r = f(addr, offset, size, retry);
+        println!("load image: {r}");
     }
 }
