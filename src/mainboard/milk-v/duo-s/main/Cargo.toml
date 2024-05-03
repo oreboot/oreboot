@@ -1,0 +1,17 @@
+[package]
+name = "milk_v-duo_s-main"
+version = "0.1.0"
+authors = [
+  "Daniel Maslowski <info@orangecms.org>",
+]
+edition = "2021"
+
+[dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+nb = "1"
+riscv = "0.10.1"
+spin = "0.9"
+
+layoutflash = { path = "../../../../lib/layoutflash" }
+log = { path = "../../../../lib/log" }
