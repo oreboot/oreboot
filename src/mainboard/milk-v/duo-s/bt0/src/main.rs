@@ -538,6 +538,9 @@ fn main() {
 
         dram::init(ddr_rate, dram_vendor);
 
+        println!("DRAM init done, load main stage over USB");
+        println!();
+
         let load_addr = mem_map::DRAM_BASE;
         rom::load_image(load_addr, 0x0, 0x1000, 0);
 
