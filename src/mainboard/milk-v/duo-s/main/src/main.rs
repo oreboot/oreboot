@@ -28,7 +28,7 @@ pub type EntryPoint = unsafe extern "C" fn();
 
 const DEBUG: bool = false;
 
-const STACK_SIZE: usize = 512;
+const STACK_SIZE: usize = 2048;
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -57,6 +57,12 @@ pub unsafe extern "C" fn start() -> ! {
         ".word 0",
         ".forrealsiez:",
         "li     t0, 0x04140000",
+        "li     t1, 0x4f",
+        "sw     t1, 0(t0)",
+        "li     t1, 0x52",
+        "sw     t1, 0(t0)",
+        "li     t1, 0x45",
+        "sw     t1, 0(t0)",
         "li     t1, 0x42",
         "sw     t1, 0(t0)",
         // Clear feature disable CSR to '0' to turn on all features
@@ -67,10 +73,10 @@ pub unsafe extern "C" fn start() -> ! {
         "ld     t0, {start}",
         "csrw   mtvec, t0",
         // 1. suspend non-boot hart
-        // hart 0 is the S7 monitor core; 1-4 are U7 cores
-        "li     a1, 1",
-        "csrr   a0, mhartid",
-        "bne    a0, a1, .nonboothart",
+        // hart 0 is the initial core; 1 is another C906 core, "C906L"
+        // "li     a1, 0",
+        // "csrr   a0, mhartid",
+        // "bne    a0, a1, .nonboothart",
         // 2. prepare stack
         // FIXME: each hart needs its own stack
         "la     sp, {stack}",
@@ -131,12 +137,67 @@ fn init_logger(s: uart::SGSerial) {
     }
 }
 
+fn vendorid_to_name<'a>(vendorid: usize) -> &'a str {
+    match vendorid {
+        0x0489 => "SiFive",
+        0x05b7 => "T-Head",
+        _ => "unknown",
+    }
+}
+
+fn impid_to_name<'a>(impid: usize) -> &'a str {
+    match impid {
+        0x0421_0427 => "21G1.02.00 / llama.02.00-general",
+        _ => "unknown",
+    }
+}
+
+/// Print RISC-V core information:
+/// - vendor
+/// - arch
+/// - implementation
+/// - hart ID
+fn print_ids() {
+    let aid = marchid::read().map(|r| r.bits()).unwrap_or(0);
+    println!("RISC-V arch {aid:08x}");
+    let vid = mvendorid::read().map(|r| r.bits()).unwrap_or(0);
+    let vendor_name = vendorid_to_name(vid);
+    println!("RISC-V core vendor: {vendor_name} (0x{vid:04x})");
+    let iid = mimpid::read().map(|r| r.bits()).unwrap_or(0);
+    let imp_name = impid_to_name(iid);
+    println!("RISC-V implementation: {imp_name} (0x{iid:08x})");
+    let hart_id = mhartid::read();
+    println!("RISC-V hart ID {hart_id}");
+}
+
+fn rdtime() -> usize {
+    let mut time: usize;
+    unsafe { asm!("rdtime {time}", time = out(reg) time) };
+    time
+}
+
+fn delay(t: usize) {
+    let later = rdtime() + t;
+    while rdtime() < later {}
+}
+
 #[no_mangle]
 fn main() {
     let s = uart::SGSerial::new();
     init_logger(s);
     println!();
     println!("oreboot 🦀 main");
+
+    print_ids();
+
+    loop {
+        let time = rdtime();
+        println!("tick {time}");
+        delay(10_000_000);
+        let time = rdtime();
+        println!("tock {time}");
+        delay(10_000_000);
+    }
 
     unsafe {
         // reset();

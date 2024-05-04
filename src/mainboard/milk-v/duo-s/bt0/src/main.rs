@@ -425,6 +425,8 @@ const ATF_STATE_MASK_ROM: u32 = 0xB100_F000;
 // NOTE: ATF is probably meant to resemble Arm Trusted Firmware.
 const ATF_STATE_BL2_MAIN: u32 = 0xB200_F000;
 
+const ATF_STATE_RESET_WAIT: u32 = 0xBE00_3001;
+
 #[no_mangle]
 fn main() {
     let s = uart::SGSerial::new();
@@ -538,6 +540,21 @@ fn main() {
 
         dram::init(ddr_rate, dram_vendor);
 
+        const AXI_SRAM_RTOS_BASE: usize = AXI_SRAM_BASE + 0x7C;
+        let v = read32(AXI_SRAM_RTOS_BASE);
+        // 0x0c85e985
+        // CVI_RTOS_MAGIC_CODE 0xABC0DEF
+        println!("RTOS base: 0x{v:08x}");
+
+        fn rdtime() -> usize {
+            let mut time: usize = 0;
+            unsafe { asm!("rdtime {time}", time = inout(reg) time) };
+            time
+        }
+
+        let time = rdtime();
+        println!("time: {time}");
+
         println!("DRAM init done, load main stage over USB");
         println!();
 
@@ -547,10 +564,16 @@ fn main() {
         // print_boot_log();
 
         println!("[bt0] Jump to main stage @{load_addr:08x}");
-        exec_payload(load_addr);
+
+        const BOOT_MAIN: bool = false;
+        if BOOT_MAIN {
+            exec_payload(load_addr);
+        } else {
+            exec_hartl(load_addr);
+        }
     }
 
-    println!("[bt0] Exit from main stage, resetting...");
+    // println!("[bt0] Exit from main stage, resetting...");
     if false {
         unsafe {
             reset();
@@ -558,6 +581,37 @@ fn main() {
     }
 
     unsafe { riscv::asm::wfi() };
+}
+
+const SEC_SUBSYS_BASE: usize = 0x0200_0000;
+const SEC_SYS_BASE: usize = SEC_SUBSYS_BASE + 0x000B_0000;
+const RST_GEN: usize = mem_map::TOP_BASE + 0x3000;
+const SOFT_CPU_RSTN: usize = RST_GEN + 0x0024;
+
+// Bits Name
+// 0    reg_soft_reset_x_cpucore0
+// 1    reg_soft_reset_x_cpucore1
+// 2    reg_soft_reset_x_cpucore2
+// 3    reg_soft_reset_x_cpucore3
+// 4    reg_soft_reset_x_cpusys0
+// 5    reg_soft_reset_x_cpusys1
+// 6    reg_soft_reset_x_cpusys2
+// 31:7 Reserved
+
+fn exec_hartl(addr: usize) {
+    // should be no-op
+    let v = read32(SOFT_CPU_RSTN);
+    write32(SOFT_CPU_RSTN, v & !(1 << 6));
+
+    let v = read32(SEC_SYS_BASE + 0x04);
+    write32(SEC_SYS_BASE + 0x04, v | (1 << 13));
+
+    write32(SEC_SYS_BASE + 0x20, addr as u32);
+    write32(SEC_SYS_BASE + 0x24, (addr >> 32) as u32);
+
+    // reset
+    let v = read32(SOFT_CPU_RSTN);
+    write32(SOFT_CPU_RSTN, v | (1 << 6));
 }
 
 fn exec_payload(addr: usize) {
