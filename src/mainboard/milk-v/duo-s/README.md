@@ -14,13 +14,22 @@ There are 3 + 1 boards, based on related SoCs:
 | Sipeed LicheeRV Nano | SG2002  | https://wiki.sipeed.com/licheerv-nano             |
 
 All 3 SoCs have similar cores and peripherals.
+Note that the first code on the CV1800B runs at a different base address.
+
 Their mask ROM exposes a loader interface via USB, which allows for loading data
 and code to be executed. The following tool lets you load binary code:
 <https://github.com/orangecms/sg_boot>
 - `sg_boot run bt0.bin` will load the first stage
 - `sg_boot run --main main.bin` will load later stages
 
+To interpret detailed CPU information, we print out the raw `CPUID` data.
+This tool will allow for printing details:
+<https://github.com/platform-system-interface/thead_cpuinfo>
+
 ## Run the code
+
+Note:
+*So far, only the Duo S / SG2000 is really supported, from DRAM init to S-mode.*
 
 We will now assume that you have `sg_boot` in your `$PATH`.
 
