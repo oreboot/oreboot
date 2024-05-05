@@ -8,7 +8,6 @@ use core::{
 use log::{print, println};
 use riscv::register::{
     mip,
-    mstatus::{self, MPP},
     scause::{Exception, Trap},
 };
 use rustsbi::spec::binary::SbiRet;
@@ -113,11 +112,15 @@ pub fn execute_supervisor(
     );
     let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
     // TODO: make a param
-    let clint_base = CLINT_BASE_D1;
-    let clint_base = CLINT_BASE_JH7110;
+    let clint_base = if false {
+        CLINT_BASE_D1
+    } else {
+        CLINT_BASE_JH7110
+    };
     let mtime: usize = clint_base + MTIME_OFFSET;
     let mtimecmp: usize = clint_base + HART0_MTIMECMP_OFFSET + 8 * hartid;
     let hart_msip: usize = clint_base + HART0_MSIP_OFFSET + 4 * hartid;
+    println!("[SBI] Enter loop...");
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -191,7 +194,9 @@ pub fn execute_supervisor(
                 write32(mtimecmp + 4, (tn >> 32) as u32);
                 // Yeet software interrupt pending to signal interrupt to S-mode
                 // for this hart.
-                // write32(hart_msip, 1);
+                if false {
+                    write32(hart_msip, 1);
+                }
                 // TODO: There is also the Supervisor Timer Interrupt Pending
                 // bit in the MIP register... why anyway?
                 if false {

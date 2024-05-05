@@ -26,6 +26,7 @@ const HANDLE_MISALIGNED: bool = false;
 // `status: 8000000200006020 badaddr: 0000000000d608e6 cause: 0000000000000006`
 // Exception 6 on RISC-V means "Store/AMO address misaligned".
 unsafe fn delegate_interrupt_exception() {
+    // clear all pending interrupts
     mip::clear_stimer();
     mip::clear_sext();
     mip::clear_ssoft();
@@ -33,9 +34,11 @@ unsafe fn delegate_interrupt_exception() {
     mip::clear_uext();
     mip::clear_usoft();
 
+    // delegate all interrupts
     mideleg::set_sext();
     mideleg::set_stimer();
     mideleg::set_ssoft();
+
     // p 35, table 3.6
     medeleg::set_instruction_misaligned();
     medeleg::set_instruction_fault();
@@ -61,17 +64,16 @@ unsafe fn delegate_interrupt_exception() {
     medeleg::set_instruction_page_fault();
     medeleg::set_load_page_fault();
     medeleg::set_store_page_fault();
-    // mie::set_mext();
-    // mie::set_mtimer();
-    // mie::set_msoft();
+
+    if false {
+        mie::set_mext();
+        mie::set_mtimer();
+        mie::set_msoft();
+    }
 }
 
 pub fn init() {
-    let mut addr = from_supervisor_save as usize;
-    // Must be aligned to 4 bytes
-    if addr & 0x2 != 0 {
-        addr += 0x2;
-    }
+    let addr = from_supervisor_save as usize;
     println!("[SBI] set mtvec: {addr:x}");
     unsafe { mtvec::write(addr, TrapMode::Direct) };
     println!("[SBI] delegate interrupts and exceptions");
@@ -115,7 +117,7 @@ impl Runtime {
 
 // best debugging function on the planet
 fn print_exception_interrupt() {
-    if DEBUG && false {
+    if DEBUG {
         let cause = mcause::read().cause();
         let epc = mepc::read();
         println!("[SBI] DEBUG: {cause:?} @ 0x{epc:016x}");
@@ -128,9 +130,12 @@ impl Coroutine for Runtime {
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
         if DEBUG && DEBUG_RESUME {
             let mst = mstatus::read();
-            println!("[SBI] resume with {mst:#?}");
+            println!("[SBI] to S-mode with {mst:#?}");
         }
         unsafe { do_resume(&mut self.context as *mut _) }
+        if DEBUG && DEBUG_RESUME {
+            println!("[SBI] back to M-mode...");
+        }
         let cause = mcause::read().cause();
         // NOTE: Debugging highly frequent traps may get tons of logs.
         // If necessary, add prints here, use a counter, apply modulo, etc..
@@ -298,6 +303,13 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
          ld     t1,  32*8(sp)
          csrw   mstatus, t0
          csrw   mepc, t1",
+        // Should we do this, like OpenSBI?
+        /*
+        "csrw   stvec, t1
+         csrw   sscratch, x0
+         csrw   sie, x0
+         csrw   satp, x0",
+        */
         "ld     ra,  0*8(sp)
          ld     gp,  2*8(sp)
          ld     tp,  3*8(sp)
@@ -337,13 +349,16 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 
 // 中断开始
 /// # Safety
-/// YOLO
+/// YOLO, must be 4-byte aligned
 #[naked]
+#[repr(align(4))]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {
-    asm!( // sp:特权级栈,mscratch:特权级上下文
+    asm!(
+        // sp:特权级栈,mscratch:特权级上下文
         ".p2align 2",
-        "csrrw  sp, mscratch, sp", // 新mscratch:特权级栈, 新sp:特权级上下文
+        // 新mscratch:特权级栈, 新sp:特权级上下文
+        "csrrw  sp, mscratch, sp",
         "sd     ra,  0*8(sp)
          sd     gp,  2*8(sp)
          sd     tp,  3*8(sp)
