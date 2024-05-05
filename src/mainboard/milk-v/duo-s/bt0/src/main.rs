@@ -427,6 +427,12 @@ const ATF_STATE_BL2_MAIN: u32 = 0xB200_F000;
 
 const ATF_STATE_RESET_WAIT: u32 = 0xBE00_3001;
 
+fn rdtime() -> usize {
+    let mut time: usize = 0;
+    unsafe { asm!("rdtime {time}", time = inout(reg) time) };
+    time
+}
+
 #[no_mangle]
 fn main() {
     let s = uart::SGSerial::new();
@@ -532,49 +538,47 @@ fn main() {
     rtc_setup();
     rtc_en();
 
-    // Our current size + header is less than 0x1_0000.
-    // rom::load_image(TPU_SRAM_BASE, 0x1_0000, 0x1000, 0);
+    // print_boot_log();
 
-    if true {
-        // print_boot_log();
+    let start = rdtime();
+    dram::init(ddr_rate, dram_vendor);
+    println!("DRAM init done");
+    let time = rdtime() - start;
+    println!("time: {time}");
 
-        dram::init(ddr_rate, dram_vendor);
+    const AXI_SRAM_RTOS_BASE: usize = AXI_SRAM_BASE + 0x7C;
+    let v = read32(AXI_SRAM_RTOS_BASE);
+    // 0x0c85e985
+    // CVI_RTOS_MAGIC_CODE 0xABC0DEF
+    println!("RTOS base: 0x{v:08x}");
 
-        const AXI_SRAM_RTOS_BASE: usize = AXI_SRAM_BASE + 0x7C;
-        let v = read32(AXI_SRAM_RTOS_BASE);
-        // 0x0c85e985
-        // CVI_RTOS_MAGIC_CODE 0xABC0DEF
-        println!("RTOS base: 0x{v:08x}");
+    // `make run` in main
+    println!(">> load main stage over USB");
+    println!();
 
-        fn rdtime() -> usize {
-            let mut time: usize = 0;
-            unsafe { asm!("rdtime {time}", time = inout(reg) time) };
-            time
-        }
+    let load_addr = mem_map::DRAM_BASE;
+    rom::load_image(load_addr, 0x0, 0x6000, 0);
 
-        let time = rdtime();
-        println!("time: {time}");
+    // https://github.com/orangecms/sbitest
+    println!(">> load SBI test over USB");
+    println!();
 
-        println!("DRAM init done, load main stage over USB");
-        println!();
+    let test_addr = mem_map::DRAM_BASE + 0x0020_0000;
+    rom::load_image(test_addr, 0x0, 0x1000, 0);
 
-        let load_addr = mem_map::DRAM_BASE;
-        rom::load_image(load_addr, 0x0, 0x1000, 0);
+    println!("[bt0] Jump to main stage @{load_addr:08x}");
 
-        // print_boot_log();
-
-        println!("[bt0] Jump to main stage @{load_addr:08x}");
-
-        const BOOT_MAIN: bool = false;
-        if BOOT_MAIN {
-            exec_payload(load_addr);
-        } else {
-            exec_hartl(load_addr);
-        }
+    const BOOT_MAIN: bool = false;
+    if BOOT_MAIN {
+        // RV64ACDFIMSUVX
+        exec_payload(load_addr);
+    } else {
+        // RV64ACDFIMSUX
+        exec_hartl(load_addr);
     }
 
-    // println!("[bt0] Exit from main stage, resetting...");
     if false {
+        println!("[bt0] Exit from main stage, resetting...");
         unsafe {
             reset();
         }

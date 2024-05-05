@@ -1,4 +1,5 @@
 #![feature(naked_functions, asm_const)]
+#![feature(fn_align)]
 #![feature(panic_info_message)]
 #![no_std]
 #![no_main]
@@ -17,18 +18,70 @@ use core::{
     ptr::{self, addr_of, addr_of_mut},
     slice::from_raw_parts as slice_from,
 };
-use riscv::register::mhartid;
-use riscv::register::{marchid, mimpid, mvendorid};
+use riscv::register::{marchid, mhartid, mimpid, mtvec, mvendorid};
 
 use layoutflash::areas::{find_fdt, FdtIterator};
+use oreboot_arch::riscv64::sbi::{
+    self,
+    execute::{execute_supervisor, read32},
+};
 
+mod sbi_platform;
 mod uart;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
+const DRAM_BASE: usize = 0x8000_0000;
+const LOAD_ADDR: usize = DRAM_BASE + 0x0020_0000;
+const DTB_ADDR: usize = LOAD_ADDR + 0x2000;
+
+static PLATFORM: &str = "Milk-V Duo S";
+static VERSION: &str = env!("CARGO_PKG_VERSION");
+
 const DEBUG: bool = false;
 
-const STACK_SIZE: usize = 2048;
+fn dump_csrs() {
+    let mut v: usize;
+    unsafe {
+        println!("==== platform CSRs ====");
+        asm!("csrr {}, 0x7c0", out(reg) v);
+        println!("   MXSTATUS  {v:08x}");
+        asm!("csrr {}, 0x7c1", out(reg) v);
+        println!("   MHCR      {v:08x}");
+        asm!("csrr {}, 0x7c2", out(reg) v);
+        println!("   MCOR      {v:08x}");
+        asm!("csrr {}, 0x7c5", out(reg) v);
+        println!("   MHINT     {v:08x}");
+        println!("see C906 manual p581 ff");
+        println!("=======================");
+    }
+}
+
+fn init_csrs() {
+    println!("Set up extension CSRs");
+    if false {
+        unsafe {
+            asm!("csrs 0x7c0, {}", in(reg) 0x00018000);
+        }
+    }
+    unsafe {
+        // MXSTATUS: T-Head ISA extension enable, MAEE, MM, UCME, CLINTEE
+        // NOTE: Linux relies on detecting errata via mvendorid, marchid and
+        // mipmid. If that detection fails, and we enable MAEE, Linux won't come
+        // up. When D-cache is enabled, and the detection fails, we run into
+        // cache coherency issues. Welcome to the minefield! :)
+        // NOTE: We already set part of this in bt0, but it seems to get lost?
+        asm!("csrs 0x7c0, {}", in(reg) 0x00638000);
+        // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
+        asm!("csrw 0x7c2, {}", in(reg) 0x00070013);
+        // MHCR
+        asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
+        // MHINT
+        asm!("csrw 0x7c5, {}", in(reg) 0x0016e30c);
+    }
+}
+
+const STACK_SIZE: usize = 8 * 1024;
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -45,56 +98,32 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 pub unsafe extern "C" fn start() -> ! {
     // starts with a 32 bytes header
     asm!(
-        "j      .forrealsiez", // 2 bytes with compact instruction
-        ".byte 0",
-        ".byte 0",
-        ".word 0", // resvered
-        ".word 0", // BL2 MSID
-        ".word 0", // BL2 version
-        ".word 0", // rest not documented
-        ".word 0",
-        ".word 0",
-        ".word 0",
-        ".forrealsiez:",
-        "li     t0, 0x04140000",
-        "li     t1, 0x4f",
-        "sw     t1, 0(t0)",
-        "li     t1, 0x52",
-        "sw     t1, 0(t0)",
-        "li     t1, 0x45",
-        "sw     t1, 0(t0)",
-        "li     t1, 0x42",
-        "sw     t1, 0(t0)",
-        // Clear feature disable CSR to '0' to turn on all features
-        // TODO: do in Rust
-        // "csrwi  0x7c1, 0",
+        // 1. clear cache and processor states
         "csrw   mie, zero",
+        "csrw   mip, 0",
         "csrw   mstatus, zero",
         "ld     t0, {start}",
         "csrw   mtvec, t0",
-        // 1. suspend non-boot hart
-        // hart 0 is the initial core; 1 is another C906 core, "C906L"
-        // "li     a1, 0",
-        // "csrr   a0, mhartid",
-        // "bne    a0, a1, .nonboothart",
+        // MXSTATUS: enable theadisaee and maee
+        // "li     t1, 0x1 << 22 | 0x1 << 21",
+        // "csrs   0x7c0, t1",
+        // MCOR: disable caches
+        "li     t1, 0x00000022",
+        "csrw   0x7c2, t1",
+        // invalidate ICACHE/DCACHE/BTB/BHT
+        "li     t1, 0x00030013",
+        // MCOR
+        "csrw   0x7c2, t1",
+        // MHCR
+        "csrwi  0x7c1, 0",
         // 2. prepare stack
         // FIXME: each hart needs its own stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
-        "j      .boothart",
-        // wait for multihart to get back into the game
-        ".nonboothart:",
-        "j      .boothart",
-        "csrw   mie, 8", // 1 << 3
-        "wfi",
-        "csrw   mip, 0",
-        "call   {payload}",
-        ".boothart:",
         "call   {reset}",
         stack      = sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        payload    = sym exec_payload,
         reset      = sym reset,
         start      = sym start,
         options(noreturn)
@@ -181,6 +210,11 @@ fn delay(t: usize) {
     while rdtime() < later {}
 }
 
+#[repr(align(4))]
+fn noisr(a: usize, b: usize) {
+    println!("stop it {a:08x} {b:08x}");
+}
+
 #[no_mangle]
 fn main() {
     let s = uart::SGSerial::new();
@@ -189,6 +223,27 @@ fn main() {
     println!("oreboot 🦀 main");
 
     print_ids();
+
+    // test mtvec
+    if false {
+        unsafe {
+            asm!("fence.i");
+            let a = noisr as *const () as usize;
+            mtvec::write(a, mtvec::TrapMode::Direct);
+            asm!("ecall")
+            // riscv::asm::ebreak();
+        };
+    }
+
+    let test = read32(LOAD_ADDR);
+    println!("test {test:08x}");
+
+    const SBI: bool = true;
+    if SBI {
+        sbi_payload(LOAD_ADDR);
+    } else {
+        exec_payload(LOAD_ADDR);
+    }
 
     loop {
         let time = rdtime();
@@ -205,6 +260,40 @@ fn main() {
     };
 }
 
+// The machine mode processor model register (MCPUID) stores the processor
+// model information. Its reset value is determined by the product itself and
+// complies with the Pingtouge product definition specifications to facilitate
+// software identification. By continuously reading the MCPUID register, up to
+// 7 different return values can be obtained to represent C906 product
+// information, as shown in Figure ??.
+
+// T-Head CPU model register
+const MCPUID: u32 = 0xfc0;
+fn print_cpuid() {
+    let mut id: u32;
+    for i in 0..7 {
+        unsafe { asm!("csrr {}, 0xfc0", out(reg) id) };
+        println!("MCPUID {i}: {id:08x}");
+    }
+}
+
+fn sbi_payload(payload_addr: usize) {
+    sbi_platform::init();
+    dump_csrs();
+    init_csrs();
+    dump_csrs();
+
+    print_cpuid();
+
+    sbi::runtime::init();
+    sbi::info::print_info(PLATFORM, VERSION);
+    let hartid = mhartid::read();
+    println!("[main] .......");
+
+    let (reset_type, reset_reason) = execute_supervisor(payload_addr, hartid, DTB_ADDR);
+    print!("[main] oreboot: reset, type = {reset_type}, reason = {reset_reason}");
+}
+
 fn exec_payload(addr: usize) {
     unsafe {
         // jump to main
@@ -219,18 +308,18 @@ fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
         if DEBUG {
             println!(
-                "[bt0] panic in '{}' line {}",
+                "[main] panic in '{}' line {}",
                 location.file(),
                 location.line(),
             );
         }
     } else {
         if DEBUG {
-            println!("[bt0] panic at unknown location");
+            println!("[main] panic at unknown location");
         }
     };
     if let Some(msg) = info.message() {
-        println!("[bt0]   {msg}");
+        println!("[main]   {msg}");
     }
     loop {
         core::hint::spin_loop();
