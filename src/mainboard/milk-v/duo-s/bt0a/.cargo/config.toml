@@ -1,0 +1,9 @@
+[build]
+target = "aarch64-unknown-none-softfloat"
+
+[target.aarch64-unknown-none-softfloat]
+rustflags = [
+  "-C",
+  "link-arg=-Tlink-duo_s-bt0a.ld",
+  "-C", "opt-level=1"
+]

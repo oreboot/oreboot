@@ -1,0 +1,16 @@
+[package]
+name = "milk_v-duo_s-bt0a"
+version = "0.1.0"
+authors = [
+  "Daniel Maslowski <info@orangecms.org>",
+]
+edition = "2021"
+
+[dependencies]
+aarch64-cpu = "9.4.0"
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+nb = "1"
+spin = "0.9"
+
+log = { path = "../../../../lib/log" }
