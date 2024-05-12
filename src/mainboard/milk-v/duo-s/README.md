@@ -40,3 +40,21 @@ The `Makefile`s here are prepared to load `bt0` and `main`:
 1. in `bt0`, run `make run`
 2. in `main`, run `make run`
 3. in `sbitest`, run `make bin && sg_boot run --main test.bin`
+
+## Enter USB loader
+
+The Duo S automatically drops into the USB loader mode by default.
+
+For the Duo and Duo 256M, connect pin 32 (GP27 / ADC2) to 3.3V.
+A breadboard is recommended. Consider using a small resistor.
+
+## Switch to Arm
+
+On the Duo S, set the phyiscal switch accordingly.
+
+https://milkv.io/docs/duo/getting-started/duos#risc-v-and-arm-switching
+
+For the Duo 256M, pull pin 35 (Boot Switch) to GND.
+A breadboard is recommended. Consider using a small resistor.
+
+https://milkv.io/docs/duo/getting-started/duo256m#risc-v-and-arm-switching
