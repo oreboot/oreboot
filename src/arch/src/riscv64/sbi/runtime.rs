@@ -42,11 +42,8 @@ fn delegate_interrupt_exception() {
 }
 
 pub fn init() {
-    let mut addr = from_supervisor_save as usize;
-    // Must be aligned to 4 bytes
-    if addr & 0x2 != 0 {
-        addr += 0x2;
-    }
+    // NOTE: This must be aligned to 4 bytes, asserted via repr() directive.
+    let addr = from_supervisor_save as usize;
     unsafe { mtvec::write(addr, TrapMode::Direct) };
     delegate_interrupt_exception();
 }
@@ -274,8 +271,10 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 }
 
 // 中断开始
-
+/// # Safety
+/// NOTE: must be 4-byte aligned
 #[naked]
+#[repr(align(4))]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {
     asm!( // sp:特权级栈,mscratch:特权级上下文
