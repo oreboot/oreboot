@@ -43,7 +43,7 @@ fn delegate_interrupt_exception() {
 
 pub fn init() {
     // NOTE: This must be aligned to 4 bytes, asserted via repr() directive.
-    let addr = from_supervisor_save as usize;
+    let addr = supervisor_save as usize;
     unsafe { mtvec::write(addr, TrapMode::Direct) };
     delegate_interrupt_exception();
 }
@@ -180,173 +180,199 @@ pub struct SupervisorContext {
     pub machine_stack: usize, // 33
 }
 
+/// # Safety
+///
+/// This is the entry point to get back to S-mode.
+/// Before resuming S-mode, save the M-mode state and restore the S-mode state.
+/// Handle with care.
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
     asm!(
-        "j      {from_machine_save}",
-        from_machine_save = sym from_machine_save,
+        "j     {machine_save}",
+        machine_save = sym machine_save,
         options(noreturn),
     )
 }
 
+/// # Safety
+///
+/// NOTE: Before entering this function, the caller's registers have been saved.
+/// This is the reverse of machine_restore. Store current M-mode state.
+/// a0 holds the supervisor context.
+/// Handle with care.
 #[naked]
 #[link_section = ".text"]
-unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
+unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
-        // sp: top of the stack
+        // Top of the stack
         "addi   sp, sp, -15*8",
-        // Before entering the function, the caller's register has been saved,
-        // and the callee's register should be saved
-        "sd     ra, 0*8(sp)
-        sd      gp, 1*8(sp)
-        sd      tp, 2*8(sp)
-        sd      s0, 3*8(sp)
-        sd      s1, 4*8(sp)
-        sd      s2, 5*8(sp)
-        sd      s3, 6*8(sp)
-        sd      s4, 7*8(sp)
-        sd      s5, 8*8(sp)
-        sd      s6, 9*8(sp)
-        sd      s7, 10*8(sp)
-        sd      s8, 11*8(sp)
-        sd      s9, 12*8(sp)
-        sd      s10, 13*8(sp)
-        sd      s11, 14*8(sp)",
-        // a0: privileged context
-        "j      {to_supervisor_restore}",
-        to_supervisor_restore = sym to_supervisor_restore,
+        "sd     ra,  0*8(sp)
+         sd     gp,  1*8(sp)
+         sd     tp,  2*8(sp)
+         sd     s0,  3*8(sp)
+         sd     s1,  4*8(sp)
+         sd     s2,  5*8(sp)
+         sd     s3,  6*8(sp)
+         sd     s4,  7*8(sp)
+         sd     s5,  8*8(sp)
+         sd     s6,  9*8(sp)
+         sd     s7, 10*8(sp)
+         sd     s8, 11*8(sp)
+         sd     s9, 12*8(sp)
+         sd    s10, 13*8(sp)
+         sd    s11, 14*8(sp)",
+        "j     {supervisor_restore}",
+        supervisor_restore = sym supervisor_restore,
         options(noreturn)
     )
 }
 
+/// # Safety
+///
+/// Restore S-mode state and return to S-mode.
+/// This is the reverse of supervisor_save.
+/// Handle with care.
 #[naked]
 #[link_section = ".text"]
-pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
+pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     asm!(
-        // a0: privileged context
-        "sd     sp, 33*8(a0)", // 机器栈顶放进特权级上下文
-        "csrw   mscratch, a0", // 新mscratch:特权级上下文
-        // mscratch:特权级上下文
-        "mv     sp, a0", // 新sp:特权级上下文
-        "ld     t0, 31*8(sp)
-        ld      t1, 32*8(sp)
-        csrw    mstatus, t0
-        csrw    mepc, t1",
-        "ld     ra, 0*8(sp)
-        ld      gp, 2*8(sp)
-        ld      tp, 3*8(sp)
-        ld      t0, 4*8(sp)
-        ld      t1, 5*8(sp)
-        ld      t2, 6*8(sp)
-        ld      s0, 7*8(sp)
-        ld      s1, 8*8(sp)
-        ld      a0, 9*8(sp)
-        ld      a1, 10*8(sp)
-        ld      a2, 11*8(sp)
-        ld      a3, 12*8(sp)
-        ld      a4, 13*8(sp)
-        ld      a5, 14*8(sp)
-        ld      a6, 15*8(sp)
-        ld      a7, 16*8(sp)
-        ld      s2, 17*8(sp)
-        ld      s3, 18*8(sp)
-        ld      s4, 19*8(sp)
-        ld      s5, 20*8(sp)
-        ld      s6, 21*8(sp)
-        ld      s7, 22*8(sp)
-        ld      s8, 23*8(sp)
-        ld      s9, 24*8(sp)
-        ld     s10, 25*8(sp)
-        ld     s11, 26*8(sp)
-        ld      t3, 27*8(sp)
-        ld      t4, 28*8(sp)
-        ld      t5, 29*8(sp)
-        ld      t6, 30*8(sp)",
-        "ld     sp, 1*8(sp)", // 新sp:特权级栈
-        // sp:特权级栈, mscratch:特权级上下文
+        // Save top of stack
+        "sd     sp,  33*8(a0)",
+        // Save a0, the supervisor context, in mscratch for later
+        "csrw   mscratch, a0",
+        // Restore the stack from supervisor context
+        "mv     sp,  a0",
+        // Restore mepc and mstatus
+        "ld     t0,  31*8(sp)
+         ld     t1,  32*8(sp)
+         csrw   mstatus, t0
+         csrw   mepc, t1",
+        "ld     ra,  0*8(sp)
+         ld     gp,  2*8(sp)
+         ld     tp,  3*8(sp)
+         ld     t0,  4*8(sp)
+         ld     t1,  5*8(sp)
+         ld     t2,  6*8(sp)
+         ld     s0,  7*8(sp)
+         ld     s1,  8*8(sp)
+         ld     a0,  9*8(sp)
+         ld     a1, 10*8(sp)
+         ld     a2, 11*8(sp)
+         ld     a3, 12*8(sp)
+         ld     a4, 13*8(sp)
+         ld     a5, 14*8(sp)
+         ld     a6, 15*8(sp)
+         ld     a7, 16*8(sp)
+         ld     s2, 17*8(sp)
+         ld     s3, 18*8(sp)
+         ld     s4, 19*8(sp)
+         ld     s5, 20*8(sp)
+         ld     s6, 21*8(sp)
+         ld     s7, 22*8(sp)
+         ld     s8, 23*8(sp)
+         ld     s9, 24*8(sp)
+         ld    s10, 25*8(sp)
+         ld    s11, 26*8(sp)
+         ld     t3, 27*8(sp)
+         ld     t4, 28*8(sp)
+         ld     t5, 29*8(sp)
+         ld     t6, 30*8(sp)",
+        "ld     sp,  1*8(sp)",
+        // Return to S-mode
         "mret",
         options(noreturn)
     )
 }
 
-// 中断开始
 /// # Safety
+///
+/// This is the start of the interrupt handler. Handle with care.
+/// Store the S-mode state for later resumption.
+///       csrrw rd, csr, rs1
+///       copy csr to rd and initial value of rs1 to csr, atomically
 /// NOTE: must be 4-byte aligned
 #[naked]
 #[repr(align(4))]
 #[link_section = ".text"]
-pub unsafe extern "C" fn from_supervisor_save() -> ! {
-    asm!( // sp:特权级栈,mscratch:特权级上下文
+pub unsafe extern "C" fn supervisor_save() -> ! {
+    asm!(
+        // Swap this sp (stack pointer) with mscratch (M-mode scratch register).
         ".p2align 2",
-        "csrrw  sp, mscratch, sp", // 新mscratch:特权级栈, 新sp:特权级上下文
-        "sd     ra, 0*8(sp)
-        sd      gp, 2*8(sp)
-        sd      tp, 3*8(sp)
-        sd      t0, 4*8(sp)
-        sd      t1, 5*8(sp)
-        sd      t2, 6*8(sp)
-        sd      s0, 7*8(sp)
-        sd      s1, 8*8(sp)
-        sd      a0, 9*8(sp)
-        sd      a1, 10*8(sp)
-        sd      a2, 11*8(sp)
-        sd      a3, 12*8(sp)
-        sd      a4, 13*8(sp)
-        sd      a5, 14*8(sp)
-        sd      a6, 15*8(sp)
-        sd      a7, 16*8(sp)
-        sd      s2, 17*8(sp)
-        sd      s3, 18*8(sp)
-        sd      s4, 19*8(sp)
-        sd      s5, 20*8(sp)
-        sd      s6, 21*8(sp)
-        sd      s7, 22*8(sp)
-        sd      s8, 23*8(sp)
-        sd      s9, 24*8(sp)
-        sd     s10, 25*8(sp)
-        sd     s11, 26*8(sp)
-        sd      t3, 27*8(sp)
-        sd      t4, 28*8(sp)
-        sd      t5, 29*8(sp)
-        sd      t6, 30*8(sp)",
+        "csrrw  sp, mscratch, sp",
+        "sd     ra,  0*8(sp)
+         sd     gp,  2*8(sp)
+         sd     tp,  3*8(sp)
+         sd     t0,  4*8(sp)
+         sd     t1,  5*8(sp)
+         sd     t2,  6*8(sp)
+         sd     s0,  7*8(sp)
+         sd     s1,  8*8(sp)
+         sd     a0,  9*8(sp)
+         sd     a1, 10*8(sp)
+         sd     a2, 11*8(sp)
+         sd     a3, 12*8(sp)
+         sd     a4, 13*8(sp)
+         sd     a5, 14*8(sp)
+         sd     a6, 15*8(sp)
+         sd     a7, 16*8(sp)
+         sd     s2, 17*8(sp)
+         sd     s3, 18*8(sp)
+         sd     s4, 19*8(sp)
+         sd     s5, 20*8(sp)
+         sd     s6, 21*8(sp)
+         sd     s7, 22*8(sp)
+         sd     s8, 23*8(sp)
+         sd     s9, 24*8(sp)
+         sd    s10, 25*8(sp)
+         sd    s11, 26*8(sp)
+         sd     t3, 27*8(sp)
+         sd     t4, 28*8(sp)
+         sd     t5, 29*8(sp)
+         sd     t6, 30*8(sp)",
         "csrr   t0, mstatus
-        sd      t0, 31*8(sp)",
+         sd     t0, 31*8(sp)",
         "csrr   t1, mepc
-        sd      t1, 32*8(sp)",
-        // mscratch:特权级栈,sp:特权级上下文
-        "csrrw  t2, mscratch, sp", // 新mscratch:特权级上下文,t2:特权级栈
-        "sd     t2, 1*8(sp)", // 保存特权级栈
-        "j      {to_machine_restore}",
-        to_machine_restore = sym to_machine_restore,
+         sd     t1, 32*8(sp)",
+        // Take back sp from mscratch via t2 and save current sp in mscratch.
+        "csrrw  t2, mscratch, sp",
+        // Store the sp on the stack.
+        "sd     t2,  1*8(sp)",
+        "j      {machine_restore}",
+        machine_restore = sym machine_restore,
         options(noreturn)
     )
 }
-
+/// # Safety
+///
+/// Restore M-mode state from stack.
+/// Handle with care.
 #[naked]
 #[link_section = ".text"]
-unsafe extern "C" fn to_machine_restore() -> ! {
+unsafe extern "C" fn machine_restore() -> ! {
     asm!(
-        // mscratch:特权级上下文
-        "csrr   sp, mscratch", // sp:特权级上下文
-        "ld     sp, 33*8(sp)", // sp:机器栈
-        "ld     ra, 0*8(sp)
-        ld      gp, 1*8(sp)
-        ld      tp, 2*8(sp)
-        ld      s0, 3*8(sp)
-        ld      s1, 4*8(sp)
-        ld      s2, 5*8(sp)
-        ld      s3, 6*8(sp)
-        ld      s4, 7*8(sp)
-        ld      s5, 8*8(sp)
-        ld      s6, 9*8(sp)
-        ld      s7, 10*8(sp)
-        ld      s8, 11*8(sp)
-        ld      s9, 12*8(sp)
-        ld      s10, 13*8(sp)
-        ld      s11, 14*8(sp)",
-        "addi   sp, sp, 15*8", // sp:机器栈顶
-        "jr     ra",           // 其实就是ret
+        // Restore M-mode / SBI runtime sp from mscratch.
+        "csrr   sp, mscratch",
+        "ld     sp, 33*8(sp)",
+        "ld     ra,  0*8(sp)
+         ld     gp,  1*8(sp)
+         ld     tp,  2*8(sp)
+         ld     s0,  3*8(sp)
+         ld     s1,  4*8(sp)
+         ld     s2,  5*8(sp)
+         ld     s3,  6*8(sp)
+         ld     s4,  7*8(sp)
+         ld     s5,  8*8(sp)
+         ld     s6,  9*8(sp)
+         ld     s7, 10*8(sp)
+         ld     s8, 11*8(sp)
+         ld     s9, 12*8(sp)
+         ld    s10, 13*8(sp)
+         ld    s11, 14*8(sp)",
+        // Top of stack
+        "addi   sp, sp, 15*8",
+        // Return back to M-mode runtime.
+        "jr     ra",
         options(noreturn)
     )
 }
