@@ -6,8 +6,10 @@ use core::{
     pin::Pin,
 };
 use log::{print, println};
-use riscv::register::mip;
-use riscv::register::scause::{Exception, Trap};
+use riscv::register::{
+    mie, mip,
+    scause::{Exception, Trap},
+};
 use rustsbi::spec::binary::SbiRet;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
@@ -115,17 +117,18 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     }
                 }
             }
-            // NOTE: These are all delegated.
-            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
-                // TODO: Check if this actually works
                 if DEBUG {
                     println!("M timer int");
                 }
-                unsafe {
-                    mip::set_stimer();
-                }
+                // NOTE: The ECALL handler enables the interrupt.
+                unsafe { mie::clear_mtimer() }
+                // Yeet timer interrupt pending to signal interrupt to S-mode
+                // for this hart.
+                unsafe { mip::set_stimer() }
             }
+            // NOTE: These are all delegated.
+            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
             CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
             CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
             CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
