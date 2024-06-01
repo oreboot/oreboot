@@ -72,21 +72,11 @@ impl rustsbi::Ipi for Ipi {
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
-        let time: u64;
-        unsafe {
-            asm!("csrr {}, time", out(reg) time);
-        }
-        println!("[rustsbi] setTimer {}", stime_value);
+        // clear any pending timer
+        unsafe { mip::clear_stimer() };
         mtimecmp::write(stime_value);
-        unsafe {
-            if time > stime_value {
-                mip::set_stimer();
-            } else {
-                // clear any pending timer and reenable the interrupt
-                mip::clear_stimer();
-                mie::set_mtimer();
-            }
-        };
+        // Reenable the interrupt
+        unsafe { mie::set_mtimer() }
     }
 }
 
