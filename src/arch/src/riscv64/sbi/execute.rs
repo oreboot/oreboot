@@ -15,16 +15,21 @@ use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
 const EBREAK: u16 = 0x9002;
+
 const DEBUG: bool = false;
+const DEBUG_ECALL: bool = false;
+const DEBUG_MTIMER: bool = false;
+const DEBUG_EBREAK: bool = true;
+const DEBUG_EMULATE: bool = false;
+const DEBUG_ILLEGAL: bool = true;
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
-    let dbg = true;
     match method {
         0x023A_DC52 => {
             let mut val = 0;
             let mut err = 0;
             let csr = args[0];
-            if dbg {
+            if DEBUG {
                 println!("[rustsbi] read CSR {:x}", csr);
             }
             match csr {
@@ -44,7 +49,7 @@ fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
                     err = 1;
                 }
             }
-            if dbg {
+            if DEBUG {
                 println!("[rustsbi] CSR {:x} is {:08x}, err {:x}", csr, val, err);
             }
             SbiRet {
@@ -62,8 +67,26 @@ fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
     SbiRet { value: 0, error: 0 }
 }
 
-pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usize, usize) {
-    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, a0, a1);
+fn print_ecall_context(ctx: &mut SupervisorContext) {
+    if DEBUG && DEBUG_ECALL {
+        println!(
+            "[SBI] ecall a6: {:x}, a7: {:x}, a0-a5: {:x} {:x} {:x} {:x} {:x} {:x}",
+            ctx.a6, ctx.a7, ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5,
+        );
+    }
+}
+
+pub fn execute_supervisor(
+    supervisor_mepc: usize,
+    hartid: usize,
+    dtb_addr: usize,
+) -> (usize, usize) {
+    println!(
+        "[rustsbi] Enter supervisor on hart {hartid} at {:x} with DTB from {:x}",
+        supervisor_mepc, dtb_addr
+    );
+    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
+    println!("[SBI] Enter loop...");
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
@@ -76,9 +99,7 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                     ECALL_OREBOOT => ore_sbi(ctx.a6, param),
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
-                        if ctx.a7 != LEGACY_CONSOLE_PUTCHAR && DEBUG {
-                            println!("[rustsbi] ecall {:x}", ctx.a6);
-                        }
+                        print_ecall_context(ctx);
                         rustsbi::ecall(ctx.a7, ctx.a6, param)
                     }
                 };
@@ -97,13 +118,18 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 if ins as u16 == EBREAK {
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
-                    if DEBUG {
-                        println!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
+                    if DEBUG_EBREAK {
+                        panic!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_illegal_instruction(ctx, ins) {
+                } else if !emulate_instruction(ctx, ins) {
+                    if DEBUG_ILLEGAL {
+                        println!(
+                            "[rustsbi] Illegal instruction {ins:08x} not emulated {ctx:#04X?}"
+                        );
+                    }
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
                             feature::do_transfer_trap(
@@ -118,8 +144,8 @@ pub fn execute_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> (usiz
                 }
             }
             CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
-                if DEBUG {
-                    println!("M timer int");
+                if DEBUG && DEBUG_MTIMER {
+                    println!("[rustsbi] M-timer interrupt");
                 }
                 // NOTE: The ECALL handler enables the interrupt.
                 unsafe { mie::clear_mtimer() }
@@ -159,7 +185,10 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     ans
 }
 
-fn emulate_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+    if DEBUG && DEBUG_EMULATE {
+        println!("[rustsbi] Emulating instruction {ins:08x}, {ctx:#04X?}");
+    }
     if feature::emulate_rdtime(ctx, ins) {
         return true;
     }
