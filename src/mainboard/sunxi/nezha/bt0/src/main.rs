@@ -42,26 +42,15 @@ const STACK_SIZE: usize = 1 * 1024; // 1KiB
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
-/// Jump over head data to executable code.
-///
-/// # Safety
-///
-/// Naked function.
-#[naked]
-#[link_section = ".head.text"]
-#[export_name = "_head_jump"]
-pub unsafe extern "C" fn head_jump() {
-    asm!(
-        ".option push",
-        ".option rvc",
-        "c.j    0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
-        ".option pop",
-        // sym _start,
-        options(noreturn)
-    )
-}
-
-// todo: option(noreturn) generates an extra `unimp` insn
+// Use global assembly for a 4 byte jump instruction to _start.
+// The reason is that rust adds an extra `unimp` insn after the jump if inline assembly is used.
+// This messes up the location of the eGON header
+core::arch::global_asm!(
+    ".section .head.text, \"ax\"",
+    ".global _head_jump",
+    "_head_jump:",
+    "    j start"
+);
 
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
@@ -92,7 +81,7 @@ const DTF_SIZE: usize = 0x1_0000; // 64K
 const LIN_SIZE: usize = 0x00fc_0000;
 const DTB_SIZE: usize = 0x0001_0000;
 
-// clobber used by KEEP(*(.head.egon)) in link script
+#[used]
 #[link_section = ".head.egon"]
 pub static EGON_HEAD: EgonHead = EgonHead {
     magic: *b"eGON.BT0",
@@ -105,25 +94,6 @@ pub static EGON_HEAD: EgonHead = EgonHead {
     dram_size: 0,
     boot_media: 0,
     string_pool: [0; 13],
-};
-
-// Private use; not designed as conventional header structure.
-// Real data filled by xtask.
-// This header takes 0x8 bytes. When modifying this structure, make sure
-// the offset in `head_jump` function is also modified.
-#[repr(C)]
-pub struct MainStageHead {
-    offset: u32,
-    length: u32,
-}
-
-// clobber used by KEEP(*(.head.main)) in link script
-// To avoid optimization, always read from flash page. Do NOT use this
-// variable directly.
-#[link_section = ".head.main"]
-pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
-    offset: 0, // real offset filled by xtask
-    length: 0, // real size filled by xtask
 };
 
 /*
@@ -253,8 +223,7 @@ This bit will be reset to 1’b0.
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
 #[naked]
-#[export_name = "_start"]
-#[link_section = ".text.entry"]
+#[no_mangle]
 pub unsafe extern "C" fn start() -> ! {
     asm!(
         // 1. clear cache and processor states
