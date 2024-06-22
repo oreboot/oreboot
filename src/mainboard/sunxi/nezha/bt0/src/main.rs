@@ -34,13 +34,9 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
-// taken from oreboot
-pub type EntryPoint = unsafe extern "C" fn(r0: usize, r1: usize);
-
-const STACK_SIZE: usize = 1 * 1024; // 1KiB
-
-#[link_section = ".bss.uninit"]
-static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+// Allwinner SoCs need a special header. For details, see also:
+// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/board/sunxi/README.sunxi64
+// https://linux-sunxi.org/EGON
 
 // Use global assembly for a 4 byte jump instruction to _start.
 // The reason is that rust adds an extra `unimp` insn after the jump if inline assembly is used.
@@ -54,20 +50,20 @@ core::arch::global_asm!(
 
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
-// This header takes 0x60 bytes.
+// NOTE: The "real" header includes the initial jump.
+// It must be 32-byte aligned. See also:
+// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/include/sunxi_image.h#L80
 #[repr(C)]
 pub struct EgonHead {
     magic: [u8; 8],
     checksum: u32,
     length: u32,
-    pub_head_size: u32,
-    fel_script_address: u32,
-    fel_uenv_length: u32,
-    dt_name_offset: u32,
-    dram_size: u32,
-    boot_media: u32,
-    string_pool: [u32; 13],
+    _padding: [u32; 3],
 }
+
+use core::mem::size_of;
+// Ugly but does the job to assert the alignment.
+const _: () = assert!((size_of::<EgonHead>() + 4) % 0x20 == 0);
 
 const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
 
@@ -83,18 +79,18 @@ const DTB_SIZE: usize = 0x0001_0000;
 
 #[used]
 #[link_section = ".head.egon"]
+// NOTE: The real checksum and length are filled in by xtask.
 pub static EGON_HEAD: EgonHead = EgonHead {
     magic: *b"eGON.BT0",
-    checksum: STAMP_CHECKSUM, // real checksum filled by blob generator
-    length: 0,                // real size filled by blob generator
-    pub_head_size: 0,
-    fel_script_address: 0,
-    fel_uenv_length: 0,
-    dt_name_offset: 0,
-    dram_size: 0,
-    boot_media: 0,
-    string_pool: [0; 13],
+    checksum: STAMP_CHECKSUM,
+    length: 0,
+    _padding: [0; 3],
 };
+
+const STACK_SIZE: usize = 1 * 1024; // 1KiB
+
+#[link_section = ".bss.uninit"]
+static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
 /*
 see https://linux-sunxi.org/D1 for the C906 manual
