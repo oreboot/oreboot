@@ -536,7 +536,8 @@ extern "C" fn main() {
     println!("{}M 🐏", ram_size);
 
     #[cfg(feature = "nor")]
-    let spi_speed = 48_000_000.hz();
+    // Assume our flash can do at least 100Mhz. A commonly used 128Mbit flash w25q128fv can do 133MHz.
+    let spi_speed = 100_000_000.hz();
     #[cfg(feature = "nand")]
     let spi_speed = 100_000_000.hz();
 
