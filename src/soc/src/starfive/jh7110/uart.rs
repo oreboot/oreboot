@@ -10,11 +10,11 @@ pub const UART_CLK_OSC: usize = 24_000_000;
 pub const UART_CLK_APB0: usize = 50_000_000;
 
 /// Wrapper around the [`jh71xx_hal::uart::Uart`] UART peripheral type.
-pub struct JH71XXSerial(jh71xx_hal::uart::Uart<pac::UART0>);
+pub struct JH71XXSerial(jh71xx_hal::uart::Uart<pac::Uart0>);
 
 impl JH71XXSerial {
     /// Creates a new [JH71XXSerial] with a custom configuration.
-    pub fn new_with_config(uart: pac::UART0, timeout: u64, config: Config) -> Self {
+    pub fn new_with_config(uart: pac::Uart0, timeout: u64, config: Config) -> Self {
         Self(Uart::new_with_config(uart, timeout, config))
     }
 }
