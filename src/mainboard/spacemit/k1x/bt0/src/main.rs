@@ -40,6 +40,11 @@ const BOOT_HART_ID: usize = 0;
 
 const STACK_SIZE: usize = 8 * 1024;
 
+const STORAGE_API_P_ADDR: usize = 0xC083_8498;
+const USB_BOOT_ENTRY: usize = 0xc083_81a0;
+// 0xffe0_3b36
+const SDCARD_API_ENTRY: usize = 0xFFE0_A548;
+
 const GPIO_BASE: usize = 0xd401_9000;
 
 const PINCTRL_BASE: usize = 0xd401_e000;
@@ -218,6 +223,11 @@ fn main() {
     print_ids();
 
     dram::init();
+
+    let boot_mode = read32(STORAGE_API_P_ADDR);
+    println!("Boot mode: 0x{boot_mode:08x}");
+    let boot_entry = read32(boot_mode as usize);
+    println!("Boot entry: 0x{boot_entry:08x}");
 
     unsafe {
         asm!("wfi");

@@ -10,6 +10,7 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 MEMORY {
     # SRAM : ORIGIN = 0x200000, LENGTH = 256k
+    # taken from U-Boot
     SRAM : ORIGIN = 0xc0801000, LENGTH = 256k
 }
 SECTIONS {
