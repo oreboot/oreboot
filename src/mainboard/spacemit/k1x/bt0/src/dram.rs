@@ -69,7 +69,7 @@ fn mck6_sw_fc_top(freq_no: u32) {
     write32(DDRC_PLL4, 0x4060_0400);
     let v = 0x0400_0000;
     write32(DDRC_PLL5, v);
-    while (read32(DDRC_PLL5) & v) != 0 {}
+    while read32(DDRC_PLL5) & v != 0 {}
 }
 
 fn top_common_config() {
@@ -207,17 +207,15 @@ fn fp_timing_init(ddrc_base: usize) {
     write32(mc_ch0_phy_base + 0x03ec, 0x00000480);
 
     let r = mc_ch0_base + 0x0108;
-    let v = read32(r);
-    write32(r, (v & 0xF00FFFFF) | (0x10 << 20));
+    write32(r, (read32(r) & 0xF00FFFFF) | (0x10 << 20));
 }
 
 fn fp_sel(ddrc_base: usize, fp: u32) {
     let mc_ch0_base: usize = ddrc_base + MC_CH0_BASE_OFFSET;
 
     let r = mc_ch0_base + 0x0104;
-    let v = read32(r);
+    write32(r, (read32(r) & !(0xf << 28)) | (fp << 28) | (fp << 30));
 
-    write32(r, (v & !(0xf << 28)) | (fp << 28) | (fp << 30));
     println!("ADDR[0x{:08x}]=0x{:08x}", r, read32(r));
 }
 
@@ -253,8 +251,7 @@ fn top_ddr_mc_init(ddrc_base: usize, fp: u32) {
     write32(mc_ch0_base + 0x0188, 0xC800000);
 
     let r = mc_ch0_phy_base + 0x03e0;
-    let v = read32(r);
-    write32(r, v | (fp << 2));
+    write32(r, read32(r) | (fp << 2));
 }
 
 fn top_ddr_wr_ds_odt_vref(dphy0_base: usize, combination: u32) {
@@ -432,36 +429,168 @@ fn top_ddr_mc_phy_device_init(ddrc_base: usize, cs_val: u32, fp: u32) {
     write32(ddrc_base + 0x24, 0x10020003 | (cs_num << 24));
     write32(ddrc_base + 0x24, 0x10020016 | (cs_num << 24));
 
-    panic!("TODO");
+    write32(ddrc_base + 0x20, 0x11002000);
+    write32(ddrc_base + 0x20, 0x11001000);
 
-    /*
-    REG32(DDRC_BASE + 0x20) = 0x11002000;
-    REG32(DDRC_BASE + 0x20) = 0x11001000;
     if (cs_val != 1) {
-        REG32(DDRC_BASE + 0x20) = 0x12002000;
-        REG32(DDRC_BASE + 0x20) = 0x12001000;
+        write32(ddrc_base + 0x20, 0x12002000);
+        write32(ddrc_base + 0x20, 0x12001000);
     }
 
-    REG32(DDRC_BASE + 0x24) = (0x1002000C | (cs_num << 24));
-    REG32(DDRC_BASE + 0x24) = (0x1002000E | (cs_num << 24));
-    REG32(DDRC_BASE + 0x24) = (0x1002000B | (cs_num << 24));
-    REG32(DDRC_BASE + 0x24) = (0x10020017 | (cs_num << 24));
-    LogMsg(0, "DRAM Mode register Init done.....\n");
-    */
+    write32(ddrc_base + 0x24, 0x1002000C | (cs_num << 24));
+    write32(ddrc_base + 0x24, 0x1002000E | (cs_num << 24));
+    write32(ddrc_base + 0x24, 0x1002000B | (cs_num << 24));
+    write32(ddrc_base + 0x24, 0x10020017 | (cs_num << 24));
+
+    println!("DRAM Mode register Init done.");
 }
 
 fn mem_read<'a, T>(addr: usize) -> &'a T {
     unsafe { (addr as *const T).as_ref().unwrap() }
 }
 
+const DDR_MR_DATA: usize = (DDRC_BASE + 0x370);
+const DDR_MR_REG: usize = (DDRC_BASE + 0x24);
+
+fn mode_register_read(mr: u32, ch: u32, cs: u32) -> u32 {
+    write32(DDR_MR_REG, 0x10010000 + ((cs + 1) << 24) + (ch << 18) + mr);
+    while ((read32(DDR_MR_DATA) & 0x80000000) == 0) {}
+    read32(DDRC_BASE + 0x234) & 0xFF
+}
+
+// drivers/ddr/spacemit/k1x/ddr_freq.h
+#[allow(non_camel_case_types)]
+enum Density {
+    DDR_1Gb = 0, // not defined
+    DDR_2Gb = 256,
+    DDR_3Gb = 384,
+    DDR_4Gb = 512,
+    DDR_6Gb = 768,
+    DDR_8Gb = 1024,
+    DDR_12Gb = 1536,
+    DDR_16Gb = 2048,
+    RESERVEDX,
+}
+
+impl Density {
+    fn from_u32(value: u32) -> Density {
+        match value {
+            0 => Density::DDR_2Gb,
+            1 => Density::DDR_3Gb,
+            2 => Density::DDR_4Gb,
+            3 => Density::DDR_6Gb,
+            4 => Density::DDR_8Gb,
+            5 => Density::DDR_12Gb,
+            6 => Density::DDR_16Gb,
+            12 => Density::DDR_1Gb,
+            _ => panic!("Unsupported density 0x{value:08x}"),
+        }
+    }
+}
+
+fn format_size(density: u32, io_width: u32) -> u32 {
+    let size = Density::from_u32(density) as u32;
+    if io_width == 1 {
+        size * 2
+    } else {
+        size
+    }
+}
+
+fn ddr_get_density(cs_num: u32) -> u32 {
+    let cs0_size = {
+        let mr8_cs00 = mode_register_read(8, 0, 0);
+        let mr8_cs01 = mode_register_read(8, 1, 0);
+
+        let io_width_cs00 = if mr8_cs00 > 0 { mr8_cs00 >> 6 } else { 0 };
+        let io_width_cs01 = if mr8_cs01 > 0 { mr8_cs01 >> 6 } else { 0 };
+
+        let cs0_size = if mr8_cs00 > 0 {
+            format_size((mr8_cs00 >> 2) & 0xf, io_width_cs00)
+        } else {
+            0
+        };
+        let cs0_size = cs0_size
+            + if mr8_cs01 > 0 {
+                format_size((mr8_cs01 >> 2) & 0xf, io_width_cs01)
+            } else {
+                0
+            };
+        cs0_size
+    };
+    let cs1_size = if (cs_num > 1) {
+        let mr8_cs10 = mode_register_read(8, 0, 1);
+        let mr8_cs11 = mode_register_read(8, 1, 1);
+
+        let io_width_cs10 = if mr8_cs10 > 0 { mr8_cs10 >> 6 } else { 0 };
+        let io_width_cs11 = if mr8_cs11 > 0 { mr8_cs11 >> 6 } else { 0 };
+
+        let cs1_size = if mr8_cs10 > 0 {
+            format_size((mr8_cs10 >> 2) & 0xf, io_width_cs10)
+        } else {
+            0
+        };
+        let cs1_size = cs1_size
+            + if mr8_cs11 > 0 {
+                format_size((mr8_cs11 >> 2) & 0xf, io_width_cs11)
+            } else {
+                0
+            };
+        cs1_size
+    } else {
+        0
+    };
+
+    cs0_size + cs1_size
+}
+
+// include/configs/k1-x.h
+const DDR_CS_NUM: u32 = 1;
+
 pub fn init() {
     let ddr_info: &DdrTrainingInfo = mem_read(DDR_TRAINING_INFO);
     println!("{ddr_info:#08x?}");
 
-    let cs_num = 0; // TODO
+    // NOTE: This comes from the DT in U-Boot. Default is 1 otherwise.
+    let cs_num = 2;
 
     top_common_config();
     top_ddr_mc_phy_device_init(DDRC_BASE, cs_num, 0);
 
+    let size_mb = ddr_get_density(cs_num);
+    println!("DDR size (density): {size_mb}MB");
+
+    let mr8_value = mode_register_read(8, 0, 0) & 0xff;
+
+    panic!("TODO");
+    // adjust_mapping(DDRC_BASE, cs_num, size_mb, mr8_value);
+
+    //   ddr_dfc_table_init(0xF0000000);
+    //   init_table_mc_a0(0xF0000000);
+
+    //   top_training_fp_all(ddr_base, cs_num, 0, info_para);
+    //
+    //   let fp = 1;
+    //   ddr_dfc(fp);
+    //   top_training_fp_all(ddr_base, cs_num, fp, info_para);
+    //
+    //   let fp = 2;
+    //   ddr_dfc(fp);
+    //   top_training_fp_all(ddr_base, cs_num, fp, info_para);
+
+    //   /* change dram frequency */
+    //   match data_rate {
+    //       1600 => {
+    //           ddr_dfc(1);
+    //       }
+    //       // WE HIT THIS
+    //       2400 => {
+    //           ddr_dfc(2);
+    //       }
+    //       1200 | _ => {
+    //           data_rate = 1200;
+    //           ddr_dfc(0);
+    //       }
+    //   }
     // lpddr4_silicon_init(DDRC_BASE, DATA_RATE);
 }
