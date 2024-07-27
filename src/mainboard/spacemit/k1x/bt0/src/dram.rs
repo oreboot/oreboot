@@ -1100,6 +1100,38 @@ fn write_leveling(
     }
 }
 
+fn read_gate_train(ddrc_base: usize, cs_num: u32, boot_pp: u32) {
+    //
+    let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
+
+    for i in 1..=cs_num {
+        write32(ddrc_base + 0x13d0, 0x1010_0000 | (i << 24));
+        while read32(ddrc_base + 0x13fc) & 2 == 0 {}
+        let status = read32(ddrc_base + 0x13fc);
+        match status & 6 {
+            6 => {
+                println!("read gate training pass");
+            }
+            2 => {
+                println!("read gate training timeout");
+            }
+            _ => {
+                println!("read gate training error?");
+            }
+        }
+    }
+
+    let pp = boot_pp as usize;
+    let r = dphy0_base + pp * 0x4000 + 0x0070;
+    println!("0x{r:08x} = 0x{:08x}", read32(r));
+    let r = dphy0_base + pp * 0x4000 + 0x0170;
+    println!("0x{r:08x} = 0x{:08x}", read32(r));
+    let r = dphy0_base + pp * 0x4000 + 0x1070;
+    println!("0x{r:08x} = 0x{:08x}", read32(r));
+    let r = dphy0_base + pp * 0x4000 + 0x1170;
+    println!("0x{r:08x} = 0x{:08x}", read32(r));
+}
+
 fn train(
     ddrc_base: usize,
     boot_pp: u32,
@@ -1122,6 +1154,9 @@ fn train(
 
     println!("write leveling");
     write_leveling(ddrc_base, tmp, boot_pp, 0, 0xa, 0x64, 0x1e, 0x44);
+
+    println!("read gate train");
+    read_gate_train(ddrc_base, cs_num, boot_pp);
 }
 
 fn top_training_fp_all(ddrc_base: usize, cs_num: u32, boot_pp: u32, info_para: &mut u32) {
