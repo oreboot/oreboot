@@ -1080,6 +1080,26 @@ fn self_refresh(ddrc_base: usize, cs_num: u32, on_off: bool) {
     }
 }
 
+fn write_leveling(
+    ddrc_base: usize,
+    boot_pp: u32,
+    cs_num: u32,
+    p4: u32,
+    p5: u32,
+    p6: u32,
+    p7: u32,
+    p8: u32,
+) {
+    //
+    let v = (p4 << 31) | (p5 << 24) | (p6 << 16) | (p7 << 8) | p8;
+    write32(ddrc_base + 0x13e8, v);
+
+    for i in 1..=cs_num {
+        write32(ddrc_base + 0x13d0, 0x1040_0000 | (i << 24));
+        while read32(ddrc_base + 0x13fc) & 1 == 0 {}
+    }
+}
+
 fn train(
     ddrc_base: usize,
     boot_pp: u32,
@@ -1092,6 +1112,16 @@ fn train(
 ) {
     println!("Training start...");
     let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
+
+    let tmp = 0;
+
+    // TODO: some bits missing from c0834d28..c0834d50
+    write32(ddrc_base + 0x50028, 0x200);
+
+    // fill temp
+
+    println!("write leveling");
+    write_leveling(ddrc_base, tmp, boot_pp, 0, 0xa, 0x64, 0x1e, 0x44);
 }
 
 fn top_training_fp_all(ddrc_base: usize, cs_num: u32, boot_pp: u32, info_para: &mut u32) {
