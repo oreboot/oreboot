@@ -547,6 +547,529 @@ fn ddr_get_density(cs_num: u32) -> u32 {
 // include/configs/k1-x.h
 const DDR_CS_NUM: u32 = 1;
 
+#[repr(u32)]
+enum Bank {
+    B2 = 0,
+    B4,
+    B8,
+    Reserved,
+}
+
+#[repr(u32)]
+enum Row {
+    R11 = 1,
+    R12,
+    R13,
+    R14,
+    R15,
+    R16,
+    R17,
+    R18,
+}
+
+#[repr(u32)]
+enum Column {
+    C8 = 1,
+    C9,
+    C10,
+    C11,
+    C12,
+}
+
+fn adjust_mapping(ddrc_base: usize, cs_num: u32, size_mb: u32, mr8_value: u32) {
+    let area_length_mb = size_mb / cs_num;
+    // area_length_mb = size_mb >> (cs_num -1);
+    let area_length_cfg = match area_length_mb {
+        1024 => 0xE,
+        2048 => 0xF,
+        4096 => 0x10,
+        8192 => 0x11,
+        16384 => 0x12,
+        _ => {
+            println!("Unsupported area length 0x{area_length_mb}MB");
+            0x10
+        }
+    };
+
+    let cs1_start_addr_l = (area_length_mb >> 3) & 0x1FF;
+    let cs1_start_addr_h = (area_length_mb >> 12) & 0xFFFFFFFF;
+
+    let io_width = mr8_value >> 6;
+    let density = (mr8_value >> 2) & 0xf;
+
+    const IO_X16: u32 = 0;
+    const IO_X8: u32 = 1;
+
+    let row = match (io_width, density) {
+        (IO_X16, 12) => Row::R13,
+        (IO_X16, 0) => Row::R14,
+        (IO_X16, 1) => Row::R15,
+        (IO_X16, 2) => Row::R15,
+        (IO_X16, 3) => Row::R16,
+        (IO_X16, 4) => Row::R16,
+        (IO_X16, 5) => Row::R17,
+        (IO_X16, 6) => Row::R17,
+        (IO_X8, 12) => Row::R14,
+        (IO_X8, 0) => Row::R15,
+        (IO_X8, 1) => Row::R16,
+        (IO_X8, 2) => Row::R16,
+        (IO_X8, 3) => Row::R17,
+        (IO_X8, 4) => Row::R17,
+        (IO_X8, 5) => Row::R18,
+        (IO_X8, 6) => Row::R18,
+        _ => panic!("Unsupported IO width {io_width}"),
+    };
+    let bank = Bank::B8;
+    let column = Column::C10;
+
+    let mc_ch0_base = ddrc_base + MC_CH0_BASE_OFFSET;
+
+    let v = read32(mc_ch0_base);
+    write32(mc_ch0_base, (v & 0x0060FFFF) | (area_length_cfg << 16));
+
+    write32(mc_ch0_base + 0x4, 0x0);
+
+    let v = read32(mc_ch0_base + 0x8);
+    write32(
+        mc_ch0_base + 0x8,
+        (v & 0x0060FFFF | (cs1_start_addr_l << 23) | (area_length_cfg << 16)),
+    );
+
+    write32(mc_ch0_base + 0xc, cs1_start_addr_h);
+
+    let a = ((row as u32) << 8) | ((column as u32) << 4) | (bank as u32);
+    let mask = 0xFFFFF00C;
+
+    let v = read32(mc_ch0_base + 0x20);
+    write32(mc_ch0_base + 0x20, (v & mask) | a);
+
+    let v = read32(mc_ch0_base + 0x24);
+    write32(mc_ch0_base + 0x24, (v & mask) | a);
+
+    let reg = mc_ch0_base;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+    let reg = mc_ch0_base + 0x4;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+    let reg = mc_ch0_base + 0x8;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+    let reg = mc_ch0_base + 0xc;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+    let reg = mc_ch0_base + 0x20;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+    let reg = mc_ch0_base + 0x24;
+    println!("DEBUG-ADDR[0x{reg:08x}]:0x{:08x}", read32(reg));
+}
+
+fn ddr_dfc_table_init(ddrc_base: usize) {
+    write32(ddrc_base + 0x74, 0x00040303);
+    write32(ddrc_base + 0x78, 0x00000044);
+    write32(ddrc_base + 0x70, 0x00000000);
+    write32(ddrc_base + 0x74, 0x13000008);
+    write32(ddrc_base + 0x78, 0x00000020);
+    write32(ddrc_base + 0x70, 0x00000001);
+    write32(ddrc_base + 0x74, 0x13010000);
+    write32(ddrc_base + 0x78, 0x00000028);
+    write32(ddrc_base + 0x70, 0x00000002);
+    write32(ddrc_base + 0x74, 0x1302000d);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000003);
+    write32(ddrc_base + 0x74, 0x13020001);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000004);
+    write32(ddrc_base + 0x74, 0x13020002);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000005);
+    write32(ddrc_base + 0x74, 0x13020003);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000006);
+    write32(ddrc_base + 0x74, 0x1302000b);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000007);
+    write32(ddrc_base + 0x74, 0x1302000c);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000008);
+    write32(ddrc_base + 0x74, 0x1302000e);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000009);
+    write32(ddrc_base + 0x74, 0x13020016);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x0000000a);
+    write32(ddrc_base + 0x74, 0x13008000);
+    write32(ddrc_base + 0x78, 0x00000028);
+    write32(ddrc_base + 0x70, 0x0000000b);
+    write32(ddrc_base + 0x74, 0x1302000d);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x0000000c);
+    write32(ddrc_base + 0x74, 0x13000010);
+    write32(ddrc_base + 0x78, 0x00000020);
+    write32(ddrc_base + 0x70, 0x0000000d);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x0000000e);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x0000000f);
+    write32(ddrc_base + 0x74, 0x13000001);
+    write32(ddrc_base + 0x78, 0x000013d0);
+    write32(ddrc_base + 0x70, 0x00000010);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000011);
+    write32(ddrc_base + 0x74, 0x00000000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000012);
+    write32(ddrc_base + 0x74, 0x00040303);
+    write32(ddrc_base + 0x78, 0x00010044);
+    write32(ddrc_base + 0x70, 0x00000013);
+    write32(ddrc_base + 0x74, 0x10000100);
+    write32(ddrc_base + 0x78, 0x000013d0);
+    write32(ddrc_base + 0x70, 0x00000014);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000015);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000016);
+    write32(ddrc_base + 0x74, 0x13000004);
+    write32(ddrc_base + 0x78, 0x00000020);
+    write32(ddrc_base + 0x70, 0x00000017);
+    write32(ddrc_base + 0x74, 0x1302000d);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x00000018);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x00000019);
+    write32(ddrc_base + 0x74, 0x00000000);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x0000001a);
+    write32(ddrc_base + 0x74, 0x00040380);
+    write32(ddrc_base + 0x78, 0x00020044);
+    write32(ddrc_base + 0x70, 0x0000001b);
+    write32(ddrc_base + 0x74, 0x00040380);
+    write32(ddrc_base + 0x78, 0x00020044);
+    write32(ddrc_base + 0x70, 0x0000012e);
+    write32(ddrc_base + 0x74, 0x00040b43);
+    write32(ddrc_base + 0x78, 0x00000044);
+    write32(ddrc_base + 0x70, 0x00000180);
+    write32(ddrc_base + 0x74, 0x13000010);
+    write32(ddrc_base + 0x78, 0x00000020);
+    write32(ddrc_base + 0x70, 0x00000181);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x00000182);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x00000183);
+    write32(ddrc_base + 0x74, 0x13000001);
+    write32(ddrc_base + 0x78, 0x000013d0);
+    write32(ddrc_base + 0x70, 0x00000184);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000185);
+    write32(ddrc_base + 0x74, 0x00000000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000186);
+    write32(ddrc_base + 0x74, 0x00040b43);
+    write32(ddrc_base + 0x78, 0x00010044);
+    write32(ddrc_base + 0x70, 0x00000187);
+    write32(ddrc_base + 0x74, 0x10000100);
+    write32(ddrc_base + 0x78, 0x000013d0);
+    write32(ddrc_base + 0x70, 0x00000188);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x00000189);
+    write32(ddrc_base + 0x74, 0x00008000);
+    write32(ddrc_base + 0x78, 0x000033fc);
+    write32(ddrc_base + 0x70, 0x0000018a);
+    write32(ddrc_base + 0x74, 0x1302000d);
+    write32(ddrc_base + 0x78, 0x00000024);
+    write32(ddrc_base + 0x70, 0x0000018b);
+    write32(ddrc_base + 0x74, 0x00000002);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x0000018c);
+    write32(ddrc_base + 0x74, 0x00000000);
+    write32(ddrc_base + 0x78, 0x00002008);
+    write32(ddrc_base + 0x70, 0x0000018d);
+    write32(ddrc_base + 0x74, 0x00040b00);
+    write32(ddrc_base + 0x78, 0x00020044);
+    write32(ddrc_base + 0x70, 0x0000018e);
+}
+
+const ADDRS: [usize; 22] = [
+    0x0048,
+    0x0054,
+    0x0058,
+    0x0060,
+    0x0064,
+    0x0148,
+    0x014c,
+    MC_CH0_BASE_OFFSET + 0x0000,
+    MC_CH0_BASE_OFFSET + 0x0004,
+    MC_CH0_BASE_OFFSET + 0x0008,
+    MC_CH0_BASE_OFFSET + 0x000c,
+    MC_CH0_BASE_OFFSET + 0x0020,
+    MC_CH0_BASE_OFFSET + 0x0024,
+    MC_CH0_BASE_OFFSET + 0x00c4,
+    MC_CH0_BASE_OFFSET + 0x00c0,
+    MC_CH0_BASE_OFFSET + 0x0180,
+    MC_CH0_BASE_OFFSET + 0x0184,
+    MC_CH0_BASE_OFFSET + 0x0188,
+    0x80,
+    0xa00,
+    0xac0,
+    0xacc,
+];
+
+const ADDRS2: [usize; 24] = [
+    MC_CH0_BASE_OFFSET + 0x0100,
+    MC_CH0_BASE_OFFSET + 0x010c,
+    MC_CH0_BASE_OFFSET + 0x0110,
+    MC_CH0_BASE_OFFSET + 0x0114,
+    MC_CH0_BASE_OFFSET + 0x018c,
+    MC_CH0_BASE_OFFSET + 0x0190,
+    MC_CH0_BASE_OFFSET + 0x0194,
+    MC_CH0_BASE_OFFSET + 0x0198,
+    MC_CH0_BASE_OFFSET + 0x019c,
+    MC_CH0_BASE_OFFSET + 0x01a0,
+    MC_CH0_BASE_OFFSET + 0x01a4,
+    MC_CH0_BASE_OFFSET + 0x01a8,
+    MC_CH0_BASE_OFFSET + 0x01ac,
+    MC_CH0_BASE_OFFSET + 0x01b0,
+    MC_CH0_BASE_OFFSET + 0x01b4,
+    MC_CH0_BASE_OFFSET + 0x01b8,
+    MC_CH0_BASE_OFFSET + 0x01bc,
+    MC_CH0_BASE_OFFSET + 0x01c0,
+    MC_CH0_BASE_OFFSET + 0x01c4,
+    MC_CH0_BASE_OFFSET + 0x0200,
+    MC_CH0_BASE_OFFSET + 0x01d8,
+    MC_CH0_BASE_OFFSET + 0x014c,
+    MC_CH0_PHY_BASE_OFFSET + 0x03e4,
+    MC_CH0_PHY_BASE_OFFSET + 0x03ec,
+];
+
+fn init_table_mc_tim(ddrc_base: usize, idx: &mut u32) {
+    for a in ADDRS2 {
+        let v = read32(ddrc_base + a);
+        write32(ddrc_base + 0x0074, v);
+        write32(ddrc_base + 0x0078, a as u32);
+        write32(ddrc_base + 0x0070, *idx);
+        *idx += 1;
+    }
+}
+
+fn init_table_mc_a0(ddrc_base: usize) {
+    let mut idx = 0x200;
+    let mc_cfg2_offset = MC_CH0_BASE_OFFSET + 0x0104;
+    let mc_cfg2_addr = ddrc_base + mc_cfg2_offset;
+
+    let mc_ctl0_org = read32(ddrc_base + 0x44);
+    write32(ddrc_base + 0x74, mc_ctl0_org | (1 << 2) | (1 << 12));
+    write32(ddrc_base + 0x78, 0x00000044 | (0x1 << 16));
+    write32(ddrc_base + 0x70, idx);
+    idx += 1;
+
+    for a in ADDRS {
+        write32(ddrc_base + 0x74, read32(ddrc_base + a));
+        write32(ddrc_base + 0x78, a as u32 & 0xffff);
+        write32(ddrc_base + 0x70, idx);
+        idx += 1;
+    }
+
+    let mc_cfg2_org = read32(mc_cfg2_addr);
+    let temp_data = mc_cfg2_org & !(0xf << 28);
+
+    let mc_cfg2_fp = temp_data;
+    write32(mc_cfg2_addr, mc_cfg2_fp);
+    write32(ddrc_base + 0x0074, mc_cfg2_fp);
+    write32(ddrc_base + 0x0078, mc_cfg2_offset as u32);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+    init_table_mc_tim(ddrc_base, &mut idx);
+
+    let mc_cfg2_fp = temp_data | (0x5 << 28);
+    write32(mc_cfg2_addr, mc_cfg2_fp);
+    let mc_cfg2_fp = mc_cfg2_fp & !(0x3 << 28);
+    write32(ddrc_base + 0x0074, mc_cfg2_fp);
+    write32(ddrc_base + 0x0078, mc_cfg2_offset as u32);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+    init_table_mc_tim(ddrc_base, &mut idx);
+
+    let mc_cfg2_fp = temp_data | (0xa << 28);
+    write32(mc_cfg2_addr, mc_cfg2_fp);
+    let mc_cfg2_fp = mc_cfg2_fp & !(0x3 << 28);
+    write32(ddrc_base + 0x0074, mc_cfg2_fp);
+    write32(ddrc_base + 0x0078, mc_cfg2_offset as u32);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+    init_table_mc_tim(ddrc_base, &mut idx);
+
+    let mc_cfg2_fp = temp_data | (0xf << 28);
+    write32(mc_cfg2_addr, mc_cfg2_fp);
+    let mc_cfg2_fp = mc_cfg2_fp & !(0x3 << 28);
+    write32(ddrc_base + 0x0074, mc_cfg2_fp);
+    write32(ddrc_base + 0x0078, mc_cfg2_offset as u32);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+    init_table_mc_tim(ddrc_base, &mut idx);
+
+    write32(ddrc_base + 0x0074, 0x00020200);
+    write32(ddrc_base + 0x0078, 0x000013e0);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13000010);
+    write32(ddrc_base + 0x0078, 0x000013d0);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00010000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00010000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13000008);
+    write32(ddrc_base + 0x0078, 0x00000020);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13000004);
+    write32(ddrc_base + 0x0078, 0x00000020);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13020000);
+    write32(ddrc_base + 0x0078, 0x00000028);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13000001);
+    write32(ddrc_base + 0x0078, 0x000013d0);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00008000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00008000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x10000100);
+    write32(ddrc_base + 0x0078, 0x000013d0);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00008000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x00008000);
+    write32(ddrc_base + 0x0078, 0x000033fc);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x1302000d);
+    write32(ddrc_base + 0x0078, 0x00000024);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, 0x13020003);
+    write32(ddrc_base + 0x0078, 0x00000024);
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + 0x0074, mc_ctl0_org);
+    write32(ddrc_base + 0x0078, 0x44 | (0x1 << 17));
+    write32(ddrc_base + 0x0070, idx);
+    idx += 1;
+
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x00001100);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x00010000);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000020);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x000000ff);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x0001001c);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000021);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x00000000);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x0005001c);
+    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000022);
+
+    write32(mc_cfg2_addr, mc_cfg2_org);
+}
+
+const MC_REQ_TABLE_NUM: u32 = 3;
+const FREQ_PLL_CHG_MODE: u32 = 9;
+const DCLK_BYPASS_DIV: u32 = 16;
+const DCLK_BYPASS_RST: u32 = 21;
+const DCLK_BYPASS_CLK_EN: u32 = 22;
+const DDRPHY0_EN: u32 = 30;
+
+fn ddr_dfc(ddrc_base: usize, freq_no: u32) {
+    let r = PLL_BASE + 0x098;
+    write32(r, read32(r) | 0x10);
+    write32(ddrc_base + 0x148, 0x80ac0000);
+
+    const BASE_CFG: u32 = (1 << DDRPHY0_EN) | (1 << DCLK_BYPASS_RST);
+    fn get_cfg1(r: u32) -> u32 {
+        BASE_CFG | (1 << FREQ_PLL_CHG_MODE) | (r << MC_REQ_TABLE_NUM)
+    }
+
+    const FREQ_REG1: usize = PLL_BASE + 0x3b4;
+    const FREQ_REG2: usize = PLL_BASE + 0x0b0;
+
+    match freq_no {
+        0 => {
+            println!("change to 1200");
+            write32(FREQ_REG1, 0x00003B50);
+            write32(FREQ_REG2, get_cfg1(0));
+        }
+        1 => {
+            println!("change to 1600");
+            write32(FREQ_REG1, 0x00003B04);
+            write32(FREQ_REG2, get_cfg1(1));
+        }
+        2 => {
+            println!("change to 2400");
+            write32(FREQ_REG1, 0x00003B40);
+            write32(FREQ_REG2, get_cfg1(2));
+        }
+        3 => {
+            println!("change to 3200");
+            write32(FREQ_REG1, 0x00003B00);
+            write32(FREQ_REG2, get_cfg1(3));
+        }
+        4 => {
+            println!("change to ext clock");
+            let cfg = BASE_CFG | (1 << DCLK_BYPASS_CLK_EN) | (1 << DCLK_BYPASS_DIV);
+            write32(FREQ_REG1, 0x00003B02);
+            write32(FREQ_REG2, cfg);
+        }
+        _ => {
+            println!("no this case");
+        }
+    }
+
+    const DDR_FREQ_CHG_REQ: u32 = 22;
+    let r = PLL_BASE + 0x0004;
+    write32(r, 1 << DDR_FREQ_CHG_REQ);
+    while read32(r) & 0x400000 != 0x0 {}
+
+    println!("frequency change done!");
+}
+
+fn top_training_fp_all(ddrc_base: usize, cs_num: u32, fp: u32, info_para: &mut u32) {
+    //
+}
+
 pub fn init() {
     let ddr_info: &DdrTrainingInfo = mem_read(DDR_TRAINING_INFO);
     println!("{ddr_info:#08x?}");
@@ -558,39 +1081,43 @@ pub fn init() {
     top_ddr_mc_phy_device_init(DDRC_BASE, cs_num, 0);
 
     let size_mb = ddr_get_density(cs_num);
-    println!("DDR size (density): {size_mb}MB");
-
     let mr8_value = mode_register_read(8, 0, 0) & 0xff;
+    println!("DDR size (density): {size_mb}MB");
+    println!("MR 8: {mr8_value}");
+    adjust_mapping(DDRC_BASE, cs_num, size_mb, mr8_value);
+
+    ddr_dfc_table_init(0xF0000000);
+    init_table_mc_a0(0xF0000000);
+
+    // TODO
+    let mut info_para = 0;
+
+    top_training_fp_all(DDRC_BASE, cs_num, 0, &mut info_para);
 
     panic!("TODO");
-    // adjust_mapping(DDRC_BASE, cs_num, size_mb, mr8_value);
 
-    //   ddr_dfc_table_init(0xF0000000);
-    //   init_table_mc_a0(0xF0000000);
+    let fp = 1;
+    ddr_dfc(DDRC_BASE, fp);
+    top_training_fp_all(DDRC_BASE, cs_num, fp, &mut info_para);
 
-    //   top_training_fp_all(ddr_base, cs_num, 0, info_para);
-    //
-    //   let fp = 1;
-    //   ddr_dfc(fp);
-    //   top_training_fp_all(ddr_base, cs_num, fp, info_para);
-    //
-    //   let fp = 2;
-    //   ddr_dfc(fp);
-    //   top_training_fp_all(ddr_base, cs_num, fp, info_para);
+    let fp = 2;
+    ddr_dfc(DDRC_BASE, fp);
+    top_training_fp_all(DDRC_BASE, cs_num, fp, &mut info_para);
 
-    //   /* change dram frequency */
-    //   match data_rate {
-    //       1600 => {
-    //           ddr_dfc(1);
-    //       }
-    //       // WE HIT THIS
-    //       2400 => {
-    //           ddr_dfc(2);
-    //       }
-    //       1200 | _ => {
-    //           data_rate = 1200;
-    //           ddr_dfc(0);
-    //       }
-    //   }
+    let data_rate = 2400;
+    /* change dram frequency */
+    match data_rate {
+        1600 => {
+            ddr_dfc(DDRC_BASE, 1);
+        }
+        // WE HIT THIS
+        2400 => {
+            ddr_dfc(DDRC_BASE, 2);
+        }
+        1200 | _ => {
+            // data_rate = 1200;
+            ddr_dfc(DDRC_BASE, 0);
+        }
+    }
     // lpddr4_silicon_init(DDRC_BASE, DATA_RATE);
 }
