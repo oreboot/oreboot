@@ -420,7 +420,7 @@ fn top_ddr_mc_phy_device_init(ddrc_base: usize, cs_val: u32, fp: u32) {
     write32(DDRC_BASE + 0x20, 0x10000001 | (cs_num << 24));
 
     println!("wait DRAM INIT");
-    while read32(ddrc_base + 0x8) & 0x00000011 != 0x00011 {}
+    while read32(ddrc_base + 0x8) & 0x11 != 0x11 {}
     println!("DRAM INIT done");
 
     write32(ddrc_base + 0x24, 0x10020001 | (cs_num << 24));
@@ -859,6 +859,7 @@ fn init_table_mc_tim(ddrc_base: usize, idx: &mut u32) {
 
 fn init_table_mc_a0(ddrc_base: usize) {
     let mut idx = 0x200;
+    let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
     let mc_cfg2_offset = MC_CH0_BASE_OFFSET + 0x0104;
     let mc_cfg2_addr = ddrc_base + mc_cfg2_offset;
 
@@ -993,15 +994,15 @@ fn init_table_mc_a0(ddrc_base: usize) {
     write32(ddrc_base + 0x0070, idx);
     idx += 1;
 
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x00001100);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x00010000);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000020);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x000000ff);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x0001001c);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000021);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10104, 0x00000000);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10108, 0x0005001c);
-    write32(ddrc_base + DPHY0_BASE_OFFSET + 0x10100, 0x00000022);
+    write32(dphy0_base + 0x10104, 0x00001100);
+    write32(dphy0_base + 0x10108, 0x00010000);
+    write32(dphy0_base + 0x10100, 0x00000020);
+    write32(dphy0_base + 0x10104, 0x000000ff);
+    write32(dphy0_base + 0x10108, 0x0001001c);
+    write32(dphy0_base + 0x10100, 0x00000021);
+    write32(dphy0_base + 0x10104, 0x00000000);
+    write32(dphy0_base + 0x10108, 0x0005001c);
+    write32(dphy0_base + 0x10100, 0x00000022);
 
     write32(mc_cfg2_addr, mc_cfg2_org);
 }
@@ -1066,8 +1067,39 @@ fn ddr_dfc(ddrc_base: usize, freq_no: u32) {
     println!("frequency change done!");
 }
 
-fn top_training_fp_all(ddrc_base: usize, cs_num: u32, fp: u32, info_para: &mut u32) {
-    //
+fn self_refresh(ddrc_base: usize, cs_num: u32, on_off: bool) {
+    let (p1, p2) = if (cs_num == 2) { (3, 0x44) } else { (1, 4) };
+
+    let s = if on_off { 1 } else { 2 };
+    write32(ddrc_base + 0x20, (s * 0x40) | (p1 << 0x18) | 0x10000000);
+
+    if on_off {
+        while read32(ddrc_base + 0x8) & p2 != p2 {}
+    } else {
+        while read32(ddrc_base + 0x8) & p2 != 0 {}
+    }
+}
+
+fn train(
+    ddrc_base: usize,
+    boot_pp: u32,
+    cs_num: u32,
+    do_ca_training: bool,
+    do_write_leveling: bool,
+    do_read_gate_training: bool,
+    do_read_training: bool,
+    do_write_training: bool,
+) {
+    println!("Training start...");
+    let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
+}
+
+fn top_training_fp_all(ddrc_base: usize, cs_num: u32, boot_pp: u32, info_para: &mut u32) {
+    println!("self refresh start");
+    self_refresh(ddrc_base, cs_num, true);
+    println!("self refresh done");
+    train(ddrc_base, boot_pp, cs_num, false, true, true, true, true);
+    self_refresh(ddrc_base, cs_num, false);
 }
 
 pub fn init() {
