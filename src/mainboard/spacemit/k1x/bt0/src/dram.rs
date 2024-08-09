@@ -1586,5 +1586,4 @@ pub fn init() {
             ddr_dfc(DDRC_BASE, 0);
         }
     }
-    panic!("TODO: DRAM test");
 }

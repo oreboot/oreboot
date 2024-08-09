@@ -222,12 +222,48 @@ fn main() {
 
     print_ids();
 
-    dram::init();
-
     let boot_mode = read32(STORAGE_API_P_ADDR);
     println!("Boot mode: 0x{boot_mode:08x}");
     let boot_entry = read32(boot_mode as usize);
     println!("Boot entry: 0x{boot_entry:08x}");
+
+    dram::init();
+
+    println!("DRAM test: write patterns...");
+
+    for i in (0..0x0100_0000).step_by(0x1_0000) {
+        write32(i + 0x0, 0x2233_ccee | i as u32);
+        write32(i + 0x4, 0x5577_aadd | i as u32);
+        write32(i + 0x8, 0x1144_bbff | i as u32);
+        write32(i + 0xc, 0x6688_9900 | i as u32);
+    }
+
+    println!("DRAM test: reading back...");
+
+    for i in (0..0x0100_0000).step_by(0x1_0000) {
+        let v = read32(i + 0x0);
+        let e = 0x2233_ccee | i as u32;
+        if v != e {
+            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
+        }
+        let v = read32(i + 0x4);
+        let e = 0x5577_aadd | i as u32;
+        if v != e {
+            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
+        }
+        let v = read32(i + 0x8);
+        let e = 0x1144_bbff | i as u32;
+        if v != e {
+            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
+        }
+        let v = read32(i + 0xc);
+        let e = 0x6688_9900 | i as u32;
+        if v != e {
+            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
+        }
+    }
+
+    println!("DRAM test: done :)");
 
     unsafe {
         asm!("wfi");
