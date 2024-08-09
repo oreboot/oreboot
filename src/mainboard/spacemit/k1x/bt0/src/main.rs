@@ -32,8 +32,7 @@ pub type EntryPoint = unsafe extern "C" fn();
 const SRAM0_BASE: usize = 0x0020_0000;
 const SRAM0_SIZE: usize = 0x0002_0000;
 
-// TOOD
-const DRAM_BASE: usize = 0x4000_0000;
+const DRAM_BASE: usize = 0x0000_0000;
 
 // octacore, 2 clusters of 4x X60
 const BOOT_HART_ID: usize = 0;
@@ -214,24 +213,14 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
-#[no_mangle]
-fn main() {
-    let s = uart::K1XSerial::noinit();
-    init_logger(s);
-    println!("oreboot 🦀 bt0");
-
-    print_ids();
-
-    let boot_mode = read32(STORAGE_API_P_ADDR);
-    println!("Boot mode: 0x{boot_mode:08x}");
-    let boot_entry = read32(boot_mode as usize);
-    println!("Boot entry: 0x{boot_entry:08x}");
-
-    dram::init();
+fn dram_test() {
+    let limit = 0x8000_0000;
+    let range = DRAM_BASE..limit;
+    let steps = 0x1000;
 
     println!("DRAM test: write patterns...");
 
-    for i in (0..0x0100_0000).step_by(0x1_0000) {
+    for i in range.clone().step_by(steps) {
         write32(i + 0x0, 0x2233_ccee | i as u32);
         write32(i + 0x4, 0x5577_aadd | i as u32);
         write32(i + 0x8, 0x1144_bbff | i as u32);
@@ -240,7 +229,7 @@ fn main() {
 
     println!("DRAM test: reading back...");
 
-    for i in (0..0x0100_0000).step_by(0x1_0000) {
+    for i in range.clone().step_by(steps) {
         let v = read32(i + 0x0);
         let e = 0x2233_ccee | i as u32;
         if v != e {
@@ -264,6 +253,24 @@ fn main() {
     }
 
     println!("DRAM test: done :)");
+}
+
+#[no_mangle]
+fn main() {
+    let s = uart::K1XSerial::noinit();
+    init_logger(s);
+    println!("oreboot 🦀 bt0");
+
+    print_ids();
+
+    let boot_mode = read32(STORAGE_API_P_ADDR);
+    println!("Boot mode: 0x{boot_mode:08x}");
+    let boot_entry = read32(boot_mode as usize);
+    println!("Boot entry: 0x{boot_entry:08x}");
+
+    dram::init();
+
+    dram_test();
 
     unsafe {
         asm!("wfi");
