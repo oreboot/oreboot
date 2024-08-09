@@ -9,8 +9,6 @@ const DDRC_BASE: usize = 0xc000_0000;
 const DFI_PHY_USER_COMMAND_0: usize = DDRC_BASE + 0x13D0;
 
 const DPHY0_BASE_OFFSET: usize = 0x0004_0000;
-const DDRC_X_BASE_OFFSET: usize = 0x0001_8000;
-
 const BAR_BASE_OFFSET: usize = 0x0005_0000;
 const FOO_BASE_OFFSET: usize = 0x0005_8000;
 
@@ -1198,9 +1196,11 @@ fn adjust_rx_vref(tmp: &mut Block, cs_num: u32) -> u8 {
 
     println!("each RX Vref corresponding min margin");
     for i in 0..16 {
-        print!(" {i}: {},", tmp[min_margin_base_o + i]);
+        print!(" {i:02}: {:02},", tmp[min_margin_base_o + i]);
+        if i % 4 == 3 {
+            println!();
+        }
     }
-    println!();
     println!("optimize RX Vref adjust = {a}, corresponding best margin = {m}");
 
     a
@@ -1246,9 +1246,11 @@ fn adjust_tx_vref(tmp: &mut Block, cs_num: u32) -> u8 {
 
     println!("each TX Vref corresponding min margin");
     for i in 0..16 {
-        print!(" {i}: {},", tmp[min_margin_base_o + i]);
+        print!(" {i:02}: {:02},", tmp[min_margin_base_o + i]);
+        if i % 4 == 3 {
+            println!();
+        }
     }
-    println!();
     println!("optimize TX Vref adjust = {a}, corresponding best margin = {m}");
 
     a
@@ -1314,8 +1316,8 @@ fn read_train(
 
         for cs in 1..=cs_num {
             train_ready(ddrc_base, cs);
-
-            let s = (cs - 1 + i * 2) as usize;
+            let csi = cs as usize - 1;
+            let s = csi + (i * 2) as usize;
 
             for k in 0..8 {
                 let b = x_base_o + (s << 5) + (k * 4);
@@ -1334,8 +1336,8 @@ fn read_train(
             tmp[o + 0x11bf] = (v >> 16) as u8;
             tmp[o + 0x11c0] = (v >> 24) as u8;
 
-            let base = 0xd3d + (s << 5) as usize;
-            let pre = dphy0_pp_base + (cs as usize - 1) * 0x100;
+            let base = (s << 5) + 0xd3d;
+            let pre = dphy0_pp_base + csi * 0x100;
 
             // TODO: This could all be in one loop...
             for k in 0..8 {
@@ -1371,12 +1373,13 @@ fn read_train(
 }
 
 fn write_train(ddrc_base: usize, tmp: &mut Block, cs_num: u32, boot_pp: u32, p4: u32, p5: u32) {
-    panic!("TODO");
-
     let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
+    let dphy0_pp_base = dphy0_base + boot_pp as usize * 0x4000;
+
+    let write_train_init_reg = ddrc_base + 0x13f8;
+
     let ctrl_reg = ddrc_base + 0x0024;
     let init_reg1 = ddrc_base + 0x030c;
-    let write_train_init_reg = ddrc_base + 0x13f8;
 
     let foo_base = ddrc_base + FOO_BASE_OFFSET;
     let xreg1 = foo_base + 0x0300;
@@ -1399,10 +1402,11 @@ fn write_train(ddrc_base: usize, tmp: &mut Block, cs_num: u32, boot_pp: u32, p4:
         // In 16..23, the two highest bits are set, but we iterate from 0 to 15,
         // and the last iterations are setting all bits to 1.
         write32(init_reg1, (v & vref_mask) | ((tmp[i] as u32) << 16));
-        for j in 1..=cs_num {
-            train_ready(ddrc_base, j);
+        for cs in 1..=cs_num {
+            train_ready(ddrc_base, cs);
+            let csi = cs as usize - 1;
 
-            let s = j as usize - 1 + i * 2;
+            let s = csi + i * 2;
             for k in 0..8 {
                 let o = k * 4;
                 let r = s * 0x20 + o + 0x0410;
@@ -1419,9 +1423,8 @@ fn write_train(ddrc_base: usize, tmp: &mut Block, cs_num: u32, boot_pp: u32, p4:
             tmp[(s << 2) + 0x8a3] = (v >> 16) as u8;
             tmp[(s << 2) + 0x8a4] = (v >> 24) as u8;
 
-            let pp = dphy0_base + boot_pp as usize * 0x4000;
-            let base = pp + (j as usize - 1) * 0x100;
-            let pre = s * 0x20 + 0x10;
+            let base = (s << 5) + 0x10;
+            let pre = dphy0_pp_base + csi * 0x100;
 
             for k in 0..8 {
                 tmp[base + k + 0] = read8(pre + k * 4 + 0x0000) & 0x3f;
@@ -1450,8 +1453,8 @@ fn write_train(ddrc_base: usize, tmp: &mut Block, cs_num: u32, boot_pp: u32, p4:
 
     write32(ctrl_reg, 0x1302_000e);
 
-    for j in 1..=cs_num {
-        train_ready(ddrc_base, j);
+    for cs in 1..=cs_num {
+        train_ready(ddrc_base, cs);
     }
 }
 
@@ -1475,6 +1478,7 @@ fn train(
     let bar_base = ddrc_base + BAR_BASE_OFFSET;
     let dphy0_base = ddrc_base + DPHY0_BASE_OFFSET;
     let xx_base = dphy0_base + boot_pp as usize * 0x4000;
+    let status_reg = ddrc_base + FOO_BASE_OFFSET;
 
     let mut tmp: &mut Block = &mut [0u8; 4672];
 
@@ -1500,10 +1504,8 @@ fn train(
     println!("write training");
     write_train(ddrc_base, &mut tmp, cs_num, boot_pp, 0x10, 0x60);
 
-    let base_x = ddrc_base + DDRC_X_BASE_OFFSET;
-
-    let status = read32(base_x);
-    println!("Training status [0x{base_x:08x}]=0x{status:08x}");
+    let status = read32(status_reg);
+    println!("Training status [0x{status_reg:08x}]=0x{status:08x}");
 
     if (status & STATUS_ERROR_WRITE_LEVELING) != 0 {
         println!("Write leveling error");
@@ -1517,7 +1519,6 @@ fn train(
     if (status & STATUS_ERROR_READ_GATE_TRAINING) != 0 {
         println!("Read gate training error");
     }
-    panic!("TODO");
 }
 
 fn top_training_fp_all(
@@ -1541,7 +1542,7 @@ pub fn init() {
     println!("{header_info:#08x?}");
 
     // TODO
-    let mut info_para = DDR_TRAINING_INFO + 64;
+    let mut info_para = DDR_TRAINING_INFO;
     dump_block(info_para, 1024, 32);
 
     // NOTE: This comes from the DT in U-Boot. Default is 1 otherwise.
@@ -1585,5 +1586,5 @@ pub fn init() {
             ddr_dfc(DDRC_BASE, 0);
         }
     }
-    // lpddr4_silicon_init(DDRC_BASE, DATA_RATE);
+    panic!("TODO: DRAM test");
 }
