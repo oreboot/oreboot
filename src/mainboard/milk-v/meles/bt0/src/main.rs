@@ -62,6 +62,8 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
     asm!(
+        "auipc  s4, 0",
+
         "csrw   mstatus, zero",
         "csrw   mie, zero",
         "ld     t0, {start}",
@@ -223,9 +225,14 @@ fn dram_test() {
 
 #[no_mangle]
 fn main() {
+    let mut ini_pc: usize = 0;
+    unsafe { asm!("mv {}, s4", out(reg) ini_pc) };
+
     let s = uart::TH1520Serial::noinit();
     init_logger(s);
     println!("oreboot 🦀 bt0");
+
+    println!("initial PC {ini_pc:016x}");
 
     print_ids();
 
