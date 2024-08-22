@@ -5,6 +5,7 @@
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
+use dwc3::dwc3_gadget_run;
 use embedded_hal_nb::serial::Write;
 
 #[macro_use]
@@ -20,6 +21,7 @@ use core::{
 use riscv::register::{marchid, mhartid, mimpid, mip, mvendorid};
 
 mod dram;
+mod dwc3;
 mod uart;
 mod util;
 
@@ -235,6 +237,9 @@ fn main() {
     println!("initial PC {ini_pc:016x}");
 
     print_ids();
+
+    // Can we get this to work? :-)
+    dwc3_gadget_run(USB0_BASE);
 
     // util::dump_block(BROM_BASE, 0x1000, 32); // only gets 0000000...
     // util::dump_block(QSPI0_BASE, 0x100, 32); // hangs after 96 bytes
