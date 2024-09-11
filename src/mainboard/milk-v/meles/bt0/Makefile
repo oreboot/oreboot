@@ -20,8 +20,8 @@ build:
 	riscv64-unknown-elf-objcopy -O binary $(RELEASE_ELF) $(RELEASE_BIN)
 
 run: build
-	fastboot flash ram $(RELEASE_BIN)
-	fastboot reboot
+	sudo fastboot flash ram $(RELEASE_BIN)
+	sudo fastboot reboot
 
 objdump: build
 	riscv64-unknown-elf-objdump -D $(RELEASE_ELF)
