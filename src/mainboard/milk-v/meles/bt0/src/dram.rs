@@ -7,6 +7,7 @@ const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
 const RANK: u8 = 2;
 const DDR_CFG0: usize = 0x0;
+const DDR_SYSREG_BADDR: usize = 0xffff005000;
 const _DDR_PHY_BADDR: usize = 0xfffd000000;
 const _DDR_CTRL_BADDR: usize = _DDR_PHY_BADDR + 0x2000000;
 const DBG1: usize = _DDR_CTRL_BADDR + 0x304;
@@ -156,7 +157,7 @@ pub fn init() {
 // FIXME: try to find a better approach.
 fn udelay(micros: usize) {
     unsafe {
-        for _ in 0..micros {
+        for _ in 0..(micros * 10) {
             core::arch::asm!("nop")
         }
     }
@@ -178,29 +179,7 @@ fn sys_clk_config() {
     tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x104);
     tmp |= 0x2000;
     write32(LIGHT_AONCLK_ADDRBASE + 0x104, tmp);
-
-    /* switch audio_c906_cclk to audio_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x110);
-    tmp |= 0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x110, tmp);
-
-    /* switch audio_subsys_aclk to audio_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x108);
-    tmp |= 0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x108, tmp);
-
-    /* disable audio_i2s_src_clk */
-    tmp = read32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4);
-    tmp &= !0x20200;
-    write32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4, tmp);
-
-    /* disable peri_i2s_src_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1f0);
-    tmp &= !0x2;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1f0, tmp);
-
     udelay(1);
-
     /* set sys_pll_foutvco to 2438.5536MHz */
     write32(LIGHT_AONCLK_ADDRBASE + 0x14, 0x20000000);
     write32(LIGHT_AONCLK_ADDRBASE + 0x10, 0x03606501);
@@ -216,53 +195,6 @@ fn sys_clk_config() {
     tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x104);
     tmp &= !0x2000;
     write32(LIGHT_AONCLK_ADDRBASE + 0x104, tmp);
-
-    /* switch audio_c906_cclk to sys_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x110);
-    tmp &= !0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x110, tmp);
-
-    /* swith audio_subsys_aclk to sys_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x108);
-    tmp &= !0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x108, tmp);
-
-    /* 3. update audio_pll, to frac mode, 884.736MHz */
-    /* switch aonsys_clk to pad_osc_clk */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x100);
-    tmp |= 0x10;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x100, tmp);
-
-    /* set audio_pll_foutvco to frac mode, 884.736MHz */
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x20000000);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x00, 0x01302401);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x20dd2f70);
-    udelay(3);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x00dd2f70);
-    read32(LIGHT_AONCLK_ADDRBASE + 0x90);
-    read32(LIGHT_AONCLK_ADDRBASE + 0x90);
-    while (read32(LIGHT_AONCLK_ADDRBASE + 0x90) & 0x1) == 0 {}
-    udelay(11);
-
-    /* switch aonsys_clk to audio_pll_foutpostdiv */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x100);
-    tmp &= !0x10;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x100, tmp);
-
-    /* switch aoi2c_ic_clk to audio_pll_fout3 */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x11c);
-    tmp &= !0x1;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x11c, tmp);
-
-    /* enable audio_i2s_src_clk */
-    tmp = read32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4);
-    tmp |= 0x20200;
-    write32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4, tmp);
-
-    /* enable peri_i2s_src_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1f0);
-    tmp |= 0x2;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1f0, tmp);
 
     /* set apb3_cpusys_pclk to ahb2_cpusys_hclk/2 */
     /* CPU AHB 125MHz  CPU pclk 125MHz */
@@ -334,73 +266,13 @@ fn sys_clk_config() {
     udelay(1);
     tmp &= !0x20;
     write32(LIGHT_APCLK_ADDRBASE + 0x140, tmp);
-    /* perisys_ahb_hclk 250MHz  perisys_apb_pclk 62.5MHz */
-
-    /* set dpu0_pll_div_clk to dpu0_pll_foutpostdiv/16 as 74.25MHz */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1e8);
-    tmp &= !0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-    tmp &= !0xff;
-    tmp |= 0x10;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-    tmp |= 0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-
-    /* set dpu1_pll_div_clk to dpu1_pll_foutpostdiv/16 as 74.25MHz */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1ec);
-    tmp &= !0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-    tmp &= !0xff;
-    tmp |= 0x10;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-    tmp |= 0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-
-    /*5. enable necessary gates */
-    /* enable dsp_subsys, vi_subsys, vo_subsys all clocls */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x220);
-    tmp |= 0x7;
-    write32(LIGHT_APCLK_ADDRBASE + 0x220, tmp);
-
-    /* AP rst_gen: VP/VO/VI/DSP */
-    write32(LIGHT_APSYS_RSTGEN_ADDRBASE + 0x220, 0xf);
-
-    /* enable dsp0/1_cclk, dsp0/1_pclk */
-    tmp = read32(LIGHT_DSP_SUBSYS_ADDRBASE + 0x24);
-    tmp |= 0xf;
-    write32(LIGHT_DSP_SUBSYS_ADDRBASE + 0x24, tmp);
-
-    /* enable gpu_core_clk, gpu_cfg_aclk */
-    tmp = read32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50);
-    tmp |= 0x18;
-    write32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50, tmp);
-
-    tmp = read32(LIGHT_VO_SUBSYS_R_ADDRBASE + 0x50);
-    tmp |= 0x3ff;
-    write32(LIGHT_VO_SUBSYS_R_ADDRBASE + 0x50, tmp);
-
-    /* enable dpu_pixelclk0/1, dpu_hclk, dpu_aclk, dpu_cclk */
-    tmp = read32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50);
-    tmp |= 0x3e0;
-    write32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50, tmp);
-
-    /* enable npu_axi_aclk, npu_core_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1c8);
-    tmp |= 0x30;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1c8, tmp);
     /* The boards other than the LightA board perform the bus down-speed operation */
 }
 
 fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[*] LPDDR4 init...");
     pll_config(freq);
-    println!("[+] PLL Complete...");
+    println!("[+] pll_config Complete...");
     deassert_pwrok_apb(bits);
     println!("[+] deassert_pwrok_apb Complete...");
     ctrl_init(rank, freq);
@@ -408,40 +280,42 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn pll_config(speed: u16) {
-    const DDR_TEST: usize = DDR_CFG0 + 0xc;
-    println!("[+] pll_config init...");
-    write32(DDR_TEST, 0x4b000000);
+    println!("[+] pll_config init... freq: {}", speed);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0xc, 0x4b000000);
     println!("[+] pll_config check point 1");
-    write32(DDR_CFG0 + 0x8, 0x01204d01);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x8, 0x01204d01);
     println!("[+] pll_config before udelay(2)");
     udelay(2);
     println!("[+] pll_config after udelay(2)");
-    write32(DDR_CFG0 + 0xc, 0x0b000000);
-    while (read32(DDR_CFG0 + 0x18) & 1) != 0x1 { print!(".") }
-    write32(DDR_CFG0 + 0x18, 0x10000);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0xc, 0x0b000000);
+    while (read32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x18) & 1) != 0x1 { }
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x18, 0x10000);
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn deassert_pwrok_apb(bits: u8) {
     println!("[+] deassert_pwrok_apb init...");
-    write32(DDR_CFG0, 0x40);  // release PwrOkIn
-    write32(DDR_CFG0, 0x40);
-    write32(DDR_CFG0, 0x40);
-    write32(DDR_CFG0, 0x40);
-    write32(DDR_CFG0, 0x40);
-    write32(DDR_CFG0, 0x40);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);  // release PwrOkIn
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
 
-    write32(DDR_CFG0, 0xc0);  // release Phyrst
-    write32(DDR_CFG0, 0xc0);  // release Phyrst
-    write32(DDR_CFG0, 0xc0);  // release Phyrst
-    write32(DDR_CFG0, 0xc0);  // release Phyrst
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0);  // release Phyrst
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0);  // release Phyrst
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0);  // release Phyrst
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0);  // release Phyrst
 
-    write32(DDR_CFG0, 0xd0);  // release apb presetn
-    write32(DDR_CFG0, 0xd0);
-    write32(DDR_CFG0, 0xd0);
-    write32(DDR_CFG0, 0xd0);
-    write32(DDR_CFG0, 0xd0);
-    write32(DDR_CFG0, 0xd0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);  // release apb presetn
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    if bits == 32 {
+        write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd2);
+    }
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
