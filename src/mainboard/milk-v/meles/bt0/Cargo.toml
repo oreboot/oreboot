@@ -7,6 +7,7 @@ authors = [
 edition = "2021"
 
 [dependencies]
+bitfield = "0.13.2"
 embedded-hal = "1.0.0"
 embedded-hal-nb = "1.0.0"
 nb = "1"

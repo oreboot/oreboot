@@ -24,6 +24,7 @@ mod dram;
 mod dwc3;
 mod uart;
 mod util;
+mod dram_helpers;
 
 use uart::TH1520Serial;
 use util::{read32, write32};

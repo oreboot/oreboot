@@ -2,6 +2,8 @@
 
 use core::ptr::write;
 use crate::util::{read32, write32};
+use bitfield::bitfield;
+use crate::dram_helpers::{ddr_phy0_reg_wr, ddr_phy1_reg_wr};
 
 const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
@@ -276,6 +278,13 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     deassert_pwrok_apb(bits);
     println!("[+] deassert_pwrok_apb Complete...");
     ctrl_init(rank, freq);
+    println!("[+] ctrl_init Complete...");
+    addrmap(rank, bits);
+    println!("[+] addrmap Complete...");
+    de_assert_other_reset_ddr();
+    println!("[+] de_asssert_other_reset_ddr Complete...");
+    dq_pinmux(bits); // pinmux config before training
+    println!("[+] dq_pinmux Complete...");
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
@@ -467,4 +476,142 @@ fn ctrl_init(rank: u8, freq: u16) {
     println!("[+] DFITMG0   : {}", read32(DFITMG0));
     println!("[+] DFITMG1   : {}", read32(DFITMG1));
     println!("[+] DRAMTMG4  : {}", read32(DRAMTMG4)); //[19:16] tCCD
+}
+
+// board/thead/light-c910/lpddr4/src/ddr_common_func.c
+fn addrmap(rank: u8, bits: u8) {
+    write32(ADDRMAP0,0x0004001f); //cs_bit0: NULL
+    write32(ADDRMAP0,0x00040018); //8GB
+    write32(ADDRMAP1,0x00090909); //bank +2
+    write32(ADDRMAP2,0x00000000); //col b5+5 ~ col b2  +2
+    write32(ADDRMAP3,0x01010101); //col b9 ~ col b6
+    write32(ADDRMAP4,0x00001f1f); //col b11~ col b10
+    write32(ADDRMAP5,0x080f0808); //row_b11 row b2_10 row b1 row b0  +6
+    write32(ADDRMAP6,0x08080808); //row15
+    write32(ADDRMAP7,0x00000f0f); //row16: NULL
+    write32(ADDRMAP9,0x08080808);
+    write32(ADDRMAP10,0x08080808);
+    write32(ADDRMAP11,0x00000008);
+}
+
+
+// struct corresponding to `DDR_SYSREG_REG_SW_DDR_CFG0_U`
+bitfield! {
+    pub struct DDRCfg0(u32);
+    impl Debug;
+    pub rg_broadcast_mode, set_rg_broadcast_mode: 0;
+    pub rg_ddrc_32en, set_rg_ddrc_32en: 1;
+    pub rg_ctl_ddr_usw_rst_reg, set_rg_ctl_ddr_usw_rst_reg: 31, 4; // [31:4] range
+}
+
+// union `DDR_SYSREG_REG_SW_REG_S` as a struct
+#[repr(C)]
+pub struct DDRSysReg {
+    pub ddr_sysreg_registers_struct_ddr_cfg0: DDRCfg0,       // 0x0
+}
+
+
+static mut DDR_SYSREG: DDRSysReg = DDRSysReg {
+    ddr_sysreg_registers_struct_ddr_cfg0: DDRCfg0(0),
+};
+
+// board/thead/light-c910/lpddr4/src/ddr_common_func.c
+//de_assert umctl2_reset, phy_crst, and all areset
+fn de_assert_other_reset_ddr() {
+    // FIXME: try without the unsafe block this function tries to write (8176) (0x1FF0)
+    unsafe {
+        // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32 = ddr_sysreg_rd(DDR_CFG0);
+        DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0 = read32(DDR_CFG0 + DDR_SYSREG_BADDR);
+        println!("[<-] ddr_sysreg_cfg0: {}", read32(DDR_CFG0 + DDR_SYSREG_BADDR));
+
+
+        // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.rg_ctl_ddr_usw_rst_reg |= 0x1FA;
+        let current_value = DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.rg_ctl_ddr_usw_rst_reg();
+        DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.set_rg_ctl_ddr_usw_rst_reg(current_value | 0x1FA);
+
+        // ddr_sysreg_wr(DDR_CFG0, ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32);
+        write32(DDR_CFG0 + DDR_SYSREG_BADDR, DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0);
+        println!("[->] ddr_sysreg_cfg0: {}", read32(DDR_CFG0 + DDR_SYSREG_BADDR));
+    }
+}
+
+// board/thead/light-c910/lpddr4/src/pinmux.c
+// pinmux config before training
+fn dq_pinmux(bits: u8) {
+    // ddr_phy_broadcast_en(0);
+    ddr_phy0_reg_wr(0x100a0,0x1);
+    ddr_phy0_reg_wr(0x100a1,0x5);
+    ddr_phy0_reg_wr(0x100a2,0x3);
+    ddr_phy0_reg_wr(0x100a3,0x0);
+    ddr_phy0_reg_wr(0x100a4,0x2);
+    ddr_phy0_reg_wr(0x100a5,0x4);
+    ddr_phy0_reg_wr(0x100a6,0x6);
+    ddr_phy0_reg_wr(0x100a7,0x7);
+    //PHY0 DBYTE1
+    ddr_phy0_reg_wr(0x110a0,0x7);
+    ddr_phy0_reg_wr(0x110a1,0x4);
+    ddr_phy0_reg_wr(0x110a2,0x3);
+    ddr_phy0_reg_wr(0x110a3,0x0);
+    ddr_phy0_reg_wr(0x110a4,0x2);
+    ddr_phy0_reg_wr(0x110a5,0x1);
+    ddr_phy0_reg_wr(0x110a6,0x5);
+    ddr_phy0_reg_wr(0x110a7,0x6);
+    //PHY0 DBYTE2
+    ddr_phy0_reg_wr(0x120a0,0x7);
+    ddr_phy0_reg_wr(0x120a1,0x4);
+    ddr_phy0_reg_wr(0x120a2,0x3);
+    ddr_phy0_reg_wr(0x120a3,0x0);
+    ddr_phy0_reg_wr(0x120a4,0x2); // FullMask version
+    ddr_phy0_reg_wr(0x120a5,0x1); // FullMask version
+    ddr_phy0_reg_wr(0x120a6,0x5);
+    ddr_phy0_reg_wr(0x120a7,0x6);
+    //PHY0 DBYTE3
+    ddr_phy0_reg_wr(0x130a0,0x7);
+    ddr_phy0_reg_wr(0x130a1,0x5);
+    ddr_phy0_reg_wr(0x130a2,0x0);
+    ddr_phy0_reg_wr(0x130a3,0x2);
+    ddr_phy0_reg_wr(0x130a4,0x1);
+    ddr_phy0_reg_wr(0x130a5,0x4);
+    ddr_phy0_reg_wr(0x130a6,0x3);
+    ddr_phy0_reg_wr(0x130a7,0x6);
+
+    if bits == 64 {
+        //PHY1 DBYTE0
+        ddr_phy1_reg_wr(0x100a0,0x7);
+        ddr_phy1_reg_wr(0x100a1,0x4);
+        ddr_phy1_reg_wr(0x100a2,0x3);
+        ddr_phy1_reg_wr(0x100a3,0x0);
+        ddr_phy1_reg_wr(0x100a4,0x1);
+        ddr_phy1_reg_wr(0x100a5,0x2);
+        ddr_phy1_reg_wr(0x100a6,0x5);
+        ddr_phy1_reg_wr(0x100a7,0x6);
+        //PHY1 DBYTE1
+        ddr_phy1_reg_wr(0x110a0,0x7);
+        ddr_phy1_reg_wr(0x110a1,0x5);
+        ddr_phy1_reg_wr(0x110a2,0x0);
+        ddr_phy1_reg_wr(0x110a3,0x2);
+        ddr_phy1_reg_wr(0x110a4,0x1);
+        ddr_phy1_reg_wr(0x110a5,0x4);
+        ddr_phy1_reg_wr(0x110a6,0x3);
+        ddr_phy1_reg_wr(0x110a7,0x6);
+        //PHY1 DBYTE2
+        ddr_phy1_reg_wr(0x120a0,0x1);
+        ddr_phy1_reg_wr(0x120a1,0x5);
+        ddr_phy1_reg_wr(0x120a2,0x3);
+        ddr_phy1_reg_wr(0x120a3,0x0);
+        ddr_phy1_reg_wr(0x120a4,0x2);
+        ddr_phy1_reg_wr(0x120a5,0x4);
+        ddr_phy1_reg_wr(0x120a6,0x6);
+        ddr_phy1_reg_wr(0x120a7,0x7);
+        //PHY1 DBYTE3
+        ddr_phy1_reg_wr(0x130a0,0x7);
+        ddr_phy1_reg_wr(0x130a1,0x4);
+        ddr_phy1_reg_wr(0x130a2,0x3);
+        ddr_phy1_reg_wr(0x130a3,0x0);
+        ddr_phy1_reg_wr(0x130a4,0x2);
+        ddr_phy1_reg_wr(0x130a5,0x1);
+        ddr_phy1_reg_wr(0x130a6,0x5);
+        ddr_phy1_reg_wr(0x130a7,0x6);
+        // ddr_phy_broadcast_en(1);
+    }
 }
