@@ -4,6 +4,7 @@ use core::ptr::write;
 use crate::util::{read32, write32};
 use bitfield::bitfield;
 use crate::dram_helpers::{ddr_phy0_reg_wr, ddr_phy1_reg_wr};
+use crate::dram_train::lp4_phy_train1d2d;
 
 const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
@@ -285,6 +286,8 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[+] de_asssert_other_reset_ddr Complete...");
     dq_pinmux(bits); // pinmux config before training
     println!("[+] dq_pinmux Complete...");
+    lp4_phy_train1d2d(freq, bits);
+    println!("[+] lp4_phy_train1d2d Complete...");
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
