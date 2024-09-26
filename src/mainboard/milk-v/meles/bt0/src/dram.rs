@@ -2,7 +2,7 @@
 
 use bitfield::bitfield;
 
-use crate::dram_helpers::{ddr_phy0_reg_wr, ddr_phy1_reg_wr};
+use crate::dram_helpers::{ddr_phy0_reg_wr, ddr_phy1_reg_wr, ddr_phy_broadcast_en};
 use crate::dram_train::lp4_phy_train1d2d;
 use crate::util::{read32, write32};
 
@@ -627,6 +627,6 @@ fn dq_pinmux(bits: u8) {
         ddr_phy1_reg_wr(0x130a5, 0x1);
         ddr_phy1_reg_wr(0x130a6, 0x5);
         ddr_phy1_reg_wr(0x130a7, 0x6);
-        // ddr_phy_broadcast_en(1);
+        ddr_phy_broadcast_en(1);
     }
 }
