@@ -32,6 +32,11 @@ pub fn ddr_phy1_reg_rd(reg: usize) -> u16 {
     read16(_DDR_PHY_BADDR + (reg << 1))
 }
 
+pub fn ddr_phy_broadcast_en(_: u32) {
+    crate::util::read32(DDR_SYSREG_BADDR + DDR_CFG0);
+    crate::util::read32(DDR_SYSREG_BADDR + DDR_CFG0);
+}
+
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
 // void dwc_ddrphy_phyinit_userCustom_G_waitFwDone(unsigned char train2d)
 pub fn dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
