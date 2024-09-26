@@ -1,8 +1,8 @@
 // board/thead/light-c910/lpddr4/src/ddr_phy_fw/lp4x_3733_phy_train1d2d_dualrank.c
 
 use crate::dram_helpers::{
-    ddr_phy_reg_rd, ddr_phy_reg_wr, dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done,
-    dwc_ddrphy_phyinit_user_custom_g_wait_fw_done,
+    ddr_phy_broadcast_en, ddr_phy_reg_rd, ddr_phy_reg_wr,
+    dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done, dwc_ddrphy_phyinit_user_custom_g_wait_fw_done,
 };
 use crate::dram_training_data::{DCCM_ARRAY, DCCM_ARRAY1, ICCM_ARRAY, ICCM_ARRAY1};
 
@@ -101,10 +101,10 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0099, 0x9);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0099, 0x0);
-    // ddr_phy_broadcast_en(0);
+    ddr_phy_broadcast_en(0);
     dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(0);
     dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(0);
-    // ddr_phy_broadcast_en(1);
+    ddr_phy_broadcast_en(1);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
     ddr_phy_reg_wr(0xd0000, 0x1);
@@ -187,10 +187,10 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0099, 0x9);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0099, 0x0);
-    // ddr_phy_broadcast_en(0);
+    ddr_phy_broadcast_en(0);
     dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(1);
     dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(1);
-    // ddr_phy_broadcast_en(1);
+    ddr_phy_broadcast_en(1);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
     ddr_phy_reg_wr(0xd0000, 0x1);
