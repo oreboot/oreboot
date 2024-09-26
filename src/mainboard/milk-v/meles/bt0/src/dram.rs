@@ -9,13 +9,17 @@ use crate::util::{read32, write32};
 const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
 const RANK: u8 = 2;
-const DDR_CFG0: usize = 0x0;
-const DDR_SYSREG_BADDR: usize = 0xffff005000;
-const _DDR_PHY_BADDR: usize = 0xfffd000000;
-const _DDR_CTRL_BADDR: usize = _DDR_PHY_BADDR + 0x2000000;
-const DBG1: usize = _DDR_CTRL_BADDR + 0x304;
-const STAT: usize = _DDR_CTRL_BADDR + 0x4;
-const MSTR: usize = _DDR_CTRL_BADDR + 0x0;
+
+pub const DDR_CFG0: usize = 0x0000;
+pub const DDR_SYSREG_BADDR: usize = 0xff_ff00_5000;
+
+pub const _DDR_PHY_BADDR: usize = 0xff_fd00_0000;
+pub const _DDR_PHY1_BADDR: usize = _DDR_PHY_BADDR + 0x0100_0000;
+
+const _DDR_CTRL_BADDR: usize = _DDR_PHY_BADDR + 0x0200_0000;
+const DBG1: usize = _DDR_CTRL_BADDR + 0x0304;
+const STAT: usize = _DDR_CTRL_BADDR + 0x0004;
+const MSTR: usize = _DDR_CTRL_BADDR + 0x0000;
 const MRCTRL0: usize = _DDR_CTRL_BADDR + 0x10;
 const MRCTRL1: usize = _DDR_CTRL_BADDR + 0x14;
 const DERATEEN: usize = _DDR_CTRL_BADDR + 0x20;
