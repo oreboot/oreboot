@@ -98,6 +98,11 @@ fn lp4x_3733_phy_train1d2d() {
     for i in 0..830 {
         ddr_phy_reg_wr(0x54000 + i, DCCM_ARRAY[i]);
     }
+    // NOTE: With this, we get data from the PHY mailbox; see dram_helpers
+    // functions get_phyX_mails.
+    ddr_phy_reg_wr(0x54009, 0x4);
+    // ddr_phy_reg_wr(0x54007, 0x18);
+
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0099, 0x9);
