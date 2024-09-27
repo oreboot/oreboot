@@ -1,6 +1,8 @@
-use crate::util::{read32, write32};
 use core::ptr::{read_volatile, write_volatile};
+
 use log::{Error, Serial};
+
+use crate::util::write32;
 
 // https://www.lammertbies.nl/comm/info/serial-uart
 const UART0_BASE: usize = 0xFF_E701_4000;
