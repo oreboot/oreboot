@@ -65,14 +65,14 @@ pub fn dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
 }
 
 fn get_phy0_mails() -> u32 {
-    while ddr_phy_reg_rd(0xd0004) & 0x1 != 1 {}
+    while ddr_phy_reg_rd(0xd0004) & 0x1 == 1 {}
     //read msg
     let msg0 = ddr_phy_reg_rd(0xd0032);
     let msg1 = ddr_phy_reg_rd(0xd0034);
     //write-back
     ddr_phy0_reg_wr(0xd0031, 0);
     //wait ack end
-    while ddr_phy_reg_rd(0xd0004) & 0x1 != 1 {}
+    while ddr_phy_reg_rd(0xd0004) & 0x1 == 0 {}
     //re-enable
     ddr_phy0_reg_wr(0xd0031, 1);
     msg0 as u32 + ((msg1 as u32) << 16)
@@ -106,14 +106,14 @@ pub fn dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
 }
 
 fn get_phy1_mails() -> u32 {
-    while ddr_phy1_reg_rd(0xd0004) & 0x1 != 1 {}
+    while ddr_phy1_reg_rd(0xd0004) & 0x1 == 1 {}
     // read msg
     let msg0 = ddr_phy1_reg_rd(0xd0032);
     let msg1 = ddr_phy1_reg_rd(0xd0034);
     // write-back
     ddr_phy1_reg_wr(0xd0031, 0);
     // wait ack end
-    while ddr_phy1_reg_rd(0xd0004) & 0x1 != 1 {}
+    while ddr_phy1_reg_rd(0xd0004) & 0x1 == 0 {}
     // re-enable
     ddr_phy1_reg_wr(0xd0031, 1);
     msg0 as u32 + ((msg1 as u32) << 16)
