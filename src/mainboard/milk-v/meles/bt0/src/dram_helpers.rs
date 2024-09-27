@@ -3,8 +3,7 @@
 use core::ptr::{read_volatile, write_volatile};
 
 const _DDR_PHY_BADDR: usize = 0xfffd000000;
-const _DDR_PHY1_BADDR: usize =   _DDR_PHY_BADDR + 0x1000000;
-
+const _DDR_PHY1_BADDR: usize = _DDR_PHY_BADDR + 0x1000000;
 
 fn write16(reg: usize, val: u16) {
     unsafe {
@@ -13,9 +12,7 @@ fn write16(reg: usize, val: u16) {
 }
 
 pub fn read16(reg: usize) -> u16 {
-    unsafe {
-        read_volatile(reg as *mut u16)
-    }
+    unsafe { read_volatile(reg as *mut u16) }
 }
 
 // void ddr_phy0_reg_wr(unsigned long int addr,unsigned int wr_data) {
@@ -24,7 +21,7 @@ pub fn read16(reg: usize) -> u16 {
 // }
 pub fn ddr_phy0_reg_wr(mut reg: usize, val: u16) {
     reg <<= 1;
-    write16( _DDR_PHY_BADDR + reg, val);
+    write16(_DDR_PHY_BADDR + reg, val);
 }
 
 // void ddr_phy1_reg_wr(unsigned long int addr,unsigned int wr_data) {
@@ -63,7 +60,6 @@ pub fn ddr_phy1_reg_rd(mut reg: usize) -> u16 {
     rd_data
 }
 
-
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
 // void dwc_ddrphy_phyinit_userCustom_G_waitFwDone(unsigned char train2d)
 pub fn dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
@@ -75,12 +71,14 @@ pub fn dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
         train_result = get_mails();
 
         if ((train_result & 0xff) == 0xff) {
-            println!("[+] PHY0 {} DDR_INIT_ERR", if train2d != 0 { "train2d" } else { "" });
+            println!(
+                "[+] PHY0 {} DDR_INIT_ERR",
+                if train2d != 0 { "train2d" } else { "" }
+            );
         }
 
-
         //Steam MSG
-        if((train_result & 0xffff) == 0x8) {
+        if ((train_result & 0xffff) == 0x8) {
             stream_msg[0] = get_mails(); //msg first byte
 
             for i in 1..=(stream_msg[0] & 0xffff) {
@@ -96,7 +94,7 @@ fn get_mails() -> u32 {
     let mut msg1;
 
     read = 0x1;
-    loop{
+    loop {
         //read = (unsigned int)(*(volatile unsigned short*)(0xfe7a0008));
         read = ddr_phy_reg_rd(0xd0004);
         if ((read & 0x1) == 1) {
@@ -111,11 +109,11 @@ fn get_mails() -> u32 {
 
     //write-back
     //*(volatile unsigned short*)(0xfe7a0062) = 0;
-    ddr_phy0_reg_wr(0xd0031,0);
+    ddr_phy0_reg_wr(0xd0031, 0);
 
     //wait ack end
     read = 0x0;
-    loop{
+    loop {
         //read = (unsigned int)(*(volatile unsigned short*)(0xfe7a0008));
         read = ddr_phy_reg_rd(0xd0004);
         if ((read & 0x1) == 1) {
@@ -125,10 +123,9 @@ fn get_mails() -> u32 {
 
     //re-enable
     //*(volatile unsigned short*)(0xfe7a0062) = 1;
-    ddr_phy0_reg_wr(0xd0031,1);
+    ddr_phy0_reg_wr(0xd0031, 1);
     (msg0 as u32 + ((msg1 as u32) << 16))
 }
-
 
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
 // void dwc_ddrphy1_phyinit_userCustom_G_waitFwDone(unsigned char train2d)
@@ -141,11 +138,14 @@ pub fn dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
         train_result = get_phy1_mails();
 
         if ((train_result & 0xff) == 0xff) {
-            println!("[+] PHY0 {} DDR_INIT_ERR", if train2d != 0 { "train2d" } else { "" });
+            println!(
+                "[+] PHY0 {} DDR_INIT_ERR",
+                if train2d != 0 { "train2d" } else { "" }
+            );
         }
 
         //Steam MSG
-        if((train_result & 0xffff) == 0x8) {
+        if ((train_result & 0xffff) == 0x8) {
             stream_msg[0] = get_phy1_mails(); //msg first byte
 
             for i in 1..=(stream_msg[0] & 0xffff) {
@@ -161,7 +161,7 @@ fn get_phy1_mails() -> u32 {
     let mut msg1;
 
     read = 0x1;
-    loop{
+    loop {
         //read = (unsigned int)(*(volatile unsigned short*)(0xfe7a0008));
         read = ddr_phy1_reg_rd(0xd0004);
         if ((read & 0x1) == 1) {
@@ -176,20 +176,20 @@ fn get_phy1_mails() -> u32 {
 
     //write-back
     //*(volatile unsigned short*)(0xfe7a0062) = 0;
-    ddr_phy1_reg_wr(0xd0031,0);
+    ddr_phy1_reg_wr(0xd0031, 0);
 
     //wait ack end
     read = 0x0;
-    loop{
+    loop {
         //read = (unsigned int)(*(volatile unsigned short*)(0xfe7a0008));
         read = ddr_phy1_reg_rd(0xd0004);
-        if ((read&0x1) == 1) {
+        if ((read & 0x1) == 1) {
             break;
         }
     }
 
     //re-enable
     //*(volatile unsigned short*)(0xfe7a0062) = 1;
-    ddr_phy1_reg_wr(0xd0031,1);
+    ddr_phy1_reg_wr(0xd0031, 1);
     (msg0 as u32 + ((msg1 as u32) << 16))
 }
