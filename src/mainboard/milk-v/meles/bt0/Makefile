@@ -2,6 +2,7 @@ OREBOOT=$(abspath $(CURDIR)/../../../../../)
 TARGET     = riscv64imac-unknown-none-elf
 RELEASE_ELF= $(OREBOOT)/target/$(TARGET)/release/milkv-meles-bt0
 RELEASE_BIN= $(OREBOOT)/target/$(TARGET)/release/milkv-meles-bt0.bin
+FASTBOOT ?= fastboot
 
 cibuild: mainboard
 # TODO
@@ -20,8 +21,8 @@ build:
 	riscv64-unknown-elf-objcopy -O binary $(RELEASE_ELF) $(RELEASE_BIN)
 
 run: build
-	sudo fastboot flash ram $(RELEASE_BIN)
-	sudo fastboot reboot
+	$(FASTBOOT) flash ram $(RELEASE_BIN)
+	$(FASTBOOT) reboot
 
 objdump: build
 	riscv64-unknown-elf-objdump -D $(RELEASE_ELF)
