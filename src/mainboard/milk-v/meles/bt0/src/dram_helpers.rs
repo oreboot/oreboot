@@ -38,27 +38,27 @@ pub fn ddr_phy_broadcast_en(_: u32) {
 }
 
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
-// void dwc_ddrphy_phyinit_userCustom_G_waitFwDone(unsigned char train2d)
 pub fn dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
-    let mut train_result: u32 = 0x1;
-    let mut stream_msg = [0; 32];
-
-    while train_result as u16 != 0x7 && train_result as u16 != 0xff {
-        train_result = get_phy0_mails();
-
-        if train_result as u8 == 0xff {
-            println!(
-                "[+] PHY0 {} DDR_INIT_ERR",
-                if train2d != 0 { "train2d" } else { "" }
-            );
-        }
-
-        //Steam MSG
-        if train_result as u16 == 0x8 {
-            stream_msg[0] = get_phy0_mails(); //msg first byte
-
-            for i in 1..=(stream_msg[0] & 0xffff) {
-                stream_msg[i as usize] = get_phy0_mails();
+    loop {
+        let train_result = get_phy0_mails() as u8;
+        match train_result {
+            0x7 => {
+                println!("PHY0 DDR_INIT_OK");
+                return;
+            }
+            0x8 => {
+                let mut stream_msg = [0; 32];
+                stream_msg[0] = get_phy0_mails(); //msg first byte
+                for i in 1..=(stream_msg[0] & 0xffff) {
+                    stream_msg[i as usize] = get_phy0_mails();
+                }
+            }
+            0xff => {
+                let step = if train2d != 0 { "train2d" } else { "" };
+                panic!("[+] PHY0 {step} DDR_INIT_ERR");
+            }
+            _ => {
+                println!("PHY0 DDR_INIT_STAGE is {train_result:x}");
             }
         }
     }
@@ -79,27 +79,27 @@ fn get_phy0_mails() -> u32 {
 }
 
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
-// void dwc_ddrphy1_phyinit_userCustom_G_waitFwDone(unsigned char train2d)
 pub fn dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(train2d: u8) {
-    let mut train_result: u32 = 0x1;
-    let mut stream_msg = [0; 32];
-
-    while train_result as u16 != 0x7 && train_result as u16 != 0xff {
-        train_result = get_phy1_mails();
-
-        if train_result & 0xff == 0xff {
-            println!(
-                "[+] PHY0 {} DDR_INIT_ERR",
-                if train2d != 0 { "train2d" } else { "" }
-            );
-        }
-
-        //Steam MSG
-        if train_result as u16 == 0x8 {
-            stream_msg[0] = get_phy1_mails(); //msg first byte
-
-            for i in 1..=(stream_msg[0] & 0xffff) {
-                stream_msg[i as usize] = get_phy1_mails();
+    loop {
+        let train_result = get_phy1_mails() as u8;
+        match train_result {
+            0x7 => {
+                println!("PHY0 DDR_INIT_OK");
+                return;
+            }
+            0x8 => {
+                let mut stream_msg = [0; 32];
+                stream_msg[0] = get_phy1_mails(); //msg first byte
+                for i in 1..=(stream_msg[0] & 0xffff) {
+                    stream_msg[i as usize] = get_phy1_mails();
+                }
+            }
+            0xff => {
+                let step = if train2d != 0 { "train2d" } else { "" };
+                panic!("[+] PHY0 {step} DDR_INIT_ERR");
+            }
+            _ => {
+                println!("PHY0 DDR_INIT_STAGE is {train_result:x}");
             }
         }
     }
