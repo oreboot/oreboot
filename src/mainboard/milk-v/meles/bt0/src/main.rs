@@ -5,31 +5,30 @@
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
-use dwc3::dwc3_gadget_run;
-use embedded_hal_nb::serial::Write;
-
 #[macro_use]
 extern crate log;
-
 use core::{
     arch::asm,
     intrinsics::transmute,
     panic::PanicInfo,
-    ptr::{self, addr_of, addr_of_mut},
-    slice::from_raw_parts as slice_from,
+    ptr::{self, addr_of, addr_of_mut}
+    ,
 };
-use riscv::register::{marchid, mhartid, mimpid, mip, mvendorid};
+
+use embedded_hal_nb::serial::Write;
+use riscv::register::{marchid, mhartid, mimpid, mvendorid};
+
+use dwc3::dwc3_gadget_run;
+use util::{read32, write32};
+
 
 mod dram;
-mod dwc3;
-mod uart;
-mod util;
 mod dram_helpers;
 mod dram_train;
 mod dram_training_data;
-
-use uart::TH1520Serial;
-use util::{read32, write32};
+mod dwc3;
+mod uart;
+mod util;
 
 pub type EntryPoint = unsafe extern "C" fn();
 

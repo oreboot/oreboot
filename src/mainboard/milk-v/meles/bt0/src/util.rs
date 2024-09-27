@@ -1,5 +1,6 @@
 use core::ptr::{read_volatile, write_volatile};
 use core::slice;
+
 use log::{print, println};
 
 pub fn dump(addr: usize, length: usize) {

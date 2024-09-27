@@ -1,4 +1,4 @@
-use crate::util::{read32, write32};
+use crate::util::write32;
 
 const DWC3_DCTL: usize = 0xc704;
 const DWC3_DCTL_RUN_STOP: u32 = 1 << 31;
