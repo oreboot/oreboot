@@ -209,84 +209,35 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
 
-    println!(
-        "TrainedVREFDQ_RANK0  : {}",
-        0xff & (ddr_phy_reg_rd(0x54026) >> 8)
-    );
-    println!(
-        "TrainedVREFDQ_RANK1  : {}",
-        0xff & (ddr_phy_reg_rd(0x54027))
-    );
-    println!(
-        "RxClkDly_Margin_A0   : {}",
-        0xff & (ddr_phy_reg_rd(0x54027) >> 8)
-    );
-    println!(
-        "VrefDac_Margin_A0    : {}",
-        0xff & (ddr_phy_reg_rd(0x54028))
-    );
-    println!(
-        "TxDqDly_Margin_A0    : {}",
-        0xff & (ddr_phy_reg_rd(0x54028) >> 8)
-    );
-    println!(
-        "DeviceVref_Margin_A0 : {}",
-        0xff & (ddr_phy_reg_rd(0x54029))
-    );
-    println!(
-        "RxClkDly_Margin_A1   : {}",
-        0xff & (ddr_phy_reg_rd(0x54029) >> 8)
-    );
-    println!(
-        "VrefDac_Margin_A1    : {}",
-        0xff & (ddr_phy_reg_rd(0x5402a))
-    );
-    println!(
-        "TxDqDly_Margin_A1    : {}",
-        0xff & (ddr_phy_reg_rd(0x5402a) >> 8)
-    );
-    println!(
-        "DeviceVref_Margin_A1 : {}",
-        0xff & (ddr_phy_reg_rd(0x5402b))
-    );
-    println!(
-        "TrainedVREFDQ_RANK0  : {}",
-        0xff & (ddr_phy_reg_rd(0x54040))
-    );
-    println!(
-        "TrainedVREFDQ_RANK1  : {}",
-        0xff & (ddr_phy_reg_rd(0x54040) >> 8)
-    );
-    println!(
-        "RxClkDly_Margin_A0   : {}",
-        0xff & (ddr_phy_reg_rd(0x54041))
-    );
-    println!(
-        "VrefDac_Margin_A0    : {}",
-        0xff & (ddr_phy_reg_rd(0x54041) >> 8)
-    );
-    println!(
-        "TxDqDly_Margin_A0    : {}",
-        0xff & (ddr_phy_reg_rd(0x54042))
-    );
-    println!(
-        "DeviceVref_Margin_A0 : {}",
-        0xff & (ddr_phy_reg_rd(0x54042) >> 8)
-    );
-    println!(
-        "RxClkDly_Margin_A1   : {}",
-        0xff & (ddr_phy_reg_rd(0x54043))
-    );
-    println!(
-        "VrefDac_Margin_A1    : {}",
-        0xff & (ddr_phy_reg_rd(0x54043) >> 8)
-    );
-    println!(
-        "TxDqDly_Margin_A1    : {}",
-        0xff & (ddr_phy_reg_rd(0x54044))
-    );
-    println!(
-        "DeviceVref_Margin_A1 : {}",
-        0xff & (ddr_phy_reg_rd(0x54044) >> 8)
-    );
+    let v = ddr_phy_reg_rd(0x54026);
+    println!("TrainedVREFDQ_RANK0  : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54027);
+    println!("TrainedVREFDQ_RANK1  : {:02x}", v as u8);
+    println!("RxClkDly_Margin_A0   : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54028);
+    println!("VrefDac_Margin_A0    : {:02x}", v as u8);
+    println!("TxDqDly_Margin_A0    : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54029);
+    println!("DeviceVref_Margin_A0 : {:02x}", v as u8);
+    println!("RxClkDly_Margin_A1   : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x5402a);
+    println!("VrefDac_Margin_A1    : {:02x}", v as u8);
+    println!("TxDqDly_Margin_A1    : {:02x}", 0xff & (v >> 8));
+    let v = ddr_phy_reg_rd(0x5402b);
+    println!("DeviceVref_Margin_A1 : {:02x}", v as u8);
+    let v = ddr_phy_reg_rd(0x54040);
+    println!("TrainedVREFDQ_RANK0  : {:02x}", v as u8);
+    println!("TrainedVREFDQ_RANK1  : {:02x}", 0xff & (v >> 8));
+    let v = ddr_phy_reg_rd(0x54041);
+    println!("RxClkDly_Margin_A0   : {:02x}", v as u8);
+    println!("VrefDac_Margin_A0    : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54042);
+    println!("TxDqDly_Margin_A0    : {:02x}", v as u8);
+    println!("DeviceVref_Margin_A0 : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54043);
+    println!("RxClkDly_Margin_A1   : {:02x}", v as u8);
+    println!("VrefDac_Margin_A1    : {:02x}", (v >> 8) as u8);
+    let v = ddr_phy_reg_rd(0x54044);
+    println!("TxDqDly_Margin_A1    : {:02x}", v as u8);
+    println!("DeviceVref_Margin_A1 : {:02x}", (v >> 8) as u8);
 }
