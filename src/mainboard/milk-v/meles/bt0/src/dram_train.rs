@@ -12,7 +12,7 @@ pub fn lp4_phy_train1d2d(freq: u16, bits: u8) {
 }
 
 fn lp4x_3733_phy_train1d2d() {
-    let i: u8 = 0;
+    println!("lp4x_3733_phy_train1d2d...");
     ddr_phy_reg_wr(0x1005f, 0x55f);
     ddr_phy_reg_wr(0x1015f, 0x55f);
     ddr_phy_reg_wr(0x1105f, 0x55f);
@@ -88,11 +88,13 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0x2002c, 0x0);
     ddr_phy_reg_wr(0x20060, 0x2);
     ddr_phy_reg_wr(0xd0000, 0x0);
+    println!("lp4x_3733_phy_train1d2d: copy over ICCM blob");
     for i in 0..16384 {
         ddr_phy_reg_wr(0x50000 + i, ICCM_ARRAY[i]);
     }
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
+    println!("lp4x_3733_phy_train1d2d: copy over DCCM blob");
     for i in 0..830 {
         ddr_phy_reg_wr(0x54000 + i, DCCM_ARRAY[i]);
     }
@@ -101,9 +103,11 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0099, 0x9);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0099, 0x0);
+    println!("lp4x_3733_phy_train1d2d: ddr_phy_broadcast_en 0");
     ddr_phy_broadcast_en(0);
     dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(0);
     dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(0);
+    println!("lp4x_3733_phy_train1d2d: ddr_phy_broadcast_en 1");
     ddr_phy_broadcast_en(1);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
@@ -171,13 +175,13 @@ fn lp4x_3733_phy_train1d2d() {
         0xff & (ddr_phy_reg_rd(0x54031) >> 8)
     );
 
-    // // for(i=0;i<16384;i++) ddr_phy_reg_wr(0x50000+i,iccm_array1[i]);
+    println!("lp4x_3733_phy_train1d2d: copy over ICCM1 blob");
     for i in 0..16384 {
         ddr_phy_reg_wr(0x50000 + i, ICCM_ARRAY1[i]);
     }
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
-    // for(i=0;i<702;i++) ddr_phy_reg_wr(0x54000+i,dccm_array1[i]);
+    println!("lp4x_3733_phy_train1d2d: copy over DCCM1 blob");
     for i in 0..702 {
         ddr_phy_reg_wr(0x54000 + i, DCCM_ARRAY1[i]);
     }
