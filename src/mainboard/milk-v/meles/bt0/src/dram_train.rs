@@ -110,8 +110,11 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0099, 0x0);
     println!("lp4x_3733_phy_train1d2d: ddr_phy_broadcast_en 0");
     ddr_phy_broadcast_en(0);
+    println!("dwc_ddrphy_phyinit_user_custom_g_wait_fw_done");
     dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(0);
-    dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(0);
+    // FIXME: this gets stuck in the first message ready poll loop
+    // println!("dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done");
+    // dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(0);
     println!("lp4x_3733_phy_train1d2d: ddr_phy_broadcast_en 1");
     ddr_phy_broadcast_en(1);
     ddr_phy_reg_wr(0xd0099, 0x1);
@@ -198,7 +201,8 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0xd0099, 0x0);
     ddr_phy_broadcast_en(0);
     dwc_ddrphy_phyinit_user_custom_g_wait_fw_done(1);
-    dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(1);
+    // FIXME: this gets stuck in the first message ready poll loop
+    // dwc_ddrphy1_phyinit_user_custom_g_wait_fw_done(1);
     ddr_phy_broadcast_en(1);
     ddr_phy_reg_wr(0xd0099, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x0);
