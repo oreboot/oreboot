@@ -1,7 +1,8 @@
 // this file contains all the required helper functions required by DRAM
 
-use crate::dram::{DDR_CFG0, DDR_SYSREG_BADDR, _DDR_PHY1_BADDR, _DDR_PHY_BADDR};
 use core::ptr::{read_volatile, write_volatile};
+
+use crate::dram::{_DDR_PHY1_BADDR, _DDR_PHY_BADDR, DDR_CFG0, DDR_SYSREG_BADDR};
 
 fn write16(reg: usize, val: u16) {
     unsafe { write_volatile(reg as *mut u16, val) }
@@ -29,7 +30,7 @@ pub fn ddr_phy_reg_rd(reg: usize) -> u16 {
 }
 
 pub fn ddr_phy1_reg_rd(reg: usize) -> u16 {
-    read16(_DDR_PHY_BADDR + (reg << 1))
+    read16(_DDR_PHY1_BADDR + (reg << 1))
 }
 
 pub fn ddr_phy_broadcast_en(_: u32) {
