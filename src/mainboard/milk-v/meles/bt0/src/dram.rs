@@ -2,8 +2,13 @@
 
 use bitfield::bitfield;
 
-use crate::dram_helpers::{ddr_phy0_reg_wr, ddr_phy1_reg_wr, ddr_phy_broadcast_en};
+use crate::dram::RegInstr::SaveRegs;
+use crate::dram_helpers::{
+    ddr_phy0_reg_wr, ddr_phy1_reg_rd, ddr_phy1_reg_wr, ddr_phy_broadcast_en, ddr_phy_reg_rd,
+    ddr_phy_reg_wr,
+};
 use crate::dram_train::lp4_phy_train1d2d;
+use crate::dram_training_data::{MISC_REG_LIST, RET_REG_LIST_ADDR};
 use crate::util::{read32, write32};
 
 const FREQ: u16 = 3733;
@@ -293,6 +298,8 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[+] dq_pinmux Complete...");
     lp4_phy_train1d2d(freq, bits);
     println!("[+] lp4_phy_train1d2d Complete...");
+    dwc_ddrphy_phyinit_reg_interface(SaveRegs);
+    println!("[+] dwc_ddrphy_phyinit_reg_interface Complete...");
     ctrl_en(bits);
     println!("[+] ctrl_en Complete...");
     enable_axi_port(0x1f);
@@ -640,10 +647,84 @@ fn dq_pinmux(bits: u8) {
     }
 }
 
+enum RegInstr {
+    SaveRegs,
+    RestoreRegs,
+}
+
+#[derive(Default, Copy, Clone)]
+struct RegPhyAddrVal {
+    address: u32,
+    value0: u16,
+    value1: Option<u16>,
+}
+
+impl RegPhyAddrVal {
+    fn new(address: u32) -> Self {
+        RegPhyAddrVal {
+            address,
+            value0: 0,
+            value1: None,
+        }
+    }
+}
+
+#[derive(Default)]
+struct RegMiscAddrVal {
+    address: u32,
+    value: u16,
+}
+
+// board/thead/light-c910/lpddr4/src/ddr_retention.c
+fn dwc_ddrphy_phyinit_reg_interface(instr: RegInstr) {
+    ddr_phy_reg_wr(0xd0000, 0x0);
+    ddr_phy_reg_wr(0xc0080, 0x3);
+    const PHY_REG_NUM: usize = RET_REG_LIST_ADDR.len();
+    const MISC_REG_NUM: usize = MISC_REG_LIST.len();
+    let mut reg_vals: [RegPhyAddrVal; RET_REG_LIST_ADDR.len()] = {
+        let mut arr = [RegPhyAddrVal::new(0); RET_REG_LIST_ADDR.len()]; // Temporary init with zeroed addresses
+        for (i, &addr) in RET_REG_LIST_ADDR.iter().enumerate() {
+            arr[i] = RegPhyAddrVal::new(addr); // Assign each actual address
+        }
+        arr
+    };
+    let mut misc_reg_vals: [RegMiscAddrVal; MISC_REG_NUM] = Default::default();
+
+    for (i, &addr) in MISC_REG_LIST.iter().enumerate() {
+        misc_reg_vals[i].address = addr as u32;
+        misc_reg_vals[i].value = ddr_phy_reg_rd(addr as usize);
+    }
+
+    match instr {
+        RegInstr::SaveRegs => {
+            for (i, &addr) in RET_REG_LIST_ADDR.iter().enumerate() {
+                reg_vals[i].address = addr;
+                reg_vals[i].value0 = ddr_phy_reg_rd(addr as usize);
+                {
+                    reg_vals[i].value1 = Some(ddr_phy1_reg_rd(addr as usize));
+                }
+            }
+        }
+        RegInstr::RestoreRegs => {
+            // Restore values to registers
+            ddr_phy_reg_wr(0x20089, 0x1);
+            for reg in &reg_vals {
+                ddr_phy_reg_wr(reg.address as usize, reg.value0);
+                if let Some(value1) = reg.value1 {
+                    ddr_phy1_reg_wr(reg.address as usize, value1);
+                }
+            }
+        }
+    }
+    ddr_phy_reg_wr(0xc0080, 0x2);
+    ddr_phy_reg_wr(0xd0000, 0x1);
+}
+
+// board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn ctrl_en(bits: u8) {
     write32(DFIMISC, 0x00000030); // [5]dfi_init_start
-                                  // while(rd(DFISTAT)!=0x00000001);
-                                  // polling dfi_init_complete
+    // while(rd(DFISTAT)!=0x00000001);
+    // polling dfi_init_complete
     while read32(DFISTAT) != 0x00000001 {}
     if bits == 64 {
         // while(rd(DCH1_DFISTAT)!=0x00000001);
