@@ -11,8 +11,7 @@ use core::{
     arch::asm,
     intrinsics::transmute,
     panic::PanicInfo,
-    ptr::{self, addr_of, addr_of_mut}
-    ,
+    ptr::{self, addr_of, addr_of_mut},
 };
 
 use embedded_hal_nb::serial::Write;
@@ -20,7 +19,6 @@ use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 use dwc3::dwc3_gadget_run;
 use util::{read32, write32};
-
 
 mod dram;
 mod dram_helpers;
@@ -42,7 +40,7 @@ const USB0_IOPMP_BASE: usize = 0xFF_FC02_E000;
 const QSPI0_BASE: usize = 0xFF_EA00_0000;
 const QSPI0_SIZE: usize = 0x00_0200_0000;
 
-const DRAM_BASE: usize = 0x0000_0000;
+const DRAM_BASE: usize = 0x0000;
 
 const BROM_BASE: usize = 0xFF_FFD0_0000;
 // One sweet megabyte mask ROM
@@ -193,9 +191,12 @@ fn dram_test() {
     println!("DRAM test: write patterns...");
 
     for i in range.clone().step_by(steps) {
+        println!("[+] checkpoint 1");
         write32(i + 0x0, 0x2233_ccee | i as u32);
+        println!("[+] checkpoint 2");
         write32(i + 0x4, 0x5577_aadd | i as u32);
         write32(i + 0x8, 0x1144_bbff | i as u32);
+        println!("[+] checkpoint 3");
         write32(i + 0xc, 0x6688_9900 | i as u32);
     }
 
@@ -248,7 +249,7 @@ fn main() {
 
     dram::init();
 
-    // dram_test();
+    dram_test();
 
     unsafe {
         asm!("wfi");
