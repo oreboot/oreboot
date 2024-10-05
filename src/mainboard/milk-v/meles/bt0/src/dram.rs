@@ -143,6 +143,9 @@ const DCH1_ZQCTL2: usize = _DDR_CTRL_BADDR + 0x00001c88;
 const DCH1_ODTMAP: usize = _DDR_CTRL_BADDR + 0x00001d44;
 const DCH1_DBG1: usize = _DDR_CTRL_BADDR + 0x00001e04;
 const DCH1_DBGCMD: usize = _DDR_CTRL_BADDR + 0x00001e0c;
+const DCH1_DFISTAT: usize = _DDR_CTRL_BADDR + 0x00001cbc;
+const DCH1_STAT: usize = _DDR_CTRL_BADDR + 0x00001b04;
+const DBG1_DCH1: usize = _DDR_CTRL_BADDR + 0x1e04;
 
 // clock configs
 const LIGHT_APCLK_ADDRBASE: usize = 0xffff011000;
@@ -290,6 +293,12 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[+] dq_pinmux Complete...");
     lp4_phy_train1d2d(freq, bits);
     println!("[+] lp4_phy_train1d2d Complete...");
+    ctrl_en(bits);
+    println!("[+] ctrl_en Complete...");
+    enable_axi_port(0x1f);
+    println!("[+] enable_axi_port Complete...");
+    enable_auto_refresh();
+    println!("[+] enable_auto_refresh Complete...");
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
@@ -629,4 +638,72 @@ fn dq_pinmux(bits: u8) {
         ddr_phy1_reg_wr(0x130a7, 0x6);
         ddr_phy_broadcast_en(1);
     }
+}
+
+fn ctrl_en(bits: u8) {
+    write32(DFIMISC, 0x00000030); // [5]dfi_init_start
+                                  // while(rd(DFISTAT)!=0x00000001);
+                                  // polling dfi_init_complete
+    while read32(DFISTAT) != 0x00000001 {}
+    if bits == 64 {
+        // while(rd(DCH1_DFISTAT)!=0x00000001);
+        while read32(DCH1_DFISTAT) != 0x00000001 {}
+    }
+    // wr(SWCTL,0x00000000);
+    write32(DFIMISC, 0x00000010);
+    write32(DFIMISC, 0x00000011);
+    write32(PWRCTL, 0x0000000a); //[3] dfi_dram_clk_disable [1] powerdown_en
+    write32(DCH1_PWRCTL, 0x0000000a);
+    write32(SWCTL, 0x00000001);
+    // while(rd(SWSTAT)!=0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+    // while(rd(STAT)!=0x00000001);
+    while read32(STAT) != 0x00000001 {}
+    if bits == 64 {
+        while read32(DCH1_STAT) != 0x00000001 {}
+    }
+    write32(DFIPHYMSTR, 0x14000001);
+    write32(SWCTL, 0x00000000);
+    write32(INIT0, 0x00020002);
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    // testing the values
+    println!("DFIPHYMSTR: {:08x}", read32(DFIPHYMSTR));
+    println!("DFIUPD0   : {:08x}", read32(DFIUPD0));
+    println!("DFIUPD1   : {:08x}", read32(DFIUPD1));
+    println!("ZQCTL0    : {:08x}", read32(ZQCTL0));
+    println!("ADDRMAP0  : {:08x}", read32(ADDRMAP0));
+    println!("ADDRMAP1  : {:08x}", read32(ADDRMAP1));
+}
+
+// board/thead/light-c910/lpddr4/src/ddr_common_func.c
+fn enable_axi_port(port: u8) {
+    //wr(0xffff004008,0xff400000);//Full bypass scramble
+    //wr(0xffff004008,0xff400000);//Full bypass scramble
+    //axi rst->release
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x00f0);
+    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x1ff0);
+    write32(DBG1, 0);
+    write32(DBG1_DCH1, 0);
+    if port & 0x1 != 0 {
+        write32(PCTRL_0, 1);
+    }
+    if port & 0x2 != 0 {
+        write32(PCTRL_1, 1);
+    }
+    if port & 0x4 != 0 {
+        write32(PCTRL_2, 1);
+    }
+    if port & 0x8 != 0 {
+        write32(PCTRL_3, 1);
+    }
+    if port & 0x10 != 0 {
+        write32(PCTRL_4, 1);
+    }
+}
+
+// board/thead/light-c910/lpddr4/src/ddr_common_func.c
+fn enable_auto_refresh() {
+    write32(RFSHCTL3, 0); //enable auto_refresh
 }
