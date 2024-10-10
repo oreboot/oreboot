@@ -88,6 +88,7 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0x2002c, 0x0);
     ddr_phy_reg_wr(0x20060, 0x2);
     ddr_phy_reg_wr(0xd0000, 0x0);
+
     println!("lp4x_3733_phy_train1d2d: copy over ICCM blob");
     for i in 0..16384 {
         ddr_phy_reg_wr(0x50000 + i, ICCM_ARRAY[i]);
