@@ -666,21 +666,24 @@ struct RegMiscAddrVal {
     value: u16,
 }
 
+const PHY_REG_NUM: usize = RET_REG_LIST_ADDR.len();
+const MISC_REG_NUM: usize = MISC_REG_LIST.len();
+
 // board/thead/light-c910/lpddr4/src/ddr_retention.c
 fn dwc_ddrphy_phyinit_reg_interface(instr: RegInstr) {
     ddr_phy_reg_wr(0xd0000, 0x0);
     ddr_phy_reg_wr(0xc0080, 0x3);
-    const PHY_REG_NUM: usize = RET_REG_LIST_ADDR.len();
-    const MISC_REG_NUM: usize = MISC_REG_LIST.len();
-    let mut reg_vals: [RegPhyAddrVal; RET_REG_LIST_ADDR.len()] = {
-        let mut arr = [RegPhyAddrVal::new(0); RET_REG_LIST_ADDR.len()]; // Temporary init with zeroed addresses
+    let mut reg_vals: [RegPhyAddrVal; PHY_REG_NUM] = {
+        // Temporary init with zeroed addresses
+        let mut arr = [RegPhyAddrVal::new(0); PHY_REG_NUM];
         for (i, &addr) in RET_REG_LIST_ADDR.iter().enumerate() {
-            arr[i] = RegPhyAddrVal::new(addr); // Assign each actual address
+            // Assign each actual address
+            arr[i] = RegPhyAddrVal::new(addr);
         }
         arr
     };
-    let mut misc_reg_vals: [RegMiscAddrVal; MISC_REG_NUM] = Default::default();
 
+    let mut misc_reg_vals: [RegMiscAddrVal; MISC_REG_NUM] = Default::default();
     for (i, &addr) in MISC_REG_LIST.iter().enumerate() {
         misc_reg_vals[i].address = addr as u32;
         misc_reg_vals[i].value = ddr_phy_reg_rd(addr as usize);
@@ -713,23 +716,28 @@ fn dwc_ddrphy_phyinit_reg_interface(instr: RegInstr) {
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn ctrl_en(bits: u8) {
-    write32(DFIMISC, 0x00000030); // [5]dfi_init_start
-    // while(rd(DFISTAT)!=0x00000001);
+    // write32(SWCTL, 0x00000000);
+
+    // [5]dfi_init_start
+    write32(DFIMISC, 0x00000030);
+
+    // write32(SWCTL, 0x00000001);
+    // while read32(SWSTAT) != 0x00000001;
+
     // polling dfi_init_complete
     while read32(DFISTAT) != 0x00000001 {}
     if bits == 64 {
-        // while(rd(DCH1_DFISTAT)!=0x00000001);
+        // while read32(DCH1_DFISTAT) != 0x00000001;
         while read32(DCH1_DFISTAT) != 0x00000001 {}
     }
-    // wr(SWCTL,0x00000000);
+    // write32(SWCTL, 0x00000000);
     write32(DFIMISC, 0x00000010);
     write32(DFIMISC, 0x00000011);
-    write32(PWRCTL, 0x0000000a); //[3] dfi_dram_clk_disable [1] powerdown_en
+    //[3] dfi_dram_clk_disable [1] powerdown_en
+    write32(PWRCTL, 0x0000000a);
     write32(DCH1_PWRCTL, 0x0000000a);
     write32(SWCTL, 0x00000001);
-    // while(rd(SWSTAT)!=0x00000001);
     while read32(SWSTAT) != 0x00000001 {}
-    // while(rd(STAT)!=0x00000001);
     while read32(STAT) != 0x00000001 {}
     if bits == 64 {
         while read32(DCH1_STAT) != 0x00000001 {}
@@ -739,6 +747,8 @@ fn ctrl_en(bits: u8) {
     write32(INIT0, 0x00020002);
     write32(SWCTL, 0x00000001);
     while read32(SWSTAT) != 0x00000001 {}
+    // write32(PWRCTL, 0x0000000b);
+    // write32(DCH1_PWRCTL, 0x0000000b);
 
     // testing the values
     println!("DFIPHYMSTR: {:08x}", read32(DFIPHYMSTR));
