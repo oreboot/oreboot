@@ -2,7 +2,8 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::dram::{_DDR_PHY1_BADDR, _DDR_PHY_BADDR, DDR_CFG0, DDR_SYSREG_BADDR};
+use crate::dram::{DDR_CFG0, _DDR_PHY1_BADDR, _DDR_PHY_BADDR};
+use crate::util::read32;
 
 fn write16(reg: usize, val: u16) {
     unsafe { write_volatile(reg as *mut u16, val) }
@@ -34,8 +35,8 @@ pub fn ddr_phy1_reg_rd(reg: usize) -> u16 {
 }
 
 pub fn ddr_phy_broadcast_en(_: u32) {
-    crate::util::read32(DDR_SYSREG_BADDR + DDR_CFG0);
-    crate::util::read32(DDR_SYSREG_BADDR + DDR_CFG0);
+    read32(DDR_CFG0);
+    read32(DDR_CFG0);
 }
 
 // board/thead/light-c910/lpddr4/src/waitfwdone.c
