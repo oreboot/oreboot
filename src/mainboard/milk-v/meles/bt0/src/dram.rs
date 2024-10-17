@@ -139,28 +139,27 @@ const PCTRL_3: usize = _DDR_CTRL_BADDR + 0x6a0;
 const PCFGR_4: usize = _DDR_CTRL_BADDR + 0x6c4;
 const PCFGW_4: usize = _DDR_CTRL_BADDR + 0x6c8;
 const PCTRL_4: usize = _DDR_CTRL_BADDR + 0x750;
-const DCH1_MRCTRL0: usize = _DDR_CTRL_BADDR + 0x00001b10;
-const DCH1_MRCTRL1: usize = _DDR_CTRL_BADDR + 0x00001b14;
-const DCH1_DERATECTL: usize = _DDR_CTRL_BADDR + 0x00001b2c;
-const DCH1_PWRCTL: usize = _DDR_CTRL_BADDR + 0x00001b30;
-const DCH1_HWLPCTL: usize = _DDR_CTRL_BADDR + 0x00001b38;
-const DCH1_CRCPARCTL0: usize = _DDR_CTRL_BADDR + 0x00001bc0;
-const DCH1_ZQCTL2: usize = _DDR_CTRL_BADDR + 0x00001c88;
-const DCH1_ODTMAP: usize = _DDR_CTRL_BADDR + 0x00001d44;
-const DCH1_DBG1: usize = _DDR_CTRL_BADDR + 0x00001e04;
-const DCH1_DBGCMD: usize = _DDR_CTRL_BADDR + 0x00001e0c;
-const DCH1_DFISTAT: usize = _DDR_CTRL_BADDR + 0x00001cbc;
-const DCH1_STAT: usize = _DDR_CTRL_BADDR + 0x00001b04;
-const DBG1_DCH1: usize = _DDR_CTRL_BADDR + 0x1e04;
+const DCH1_MRCTRL0: usize = _DDR_CTRL_BADDR + 0x1b10;
+const DCH1_MRCTRL1: usize = _DDR_CTRL_BADDR + 0x1b14;
+const DCH1_DERATECTL: usize = _DDR_CTRL_BADDR + 0x1b2c;
+const DCH1_PWRCTL: usize = _DDR_CTRL_BADDR + 0x1b30;
+const DCH1_HWLPCTL: usize = _DDR_CTRL_BADDR + 0x1b38;
+const DCH1_CRCPARCTL0: usize = _DDR_CTRL_BADDR + 0x1bc0;
+const DCH1_ZQCTL2: usize = _DDR_CTRL_BADDR + 0x1c88;
+const DCH1_ODTMAP: usize = _DDR_CTRL_BADDR + 0x1d44;
+const DCH1_DBG1: usize = _DDR_CTRL_BADDR + 0x1e04;
+const DCH1_DBGCMD: usize = _DDR_CTRL_BADDR + 0x1e0c;
+const DCH1_DFISTAT: usize = _DDR_CTRL_BADDR + 0x1cbc;
+const DCH1_STAT: usize = _DDR_CTRL_BADDR + 0x1b04;
 
 // clock configs
-const LIGHT_APCLK_ADDRBASE: usize = 0xffff011000;
-const LIGHT_AONCLK_ADDRBASE: usize = 0xfffff46000;
-const LIGHT_VO_SUBSYS_ADDRBASE: usize = 0xffff401000;
-const LIGHT_VO_SUBSYS_R_ADDRBASE: usize = 0xffef528000;
-const LIGHT_AUDIO_SUBSYS_ADDRBASE: usize = 0xffcb000000;
-const LIGHT_APSYS_RSTGEN_ADDRBASE: usize = 0xffff015000;
-const LIGHT_DSP_SUBSYS_ADDRBASE: usize = 0xffff041000;
+const LIGHT_AUDIO_SUBSYS_ADDRBASE: usize = 0xff_cb00_0000;
+const LIGHT_VO_SUBSYS_R_ADDRBASE: usize = 0xff_ef52_8000;
+const LIGHT_APCLK_ADDRBASE: usize = 0xff_ff01_1000;
+const LIGHT_APSYS_RSTGEN_ADDRBASE: usize = 0xff_ff01_5000;
+const LIGHT_VO_SUBSYS_ADDRBASE: usize = 0xff_ff40_1000;
+const LIGHT_DSP_SUBSYS_ADDRBASE: usize = 0xff_ff04_1000;
+const LIGHT_AONCLK_ADDRBASE: usize = 0xff_fff4_6000;
 
 pub fn init() {
     sys_clk_config();
