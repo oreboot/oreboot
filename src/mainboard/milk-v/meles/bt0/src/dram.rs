@@ -306,6 +306,8 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[+] enable_axi_port Complete...");
     enable_auto_refresh();
     println!("[+] enable_auto_refresh Complete...");
+    lpddr4_auto_selref();
+    println!("[+] enable_auto_selref Complete...");
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
@@ -789,5 +791,21 @@ fn enable_axi_port(port: u8) {
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn enable_auto_refresh() {
-    write32(RFSHCTL3, 0); //enable auto_refresh
+    write32(RFSHCTL3, 0);
+}
+
+fn lpddr4_auto_selref() {
+    //remove core clock after xx
+    write32(DDR_CFG1, 0xa0000);
+    write32(SWCTL, 0);
+    write32(SWCTLSTATIC, 1);
+    write32(PWRTMG, 0x40ae04);
+    write32(HWLPCTL, 0x430003);
+    write32(DCH1_HWLPCTL, 0x430003);
+    write32(SWCTL, 1);
+    write32(SWCTLSTATIC, 0);
+
+    //[3] dfi_dram_clk_disable [1] powerdown_en [0]serref_en
+    write32(PWRCTL, 0x0000000b);
+    write32(DCH1_PWRCTL, 0x0000000b);
 }
