@@ -40,7 +40,10 @@ const USB0_IOPMP_BASE: usize = 0xFF_FC02_E000;
 const QSPI0_BASE: usize = 0xFF_EA00_0000;
 const QSPI0_SIZE: usize = 0x00_0200_0000;
 
-const DRAM_BASE: usize = 0x0000;
+// DRAM starts here, according to the SoC manual.
+const DRAM_BASE: usize = 0x00_0000_0000;
+// U-Boot puts its main code at this address.
+// const DRAM_BASE: usize = 0x00_C000_0000;
 
 const BROM_BASE: usize = 0xFF_FFD0_0000;
 // One sweet megabyte mask ROM
@@ -184,7 +187,8 @@ fn copy(source: usize, target: usize, size: usize) {
 }
 
 fn dram_test() {
-    let limit = 0x8000_0000;
+    let size = 0x8000_0000;
+    let limit = DRAM_BASE + size;
     let range = DRAM_BASE..limit;
     let steps = 0x1000;
 
