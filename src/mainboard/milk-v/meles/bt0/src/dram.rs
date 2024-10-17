@@ -15,8 +15,9 @@ const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
 const RANK: u8 = 2;
 
-pub const DDR_CFG0: usize = 0x0000;
 pub const DDR_SYSREG_BADDR: usize = 0xff_ff00_5000;
+pub const DDR_CFG0: usize = DDR_SYSREG_BADDR + 0x0000;
+pub const DDR_CFG1: usize = DDR_SYSREG_BADDR + 0x0004;
 
 pub const _DDR_PHY_BADDR: usize = 0xff_fd00_0000;
 pub const _DDR_PHY1_BADDR: usize = _DDR_PHY_BADDR + 0x0100_0000;
@@ -311,40 +312,40 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn pll_config(speed: u16) {
     println!("[+] pll_config init... freq: {}", speed);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0xc, 0x4b000000);
+    write32(DDR_CFG0 + 0xc, 0x4b000000);
     println!("[+] pll_config check point 1");
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x8, 0x01204d01);
+    write32(DDR_CFG0 + 0x8, 0x01204d01);
     println!("[+] pll_config before udelay(2)");
     udelay(2);
     println!("[+] pll_config after udelay(2)");
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0xc, 0x0b000000);
-    while (read32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x18) & 1) != 0x1 {}
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR + 0x18, 0x10000);
+    write32(DDR_CFG0 + 0xc, 0x0b000000);
+    while (read32(DDR_CFG0 + 0x18) & 1) != 0x1 {}
+    write32(DDR_CFG0 + 0x18, 0x10000);
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn deassert_pwrok_apb(bits: u8) {
     println!("[+] deassert_pwrok_apb init...");
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40); // release PwrOkIn
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x40);
+    write32(DDR_CFG0, 0x40); // release PwrOkIn
+    write32(DDR_CFG0, 0x40);
+    write32(DDR_CFG0, 0x40);
+    write32(DDR_CFG0, 0x40);
+    write32(DDR_CFG0, 0x40);
+    write32(DDR_CFG0, 0x40);
 
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0); // release Phyrst
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0); // release Phyrst
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0); // release Phyrst
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xc0); // release Phyrst
+    write32(DDR_CFG0, 0xc0); // release Phyrst
+    write32(DDR_CFG0, 0xc0); // release Phyrst
+    write32(DDR_CFG0, 0xc0); // release Phyrst
+    write32(DDR_CFG0, 0xc0); // release Phyrst
 
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0); // release apb presetn
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd0);
+    write32(DDR_CFG0, 0xd0); // release apb presetn
+    write32(DDR_CFG0, 0xd0);
+    write32(DDR_CFG0, 0xd0);
+    write32(DDR_CFG0, 0xd0);
+    write32(DDR_CFG0, 0xd0);
+    write32(DDR_CFG0, 0xd0);
     if bits == 32 {
-        write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0xd2);
+        write32(DDR_CFG0, 0xd2);
     }
 }
 
@@ -540,11 +541,8 @@ fn de_assert_other_reset_ddr() {
     // FIXME: try without the unsafe block this function tries to write (8176) (0x1FF0)
     unsafe {
         // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32 = ddr_sysreg_rd(DDR_CFG0);
-        DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0 = read32(DDR_CFG0 + DDR_SYSREG_BADDR);
-        println!(
-            "[<-] ddr_sysreg_cfg0: {}",
-            read32(DDR_CFG0 + DDR_SYSREG_BADDR)
-        );
+        DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0 = read32(DDR_CFG0);
+        println!("[<-] ddr_sysreg_cfg0: {}", read32(DDR_CFG0));
 
         // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.rg_ctl_ddr_usw_rst_reg |= 0x1FA;
         let current_value = DDR_SYSREG
@@ -555,14 +553,8 @@ fn de_assert_other_reset_ddr() {
             .set_rg_ctl_ddr_usw_rst_reg(current_value | 0x1FA);
 
         // ddr_sysreg_wr(DDR_CFG0, ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32);
-        write32(
-            DDR_CFG0 + DDR_SYSREG_BADDR,
-            DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0,
-        );
-        println!(
-            "[->] ddr_sysreg_cfg0: {}",
-            read32(DDR_CFG0 + DDR_SYSREG_BADDR)
-        );
+        write32(DDR_CFG0, DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0);
+        println!("[->] ddr_sysreg_cfg0: {}", read32(DDR_CFG0));
     }
 }
 
@@ -760,13 +752,15 @@ fn ctrl_en(bits: u8) {
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn enable_axi_port(port: u8) {
-    //wr(0xffff004008,0xff400000);//Full bypass scramble
-    //wr(0xffff004008,0xff400000);//Full bypass scramble
-    //axi rst->release
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x00f0);
-    write32(DDR_CFG0 + DDR_SYSREG_BADDR, 0x1ff0);
+    // Full bypass scramble
+    // write32(0xff_ff00_4008, 0xff40_0000);
+    // Full bypass scramble
+    // write32(0xff_ff00_4008, 0xff40_0000);
+    // axi rst->release
+    write32(DDR_CFG0, 0x00f0);
+    write32(DDR_CFG0, 0x1ff0);
     write32(DBG1, 0);
-    write32(DBG1_DCH1, 0);
+    write32(DCH1_DBG1, 0);
     if port & 0x1 != 0 {
         write32(PCTRL_0, 1);
     }
