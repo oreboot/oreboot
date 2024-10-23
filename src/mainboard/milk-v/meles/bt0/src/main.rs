@@ -30,6 +30,8 @@ mod util;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
+// NOTE: signed images would have a header of size 0x800, i.e. code would start
+// at 0xff_e000_0800.
 const SRAM0_BASE: usize = 0xFF_E000_0000;
 const SRAM0_SIZE: usize = 0x00_0018_0000;
 
@@ -43,7 +45,7 @@ const QSPI0_SIZE: usize = 0x00_0200_0000;
 // DRAM starts here, according to the SoC manual.
 const DRAM_BASE: usize = 0x00_0000_0000;
 // U-Boot puts its main code at this address.
-// const DRAM_BASE: usize = 0x00_C000_0000;
+const DRAM_BASE_UBOOT: usize = 0x00_C000_0000;
 
 const BROM_BASE: usize = 0xFF_FFD0_0000;
 // One sweet megabyte mask ROM
@@ -187,50 +189,70 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
+// Test DRAM from first address, otherwise where U-Boot puts its main code.
+const DRAM_TEST_0: bool = false;
+
 fn dram_test() {
-    let size = 0x8000_0000;
-    let limit = DRAM_BASE + size;
-    let range = DRAM_BASE..limit;
+    let base = if DRAM_TEST_0 {
+        DRAM_BASE
+    } else {
+        DRAM_BASE_UBOOT
+    };
+    let size = 0x0000_c000;
+    let limit = base + size;
+    let range = base..limit;
     let steps = 0x1000;
 
     println!("DRAM test: write patterns...");
 
     for i in range.clone().step_by(steps) {
-        println!("[+] checkpoint 1");
         write32(i + 0x0, 0x2233_ccee | i as u32);
-        println!("[+] checkpoint 2");
         write32(i + 0x4, 0x5577_aadd | i as u32);
         write32(i + 0x8, 0x1144_bbff | i as u32);
-        println!("[+] checkpoint 3");
         write32(i + 0xc, 0x6688_9900 | i as u32);
     }
 
     println!("DRAM test: reading back...");
 
-    for i in range.clone().step_by(steps) {
-        let v = read32(i + 0x0);
-        let e = 0x2233_ccee | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0x4);
-        let e = 0x5577_aadd | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0x8);
-        let e = 0x1144_bbff | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0xc);
-        let e = 0x6688_9900 | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
+    fn check(addr: usize, val: u32) {
+        let v = read32(addr);
+        if v != val {
+            println!("Error @ {addr:08x}: expected {val:08x}, got {v:08x}");
         }
     }
 
+    for i in range.clone().step_by(steps) {
+        check(i + 0x0, 0x2233_ccee | i as u32);
+        check(i + 0x4, 0x5577_aadd | i as u32);
+        check(i + 0x8, 0x1144_bbff | i as u32);
+        check(i + 0xc, 0x6688_9900 | i as u32);
+    }
+
     println!("DRAM test: done :)");
+}
+
+const PMP_BASE: usize = 0xff_dc02_0000;
+
+// The mask ROM configures PMP by itself.
+fn reset_pmp() {
+    write32(PMP_BASE, 0);
+    write32(PMP_BASE + 0x1000, 0);
+    write32(PMP_BASE + 0x1004, 0);
+    write32(PMP_BASE + 0x1008, 0);
+    write32(PMP_BASE + 0x100c, 0);
+}
+
+fn dump_pmp() {
+    let v = read32(PMP_BASE);
+    println!("  PMP {v:08x}");
+    let v = read32(PMP_BASE + 0x1000);
+    println!("  PMP 0 {v:08x}");
+    let v = read32(PMP_BASE + 0x1004);
+    println!("  PMP 1 {v:08x}");
+    let v = read32(PMP_BASE + 0x1008);
+    println!("  PMP 2 {v:08x}");
+    let v = read32(PMP_BASE + 0x100c);
+    println!("  PMP 3 {v:08x}");
 }
 
 #[no_mangle]
@@ -253,6 +275,12 @@ fn main() {
     // util::dump_block(QSPI0_BASE, 0x100, 32); // hangs after 96 bytes
 
     dram::init();
+
+    println!("Initial PMP");
+    dump_pmp();
+    reset_pmp();
+    println!("Reset PMP");
+    dump_pmp();
 
     dram_test();
 
