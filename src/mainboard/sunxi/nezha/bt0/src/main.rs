@@ -3,9 +3,10 @@
 #![no_std]
 #![no_main]
 
+use core::arch::{asm, naked_asm};
 use core::intrinsics::transmute;
+use core::panic::PanicInfo;
 use core::ptr::{read_volatile, write_volatile};
-use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::OutputPin;
 use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
@@ -221,7 +222,7 @@ This bit will be reset to 1’b0.
 #[naked]
 #[no_mangle]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // 1. clear cache and processor states
         "csrw   mie, zero",
         // enable theadisaee and maee
@@ -251,7 +252,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         egon_head  =   sym EGON_HEAD,
         main       =   sym main,
-        options(noreturn)
     )
 }
 
@@ -367,7 +367,7 @@ const RST_BIT: u32 = 1 << 16;
 fn udelay(micros: usize) {
     unsafe {
         for _ in 0..micros {
-            core::arch::asm!("nop")
+            asm!("nop")
         }
     }
 }
