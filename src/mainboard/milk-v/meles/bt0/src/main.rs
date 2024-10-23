@@ -117,8 +117,10 @@ pub unsafe extern "C" fn reset() {
     }
 
     let bss_size = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
-    ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
-
+    // FIXME: why is this broken now, Rust?!
+    if false {
+        ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
+    }
     let data_size = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
     ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), data_size);
     // Call user entry point
@@ -240,7 +242,7 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 bt0");
 
-    println!("initial PC {ini_pc:016x}");
+    println!("initial program counter (PC) {ini_pc:016x}");
 
     print_ids();
 
