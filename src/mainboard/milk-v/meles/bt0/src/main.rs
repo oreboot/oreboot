@@ -8,7 +8,7 @@
 #[macro_use]
 extern crate log;
 use core::{
-    arch::asm,
+    arch::{asm, naked_asm},
     intrinsics::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
@@ -66,7 +66,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         "auipc  s4, 0",
 
         "csrw   mstatus, zero",
@@ -97,7 +97,6 @@ pub unsafe extern "C" fn start() -> ! {
         payload    = sym exec_payload,
         reset      = sym reset,
         start      = sym start,
-        options(noreturn)
     )
 }
 
@@ -291,9 +290,8 @@ fn panic(info: &PanicInfo) -> ! {
     } else {
         println!("[bt0] panic at unknown location");
     };
-    if let Some(msg) = info.message() {
-        println!("[bt0]   {msg}");
-    }
+    let msg = info.message();
+    println!("[bt0]   {msg}");
     loop {
         core::hint::spin_loop();
     }
