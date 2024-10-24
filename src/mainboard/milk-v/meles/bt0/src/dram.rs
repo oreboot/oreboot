@@ -192,29 +192,7 @@ fn sys_clk_config() {
     tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x104);
     tmp |= 0x2000;
     write32(LIGHT_AONCLK_ADDRBASE + 0x104, tmp);
-
-    /* switch audio_c906_cclk to audio_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x110);
-    tmp |= 0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x110, tmp);
-
-    /* switch audio_subsys_aclk to audio_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x108);
-    tmp |= 0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x108, tmp);
-
-    /* disable audio_i2s_src_clk */
-    tmp = read32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4);
-    tmp &= !0x20200;
-    write32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4, tmp);
-
-    /* disable peri_i2s_src_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1f0);
-    tmp &= !0x2;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1f0, tmp);
-
     udelay(1);
-
     /* set sys_pll_foutvco to 2438.5536MHz */
     write32(LIGHT_AONCLK_ADDRBASE + 0x14, 0x20000000);
     write32(LIGHT_AONCLK_ADDRBASE + 0x10, 0x03606501);
@@ -230,53 +208,6 @@ fn sys_clk_config() {
     tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x104);
     tmp &= !0x2000;
     write32(LIGHT_AONCLK_ADDRBASE + 0x104, tmp);
-
-    /* switch audio_c906_cclk to sys_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x110);
-    tmp &= !0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x110, tmp);
-
-    /* swith audio_subsys_aclk to sys_pll_foutvco */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x108);
-    tmp &= !0x2000;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x108, tmp);
-
-    /* 3. update audio_pll, to frac mode, 884.736MHz */
-    /* switch aonsys_clk to pad_osc_clk */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x100);
-    tmp |= 0x10;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x100, tmp);
-
-    /* set audio_pll_foutvco to frac mode, 884.736MHz */
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x20000000);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x00, 0x01302401);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x20dd2f70);
-    udelay(3);
-    write32(LIGHT_AONCLK_ADDRBASE + 0x04, 0x00dd2f70);
-    read32(LIGHT_AONCLK_ADDRBASE + 0x90);
-    read32(LIGHT_AONCLK_ADDRBASE + 0x90);
-    while (read32(LIGHT_AONCLK_ADDRBASE + 0x90) & 0x1) == 0 {}
-    udelay(11);
-
-    /* switch aonsys_clk to audio_pll_foutpostdiv */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x100);
-    tmp &= !0x10;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x100, tmp);
-
-    /* switch aoi2c_ic_clk to audio_pll_fout3 */
-    tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x11c);
-    tmp &= !0x1;
-    write32(LIGHT_AONCLK_ADDRBASE + 0x11c, tmp);
-
-    /* enable audio_i2s_src_clk */
-    tmp = read32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4);
-    tmp |= 0x20200;
-    write32(LIGHT_AUDIO_SUBSYS_ADDRBASE + 0x4, tmp);
-
-    /* enable peri_i2s_src_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1f0);
-    tmp |= 0x2;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1f0, tmp);
 
     /* set apb3_cpusys_pclk to ahb2_cpusys_hclk/2 */
     /* CPU AHB 125MHz  CPU pclk 125MHz */
@@ -348,66 +279,6 @@ fn sys_clk_config() {
     udelay(1);
     tmp &= !0x20;
     write32(LIGHT_APCLK_ADDRBASE + 0x140, tmp);
-    /* perisys_ahb_hclk 250MHz  perisys_apb_pclk 62.5MHz */
-
-    /* set dpu0_pll_div_clk to dpu0_pll_foutpostdiv/16 as 74.25MHz */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1e8);
-    tmp &= !0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-    tmp &= !0xff;
-    tmp |= 0x10;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-    tmp |= 0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1e8, tmp);
-    udelay(1);
-
-    /* set dpu1_pll_div_clk to dpu1_pll_foutpostdiv/16 as 74.25MHz */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1ec);
-    tmp &= !0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-    tmp &= !0xff;
-    tmp |= 0x10;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-    tmp |= 0x100;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1ec, tmp);
-    udelay(1);
-
-    /*5. enable necessary gates */
-    /* enable dsp_subsys, vi_subsys, vo_subsys all clocls */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x220);
-    tmp |= 0x7;
-    write32(LIGHT_APCLK_ADDRBASE + 0x220, tmp);
-
-    /* AP rst_gen: VP/VO/VI/DSP */
-    write32(LIGHT_APSYS_RSTGEN_ADDRBASE + 0x220, 0xf);
-
-    /* enable dsp0/1_cclk, dsp0/1_pclk */
-    tmp = read32(LIGHT_DSP_SUBSYS_ADDRBASE + 0x24);
-    tmp |= 0xf;
-    write32(LIGHT_DSP_SUBSYS_ADDRBASE + 0x24, tmp);
-
-    /* enable gpu_core_clk, gpu_cfg_aclk */
-    tmp = read32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50);
-    tmp |= 0x18;
-    write32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50, tmp);
-
-    tmp = read32(LIGHT_VO_SUBSYS_R_ADDRBASE + 0x50);
-    tmp |= 0x3ff;
-    write32(LIGHT_VO_SUBSYS_R_ADDRBASE + 0x50, tmp);
-
-    /* enable dpu_pixelclk0/1, dpu_hclk, dpu_aclk, dpu_cclk */
-    tmp = read32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50);
-    tmp |= 0x3e0;
-    write32(LIGHT_VO_SUBSYS_ADDRBASE + 0x50, tmp);
-
-    /* enable npu_axi_aclk, npu_core_clk */
-    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x1c8);
-    tmp |= 0x30;
-    write32(LIGHT_APCLK_ADDRBASE + 0x1c8, tmp);
     /* The boards other than the LightA board perform the bus down-speed operation */
 }
 
