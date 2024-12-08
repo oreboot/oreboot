@@ -132,6 +132,25 @@ To get a general understanding of how oreboot and firmware in general works,
 have a look at the [boot flow documentation](Documentation/boot-flow.md). It
 describes how firmware is stored and boots up on a platform / SoC.
 
+## Dilemma of drivers
+
+Note that oreboot does not aim to turn into its own operating system.
+Accordingly, we intend to keep the amount and functionality of drivers low.
+However, by design of SoCs, we do have to implement something to load code:
+
+- SPI flash, SD cards and eMMC are rather simple to load from, but require
+  special mechanisms and tools to write to the storage part
+- USB and ethernet are more flexible for development as they allow for loading
+  code from another machine, but are more complex to implement
+- UART is simple for data transfer, but very slow for larger payloads, such as
+  a Linux kernel
+
+In many cases, no full driver is needed, since we only need to e.g. read from
+storage, and we need no rich file systems. To avoid colliding with the needs and
+specifics of an OS, we recommend clearly separating storage parts holding the
+firmware and operating system, respectively. For example, put the firmware in a
+SPI flash and the OS on an NVMe SSD.
+
 ## Getting oreboot
 
 Clone this repo and enter its directory, i.e.:
