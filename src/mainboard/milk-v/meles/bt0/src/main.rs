@@ -1,3 +1,4 @@
+#![doc = include_str!("../../README.md")]
 #![feature(naked_functions, asm_const)]
 #![feature(panic_info_message)]
 #![no_std]
@@ -198,7 +199,7 @@ fn dram_test() {
     } else {
         DRAM_BASE_UBOOT
     };
-    let size = 0x0000_c000;
+    let size = 0x0020_0000;
     let limit = base + size;
     let range = base..limit;
     let steps = 0x1000;
@@ -206,11 +207,15 @@ fn dram_test() {
     println!("DRAM test: write patterns...");
 
     for i in range.clone().step_by(steps) {
+        if i % 0x1_0000 == 0 {
+            print!(".");
+        }
         write32(i + 0x0, 0x2233_ccee | i as u32);
         write32(i + 0x4, 0x5577_aadd | i as u32);
         write32(i + 0x8, 0x1144_bbff | i as u32);
         write32(i + 0xc, 0x6688_9900 | i as u32);
     }
+    println!();
 
     println!("DRAM test: reading back...");
 
@@ -222,11 +227,15 @@ fn dram_test() {
     }
 
     for i in range.clone().step_by(steps) {
+        if i % 0x1_0000 == 0 {
+            print!(".");
+        }
         check(i + 0x0, 0x2233_ccee | i as u32);
         check(i + 0x4, 0x5577_aadd | i as u32);
         check(i + 0x8, 0x1144_bbff | i as u32);
         check(i + 0xc, 0x6688_9900 | i as u32);
     }
+    println!();
 
     println!("DRAM test: done :)");
 }
