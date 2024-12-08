@@ -15,9 +15,9 @@ const FREQ: u16 = 3733;
 const DDR_BIT_WIDTH: u8 = 64;
 const RANK: u8 = 2;
 
-pub const DDR_SYSREG_BADDR: usize = 0xff_ff00_5000;
-pub const DDR_CFG0: usize = DDR_SYSREG_BADDR + 0x0000;
-pub const DDR_CFG1: usize = DDR_SYSREG_BADDR + 0x0004;
+pub const DDR_SYS_BASE: usize = 0xff_ff00_5000;
+pub const DDR_CFG0: usize = DDR_SYS_BASE + 0x0000;
+pub const DDR_CFG1: usize = DDR_SYS_BASE + 0x0004;
 
 pub const _DDR_PHY_BADDR: usize = 0xff_fd00_0000;
 pub const _DDR_PHY1_BADDR: usize = _DDR_PHY_BADDR + 0x0100_0000;
@@ -183,16 +183,19 @@ fn sys_clk_config() {
     udelay(60);
     /* 1. double check all pll lock */
     tmp = read32(LIGHT_APCLK_ADDRBASE + 0x80);
-    if !((tmp & 0x3fe) == 0x3fe) {
+    if tmp & 0x3fe != 0x3fe {
         // FIXME: fix this error handling
         println!("[bt0] pll lock check failed: {}", tmp);
+        return;
     }
     /* 2. update sys_pll to frac mode, 2438.5536MHz */
     /* switch share_sram_clk to audio_pll_foutvco */
     tmp = read32(LIGHT_AONCLK_ADDRBASE + 0x104);
     tmp |= 0x2000;
     write32(LIGHT_AONCLK_ADDRBASE + 0x104, tmp);
+
     udelay(1);
+
     /* set sys_pll_foutvco to 2438.5536MHz */
     write32(LIGHT_AONCLK_ADDRBASE + 0x14, 0x20000000);
     write32(LIGHT_AONCLK_ADDRBASE + 0x10, 0x03606501);
@@ -201,7 +204,7 @@ fn sys_clk_config() {
     write32(LIGHT_AONCLK_ADDRBASE + 0x14, 0x009b3d08);
     read32(LIGHT_AONCLK_ADDRBASE + 0x90);
     read32(LIGHT_AONCLK_ADDRBASE + 0x90);
-    while (read32(LIGHT_AONCLK_ADDRBASE + 0x90) & 0x2) == 0 {}
+    while read32(LIGHT_AONCLK_ADDRBASE + 0x90) & 0x2 == 0 {}
     udelay(11);
 
     /* switch share_sram_clk to sys_pll_foutvco */
@@ -285,13 +288,17 @@ fn sys_clk_config() {
 fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[*] LPDDR4 init...");
     pll_config(freq);
-    println!("[+] pll_config Complete...");
     deassert_pwrok_apb(bits);
-    println!("[+] deassert_pwrok_apb Complete...");
     ctrl_init(rank, freq);
     println!("[+] ctrl_init Complete...");
     addrmap(rank, bits);
     println!("[+] addrmap Complete...");
+
+    // adjust_ddr_addrmap(type, rank_num, speed, bits, size);
+    // msic regu restore for str
+    // dwc_ddr_misc_regu_save();
+
+    // after this step, only PwrOk is still low
     de_assert_other_reset_ddr();
     println!("[+] de_asssert_other_reset_ddr Complete...");
     dq_pinmux(bits); // pinmux config before training
@@ -310,36 +317,46 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     println!("[+] enable_auto_selref Complete...");
 }
 
+const DDR_CFG_FREQ: usize = DDR_SYS_BASE + 0x8;
+const DDR_CFG_CTRL: usize = DDR_SYS_BASE + 0xc;
+
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn pll_config(speed: u16) {
-    println!("[+] pll_config init... freq: {}", speed);
-    write32(DDR_CFG0 + 0xc, 0x4b000000);
-    println!("[+] pll_config check point 1");
-    write32(DDR_CFG0 + 0x8, 0x01204d01);
-    println!("[+] pll_config before udelay(2)");
+    let freq_val = 0x0120_4d01;
+    println!("[+] pll_config freq {speed} (0x{freq_val:08x})");
+    write32(DDR_CFG_CTRL, 0x4b000000);
+    write32(DDR_CFG_FREQ, freq_val);
     udelay(2);
-    println!("[+] pll_config after udelay(2)");
-    write32(DDR_CFG0 + 0xc, 0x0b000000);
-    while (read32(DDR_CFG0 + 0x18) & 1) != 0x1 {}
+    write32(DDR_CFG_CTRL, 0x0b000000);
+
+    let f = read32(DDR_CFG_FREQ);
+    let ok = if f == freq_val { "ok" } else { "meh" };
+    println!("DDR controller freq: 0x{f:08x} {ok}");
+    // PLL lock
+    while read32(DDR_CFG0 + 0x18) & 1 != 0x1 {}
+    // core clock cg off
     write32(DDR_CFG0 + 0x18, 0x10000);
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn deassert_pwrok_apb(bits: u8) {
-    println!("[+] deassert_pwrok_apb init...");
-    write32(DDR_CFG0, 0x40); // release PwrOkIn
+    println!("[+] deassert pwrok apb");
+    // release PwrOkIn
+    write32(DDR_CFG0, 0x40);
     write32(DDR_CFG0, 0x40);
     write32(DDR_CFG0, 0x40);
     write32(DDR_CFG0, 0x40);
     write32(DDR_CFG0, 0x40);
     write32(DDR_CFG0, 0x40);
 
-    write32(DDR_CFG0, 0xc0); // release Phyrst
-    write32(DDR_CFG0, 0xc0); // release Phyrst
-    write32(DDR_CFG0, 0xc0); // release Phyrst
-    write32(DDR_CFG0, 0xc0); // release Phyrst
+    // release Phyrst
+    write32(DDR_CFG0, 0xc0);
+    write32(DDR_CFG0, 0xc0);
+    write32(DDR_CFG0, 0xc0);
+    write32(DDR_CFG0, 0xc0);
 
-    write32(DDR_CFG0, 0xd0); // release apb presetn
+    // release apb presetn
+    write32(DDR_CFG0, 0xd0);
     write32(DDR_CFG0, 0xd0);
     write32(DDR_CFG0, 0xd0);
     write32(DDR_CFG0, 0xd0);
@@ -352,18 +369,19 @@ fn deassert_pwrok_apb(bits: u8) {
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn ctrl_init(rank: u8, freq: u16) {
-    println!("[*] CTRL Init...");
+    println!("[*] CTRL Init ranks {rank}, frequency {freq}");
     write32(DBG1, 0x00000001);
     write32(PWRCTL, 0x00000001);
     while (read32(STAT) != 0x00000000) {}
     if (rank == 2) {
         write32(MSTR, 0x03080020);
+    } else {
+        write32(MSTR, 0x01080020);
     }
     write32(MRCTRL0, 0x00003030);
     write32(MRCTRL1, 0x0002d90f);
 
     if (freq == 3733) {
-        println!("[+] Frequency: {freq}");
         write32(DERATEEN, 0x000013f3);
         write32(DERATEINT, 0x40000000);
         write32(DERATECTL, 0x00000001);
@@ -374,45 +392,61 @@ fn ctrl_init(rank: u8, freq: u16) {
         write32(RFSHCTL0, 0x00210004);
         write32(RFSHCTL1, 0x000d0021);
         write32(RFSHCTL3, 0x00000001);
-        write32(RFSHTMG, 0x81c00084);
-        write32(RFSHTMG1, 0x00480000);
+        if false {
+            // tREFI=0x6F*32*1.083=3.846us
+            // trfcpb 280ns         :0x106
+            // trfcpb 380ns/1.083ns= 0x164
+            write32(RFSHTMG, 0x006f8164);
+        } else {
+            // [31]    t_rfc_nom_x1_sel ,1
+            // [27:16] -tREFI 488ns/1.083=450=0x1c2
+            // [9:0]   -t_rfc_min 140ns/1.083=130=0x82
+            write32(RFSHTMG, 0x81c00084);
+        }
+        write32(RFSHTMG1, 0x00540000);
+        // We had this; where did it come from?
+        // write32(RFSHTMG1, 0x00480000);
 
         write32(CRCPARCTL0, 0x00000000);
         write32(INIT0, 0xc0020002);
         write32(INIT1, 0x00010002);
-        write32(INIT2, 0x00001a00);
-        write32(INIT3, 0x0054002e); //OP[2:0] RL
-        write32(INIT4, 0x0c310008); //[31:16] LP4 MR3
-        write32(INIT5, 0x00040009);
+        write32(INIT2, 0x00001f00); // diff !!!!
+        write32(INIT3, 0x00640036); // diff! //OP[2:0] RL
+        write32(INIT4, 0x00f20008); // diff!  //[31:16] LP4 MR3
+        write32(INIT5, 0x0004000b); // diff!
         write32(INIT6, 0x00000012);
         write32(INIT7, 0x0000001a);
+
         write32(DIMMCTL, 0x00000000);
         write32(RANKCTL, 0x0000ab9f);
         write32(RANKCTL1, 0x00000017);
-        write32(DRAMTMG0, 0x1b203622);
-        write32(DRAMTMG1, 0x00060630);
-        write32(DRAMTMG2, 0x07101b15);
 
-        write32(DRAMTMG3, 0x00b0c000);
-        write32(DRAMTMG4, 0x0f04080f);
-        write32(DRAMTMG5, 0x02040c0c);
-        write32(DRAMTMG6, 0x01010007);
-        write32(DRAMTMG7, 0x00000402);
+        write32(DRAMTMG0, 0x1f263f28); // diff!
+        write32(DRAMTMG1, 0x00080839); // diff!
+        write32(DRAMTMG2, 0x08121d17); // diff!
+
+        write32(DRAMTMG3, 0x00d0e000); // diff!
+        write32(DRAMTMG4, 0x11040a12); // diff!
+        write32(DRAMTMG5, 0x02050e0e); // diff!
+        write32(DRAMTMG6, 0x01010008); // diff!
+        write32(DRAMTMG7, 0x00000502); // diff!
         write32(DRAMTMG8, 0x00000101);
         write32(DRAMTMG12, 0x00020000);
-        write32(DRAMTMG13, 0x0c100002);
-        write32(DRAMTMG14, 0x000000e6);
-        write32(ZQCTL0, 0x03200018);
-        write32(ZQCTL1, 0x0280ccda);
+        write32(DRAMTMG13, 0x0d100002); // diff!
+        write32(DRAMTMG14, 0x0000010c); // diff!
+
+        write32(ZQCTL0, 0x03a50021); // diff!
+        write32(ZQCTL1, 0x02f00800); // diff!
         write32(ZQCTL2, 0x00000000);
-        write32(DFITMG0, 0x059b820a);
+
+        write32(DFITMG0, 0x059f820c); // diff!
         write32(DFITMG1, 0x000c0303);
         write32(DFILPCFG0, 0x0351a101);
         write32(DFIMISC, 0x00000011);
-        write32(DFITMG2, 0x00001f0c); //
+        write32(DFITMG2, 0x00001f0c);
         write32(DBICTL, 0x00000007);
-
         write32(DFIPHYMSTR, 0x14000001);
+
         write32(ADDRMAP0, 0x0002001f);
         write32(ADDRMAP1, 0x00090909);
         write32(ADDRMAP2, 0x01010000);
@@ -426,6 +460,7 @@ fn ctrl_init(rank: u8, freq: u16) {
         write32(ADDRMAP11, 0x00000008);
         write32(ODTCFG, 0x06090b40);
     }
+    // checkpoint
     write32(DFIUPD0, 0x00400018); //[31:30]=0 use ctrlupd enable
     write32(DFIUPD1, 0x00280032); // less ctrl interval
     write32(DFIUPD2, 0x00000000); //[31]=0 disable phy ctrlupdate
@@ -459,8 +494,11 @@ fn ctrl_init(rank: u8, freq: u16) {
     write32(DCH1_DBG1, 0x00000000);
     write32(DCH1_DBGCMD, 0x00000000);
     while (read32(RFSHCTL3) != 0x00000001) {}
-    //update by perf sim
-    write32(PCCFG, 0x00000010); //[4] page match limit,limits the number of consecutive same page DDRC transactions that can be granted by the Port Arbiter to four
+
+    // update by perf sim
+    // [4] page match limit, limits the number of consecutive same page DDRC
+    // transactions that can be granted by the Port Arbiter to four
+    write32(PCCFG, 0x00000010);
     write32(PCFGR_0, 0x0000500f); //CPU read
     write32(PCFGW_0, 0x0000500f); //CPU write
     write32(PCFGR_1, 0x00005020); //VI Read   max 32
@@ -471,6 +509,7 @@ fn ctrl_init(rank: u8, freq: u16) {
     write32(PCFGW_3, 0x000051ff);
     write32(PCFGR_4, 0x0000503f);
     write32(PCFGW_4, 0x0000503f);
+
     while (read32(PWRCTL) != 0x00000020) {}
     write32(PWRCTL, 0x00000020);
     while (read32(DCH1_PWRCTL) != 0x00000020) {}
@@ -485,6 +524,7 @@ fn ctrl_init(rank: u8, freq: u16) {
     write32(DCH1_PWRCTL, 0x00000020);
     while (read32(DCH1_PWRCTL) != 0x00000020) {}
     write32(DCH1_PWRCTL, 0x00000020);
+
     write32(DFIPHYMSTR, 0x14000001);
     write32(SWCTL, 0x00000000);
     write32(DFIMISC, 0x00000010);
@@ -492,26 +532,27 @@ fn ctrl_init(rank: u8, freq: u16) {
     write32(DBG1, 0x00000002);
     write32(DCH1_DBG1, 0x00000002);
 
-    // debugging
-    println!("[*] Testing the ctrl_init() function...");
-    println!("[+] RankCTL   : {}", read32(RANKCTL));
-    println!("[+] DRAMTMG2  : {}", read32(DRAMTMG2));
-    println!("[+] DFITMG0   : {}", read32(DFITMG0));
-    println!("[+] DFITMG1   : {}", read32(DFITMG1));
-    println!("[+] DRAMTMG4  : {}", read32(DRAMTMG4)); //[19:16] tCCD
+    // just printing the values from above to recheck
+    println!("[*] ctrl_init check");
+    println!("[+] RankCTL       : {:08x}", read32(RANKCTL));
+    println!("[+] DRAM timing 2 : {:08x}", read32(DRAMTMG2));
+    println!("[+] DFI timing 0  : {:08x}", read32(DFITMG0));
+    println!("[+] DFI timing 1  : {:08x}", read32(DFITMG1));
+    println!("[+] DRAM timing 4 : {:08x}", read32(DRAMTMG4)); //[19:16] tCCD
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn addrmap(rank: u8, bits: u8) {
-    write32(ADDRMAP0, 0x0004001f); //cs_bit0: NULL
-    write32(ADDRMAP0, 0x00040018); //8GB
-    write32(ADDRMAP1, 0x00090909); //bank +2
-    write32(ADDRMAP2, 0x00000000); //col b5+5 ~ col b2  +2
-    write32(ADDRMAP3, 0x01010101); //col b9 ~ col b6
-    write32(ADDRMAP4, 0x00001f1f); //col b11~ col b10
-    write32(ADDRMAP5, 0x080f0808); //row_b11 row b2_10 row b1 row b0  +6
-    write32(ADDRMAP6, 0x08080808); //row15
-    write32(ADDRMAP7, 0x00000f0f); //row16: NULL
+    println!("DDR 64bit mode, 256B interleaving");
+    write32(ADDRMAP0, 0x0004001f); // cs_bit0: NULL
+    write32(ADDRMAP0, 0x00040018); // 8GB
+    write32(ADDRMAP1, 0x00090909); // bank +2
+    write32(ADDRMAP2, 0x00000000); // col b5+5 ~ col b2  +2
+    write32(ADDRMAP3, 0x01010101); // col b9 ~ col b6
+    write32(ADDRMAP4, 0x00001f1f); // col b11~ col b10
+    write32(ADDRMAP5, 0x080f0808); // row_b11 row b2_10 row b1 row b0  +6
+    write32(ADDRMAP6, 0x08080808); // row15
+    write32(ADDRMAP7, 0x00000f0f); // row16: NULL
     write32(ADDRMAP9, 0x08080808);
     write32(ADDRMAP10, 0x08080808);
     write32(ADDRMAP11, 0x00000008);
@@ -521,13 +562,13 @@ fn addrmap(rank: u8, bits: u8) {
 bitfield! {
     pub struct DDRCfg0(u32);
     impl Debug;
-    pub rg_broadcast_mode, set_rg_broadcast_mode: 0;
-    pub rg_ddrc_32en, set_rg_ddrc_32en: 1;
     pub rg_ctl_ddr_usw_rst_reg, set_rg_ctl_ddr_usw_rst_reg: 31, 4; // [31:4] range
+    pub rg_ddrc_32en, set_rg_ddrc_32en: 1;
+    pub rg_broadcast_mode, set_rg_broadcast_mode: 0;
 }
 
 // union `DDR_SYSREG_REG_SW_REG_S` as a struct
-#[repr(C)]
+#[repr(C, packed)]
 pub struct DDRSysReg {
     pub ddr_sysreg_registers_struct_ddr_cfg0: DDRCfg0, // 0x0
 }
@@ -537,26 +578,14 @@ static mut DDR_SYSREG: DDRSysReg = DDRSysReg {
 };
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
-//de_assert umctl2_reset, phy_crst, and all areset
+// de_assert umctl2_reset, phy_crst, and all areset
 fn de_assert_other_reset_ddr() {
-    // FIXME: try without the unsafe block this function tries to write (8176) (0x1FF0)
-    unsafe {
-        // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32 = ddr_sysreg_rd(DDR_CFG0);
-        DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0 = read32(DDR_CFG0);
-        println!("[<-] ddr_sysreg_cfg0: {}", read32(DDR_CFG0));
-
-        // ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.rg_ctl_ddr_usw_rst_reg |= 0x1FA;
-        let current_value = DDR_SYSREG
-            .ddr_sysreg_registers_struct_ddr_cfg0
-            .rg_ctl_ddr_usw_rst_reg();
-        DDR_SYSREG
-            .ddr_sysreg_registers_struct_ddr_cfg0
-            .set_rg_ctl_ddr_usw_rst_reg(current_value | 0x1FA);
-
-        // ddr_sysreg_wr(DDR_CFG0, ddr_sysreg.ddr_sysreg_registers_struct_ddr_cfg0.u32);
-        write32(DDR_CFG0, DDR_SYSREG.ddr_sysreg_registers_struct_ddr_cfg0.0);
-        println!("[->] ddr_sysreg_cfg0: {}", read32(DDR_CFG0));
-    }
+    println!("de-assert areset and ctrl_crst_n, ddr_phy_crst_n by sysreg or tb");
+    let cfg0 = read32(DDR_CFG0);
+    println!("[<-] ddr_sysreg_cfg0: {cfg0:08x}");
+    write32(DDR_CFG0, cfg0 | (0x1fa << 4));
+    let cfg0 = read32(DDR_CFG0);
+    println!("[->] ddr_sysreg_cfg0: {cfg0:08x}");
 }
 
 // board/thead/light-c910/lpddr4/src/pinmux.c
