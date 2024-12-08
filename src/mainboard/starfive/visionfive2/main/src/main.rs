@@ -3,7 +3,7 @@
 #![no_main]
 
 use core::{
-    arch::{asm, global_asm},
+    arch::{global_asm, naked_asm},
     panic::PanicInfo,
 };
 use embedded_hal_nb::serial::Write;
@@ -23,7 +23,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         "0:",
         "li t4, 0x43",
         "li t5, 0x10000000",
@@ -53,7 +53,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         main       =   sym main,
-        options(noreturn)
     )
 }
 

@@ -4,8 +4,9 @@
 #![feature(asm_const)]
 #![feature(panic_info_message)]
 
+use core::arch::{asm, naked_asm};
 use core::panic::PanicInfo;
-use core::{arch::asm, ptr::read_volatile};
+use core::ptr::read_volatile;
 use embedded_hal::digital::OutputPin;
 use log::{print, println};
 use oreboot_compression::decompress;
@@ -189,7 +190,7 @@ fn decompress_lb() {
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // MCOR: disable caches
         "li     t1, 0x22",
         "csrw   0x7c2, t1",
@@ -218,7 +219,6 @@ unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         main       =   sym main,
         finish     =   sym finish,
-        options(noreturn)
     )
 }
 
