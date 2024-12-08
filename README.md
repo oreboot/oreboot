@@ -156,7 +156,7 @@ SPI flash and the OS on an NVMe SSD.
 Clone this repo and enter its directory, i.e.:
 
 ```sh
-git clone git://github.com/oreboot/oreboot
+git clone https://github.com/oreboot/oreboot.git
 cd oreboot
 ```
 

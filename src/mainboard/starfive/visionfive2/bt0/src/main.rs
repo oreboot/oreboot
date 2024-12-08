@@ -12,7 +12,7 @@ extern crate jh71xx_hal as hal;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{
-    arch::asm,
+    arch::{asm, naked_asm},
     intrinsics::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
@@ -64,7 +64,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // Clear feature disable CSR to '0' to turn on all features
         // TODO: do in Rust
         "csrwi  0x7c1, 0",
@@ -94,7 +94,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         payload    =   sym exec_payload,
         reset      =   sym reset,
-        options(noreturn)
     )
 }
 

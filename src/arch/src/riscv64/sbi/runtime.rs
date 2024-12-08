@@ -1,5 +1,5 @@
 use core::{
-    arch::asm,
+    arch::naked_asm,
     ops::{Coroutine, CoroutineState},
     pin::Pin,
 };
@@ -188,10 +188,9 @@ pub struct SupervisorContext {
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
-    asm!(
+    naked_asm!(
         "j     {machine_save}",
         machine_save = sym machine_save,
-        options(noreturn),
     )
 }
 
@@ -204,7 +203,7 @@ unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
-    asm!(
+    naked_asm!(
         // Top of the stack
         "addi   sp, sp, -15*8",
         "sd     ra,  0*8(sp)
@@ -224,7 +223,6 @@ unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -
          sd    s11, 14*8(sp)",
         "j     {supervisor_restore}",
         supervisor_restore = sym supervisor_restore,
-        options(noreturn)
     )
 }
 
@@ -236,7 +234,7 @@ unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -
 #[naked]
 #[link_section = ".text"]
 pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
-    asm!(
+    naked_asm!(
         // Save top of stack
         "sd     sp,  33*8(a0)",
         // Save a0, the supervisor context, in mscratch for later
@@ -281,7 +279,6 @@ pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut Supervisor
         "ld     sp,  1*8(sp)",
         // Return to S-mode
         "mret",
-        options(noreturn)
     )
 }
 
@@ -296,7 +293,7 @@ pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut Supervisor
 #[repr(align(4))]
 #[link_section = ".text"]
 pub unsafe extern "C" fn supervisor_save() -> ! {
-    asm!(
+    naked_asm!(
         // Swap this sp (stack pointer) with mscratch (M-mode scratch register).
         ".p2align 2",
         "csrrw  sp, mscratch, sp",
@@ -340,7 +337,6 @@ pub unsafe extern "C" fn supervisor_save() -> ! {
         "sd     t2,  1*8(sp)",
         "j      {machine_restore}",
         machine_restore = sym machine_restore,
-        options(noreturn)
     )
 }
 /// # Safety
@@ -350,7 +346,7 @@ pub unsafe extern "C" fn supervisor_save() -> ! {
 #[naked]
 #[link_section = ".text"]
 unsafe extern "C" fn machine_restore() -> ! {
-    asm!(
+    naked_asm!(
         // Restore M-mode / SBI runtime sp from mscratch.
         "csrr   sp, mscratch",
         "ld     sp, 33*8(sp)",
@@ -373,6 +369,5 @@ unsafe extern "C" fn machine_restore() -> ! {
         "addi   sp, sp, 15*8",
         // Return back to M-mode runtime.
         "jr     ra",
-        options(noreturn)
     )
 }
