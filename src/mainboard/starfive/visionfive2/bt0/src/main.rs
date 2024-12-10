@@ -4,6 +4,7 @@
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
+use embedded_hal::delay::DelayNs;
 use embedded_hal_nb::serial::Write;
 
 #[macro_use]
@@ -24,15 +25,10 @@ use riscv::register::{marchid, mimpid, mvendorid};
 use fdt::Fdt;
 
 use hal::uart::Serial;
-use soc::starfive::jh7110::{pac, uart};
+use hal::{clocks, ddr, pac, pll};
+use soc::starfive::jh7110::uart;
 
-mod ddr_start;
-mod ddrcsr;
-mod ddrlib;
-mod ddrphy;
-mod dram;
 mod init;
-mod pll;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
@@ -255,18 +251,35 @@ fn get_main_offset_and_size(slice: &[u8]) -> (usize, usize) {
 
 #[no_mangle]
 fn main() {
+    let dp = pac::Peripherals::take().unwrap();
+
     // clock/PLL setup, see U-Boot board/starfive/visionfive2/spl.c
-    pll::pll0_set_freq(pll::PLL0_1000000000);
-    pll::pll2_set_freq(pll::PLL2_1188000000);
+    let mut pll = pll::Pll::new(dp.sys_syscon);
+
+    pll.set_pll0(pll::Freq::pll0_1ghz())
+        .set_pll2(pll::Freq::pll2_1188mhz());
+
+    let sys_syscon = pll.release();
 
     /* DDR controller related clk init */
     // see U-Boot board/starfive/visionfive2/spl.c
-    init::clk_cpu_root();
-    init::clk_bus_root();
-    init::clocks();
+    let mut clock_syscrg = clocks::ClockSyscrg::new(dp.syscrg);
+    let mut clock_aoncrg = clocks::ClockAoncrg::new(dp.aoncrg);
+
+    // select CPU root clock
+    clock_syscrg.select_cpu_root(clocks::ClkCpuRootMuxSel::ClkPll0);
+
+    // select Bus root clock
+    clock_syscrg.select_bus_root(clocks::ClkBusRootMuxSel::ClkPll2);
+
+    // initialize peripheral clocks
+    clock_syscrg.select_peripheral_root(clocks::ClkPeripheralMuxSel::ClkPll2);
+    clock_syscrg.set_noc_stg_axi(clocks::ClkNocIcg::Enable);
+    clock_aoncrg.select_aon_apb(clocks::ClkAonApbMuxSel::ClkOscDiv4);
+    clock_syscrg.select_qspi(clocks::ClkQspiMuxSel::ClkQspiRefSrc);
 
     // set GPIO to 3.3V
-    pac::sys_syscon_reg().sys_syscfg_3().modify(|_, w| {
+    sys_syscon.sys_syscfg3().modify(|_, w| {
         w.vout0_remap_awaddr_gpio0().clear_bit();
         w.vout0_remap_awaddr_gpio1().clear_bit();
         w.vout0_remap_awaddr_gpio2().clear_bit();
@@ -274,22 +287,23 @@ fn main() {
     });
 
     // TX/RX are GPIOs 5 and 6
-    pac::sys_pinctrl_reg().gpo_doen_1().modify(|_, w| {
-        w.doen_5().variant(0);
-        w.doen_6().variant(0b1)
+    dp.sys_pinctrl.gpo_doen().gpo_doen1().modify(|_, w| {
+        w.doen5().variant(0);
+        w.doen6().variant(0b1)
     });
 
-    pac::sys_pinctrl_reg()
-        .gpo_dout_1()
-        .modify(|_, w| w.dout_5().variant(20));
-    pac::sys_pinctrl_reg()
-        .gpi_3()
+    dp.sys_pinctrl
+        .gpo_dout()
+        .gpo_dout1()
+        .modify(|_, w| w.dout5().variant(20));
+
+    dp.sys_pinctrl
+        .gpi()
+        .gpi3()
         .modify(|_, w| w.uart_sin_0().variant(6));
 
-    let dp = pac::Peripherals::take().unwrap();
-
     let mut s = uart::JH71XXSerial::new_with_config(
-        dp.UART0,
+        dp.uart0,
         hal::uart::TIMEOUT_US,
         hal::uart::Config {
             data_len: hal::uart::DataLength::Eight,
@@ -321,8 +335,36 @@ fn main() {
     }
 
     // AXI cfg0, clk_apb_bus, clk_apb0, clk_apb12
-    init::clk_apb0();
-    dram::init();
+    clock_syscrg.reset_apb0();
+
+    println!("Initializing DRAM...");
+    let mut dram = ddr::Ddr::new(dp.dmc_ctrl, dp.dmc_phy, clock_syscrg.release(), sys_syscon);
+    let mut udelay = hal::delay::u74_mdelay();
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkOscDiv2);
+
+    dram.set_pll1(pll::Freq::pll1_ddr2133_1066mhz());
+
+    udelay.delay_ns(500);
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkPll1Div2);
+    udelay.delay_ns(200);
+
+    // init the clocks.
+    dram.init_osc(&mut udelay);
+    dram.init_apb(&mut udelay);
+    dram.init_axi(&mut udelay);
+
+    // init the OMC PHY.
+    dram.phy_train();
+    dram.phy_util();
+    dram.phy_start();
+
+    dram.select_bus_clock(clocks::ClkDdrBusMuxSel::ClkOscDiv2);
+
+    // init the OMC (Orbit Memory Controller).
+    dram.omc_init();
+    println!("Initializing DRAM done.");
 
     // Find and copy the main stage
     let (base, size) = if LOAD_FROM_FLASH {
@@ -352,11 +394,10 @@ fn main() {
     // .....
     if false {
         println!("release non-boot harts =====\n");
-        let clint = pac::clint_reg();
-        clint.msip_0().write(|w| w.control().set_bit());
-        clint.msip_2().write(|w| w.control().set_bit());
-        clint.msip_3().write(|w| w.control().set_bit());
-        clint.msip_4().write(|w| w.control().set_bit());
+        dp.clint.msip(0).write(|w| w.control().set_bit());
+        dp.clint.msip(2).write(|w| w.control().set_bit());
+        dp.clint.msip(3).write(|w| w.control().set_bit());
+        dp.clint.msip(4).write(|w| w.control().set_bit());
     }
 
     // GO!

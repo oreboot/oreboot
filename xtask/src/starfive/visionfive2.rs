@@ -10,9 +10,10 @@ use std::{fs, path::Path, process};
 extern crate layoutflash;
 use layoutflash::areas::{create_areas, Area};
 
-use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
+use super::visionfive2_hdr::spl_create_hdr;
 
-const SRAM_SIZE: usize = 0x20_0000;
+const HEADER_SIZE: usize = 0x400;
+const SRAM_SIZE: usize = 0x2_8000;
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
@@ -123,7 +124,7 @@ fn xtask_build_image(env: &Env) {
     // HACK: omit LinuxBoot etc so we fit in SRAM
     let cut = core::cmp::min(SRAM_SIZE, dat.len());
     trace!("image size {:08x} cut down to {cut:08x}", dat.len());
-    let out = spl_create_hdr(dat[HEADER_SIZE as usize..cut].to_vec());
+    let out = spl_create_hdr(dat[HEADER_SIZE..cut].to_vec());
     trace!("final size {:08x}", out.len());
     let out_path = dir.join(IMAGE);
     fs::write(out_path.clone(), out).expect("writing final image");
