@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="a fork of coreboot with C removed, written in Rust">
+  <meta name="keywords" content="firmware, hardware, oreboot">
+  <meta name="author" content="the oreboot authors">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://oreboot.org">
+  <meta property="og:title" content="oreboot">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oreboot</title>
+<style>
+body {
+  display: flex;
+  height: 100%;
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+}
+a, a:visited {
+  color: #266bb2;
+  text-decoration: none;
+}
+menu {
+  position: relative;
+    width: 30%;
+    max-width: 140px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 20px 0;
+  margin: 0;
+}
+menu .icon {
+    width: 100%;
+}
+main {
+    background: #fff;
+    width: 100%;
+}
+nav {
+    background: #8dcaf0f0;
+    height: 100%;
+    width: 300%;
+    padding: 20px 35px;
+    max-width: 300px;
+    transition: left .3s cubic-bezier(.1,.3,.3,.7);
+    position: absolute;
+    top: 0;
+    left: -600px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+nav.open {
+  left: 0;
+}
+nav div {
+  width: 100%;
+  height: 50px;
+  align-items: center;
+  justify-content: space-between;
+}
+nav > * {
+  display: none;
+}
+nav.open > * {
+  display: flex;
+}
+nav div a {
+  height: 100%;
+}
+nav a, nav a:visited {
+  color: #000;
+  font-size: 22pt;
+}
+header {
+    display: flex;
+    justify-content: center;
+}
+@media screen and (max-width: 600px) {
+header {
+    flex-direction: column-reverse;
+    align-items: center;
+    padding: 0 20px;
+}
+}
+header img {
+    height: 140px;
+}
+header span {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 13.5pt;
+}
+menu button {
+  border: 5px solid #000;
+    border-left: none;
+    border-right: none;
+    width: 50%;
+    height: 30px;
+    padding: 0;
+    margin: 10px 0;
+}
+nav button {
+  width: 70px;
+    background: #8dcaf0;
+}
+nav img {
+  height: 50px;
+}
+menu button hr {
+  background: #000;
+  height: 5px;
+  margin: 0;
+  border: 0;
+}
+menu > a {
+  width: 70%;
+}
+section {
+    padding: 10px 20px;
+}
+</style>
+</head>
+
+<body>
+  <menu>
+    <button href="#">
+      <hr />
+    </button>
+    <nav>
+      <div>
+        <button href="#">
+          <hr />
+        </button>
+        <a href="/">
+          <img class="icon" src="logo-small.png" />
+        </a>
+      </div>
+      <a href="/">Getting Started</a>
+      <a href="/">Driver Model</a>
+      <a href="/">Boot Flow</a>
+      <a href="/">Supported Platforms</a>
+      <a href="/">Community</a>
+    </nav>
+    <a href="/">
+      <img class="icon" src="logo-small.png" />
+    </a>
+    <a href="https://github.com/oreboot/oreboot">
+      <img class="icon" src="github.png" />
+    </a>
+    <a href="https://twitter.com/oreboot_org">
+      <img class="icon" src="twitter.svg" />
+    </a>
+  </menu>
+  <main>
+  <header>
+    <span>
+oreboot is a fork of <a href="https://coreboot.org">coreboot</a>,
+with C removed,
+<a href="/driver-model.html">written in Rust</a>.
+    </span>
+    <img src="logo-full.png" alt="oreboot logo wordmark" />
+  </header>
+
+  <section>
+    <h1>The oreboot project</h2>
+      lorem ipsum......
+  </section>
+  </main>
+
+<script>
+  nav = document.querySelector("menu nav");
+  menuButtons = document.querySelectorAll("menu button");
+  for (i = 0; i < menuButtons.length; i++) {
+    menuButtons[i].onclick = (e) => {
+      // do not bubble; otherwise, click/tap on body will always hide again
+      e.stopPropagation();
+      console.info(nav.className);
+      nav.className = nav.className === "open" ? "" : "open";
+    };
+  }
+  document.body.onclick = () => nav.className = "";
+</script>
+</body>
+</html>
