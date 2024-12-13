@@ -44,7 +44,9 @@ const QSPI0_BASE: usize = 0xFF_EA00_0000;
 const QSPI0_SIZE: usize = 0x00_0200_0000;
 
 // DRAM starts here, according to the SoC manual.
-const DRAM_BASE: usize = 0x00_0000_0000;
+const DRAM_BASE_0: usize = 0x00_0000_0000;
+const DRAM_BASE_4: usize = 0x00_4000_0000;
+const DRAM_BASE_8: usize = 0x00_8000_0000;
 // U-Boot puts its main code at this address.
 const DRAM_BASE_UBOOT: usize = 0x00_C000_0000;
 
@@ -190,50 +192,45 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
-// Test DRAM from first address, otherwise where U-Boot puts its main code.
-const DRAM_TEST_0: bool = false;
+fn check32(addr: usize, val: u32) {
+    let v = read32(addr);
+    if v != val {
+        println!("Error @ {addr:08x}: expected {val:08x}, got {v:08x}");
+    }
+}
 
-fn dram_test() {
-    let base = if DRAM_TEST_0 {
-        DRAM_BASE
-    } else {
-        DRAM_BASE_UBOOT
-    };
-    let size = 0x0020_0000;
+const DRAM_TEST_PATTERN_0: u32 = 0x2233_ccee;
+const DRAM_TEST_PATTERN_1: u32 = 0x5577_aadd;
+const DRAM_TEST_PATTERN_2: u32 = 0x1144_bbff;
+const DRAM_TEST_PATTERN_3: u32 = 0x6688_9900;
+
+fn dram_test(base: usize, size: usize) {
     let limit = base + size;
-    let range = base..limit;
-    let steps = 0x1000;
+    let step_size = 0x100;
+    // print 64 steps, which gets slower with a higher size to test
+    let print_step = size / step_size / 64;
 
     println!("DRAM test: write patterns...");
-
-    for i in range.clone().step_by(steps) {
-        if i % 0x1_0000 == 0 {
+    for (i, a) in (base..limit).step_by(step_size).enumerate() {
+        if i % print_step == 0 {
             print!(".");
         }
-        write32(i + 0x0, 0x2233_ccee | i as u32);
-        write32(i + 0x4, 0x5577_aadd | i as u32);
-        write32(i + 0x8, 0x1144_bbff | i as u32);
-        write32(i + 0xc, 0x6688_9900 | i as u32);
+        write32(a + 0x0, DRAM_TEST_PATTERN_0 | i as u32);
+        write32(a + 0x4, DRAM_TEST_PATTERN_1 | i as u32);
+        write32(a + 0x8, DRAM_TEST_PATTERN_2 | i as u32);
+        write32(a + 0xc, DRAM_TEST_PATTERN_3 | i as u32);
     }
     println!();
 
     println!("DRAM test: reading back...");
-
-    fn check(addr: usize, val: u32) {
-        let v = read32(addr);
-        if v != val {
-            println!("Error @ {addr:08x}: expected {val:08x}, got {v:08x}");
-        }
-    }
-
-    for i in range.clone().step_by(steps) {
-        if i % 0x1_0000 == 0 {
+    for (i, a) in (base..limit).step_by(step_size).enumerate() {
+        if i % print_step == 0 {
             print!(".");
         }
-        check(i + 0x0, 0x2233_ccee | i as u32);
-        check(i + 0x4, 0x5577_aadd | i as u32);
-        check(i + 0x8, 0x1144_bbff | i as u32);
-        check(i + 0xc, 0x6688_9900 | i as u32);
+        check32(a + 0x0, DRAM_TEST_PATTERN_0 | i as u32);
+        check32(a + 0x4, DRAM_TEST_PATTERN_1 | i as u32);
+        check32(a + 0x8, DRAM_TEST_PATTERN_2 | i as u32);
+        check32(a + 0xc, DRAM_TEST_PATTERN_3 | i as u32);
     }
     println!();
 
@@ -291,14 +288,14 @@ fn main() {
     println!("Reset PMP");
     dump_pmp();
 
-    dram_test();
+    dram_test(DRAM_BASE_4, 0x0002_0000);
 
     unsafe {
         asm!("wfi");
     }
 
     // GO!
-    let load_addr = DRAM_BASE;
+    let load_addr = DRAM_BASE_UBOOT;
     println!("[bt0] Jump to main stage @{load_addr:08x}");
     exec_payload(load_addr);
     println!("[bt0] Exit from main stage, resetting...");
