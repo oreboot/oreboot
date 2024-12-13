@@ -403,17 +403,19 @@ fn ctrl_init(rank: u8, freq: u16) {
             // [9:0]   -t_rfc_min 140ns/1.083=130=0x82
             write32(RFSHTMG, 0x81c00084);
         }
-        write32(RFSHTMG1, 0x00540000);
+        write32(RFSHTMG1, 0x00480000);
         // We had this; where did it come from?
         // write32(RFSHTMG1, 0x00480000);
 
         write32(CRCPARCTL0, 0x00000000);
         write32(INIT0, 0xc0020002);
         write32(INIT1, 0x00010002);
-        write32(INIT2, 0x00001f00); // diff !!!!
-        write32(INIT3, 0x00640036); // diff! //OP[2:0] RL
-        write32(INIT4, 0x00f20008); // diff!  //[31:16] LP4 MR3
-        write32(INIT5, 0x0004000b); // diff!
+        write32(INIT2, 0x00001a00);
+        // OP[2:0] RL
+        write32(INIT3, 0x0054002e);
+        // [31:16] LP4 MR3
+        write32(INIT4, 0x0c310008);
+        write32(INIT5, 0x00040009);
         write32(INIT6, 0x00000012);
         write32(INIT7, 0x0000001a);
 
@@ -421,25 +423,25 @@ fn ctrl_init(rank: u8, freq: u16) {
         write32(RANKCTL, 0x0000ab9f);
         write32(RANKCTL1, 0x00000017);
 
-        write32(DRAMTMG0, 0x1f263f28); // diff!
-        write32(DRAMTMG1, 0x00080839); // diff!
-        write32(DRAMTMG2, 0x08121d17); // diff!
+        write32(DRAMTMG0, 0x1b203622);
+        write32(DRAMTMG1, 0x00060630);
+        write32(DRAMTMG2, 0x07101b15);
 
-        write32(DRAMTMG3, 0x00d0e000); // diff!
-        write32(DRAMTMG4, 0x11040a12); // diff!
-        write32(DRAMTMG5, 0x02050e0e); // diff!
-        write32(DRAMTMG6, 0x01010008); // diff!
-        write32(DRAMTMG7, 0x00000502); // diff!
+        write32(DRAMTMG3, 0x00b0c000);
+        write32(DRAMTMG4, 0x0f04080f);
+        write32(DRAMTMG5, 0x02040c0c);
+        write32(DRAMTMG6, 0x01010007);
+        write32(DRAMTMG7, 0x00000402);
         write32(DRAMTMG8, 0x00000101);
         write32(DRAMTMG12, 0x00020000);
-        write32(DRAMTMG13, 0x0d100002); // diff!
-        write32(DRAMTMG14, 0x0000010c); // diff!
+        write32(DRAMTMG13, 0x0c100002);
+        write32(DRAMTMG14, 0x000000e6);
 
-        write32(ZQCTL0, 0x03a50021); // diff!
-        write32(ZQCTL1, 0x02f00800); // diff!
+        write32(ZQCTL0, 0x03200018);
+        write32(ZQCTL1, 0x0280ccda);
         write32(ZQCTL2, 0x00000000);
 
-        write32(DFITMG0, 0x059f820c); // diff!
+        write32(DFITMG0, 0x059b820a);
         write32(DFITMG1, 0x000c0303);
         write32(DFILPCFG0, 0x0351a101);
         write32(DFIMISC, 0x00000011);
@@ -460,7 +462,6 @@ fn ctrl_init(rank: u8, freq: u16) {
         write32(ADDRMAP11, 0x00000008);
         write32(ODTCFG, 0x06090b40);
     }
-    // checkpoint
     write32(DFIUPD0, 0x00400018); //[31:30]=0 use ctrlupd enable
     write32(DFIUPD1, 0x00280032); // less ctrl interval
     write32(DFIUPD2, 0x00000000); //[31]=0 disable phy ctrlupdate
@@ -544,15 +545,24 @@ fn ctrl_init(rank: u8, freq: u16) {
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
 fn addrmap(rank: u8, bits: u8) {
     println!("DDR 64bit mode, 256B interleaving");
-    write32(ADDRMAP0, 0x0004001f); // cs_bit0: NULL
-    write32(ADDRMAP0, 0x00040018); // 8GB
-    write32(ADDRMAP1, 0x00090909); // bank +2
-    write32(ADDRMAP2, 0x00000000); // col b5+5 ~ col b2  +2
-    write32(ADDRMAP3, 0x01010101); // col b9 ~ col b6
-    write32(ADDRMAP4, 0x00001f1f); // col b11~ col b10
-    write32(ADDRMAP5, 0x080f0808); // row_b11 row b2_10 row b1 row b0  +6
-    write32(ADDRMAP6, 0x08080808); // row15
-    write32(ADDRMAP7, 0x00000f0f); // row16: NULL
+    // cs_bit0: NULL
+    write32(ADDRMAP0, 0x0004001f);
+    // 8GB
+    write32(ADDRMAP0, 0x00040018);
+    // bank +2
+    write32(ADDRMAP1, 0x00090909);
+    // col b5+5 ~ col b2  +2
+    write32(ADDRMAP2, 0x00000000);
+    // col b9 ~ col b6
+    write32(ADDRMAP3, 0x01010101);
+    // col b11~ col b10
+    write32(ADDRMAP4, 0x00001f1f);
+    // row_b11 row b2_10 row b1 row b0  +6
+    write32(ADDRMAP5, 0x080f0808);
+    // row15
+    write32(ADDRMAP6, 0x08080808);
+    // row16: NULL
+    write32(ADDRMAP7, 0x00000f0f);
     write32(ADDRMAP9, 0x08080808);
     write32(ADDRMAP10, 0x08080808);
     write32(ADDRMAP11, 0x00000008);
