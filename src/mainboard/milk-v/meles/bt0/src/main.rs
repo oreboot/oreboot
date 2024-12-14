@@ -288,6 +288,7 @@ fn main() {
     println!("Reset PMP");
     dump_pmp();
 
+    dram::setup_ddr_addrmap();
     dram_test(DRAM_BASE_4, 0x0002_0000);
 
     unsafe {

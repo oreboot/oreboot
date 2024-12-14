@@ -2,7 +2,6 @@
 
 use bitfield::bitfield;
 
-use crate::dram::RegInstr::SaveRegs;
 use crate::dram_helpers::{
     ddr_phy0_reg_wr, ddr_phy1_reg_rd, ddr_phy1_reg_wr, ddr_phy_broadcast_en, ddr_phy_reg_rd,
     ddr_phy_reg_wr,
@@ -12,7 +11,7 @@ use crate::dram_training_data::{MISC_REG_LIST, RET_REG_LIST_ADDR};
 use crate::util::{read32, write32};
 
 const FREQ: u16 = 3733;
-const DDR_BIT_WIDTH: u8 = 64;
+const DDR_BIT_WIDTH: Bits = Bits::B64;
 const RANK: u8 = 2;
 
 pub const DDR_SYS_BASE: usize = 0xff_ff00_5000;
@@ -285,13 +284,13 @@ fn sys_clk_config() {
     /* The boards other than the LightA board perform the bus down-speed operation */
 }
 
-fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
+fn lpddr4_init(rank: u8, freq: u16, bits: Bits) {
     println!("[*] LPDDR4 init...");
     pll_config(freq);
-    deassert_pwrok_apb(bits);
+    deassert_pwrok_apb(bits.clone());
     ctrl_init(rank, freq);
     println!("[+] ctrl_init Complete...");
-    addrmap(rank, bits);
+    addrmap(rank, bits.clone());
     println!("[+] addrmap Complete...");
 
     // adjust_ddr_addrmap(type, rank_num, speed, bits, size);
@@ -301,13 +300,13 @@ fn lpddr4_init(rank: u8, freq: u16, bits: u8) {
     // after this step, only PwrOk is still low
     de_assert_other_reset_ddr();
     println!("[+] de_asssert_other_reset_ddr Complete...");
-    dq_pinmux(bits); // pinmux config before training
+    dq_pinmux(bits.clone()); // pinmux config before training
     println!("[+] dq_pinmux Complete...");
-    lp4_phy_train1d2d(freq, bits);
+    lp4_phy_train1d2d(freq, bits.clone());
     println!("[+] lp4_phy_train1d2d Complete...");
-    dwc_ddrphy_phyinit_reg_interface(SaveRegs);
+    dwc_ddrphy_phyinit_reg_interface(RegInstr::SaveRegs);
     println!("[+] dwc_ddrphy_phyinit_reg_interface Complete...");
-    ctrl_en(bits);
+    ctrl_en(bits.clone());
     println!("[+] ctrl_en Complete...");
     enable_axi_port(0x1f);
     println!("[+] enable_axi_port Complete...");
@@ -339,7 +338,7 @@ fn pll_config(speed: u16) {
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
-fn deassert_pwrok_apb(bits: u8) {
+fn deassert_pwrok_apb(bits: Bits) {
     println!("[+] deassert pwrok apb");
     // release PwrOkIn
     write32(DDR_CFG0, 0x40);
@@ -362,7 +361,7 @@ fn deassert_pwrok_apb(bits: u8) {
     write32(DDR_CFG0, 0xd0);
     write32(DDR_CFG0, 0xd0);
     write32(DDR_CFG0, 0xd0);
-    if bits == 32 {
+    if bits == Bits::B32 {
         write32(DDR_CFG0, 0xd2);
     }
 }
@@ -543,7 +542,8 @@ fn ctrl_init(rank: u8, freq: u16) {
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
-fn addrmap(rank: u8, bits: u8) {
+fn addrmap(rank: u8, bits: Bits) {
+    // NOTE: This is hardcoded for now.
     println!("DDR 64bit mode, 256B interleaving");
     // cs_bit0: NULL
     write32(ADDRMAP0, 0x0004001f);
@@ -600,7 +600,7 @@ fn de_assert_other_reset_ddr() {
 
 // board/thead/light-c910/lpddr4/src/pinmux.c
 // pinmux config before training
-fn dq_pinmux(bits: u8) {
+fn dq_pinmux(bits: Bits) {
     // ddr_phy_broadcast_en(0);
     ddr_phy0_reg_wr(0x100a0, 0x1);
     ddr_phy0_reg_wr(0x100a1, 0x5);
@@ -638,7 +638,7 @@ fn dq_pinmux(bits: u8) {
     ddr_phy0_reg_wr(0x130a6, 0x3);
     ddr_phy0_reg_wr(0x130a7, 0x6);
 
-    if bits == 64 {
+    if bits == Bits::B64 {
         //PHY1 DBYTE0
         ddr_phy1_reg_wr(0x100a0, 0x7);
         ddr_phy1_reg_wr(0x100a1, 0x4);
@@ -756,7 +756,7 @@ fn dwc_ddrphy_phyinit_reg_interface(instr: RegInstr) {
 }
 
 // board/thead/light-c910/lpddr4/src/ddr_common_func.c
-fn ctrl_en(bits: u8) {
+fn ctrl_en(bits: Bits) {
     // write32(SWCTL, 0x00000000);
 
     // [5]dfi_init_start
@@ -767,8 +767,7 @@ fn ctrl_en(bits: u8) {
 
     // polling dfi_init_complete
     while read32(DFISTAT) != 0x00000001 {}
-    if bits == 64 {
-        // while read32(DCH1_DFISTAT) != 0x00000001;
+    if bits == Bits::B64 {
         while read32(DCH1_DFISTAT) != 0x00000001 {}
     }
     // write32(SWCTL, 0x00000000);
@@ -780,7 +779,7 @@ fn ctrl_en(bits: u8) {
     write32(SWCTL, 0x00000001);
     while read32(SWSTAT) != 0x00000001 {}
     while read32(STAT) != 0x00000001 {}
-    if bits == 64 {
+    if bits == Bits::B64 {
         while read32(DCH1_STAT) != 0x00000001 {}
     }
     write32(DFIPHYMSTR, 0x14000001);
@@ -834,7 +833,7 @@ fn enable_auto_refresh() {
 }
 
 fn lpddr4_auto_selref() {
-    //remove core clock after xx
+    // remove core clock after xx
     write32(DDR_CFG1, 0xa0000);
     write32(SWCTL, 0);
     write32(SWCTLSTATIC, 1);
@@ -847,4 +846,327 @@ fn lpddr4_auto_selref() {
     //[3] dfi_dram_clk_disable [1] powerdown_en [0]serref_en
     write32(PWRCTL, 0x0000000b);
     write32(DCH1_PWRCTL, 0x0000000b);
+}
+
+fn disable_axi_port(port: u32) {
+    if port & 0x1 != 0 {
+        write32(PCTRL_0, 0);
+    }
+    if port & 0x2 != 0 {
+        write32(PCTRL_1, 0);
+    }
+    if port & 0x4 != 0 {
+        write32(PCTRL_2, 0);
+    }
+    if port & 0x8 != 0 {
+        write32(PCTRL_3, 0);
+    }
+    if port & 0x10 != 0 {
+        write32(PCTRL_4, 0);
+    }
+
+    while read32(PSTAT) != 0x0 {}
+    if port & 0x1F == 0x1F {
+        // all ports are disabled
+        write32(DBG1, 2);
+        write32(DCH1_DBG1, 2);
+    } else {
+        // at least one port is not disabled
+        write32(DBG1, 0);
+        write32(DCH1_DBG1, 0);
+    }
+}
+
+const GB: u64 = 1024 * 1024 * 1024;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Bits {
+    B32,
+    B64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Size {
+    S2G,
+    S4G,
+    S8G,
+    S16G,
+}
+
+// TODO: other values
+#[derive(Debug, Clone, PartialEq)]
+enum DdrType {
+    LPDDR4X = 0,
+}
+
+fn adjust_ddr_addrmap(ddr_type: DdrType, rank_num: u32, speed: u32, bits: Bits, size: Size) {
+    // if Err(e) = lpddr4_query_boundary(type, rank_num, speed, bits, size) {
+    //   return Err(e);
+    // }
+
+    // 32 bits: only phy0
+    // 64 bits: phy0 + phy1
+    match (bits.clone(), rank_num, size.clone()) {
+        (Bits::B32, 2, Size::S4G) => {
+            write32(ADDRMAP0, 0x001f0017); // cs_bit0: HIF[29]
+            write32(ADDRMAP7, 0x00000f0f); // row16: NULL
+        }
+        (Bits::B32, 2, Size::S8G) => {
+            write32(ADDRMAP0, 0x001f0018); // cs_bit0: HIF[30]
+            write32(ADDRMAP7, 0x00000f07); // row16: HIF[29]
+        }
+        (Bits::B32, 1, Size::S2G) => {
+            write32(ADDRMAP0, 0x001f001f); // cs_bit0: NULL
+        }
+        (Bits::B64, 1, Size::S8G) => {
+            write32(ADDRMAP0, 0x00040018); // cs_bit0: HIF[30]
+            write32(ADDRMAP7, 0x00000f0f); // row16: NULL
+        }
+        (Bits::B64, 1, Size::S16G) => {
+            write32(ADDRMAP0, 0x00040019); // cs_bit0: HIF[31]
+            write32(ADDRMAP7, 0x00000f08); // row16: HIF[30]
+        }
+        (Bits::B64, 1, Size::S4G) => {
+            write32(ADDRMAP0, 0x0004001f); // cs_bit0: NULL
+            write32(ADDRMAP7, 0x00000f0f); // row16: NULL
+        }
+        _ => {
+            println!("adjust_ddr_addrmap: Invalid: bits {bits:?} ranks {rank_num} size {size:?}");
+        }
+    }
+}
+
+fn lpddr4_selfrefresh_exit(mode: u32) {
+    // put sdram into idle state
+    write32(PWRCTL, 0x0);
+    write32(DCH1_PWRCTL, 0x0);
+
+    // wait sdram exit selfrefresh sate,wait umctl2 back to normal
+    while read32(STAT) & 0x307 != 1 {}
+    if mode == 0 {
+        // wait sdram exit selfrefresh sate, wait umctl2 back to normal
+        while read32(DCH1_STAT) & 0x307 != 1 {}
+    }
+}
+
+fn ctrl_en_lp3_exit(bits: Bits) {
+    // skip DRAM init, because this has done
+    write32(SWCTL, 0x00000000);
+    write32(INIT0, 0xc0020002);
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    // dfi frequency change proto, to PS0
+    write32(SWCTL, 0x00000000);
+    write32(DFIMISC, 0x00000000); // [5]dfi_freq=0x0
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    write32(SWCTL, 0x00000000);
+    write32(DFIMISC, 0x00000020); // [5]dfi_init_start=0x1
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    // poll dfi_init_complete
+    while read32(DFISTAT) != 0x00000001 {}
+    if bits == Bits::B64 {
+        while read32(DCH1_DFISTAT) != 0x00000001 {}
+    }
+    write32(SWCTL, 0x00000000);
+    write32(DFIMISC, 0x00000000);
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    write32(SWCTL, 0x00000000);
+    write32(DFIMISC, 0x00000001);
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+
+    // for low power,
+    write32(SWCTL, 0x00000000);
+    write32(PWRCTL, 0x0000000a); //[3] dfi_dram_clk_disable [1] powerdown_en
+    write32(DCH1_PWRCTL, 0x0000000a);
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+    // detect until umctrl into normal state
+    while read32(STAT) != 0x00000001 {}
+    if bits == Bits::B64 {
+        while read32(DCH1_STAT) != 0x00000001 {}
+    }
+
+    // en phy master proto
+    write32(DFIPHYMSTR, 0x14000001);
+}
+
+fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
+    // write(DBG1, 3);
+    write32(SWCTL, 0x00000000);
+
+    let v = read32(INIT0);
+    write32(INIT0, (v & !(0b11 << 30)) | (skip_dram_init << 30));
+
+    let v = read32(DFIMISC);
+    write32(DFIMISC, (v & !(0b11111 << 8 | 0b1)) | dfi_freq << 8);
+
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x00000001 {}
+    write32(SWCTL, 0x00000000);
+
+    // set dfi_init_start
+    let v = read32(DFIMISC);
+    write32(DFIMISC, (v & !(0b1 << 5)) | 1 << 5);
+
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) != 0x1 {}
+    // wait dfi_init_complete
+    let s = read32(DFISTAT);
+    println!("{s:032b}");
+    /*
+    while read32(DFISTAT & 0x1) == 0x1 {
+        println!("{s:032b}");
+    }
+    */
+    println!("DONE");
+
+    // change dfi clk freq here
+    write32(SWCTL, 0x00000000);
+
+    // clear dfi_init_start
+    let v = read32(DFIMISC);
+    write32(DFIMISC, v & !(0b1 << 5));
+
+    println!("X");
+    write32(SWCTL, 0x00000001);
+    while read32(SWSTAT) == 0 {}
+    return;
+    while read32(DFISTAT & 0x1) == 0x0 {}
+}
+
+const DEBUG_DFI: bool = true;
+
+// pwden_en: enable selfrefresh power-down, otherwise stay in selfrefresh
+fn lpddr4_enter_selfrefresh(pwdn_en: bool, dis_dram_clk: bool, mode: u32) {
+    let v = read32(PWRCTL);
+    let m = !(1 << 8 | 1 << 6 | 1 << 5 | 1 << 3);
+    // self refresh powerdown after enter self refresh or stay in self refresh
+    let pd = if pwdn_en { 1 } else { 0 };
+    // turn off sdram clk when in self-refresh power-down state
+    let cd = if dis_dram_clk { 1 } else { 0 };
+    let nv = (v & m) | 1 << 8 | pd << 5 | cd << 3;
+    write32(PWRCTL, nv);
+    write32(DCH1_PWRCTL, nv);
+
+    let s = if pwdn_en { 2 } else { 1 };
+    while ((read32(STAT) & (0b11 << 8)) >> 8) != s {}
+
+    if mode == 0 {
+        while ((read32(DCH1_STAT) & (0b11 << 8)) >> 8) != s {}
+    }
+}
+
+fn lpddr4_reinit_ctrl(size: Size) {
+    let rank_num = RANK;
+    let speed = FREQ;
+    let ddr_type = DdrType::LPDDR4X;
+
+    // remove core clock after xx
+    write32(DDR_CFG1, 0x0000011f);
+
+    // [3] dfi_dram_clk_disable [1] powerdown_en [0]serref_en
+    write32(PWRCTL, 0x00000000);
+    write32(DCH1_PWRCTL, 0x00000000);
+
+    disable_axi_port(0x1f);
+    while read32(PSTAT) != 0 {}
+
+    write32(DFIPHYMSTR, 0x14000000);
+    // check status.
+    while read32(STAT) & 0x3 == 0x03 {}
+
+    // poll cam empty flag
+    while read32(DBGCAM) & 0x36000000 != 0x36000000 {}
+
+    // NOTE: We get here.
+
+    // save phy regs
+    // ??? not implemented in C code
+
+    lpddr4_enter_selfrefresh(true, false, 0);
+
+    // LP3 enter
+    let dfi_freq = 0x1f;
+    let skip_dram_init = 0x3;
+    dfi_freq_change(dfi_freq, skip_dram_init);
+    println!("checkpoint");
+
+    // PwrOkIn desassert
+    let v = read32(DDR_CFG0);
+    write32(DDR_CFG0, v & !(0x1 << 6));
+
+    // Phy reset .DDR_CFG0 ALL reset
+    let _ = read32(DDR_CFG0);
+    write32(DDR_CFG0, 0);
+
+    // ddr core reset ctrl sw reset
+    let v = read32(DDR_CFG0);
+    write32(DDR_CFG0, v & !(0x1 << 5));
+
+    // Pwrokin dessert
+    let v = read32(DDR_CFG0);
+    write32(DDR_CFG0, v | (0x1 << 6));
+
+    // NOTE: commented out in C code
+    // dwc_umctl_init_skip_traing(type, rank_num, speed, bits);
+
+    // release apb presetn
+    write32(DDR_CFG0, 0x50);
+    write32(DDR_CFG0, 0x50);
+    write32(DDR_CFG0, 0x50);
+
+    let bits = Bits::B64;
+    if bits.clone() == Bits::B64 {
+        write32(DDR_CFG0, 0x52);
+    }
+
+    if DEBUG_DFI {
+        return;
+    }
+
+    ctrl_init(rank_num, speed);
+    addrmap(rank_num, bits.clone());
+    adjust_ddr_addrmap(ddr_type, rank_num as u32, speed as u32, bits.clone(), size);
+
+    // TODO
+    // misc regu restore for str
+    // dwc_ddr_misc_regu_save();
+
+    // NOTE: We get here.
+
+    // after this step, only PwrOk is still low
+    de_assert_other_reset_ddr();
+
+    dq_pinmux(bits.clone());
+    println!("checkpoint");
+    // return;
+
+    // phy restore
+    dwc_ddrphy_phyinit_reg_interface(RegInstr::RestoreRegs);
+
+    // ctrl en, hs
+    ctrl_en_lp3_exit(bits);
+
+    lpddr4_selfrefresh_exit(0);
+
+    enable_auto_refresh();
+    enable_axi_port(0x1f);
+
+    write32(DFIPHYMSTR, 0x14000001);
+    lpddr4_auto_selref();
+}
+
+// board/thead/light-c910/spl.c
+pub fn setup_ddr_addrmap() {
+    // TODO: wrap in loop, see C code
+    let size = Size::S8G;
+    lpddr4_reinit_ctrl(size);
 }
