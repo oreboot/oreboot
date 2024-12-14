@@ -1104,7 +1104,6 @@ fn lpddr4_reinit_ctrl(size: Size) {
     let dfi_freq = 0x1f;
     let skip_dram_init = 0x3;
     dfi_freq_change(dfi_freq, skip_dram_init);
-    println!("checkpoint");
 
     // PwrOkIn desassert
     let v = read32(DDR_CFG0);
@@ -1143,6 +1142,7 @@ fn lpddr4_reinit_ctrl(size: Size) {
     addrmap(rank_num, bits.clone());
     adjust_ddr_addrmap(ddr_type, rank_num as u32, speed as u32, bits.clone(), size);
 
+    println!("MISSING: dwc_ddr_misc_regu_save");
     // TODO
     // misc regu restore for str
     // dwc_ddr_misc_regu_save();
@@ -1153,8 +1153,6 @@ fn lpddr4_reinit_ctrl(size: Size) {
     de_assert_other_reset_ddr();
 
     dq_pinmux(bits.clone());
-    println!("checkpoint");
-    // return;
 
     // phy restore
     dwc_ddrphy_phyinit_reg_interface(RegInstr::RestoreRegs);
