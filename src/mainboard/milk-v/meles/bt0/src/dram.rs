@@ -165,11 +165,11 @@ pub fn init() {
     lpddr4_init(RANK, FREQ, DDR_BIT_WIDTH);
 }
 
-// This function tries to implement udelay() function required in DDR init
-// FIXME: try to find a better approach.
+// roughly wait a microsecond, maybe better read from mcycle
+// FIXME: Use the timer, i.e., mtimer from CLINT or mtime if available.
 fn udelay(micros: usize) {
     unsafe {
-        for _ in 0..(micros * 10) {
+        for _ in 0..(micros * 5) {
             core::arch::asm!("nop")
         }
     }
@@ -1047,12 +1047,15 @@ const DEBUG_DFI: bool = true;
 
 // pwden_en: enable selfrefresh power-down, otherwise stay in selfrefresh
 fn lpddr4_enter_selfrefresh(pwdn_en: bool, dis_dram_clk: bool, mode: u32) {
+    println!("lpddr4_enter_selfrefresh");
     let v = read32(PWRCTL);
-    let m = !(1 << 8 | 1 << 6 | 1 << 5);
+    let selfref_sw = 1 << 5;
+    let lpddr4_sr_allowed = 1 << 8;
+    let m = !(lpddr4_sr_allowed | 1 << 6 | selfref_sw);
     // self refresh powerdown after enter self refresh or stay in self refresh
-    let pd = if pwdn_en { 1 } else { 0 };
+    let selfref = if pwdn_en { 0 } else { 1 };
     // turn off sdram clk when in self-refresh power-down state
-    let nv = (v & m) | 1 << 8 | pd << 6 | 1 << 5;
+    let nv = (v & m) | lpddr4_sr_allowed | selfref << 6 | selfref_sw;
     let nv = if dis_dram_clk {
         (nv & !(1 << 3)) | 1 << 3
     } else {
@@ -1061,9 +1064,9 @@ fn lpddr4_enter_selfrefresh(pwdn_en: bool, dis_dram_clk: bool, mode: u32) {
     write32(PWRCTL, nv);
     write32(DCH1_PWRCTL, nv);
 
+    // poll self-refresh state
     let s = if pwdn_en { 2 } else { 1 };
     while ((read32(STAT) & (0b11 << 8)) >> 8) != s {}
-
     if mode == 0 {
         while ((read32(DCH1_STAT) & (0b11 << 8)) >> 8) != s {}
     }
