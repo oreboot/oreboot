@@ -1024,15 +1024,7 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
 
     // wait for dfi_init_complete == 0
     read32(DFISTAT);
-    // FIXME: this hangs, although DFISTAT is all 0s when printed
-    // while read32(DFISTAT & 0x1) != 0x0 {}
-    println!("dfi_freq_change poll DFISTAT == 0");
-    loop {
-        let s = read32(DFISTAT);
-        if s == 0 {
-            break;
-        }
-        println!("dfi_freq_change poll DFISTAT: {s}");
+    while read32(DFISTAT) & 0x1 != 0x0 {
         udelay(1_000_000);
     }
 
@@ -1049,17 +1041,7 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
     // return;
     // wait for dfi_init_complete == 1
     read32(DFISTAT);
-    println!("dfi_freq_change poll DFISTAT == 1");
-    // while read32(DFISTAT & 0x1) == 0x0 {}
-    loop {
-        let s = read32(DFISTAT);
-        if s == 1 {
-            break;
-        }
-        println!("dfi_freq_change poll DFISTAT: {s}");
-        udelay(1_000_000);
-    }
-    println!("dfi_freq_change DONE");
+    while read32(DFISTAT) & 0x1 == 0x0 {}
 }
 
 const DEBUG_DFI: bool = true;
