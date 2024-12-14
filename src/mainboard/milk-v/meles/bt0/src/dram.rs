@@ -1021,6 +1021,7 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
     // wait dfi_init_complete
     let s = read32(DFISTAT);
     println!("{s:032b}");
+    // FIXME: this hangs, although the above prints all 0s
     /*
     while read32(DFISTAT & 0x1) == 0x1 {
         println!("{s:032b}");
@@ -1085,8 +1086,6 @@ fn lpddr4_reinit_ctrl(size: Size) {
 
     // poll cam empty flag
     while read32(DBGCAM) & 0x36000000 != 0x36000000 {}
-
-    // NOTE: We get here.
 
     // save phy regs
     // ??? not implemented in C code
