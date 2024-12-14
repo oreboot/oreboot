@@ -1,13 +1,13 @@
 // board/thead/light-c910/lpddr4/src/ddr_phy_fw/lp4x_3733_phy_train1d2d_dualrank.c
 
+use crate::dram::Bits;
 use crate::dram_helpers::{
     ddr_phy0_reg_wr, ddr_phy1_reg_rd, ddr_phy1_reg_wr, ddr_phy_broadcast_en, ddr_phy_reg_rd,
     ddr_phy_reg_wr, dwc_ddrphy_phyinit_user_custom_g_wait_fw_done,
 };
 use crate::dram_training_data::{DCCM_ARRAY, DCCM_ARRAY1, ICCM_ARRAY, ICCM_ARRAY1};
 
-// void lp4_phy_train1d2d(enum DDR_TYPE type, int speed, enum DDR_BITWIDTH bits)
-pub fn lp4_phy_train1d2d(freq: u16, bits: u8) {
+pub fn lp4_phy_train1d2d(freq: u16, bits: Bits) {
     lp4x_3733_phy_train1d2d();
 }
 
