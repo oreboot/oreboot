@@ -1005,11 +1005,13 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
     let v = read32(INIT0);
     write32(INIT0, (v & !(0b11 << 30)) | (skip_dram_init << 30));
 
+    // clear dfi_init_complete_en
     let v = read32(DFIMISC);
     write32(DFIMISC, (v & !(0b11111 << 8 | 0b1)) | dfi_freq << 8);
 
     write32(SWCTL, 0x00000001);
     while read32(SWSTAT) != 0x00000001 {}
+
     write32(SWCTL, 0x00000000);
 
     // set dfi_init_start
@@ -1018,15 +1020,11 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
 
     write32(SWCTL, 0x00000001);
     while read32(SWSTAT) != 0x1 {}
-    // wait dfi_init_complete
-    let s = read32(DFISTAT);
-    println!("{s:032b}");
-    // FIXME: this hangs, although the above prints all 0s
-    /*
-    while read32(DFISTAT & 0x1) == 0x1 {
-        println!("{s:032b}");
-    }
-    */
+
+    // wait for dfi_init_complete == 0
+    read32(DFISTAT);
+    // FIXME: this hangs, although DFISTAT is all 0s when printed
+    // while read32(DFISTAT & 0x1) != 0x0 {}
     println!("DONE");
 
     // change dfi clk freq here
@@ -1036,10 +1034,12 @@ fn dfi_freq_change(dfi_freq: u32, skip_dram_init: u32) {
     let v = read32(DFIMISC);
     write32(DFIMISC, v & !(0b1 << 5));
 
-    println!("X");
     write32(SWCTL, 0x00000001);
     while read32(SWSTAT) == 0 {}
-    return;
+
+    // return;
+    // wait for dfi_init_complete == 1
+    read32(DFISTAT);
     while read32(DFISTAT & 0x1) == 0x0 {}
 }
 
@@ -1048,12 +1048,16 @@ const DEBUG_DFI: bool = true;
 // pwden_en: enable selfrefresh power-down, otherwise stay in selfrefresh
 fn lpddr4_enter_selfrefresh(pwdn_en: bool, dis_dram_clk: bool, mode: u32) {
     let v = read32(PWRCTL);
-    let m = !(1 << 8 | 1 << 6 | 1 << 5 | 1 << 3);
+    let m = !(1 << 8 | 1 << 6 | 1 << 5);
     // self refresh powerdown after enter self refresh or stay in self refresh
     let pd = if pwdn_en { 1 } else { 0 };
     // turn off sdram clk when in self-refresh power-down state
-    let cd = if dis_dram_clk { 1 } else { 0 };
-    let nv = (v & m) | 1 << 8 | pd << 5 | cd << 3;
+    let nv = (v & m) | 1 << 8 | pd << 6 | 1 << 5;
+    let nv = if dis_dram_clk {
+        (nv & !(1 << 3)) | 1 << 3
+    } else {
+        nv
+    };
     write32(PWRCTL, nv);
     write32(DCH1_PWRCTL, nv);
 
