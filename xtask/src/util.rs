@@ -100,9 +100,11 @@ pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
 }
 
 /// Get the oreboot root directory.
-pub fn project_root() -> PathBuf {
-    let d = &env!("CARGO_MANIFEST_DIR");
-    Path::new(d).ancestors().nth(1).unwrap().to_path_buf()
+pub fn project_root() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(1)
+        .unwrap()
 }
 
 /// Get the target specific build output directory.
