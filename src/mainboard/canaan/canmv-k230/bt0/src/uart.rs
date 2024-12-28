@@ -8,14 +8,18 @@ use crate::util::write32;
 const UART0_BASE: usize = 0x9140_0000;
 
 const UART0_THR: usize = UART0_BASE + 0x0000; /* Transmitter holding reg. */
-const UART0_BRDL: usize = UART0_BASE + 0x0000; /* Baud rate divisor (LSB)  */
-const UART0_BRDH: usize = UART0_BASE + 0x0004; /* Baud rate divisor (MSB)  */
+const UART0_BRDL: usize = UART0_BASE + 0x0000; /* Baud rate divisor (LSB) */
+const UART0_BRDH: usize = UART0_BASE + 0x0004; /* Baud rate divisor (MSB) */
 const UART0_IER: usize = UART0_BASE + 0x0004; /* Interrupt enable reg.    */
 const UART0_IIR: usize = UART0_BASE + 0x0008; /* Interrupt ID reg.        */
 const UART0_FCR: usize = UART0_BASE + 0x0008; /* FIFO control reg.        */
 const UART0_LCR: usize = UART0_BASE + 0x000c; /* Line control reg.        */
 const UART0_MDC: usize = UART0_BASE + 0x0010; /* Modem control reg.       */
 const UART0_LSR: usize = UART0_BASE + 0x0014; /* Line status reg.         */
+const UART0_USR: usize = UART0_BASE + 0x007c; /* UART status reg.         */
+const UART0_CPR: usize = UART0_BASE + 0x00f4;
+
+const CPR_THRE_MODE: u32 = 1 << 5;
 
 /* constants for line control register */
 
@@ -120,7 +124,7 @@ impl embedded_hal_nb::serial::ErrorType for K230Serial {
 impl embedded_hal_nb::serial::Write<u8> for K230Serial {
     #[inline]
     fn write(&mut self, c: u8) -> nb::Result<(), self::Error> {
-        if read_8(UART0_LSR) & LSR_THRE == 0 {
+        if read_8(UART0_USR) & 1 != 0 {
             return Err(nb::Error::WouldBlock);
         }
         write32(UART0_THR, c as u32);

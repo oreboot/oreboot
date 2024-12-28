@@ -115,7 +115,8 @@ fn impid_to_name<'a>(impid: usize) -> &'a str {
     match impid {
         0x0000_0000_0000_0000 => "C910 or something",
         0x0000_0000_0421_0427 => "21G1.02.00 / llama.02.00-general",
-        0x1000_0000_4977_2200 => "X60",
+        0x1000_0000_4977_2200 => "SpacemiT X60",
+        0x0000_0000_0005_0000 => "C908 (Kendryte K230)",
         _ => "unknown",
     }
 }
@@ -166,11 +167,12 @@ fn main() {
     let mut ini_pc: usize = 0;
     unsafe { asm!("mv {}, s4", out(reg) ini_pc) };
 
-    let s = uart::K230Serial::noinit();
+    let s = uart::K230Serial::new();
     init_logger(s);
     println!("oreboot 🦀 bt0");
-
     println!("initial program counter (PC) {ini_pc:016x}");
+
+    print_ids();
 
     unsafe { riscv::asm::wfi() }
 }

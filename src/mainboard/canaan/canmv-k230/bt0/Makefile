@@ -18,13 +18,13 @@ mainboard: build
 build:
 	# TODO: cargo make
 	cargo build --release
-	riscv64-unknown-elf-objcopy -O binary $(RELEASE_ELF) $(RELEASE_BIN)
+	cargo objcopy -- -O binary $(RELEASE_BIN)
 
 run: build
 	$(KENDRYTE_BOOT) run $(RELEASE_BIN)
 
-objdump: build
-	riscv64-unknown-elf-objdump -D $(RELEASE_ELF)
+objdump:
+	cargo objdump -D
 
 hexdump: build
 	xxd $(RELEASE_BIN)
