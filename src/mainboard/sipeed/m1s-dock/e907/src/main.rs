@@ -1,11 +1,10 @@
-#![feature(naked_functions, asm_const)]
-#![feature(associated_type_bounds)]
+#![feature(naked_functions)]
 #![no_std]
 #![no_main]
 
 use bl808_pac::Peripherals;
 use core::{
-    arch::asm,
+    arch::naked_asm,
     panic::PanicInfo,
     // ptr::slice_from_raw_parts,
     slice,
@@ -34,7 +33,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[export_name = "start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // 1. disable and clear interrupts
         "csrw   mtvec, t0",
         "csrw   mie, zero",
@@ -57,7 +56,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         main       =   sym main,
-        options(noreturn)
     )
 }
 
@@ -117,7 +115,7 @@ fn main() {
     init::gpio_uart_init(&glb);
     let serial = uart::BSerial::new(p.UART0, p.UART1);
     // print to UART0
-    serial.debug('*' as u8);
+    serial.debug(b'*' as u8);
 
     init_logger(serial);
 
@@ -166,7 +164,7 @@ fn main() {
         let start_addr_high = (start_addr >> 10) & 0xffff;
         let v_start = (start_addr_high) << 16; // xxxx_0000
         let end_addr_high = (end_addr >> 10) & 0xffff;
-        let v_end = (end_addr_high - 1) & 0xffff; // 0000_xxxx
+        let v_end = (end_addr_high) & 0xffff; // 0000_xxxx
         let v = v_start | v_end;
         write_volatile((TZC_SEC_TZC_PSRAMA_TZSRG_R0 + region * 4) as *mut u32, v);
         let v = read_volatile(TZC_SEC_TZC_PSRAMA_TZSRG_R0 as *mut u32);
