@@ -46,7 +46,7 @@ impl BSerial {
 
 impl Serial for BSerial {}
 
-impl embedded_hal::serial::ErrorType for BSerial {
+impl embedded_hal_nb::serial::ErrorType for BSerial {
     type Error = Error;
 }
 

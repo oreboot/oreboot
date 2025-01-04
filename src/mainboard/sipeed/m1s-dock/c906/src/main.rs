@@ -1,11 +1,11 @@
-#![feature(naked_functions, asm_const)]
+#![feature(naked_functions)]
 #![no_std]
 #![no_main]
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
 use core::{
-    arch::asm,
+    arch::naked_asm,
     panic::PanicInfo,
     ptr::{read_volatile, write_volatile},
 };
@@ -55,7 +55,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 #[export_name = "start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // 1. disable and clear interrupts
         "csrw   mie, zero",
         "csrw   mstatus, zero",
@@ -83,7 +83,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         sys_reset  = const MM_SW_SYS_RESET,
         main       = sym main,
-        options(noreturn)
     )
 }
 
