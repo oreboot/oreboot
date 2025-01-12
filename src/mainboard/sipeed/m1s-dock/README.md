@@ -2,8 +2,10 @@
 
 This SoC features two XuanTie cores:
 
-- E907, with _no_ MMU, suitable for an embedded/real-time OS, e.g., Zephyr
-- C906, with an MMU, suitable for a virtual memory OS such as Linux
+- [E907](https://www.xrvm.com/product/xuantie/E907), with _no_ MMU, suitable for an embedded/real-time OS, e.g., Zephyr
+- [C906](https://www.xrvm.com/product/xuantie/C906), with an MMU, suitable for a virtual memory OS such as Linux
+
+Execution starts on the core described in the binary header.
 
 ## reference code
 

@@ -3,8 +3,9 @@ TARGET := riscv32imac-unknown-none-elf
 RELEASE := release
 IMAGE_NAME := sipeed-m1s-dock-e907
 IMAGE_ELF := "$(OREBOOT)/target/$(TARGET)/$(RELEASE)/$(IMAGE_NAME)"
+IMAGE_BIN := "$(IMAGE_ELF).bin"
 # https://github.com/smaeul/bouffalo-loader
-BLL_DIR := "/home/dama/firmware/Bouffalo Lab/bouffalo-loader"
+BLL_DIR := "/projects/firmware/Bouffalo Lab/bouffalo-loader"
 BL_LOADER := "python3 $(BLL_DIR)/loader.py"
 BL_LOADER_CFG := "$(BLL_DIR)/bl808_header_cfg.conf"
 IMAGE2 := "$(OREBOOT)/target/riscv64imac-unknown-none-elf/release/sipeed-m1s-dock-c906"
@@ -20,6 +21,7 @@ checkformat: nop
 
 mainboard:
 	cargo build --release
+	cargo objcopy -- -O binary $(IMAGE_BIN)
 
 objdump: mainboard
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"
