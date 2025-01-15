@@ -23,5 +23,8 @@ mainboard:
 	cargo build --release
 	cargo objcopy -- -O binary "$(IMAGE_BIN)"
 
+run: mainboard
+	bl_boot run empty.bin "$(IMAGE_BIN)"
+
 objdump: mainboard
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"

@@ -9,8 +9,24 @@ use core::{
     panic::PanicInfo,
     ptr::{read_volatile, write_volatile},
 };
-/*
+
+use bl808_pac::Peripherals;
+#[macro_use]
+extern crate log;
+
+mod uart;
+mod util;
+
+use util::{read32, sleep, udelay, write32};
+
 const GLB_BASE: usize = 0x20000000;
+const UHS_PLL_CFG0: usize = GLB_BASE + 0x07d0;
+const UHS_PLL_CFG1: usize = GLB_BASE + 0x07d4;
+const UHS_PLL_CFG4: usize = GLB_BASE + 0x07e0;
+const UHS_PLL_CFG5: usize = GLB_BASE + 0x07e4;
+const UHS_PLL_CFG6: usize = GLB_BASE + 0x07e8;
+
+/*
 const UART_CFG0: usize = GLB_BASE + 0x0150;
 const UART_CFG1: usize = GLB_BASE + 0x0154;
 const GPIO_CFG14: usize = GLB_BASE + 0x08fc;
@@ -27,6 +43,11 @@ const UART0_FIFO_WDATA: usize = UART0_BASE + 0x0088;
 
 const MM_GLB_BASE: usize = 0x3000_7000;
 const MM_SW_SYS_RESET: usize = MM_GLB_BASE + 0x0040;
+
+const PSRAM_CONTROLLER: usize = 0x3000_F000;
+const PSRAM_CONFIGURE: usize = 0x2005_2000;
+
+const PSRAM_BASE: usize = 0x5000_0000;
 
 // UART3 is in the C907 (aka MM aka D0) power domain
 /*
@@ -63,96 +84,81 @@ pub unsafe extern "C" fn start() -> ! {
         // clear bss segment
         "la     t0, __bss_start",
         "la     t1, __bss_end",
-        "1:",
+        "2:",
         "bgeu   t0, t1, 1f",
         "sw     x0, 0(t0)",
         "addi   t0, t0, 4",
-        "j      1b",
+        "j      2b",
         "1:",
         // 3. prepare stack
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
         "call   {main}",
-        // reset
-        "li     t0, {sys_reset}",
-        "lw     t1, 0(t0)",
-        "ori    t1, t1, 1 << 2",
-        "sw     t1, 0(t0)",
         stack      = sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        sys_reset  = const MM_SW_SYS_RESET,
         main       = sym main,
     )
 }
 
-/*
-const GPIO_MODE_IN: u32 = 1 << 0;
-const GPIO_PULL_UP: u32 = 1 << 4;
-const GPIO_MODE_OUT: u32 = 1 << 6;
+fn init_logger(u: uart::BSerial) {
+    static ONCE: spin::Once<()> = spin::Once::new();
 
-const GPIO_FUN_UART: u32 = 7 << 8;
-const GPIO_FUN_MM_UART: u32 = 21 << 8;
-*/
-
-fn sleep() {
-    unsafe {
-        for _ in 0..0x200000 {
-            riscv::asm::nop();
-        }
-    }
+    ONCE.call_once(|| unsafe {
+        static mut SERIAL: Option<uart::BSerial> = None;
+        SERIAL.replace(u);
+        log::init(SERIAL.as_mut().unwrap());
+    });
 }
 
-const PSRAM_CONFIGURE: usize = 0x2005_2000;
-
-const PSRAM_BASE: usize = 0x5000_0000;
-
 fn main() {
+    let p = Peripherals::take().unwrap();
+    let glb = p.GLB;
+    // init::gpio_uart_init(&glb);
+    let serial = uart::BSerial::new(p.UART0);
+    init_logger(serial);
+
+    udelay(0x5000);
+    println!("oreboot 🦀");
+
+    const UHS_PLL_CFG1_EVEN_DIV_EN: u32 = 1 << 7;
+    const UHS_PLL_CFG1_EVEN_DIV_RATIO: u32 = 0b1111111;
+
+    let cfg1 = read32(UHS_PLL_CFG1);
+    println!("PLL CFG1: {cfg1:08x}");
+    write32(UHS_PLL_CFG1, (cfg1 & !(0b11 << 16)));
+    let cfg1 = read32(UHS_PLL_CFG1);
+    println!("PLL CFG1: {cfg1:08x}");
+    write32(UHS_PLL_CFG1, (cfg1 & !(0b1111 << 8)) | (0b0010 << 8));
+    let cfg1 = read32(UHS_PLL_CFG1);
+    println!("PLL CFG1: {cfg1:08x}");
+
+    let cfg4 = read32(UHS_PLL_CFG4);
+    println!("PLL CFG4: {cfg4:08x}");
+    write32(UHS_PLL_CFG4, (cfg4 & !(0b11)) | 0b10);
+    let cfg4 = read32(UHS_PLL_CFG4);
+    println!("PLL CFG4: {cfg4:08x}");
+
+    let cfg5 = read32(UHS_PLL_CFG5);
+    println!("PLL CFG5: {cfg5:08x}");
+    write32(UHS_PLL_CFG5, (cfg5 & !(0b111)) | 0b100);
+    let cfg5 = read32(UHS_PLL_CFG5);
+    println!("PLL CFG5: {cfg5:08x}");
+
+    let cfg1 = read32(UHS_PLL_CFG1);
+    println!("PLL CFG1: {cfg1:08x}");
+    let m = !(UHS_PLL_CFG1_EVEN_DIV_EN | UHS_PLL_CFG1_EVEN_DIV_RATIO);
+    write32(UHS_PLL_CFG1, (cfg1 & m) | UHS_PLL_CFG1_EVEN_DIV_EN | 28);
+    let cfg1 = read32(UHS_PLL_CFG1);
+    println!("PLL CFG1: {cfg1:08x}");
+
     unsafe {
-        /*
-        /* GPIO mode config */
-        let cfg_mm_uart_tx = GPIO_FUN_MM_UART | GPIO_MODE_OUT;
-        let cfg_mm_uart_rx = GPIO_FUN_MM_UART | GPIO_PULL_UP | GPIO_MODE_IN;
-        let cfg_uart_tx = GPIO_FUN_UART | GPIO_MODE_OUT;
-        let cfg_uart_rx = GPIO_FUN_UART | GPIO_PULL_UP | GPIO_MODE_IN;
-        write_volatile(GPIO_CFG14 as *mut u32, cfg_uart_tx);
-        write_volatile(GPIO_CFG15 as *mut u32, cfg_uart_rx);
-        write_volatile(GPIO_CFG16 as *mut u32, cfg_mm_uart_tx);
-        write_volatile(GPIO_CFG17 as *mut u32, cfg_mm_uart_rx);
-
-        /* GPIO UART function config */
-        let cfg1 = read_volatile(UART_CFG1 as *mut u32);
-        const GPIO14_UART0TX: u32 = 2 << 8;
-        const GPIO15_UART0RX: u32 = 3 << 12;
-        let uart_cfg = cfg1 & 0xffff00ff | GPIO14_UART0TX | GPIO15_UART0RX;
-        write_volatile(UART_CFG1 as *mut u32, uart_cfg);
-
-        /* Enable UART clock */
-        let cfg0 = read_volatile(UART_CFG0 as *mut u32);
-        write_volatile(UART_CFG0 as *mut u32, cfg0 | (1 << 4));
-
-        // TX config
-        write_volatile(UART0_TX_CFG as *mut u32, UART_TX_CFG);
-        write_volatile(UART3_TX_CFG as *mut u32, UART_TX_CFG);
-
-        /* baud rate configuration */
-        // lower 16 bits are for TX; default (mask ROM) is 0x02b4 or 0x02b5
-        let b0 = read_volatile(UART0_BIT_PRD as *mut u32);
-        // let b1 = read_volatile(UART3_BIT_PRD as *mut u32);
-        // set to the same as b0
-        write_volatile(UART3_BIT_PRD as *mut u32, b0);
-        */
-        // CCCCCC.... AAAAAA....
         loop {
-            write_volatile(UART0_FIFO_WDATA as *mut u32, 'C' as u32);
-            write_volatile(UART0_FIFO_WDATA as *mut u32, '9' as u32);
-            write_volatile(UART0_FIFO_WDATA as *mut u32, '0' as u32);
-            write_volatile(UART0_FIFO_WDATA as *mut u32, '6' as u32);
-            write_volatile(UART0_FIFO_WDATA as *mut u32, '\r' as u32);
-            write_volatile(UART0_FIFO_WDATA as *mut u32, '\n' as u32);
-            // write_volatile(UART3_FIFO_WDATA as *mut u32, 'A' as u32);
+            println!("LOL");
             sleep();
         }
+        let reset = read_volatile(MM_SW_SYS_RESET as *mut u32);
+        write_volatile(MM_SW_SYS_RESET as *mut u32, reset | (1 << 2));
     }
 }
 
