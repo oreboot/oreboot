@@ -10,6 +10,20 @@ pub fn read32(reg: usize) -> u32 {
     unsafe { read_volatile(reg as *mut u32) }
 }
 
+pub fn clear_bit(reg: usize, bit: u32) {
+    unsafe {
+        let v = read32(reg);
+        write32(reg, v & !(1 << bit));
+    }
+}
+
+pub fn set_bit(reg: usize, bit: u32) {
+    unsafe {
+        let v = read32(reg);
+        write32(reg, v | (1 << bit));
+    }
+}
+
 pub fn dump(addr: usize, length: usize) {
     let s = unsafe { core::slice::from_raw_parts(addr as *const u8, length) };
     println!("dump {length} bytes @{addr:x}");
