@@ -4,6 +4,7 @@ RELEASE := release
 IMAGE_NAME := sipeed-m1s-dock-c906
 IMAGE_ELF := "$(OREBOOT)/target/$(TARGET)/$(RELEASE)/$(IMAGE_NAME)"
 IMAGE_BIN := "$(IMAGE_ELF).bin"
+PORT ?= /dev/ttyUSB1
 
 cibuild: mainboard
 
@@ -24,7 +25,7 @@ mainboard:
 	cargo objcopy -- -O binary "$(IMAGE_BIN)"
 
 run: mainboard
-	bl_boot run empty.bin "$(IMAGE_BIN)"
+	bl_boot run -p $(PORT) empty.bin "$(IMAGE_BIN)"
 
 objdump: mainboard
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"
