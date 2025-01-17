@@ -115,7 +115,7 @@ fn main() {
     init::gpio_uart_init(&glb);
     let serial = uart::BSerial::new(p.UART0, p.UART1);
     // print to UART0
-    serial.debug(b'*' as u8);
+    serial.debug(b'*');
 
     init_logger(serial);
 
