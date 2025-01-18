@@ -35,12 +35,17 @@ const PHY_CFG_DQ7: usize = PHY_CFG_BASE + 0x24;
 
 const PHY_CFG_DQS0: usize = PHY_CFG_BASE + 0x28;
 const PHY_CFG_DQS1: usize = PHY_CFG_BASE + 0x2C;
+
 const PHY_CFG_30: usize = PHY_CFG_BASE + 0x30;
-const PHY_CFG_34: usize = PHY_CFG_BASE + 0x34;
-const PHY_CFG_38: usize = PHY_CFG_BASE + 0x38;
-const PHY_CFG_3C: usize = PHY_CFG_BASE + 0x3C;
+
+const PHY_TIMER_1: usize = PHY_CFG_BASE + 0x34;
+const PHY_TIMER_2: usize = PHY_CFG_BASE + 0x38;
+const PHY_TIMER_3: usize = PHY_CFG_BASE + 0x3C;
+
 const PHY_CFG_40: usize = PHY_CFG_BASE + 0x40;
-const PHY_CFG_44: usize = PHY_CFG_BASE + 0x44;
+
+const PHY_TIMER_4: usize = PHY_CFG_BASE + 0x44;
+
 const PHY_CFG_48: usize = PHY_CFG_BASE + 0x48;
 const PHY_CFG_4C: usize = PHY_CFG_BASE + 0x4C;
 const PHY_CFG_50: usize = PHY_CFG_BASE + 0x50;
@@ -66,9 +71,32 @@ const PHY_CFG_04_DM1_DLY_DRV_OFFSET: u32 = 12;
 const PHY_CFG_04_DM0_SR_OFFSET: u32 = 20;
 const PHY_CFG_04_DM0_DLY_DRV_OFFSET: u32 = 28;
 
-const PHY_CFG_30_OE_TIMER_MASK: u32 = 0b11 << 24;
+const PHY_CFG_30_WL_DQ_DIG_OFFSET: u32 = 0;
+const PHY_CFG_30_WL_DQ_ANA_OFFSET: u32 = 4;
+const PHY_CFG_30_WL_DIG_OFFSET: u32 = 8;
+const PHY_CFG_30_WL_ANA_OFFSET: u32 = 12;
+const PHY_CFG_30_RL_DIG_OFFSET: u32 = 16;
+const PHY_CFG_30_RL_ANA_OFFSET: u32 = 20;
+const PHY_CFG_30_OE_TIMER_OFFSET: u32 = 24;
 const PHY_CFG_30_VREF_MODE_BIT: u32 = 26;
-const PHY_CFG_30_ODT_SELECT_MASK: u32 = 0b1111 << 28;
+const PHY_CFG_30_OE_CTRL_HW_BIT: u32 = 27;
+const PHY_CFG_30_ODT_SELECT_OFFSET: u32 = 28;
+const PHY_CFG_30_OE_TIMER_MASK: u32 = 0b11 << PHY_CFG_30_OE_TIMER_OFFSET;
+const PHY_CFG_30_ODT_SELECT_MASK: u32 = 0b1111 << PHY_CFG_30_ODT_SELECT_OFFSET;
+
+const PHY_TIMER_1_DQS_START_OFFSET: u32 = 0;
+const PHY_TIMER_1_DQS_ARRAY_STOP_OFFSET: u32 = 8;
+const PHY_TIMER_1_ARRAY_WRITE_OFFSET: u32 = 16;
+const PHY_TIMER_1_ARRAY_READ_OFFSET: u32 = 24;
+
+const PHY_TIMER_2_AUTO_REFRESH_OFFSET: u32 = 0;
+const PHY_TIMER_2_REG_WRITE_OFFSET: u32 = 8;
+const PHY_TIMER_2_REG_READ_OFFSET: u32 = 16;
+const PHY_TIMER_2_DQS_STOP_OFFSET: u32 = 24;
+
+const PHY_TIMER_3_SELF_REFRESH1_IN_OFFSET: u32 = 0;
+const PHY_TIMER_3_SELF_REFRESH1_EXIT_OFFSET: u32 = 8;
+const PHY_TIMER_3_GLOBAL_RST_OFFSET: u32 = 16;
 
 const PHY_CFG_40_UNK0_OFFSET: u32 = 16;
 const PHY_CFG_40_UNK1_OFFSET: u32 = 20;
@@ -77,6 +105,11 @@ const PHY_CFG_40_UNK0_MASK: u32 = 0b11 << PHY_CFG_40_UNK0_OFFSET;
 const PHY_CFG_40_UNK1_MASK: u32 = 0b11 << PHY_CFG_40_UNK1_OFFSET;
 const PHY_CFG_40_DMY0_MASK: u32 = 0b1111_1111 << PHY_CFG_40_DMY0_OFFSET;
 
+const PHY_TIMER_4_ARRAY_READ_BUSY_OFFSET: u32 = 0;
+const PHY_TIMER_4_ARRAY_WRITE_BUSY_OFFSET: u32 = 8;
+const PHY_TIMER_4_REG_READ_BUSY_OFFSET: u32 = 16;
+const PHY_TIMER_4_REG_WRITE_BUSY_OFFSET: u32 = 24;
+
 const PHY_CFG_48_PSRAM_TYPE_OFFSET: u32 = 8;
 const PHY_CFG_48_PSRAM_TYPE_MASK: u32 = 0b11 << PHY_CFG_48_PSRAM_TYPE_OFFSET;
 
@@ -84,13 +117,16 @@ const PHY_CFG_4C_ODT_SEL_DLY_OFFSET: u32 = 16;
 const PHY_CFG_4C_ODT_SEL_DLY_MASK: u32 = 0b1111 << PHY_CFG_4C_ODT_SEL_DLY_OFFSET;
 const PHY_CFG_4C_ODT_SEL_HW_BIT: u32 = 20;
 
-const PHY_CFG_50_DQ_OE_MID_P_MASK: u32 = 0b11 << 8;
-const PHY_CFG_50_DQ_OE_MID_N_MASK: u32 = 0b11 << 12;
-
+const PHY_CFG_50_DQ_OE_MID_P_OFFSET: u32 = 8;
+const PHY_CFG_50_DQ_OE_MID_N_OFFSET: u32 = 12;
 const PHY_CFG_50_DQ_OE_UP_P_OFFSET: u32 = 0;
 const PHY_CFG_50_DQ_OE_UP_N_OFFSET: u32 = 4;
 const PHY_CFG_50_DQ_OE_DN_P_OFFSET: u32 = 16;
 const PHY_CFG_50_DQ_OE_DN_N_OFFSET: u32 = 20;
+const PHY_CFG_50_WL_CEN_ANA_OFFSET: u32 = 24;
+const PHY_CFG_50_DQ_OE_MID_P_MASK: u32 = 0b11 << PHY_CFG_50_DQ_OE_MID_P_OFFSET;
+const PHY_CFG_50_DQ_OE_MID_N_MASK: u32 = 0b11 << PHY_CFG_50_DQ_OE_MID_N_OFFSET;
+const PHY_CFG_50_WL_CEN_ANA_MASK: u32 = 0b111 << PHY_CFG_50_WL_CEN_ANA_OFFSET;
 
 const PHY_CFG_DQN_SR_OFFSET: u32 = 0;
 const PHY_CFG_DQN_DLY_RX_OFFSET: u32 = 8;
@@ -185,8 +221,184 @@ pub fn analog_init() {
     udelay(1);
 }
 
+struct PhyCfg {
+    wl_dq_dig: u32,
+    wl_dq_ana: u32,
+    wl_dig: u32,
+    wl_ana: u32,
+    rl_dig: u32,
+    rl_ana: u32,
+    //oe_timer: u32,
+    timer_dqs_start: u32,
+    timer_dqs_array_stop: u32,
+    timer_array_write: u32,
+    timer_array_read: u32,
+
+    timer_auto_refresh: u32,
+    timer_reg_read: u32,
+    timer_reg_write: u32,
+    timer_dqs_stop: u32,
+
+    timer_self_refresh1_in: u32,
+    timer_self_refresh1_exit: u32,
+    timer_global_rst: u32,
+
+    timer_array_read_busy: u32,
+    timer_array_write_busy: u32,
+    timer_reg_read_busy: u32,
+    timer_reg_write_busy: u32,
+
+    wl_cen_ana: u32,
+}
+
+/* cfg_30..44 = 0f130010 05000101 02080108 03420909 040b0408 */
+const CFG_666: PhyCfg = PhyCfg {
+    wl_dq_dig: 0,
+    wl_dq_ana: 1,
+    wl_dig: 0,
+    wl_ana: 0,
+    rl_dig: 3,
+    rl_ana: 1,
+    //oe_timer: 15,
+    timer_dqs_start: 1,
+    timer_dqs_array_stop: 1,
+    timer_array_write: 0,
+    timer_array_read: 5,
+
+    timer_auto_refresh: 8,
+    timer_reg_read: 1,
+    timer_reg_write: 8,
+    timer_dqs_stop: 2,
+
+    timer_self_refresh1_in: 9,
+    timer_self_refresh1_exit: 9,
+    timer_global_rst: 834,
+
+    timer_array_read_busy: 8,
+    timer_array_write_busy: 4,
+    timer_reg_read_busy: 11,
+    timer_reg_write_busy: 4,
+
+    wl_cen_ana: 0,
+};
+
+/* cfg_30..44 = 0f270212 06010202 0309020d 05360e0e 050c0509 */
+const CFG_1066: PhyCfg = PhyCfg {
+    wl_dq_dig: 2,
+    wl_dq_ana: 1,
+    wl_dig: 2,
+    wl_ana: 0,
+    rl_dig: 7,
+    rl_ana: 2,
+    //oe_timer: 15,
+    timer_dqs_start: 2,
+    timer_dqs_array_stop: 2,
+    timer_array_write: 1,
+    timer_array_read: 6,
+
+    timer_auto_refresh: 13,
+    timer_reg_read: 2,
+    timer_reg_write: 9,
+    timer_dqs_stop: 3,
+
+    timer_self_refresh1_in: 14,
+    timer_self_refresh1_exit: 14,
+    timer_global_rst: 1334,
+
+    timer_array_read_busy: 9,
+    timer_array_write_busy: 5,
+    timer_reg_read_busy: 12,
+    timer_reg_write_busy: 5,
+
+    wl_cen_ana: 1,
+};
+
+/* cfg_30..44 = 0f270212 09020303 040c0313 07d11515 060f060c */
+const CFG_1600: PhyCfg = PhyCfg {
+    wl_dq_dig: 2,
+    wl_dq_ana: 1,
+    wl_dig: 2,
+    wl_ana: 0,
+    rl_dig: 7,
+    rl_ana: 2,
+    //oe_timer: 15,
+    timer_dqs_start: 3,
+    timer_dqs_array_stop: 3,
+    timer_array_write: 2,
+    timer_array_read: 9,
+
+    timer_auto_refresh: 19,
+    timer_reg_read: 3,
+    timer_reg_write: 12,
+    timer_dqs_stop: 4,
+
+    timer_self_refresh1_in: 21,
+    timer_self_refresh1_exit: 21,
+    timer_global_rst: 2001,
+
+    timer_array_read_busy: 12,
+    timer_array_write_busy: 6,
+    timer_reg_read_busy: 15,
+    timer_reg_write_busy: 6,
+
+    wl_cen_ana: 1,
+};
+
+// TODO: Use bitfield structs and Tock registers?
 pub fn config_uhs_phy() {
-    //
+    // NOTE: The C code panics earlier for freq >= 2200.
+    let cfg = match P_CLOCK_FREQUENCY {
+        1866.. => todo!(),
+        1600..1866 => CFG_1600,
+        1066..1600 => CFG_1066,
+        800..1066 => todo!(),
+        666..800 => CFG_666,
+        400..666 => todo!(),
+        _ => todo!(),
+    };
+
+    let cfg30 = (cfg.wl_dq_dig << PHY_CFG_30_WL_DQ_DIG_OFFSET)
+        | (cfg.wl_dq_ana << PHY_CFG_30_WL_DQ_ANA_OFFSET)
+        | (cfg.wl_dig << PHY_CFG_30_WL_DIG_OFFSET)
+        | (cfg.wl_ana << PHY_CFG_30_WL_ANA_OFFSET)
+        | (cfg.rl_dig << PHY_CFG_30_RL_DIG_OFFSET)
+        | (cfg.rl_ana << PHY_CFG_30_RL_ANA_OFFSET)
+        // NOTE: commented out in struct
+        // | (cfg.oe_timer << PHY_CFG_30_OE_TIMER_OFFSET)
+        | (3 << PHY_CFG_30_OE_TIMER_OFFSET)
+        | (1 << PHY_CFG_30_VREF_MODE_BIT)
+        | (1 << PHY_CFG_30_OE_CTRL_HW_BIT);
+    write32(PHY_CFG_30, cfg30);
+
+    let cfg_timer1 = (cfg.timer_dqs_start << PHY_TIMER_1_DQS_START_OFFSET)
+        | (cfg.timer_dqs_array_stop << PHY_TIMER_1_DQS_ARRAY_STOP_OFFSET)
+        | (cfg.timer_array_write << PHY_TIMER_1_ARRAY_WRITE_OFFSET)
+        | (cfg.timer_array_read << PHY_TIMER_1_ARRAY_READ_OFFSET);
+    write32(PHY_TIMER_1, cfg_timer1);
+
+    let cfg_timer2 = (cfg.timer_auto_refresh << PHY_TIMER_2_AUTO_REFRESH_OFFSET)
+        | (cfg.timer_reg_write << PHY_TIMER_2_REG_WRITE_OFFSET)
+        | (cfg.timer_reg_read << PHY_TIMER_2_REG_READ_OFFSET)
+        | (cfg.timer_dqs_stop << PHY_TIMER_2_DQS_STOP_OFFSET);
+    write32(PHY_TIMER_2, cfg_timer2);
+
+    let cfg_timer3 = (cfg.timer_self_refresh1_in << PHY_TIMER_3_SELF_REFRESH1_IN_OFFSET)
+        | (cfg.timer_self_refresh1_exit << PHY_TIMER_3_SELF_REFRESH1_EXIT_OFFSET)
+        | (cfg.timer_global_rst << PHY_TIMER_3_GLOBAL_RST_OFFSET);
+    write32(PHY_TIMER_3, cfg_timer3);
+
+    let cfg_timer4 = (cfg.timer_array_read_busy << PHY_TIMER_4_ARRAY_READ_BUSY_OFFSET)
+        | (cfg.timer_array_write_busy << PHY_TIMER_4_ARRAY_WRITE_BUSY_OFFSET)
+        | (cfg.timer_reg_read_busy << PHY_TIMER_4_REG_READ_BUSY_OFFSET)
+        | (cfg.timer_reg_write_busy << PHY_TIMER_4_REG_WRITE_BUSY_OFFSET);
+    write32(PHY_TIMER_4, cfg_timer4);
+
+    let cfg50 = read32(PHY_CFG_50);
+    let m = !(PHY_CFG_50_WL_CEN_ANA_MASK);
+    write32(
+        PHY_CFG_50,
+        (cfg50 & m) | (cfg.wl_cen_ana << PHY_CFG_50_WL_CEN_ANA_OFFSET),
+    );
 }
 
 pub fn init() {
@@ -195,7 +407,15 @@ pub fn init() {
     // TIMING_CTRL_TCPHW_CYCLE
     // TIMING_CTRL_TCPHR_CYCLE
     // TIMING_CTRL_TRC_CYCLE
-    let timing = (18 << 24) | (2 << 16) | 11;
+    let timing = match P_CLOCK_FREQUENCY {
+        // FIXME: guarantee at build time
+        2200.. => panic!("..."),
+        1800..2200 => todo!(),
+        1500..1800 => todo!(),
+        1400..1500 => (18 << 24) | (2 << 16) | 11,
+        666..1400 => todo!(),
+        _ => todo!(),
+    };
     write32(TIMING_CTRL, timing);
 
     println!("analog init");
