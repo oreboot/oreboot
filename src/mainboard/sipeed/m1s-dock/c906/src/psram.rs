@@ -2,7 +2,7 @@ use crate::init::glb_power_up_ldo12uhs;
 use crate::util::{clear_bit, read32, set_bit, sleep, udelay, write32};
 
 // TODO: figure out value
-const EXT_TEMP_RANGE: bool = true;
+const EXT_TEMP_RANGE: bool = false;
 
 const P_CLOCK_FREQUENCY: u32 = 1400;
 const MEM_SIZE: u32 = 64;
@@ -458,9 +458,9 @@ pub fn init() {
 
     // set refresh windows cycle count
     let (auto_refresh_1, auto_refresh_2) = if EXT_TEMP_RANGE {
-        (750000, 370)
-    } else {
         (1500000, 190)
+    } else {
+        (750000, 370)
     };
     write32(AUTO_FRESH_1, auto_refresh_1);
     let af2 = read32(AUTO_FRESH_2);
@@ -473,7 +473,7 @@ pub fn init() {
 
     let basic = read32(BASIC);
     let m = !(BASIC_ADDRMB_MSK_MASK | BASIC_LINEAR_BND_B_MASK);
-    let v = (MEM_SIZE << BASIC_ADDRMB_MSK_OFFSET)
+    let v = ((MEM_SIZE - 1) << BASIC_ADDRMB_MSK_OFFSET)
         | (PAGE_SIZE << BASIC_LINEAR_BND_B_OFFSET)
         | BASIC_AF_EN_BIT;
     write32(BASIC, (basic & m) | v);
