@@ -1,7 +1,11 @@
 use crate::init::glb_power_up_ldo12uhs;
 use crate::util::{clear_bit, read32, set_bit, sleep, udelay, write32};
 
+// TODO: figure out value
+const EXT_TEMP_RANGE: bool = true;
+
 const P_CLOCK_FREQUENCY: u32 = 1400;
+const MEM_SIZE: u32 = 64;
 const PAGE_SIZE: u32 = 11;
 
 const CONTROLLER_BASE: usize = 0x3000_F000;
@@ -16,9 +20,22 @@ const AUTO_FRESH_4: usize = CONTROLLER_BASE + 0x001C;
 const CONFIGURE: usize = CONTROLLER_BASE + 0x0020;
 const STATUS: usize = CONTROLLER_BASE + 0x0024;
 
+const BASIC_INIT_EN_BIT: u32 = 0;
+const BASIC_AF_EN_BIT: u32 = 1;
+const BASIC_ADDRMB_MSK_OFFSET: u32 = 16;
+const BASIC_ADDRMB_MSK_MASK: u32 = 0b1111_1111 << BASIC_ADDRMB_MSK_OFFSET;
+const BASIC_LINEAR_BND_B_OFFSET: u32 = 28;
+const BASIC_LINEAR_BND_B_MASK: u32 = 0b1111 << BASIC_LINEAR_BND_B_OFFSET;
+
 const TIMING_CTRL: usize = CONTROLLER_BASE + 0x0030;
 
 const DEBUG_SELECT: usize = CONTROLLER_BASE + 0x00C0;
+
+const MANUAL_P_CLOCK_T_DIVIDER_OFFSET: u32 = 24;
+const MANUAL_P_CLOCK_T_DIVIDER_MASK: u32 = 0b1111_1111 << MANUAL_P_CLOCK_T_DIVIDER_OFFSET;
+
+const AUTO_FRESH_4_BUST_CYCLE_MASK: u32 = 0x7f;
+const AUTO_FRESH_2_REFI_CYCLE_MASK: u32 = 0xffff;
 
 const PHY_CFG_BASE: usize = CONTROLLER_BASE + 0x0100;
 const PHY_CFG_00: usize = PHY_CFG_BASE;
@@ -424,7 +441,45 @@ pub fn init() {
     config_uhs_phy();
     udelay(150);
 
-    // TODO
+    // refresh parameter
+    let p_clock_t_divider = match P_CLOCK_FREQUENCY {
+        // NOTE: This would panic above.
+        2200.. => 5,
+        1800..2200 => 4,
+        1500..1800 => 3,
+        1400..1500 => 2,
+        666..1400 => 1,
+        _ => 0,
+    };
+    let manual = read32(MANUAL);
+    let m = !MANUAL_P_CLOCK_T_DIVIDER_MASK;
+    let v = (p_clock_t_divider << MANUAL_P_CLOCK_T_DIVIDER_OFFSET);
+    write32(MANUAL, (manual & m) | v);
+
+    // set refresh windows cycle count
+    let (auto_refresh_1, auto_refresh_2) = if EXT_TEMP_RANGE {
+        (750000, 370)
+    } else {
+        (1500000, 190)
+    };
+    write32(AUTO_FRESH_1, auto_refresh_1);
+    let af2 = read32(AUTO_FRESH_2);
+    let m = !AUTO_FRESH_2_REFI_CYCLE_MASK;
+    write32(AUTO_FRESH_2, (af2 & m) | auto_refresh_2);
+
+    let af4 = read32(AUTO_FRESH_4);
+    let m = !AUTO_FRESH_4_BUST_CYCLE_MASK;
+    write32(AUTO_FRESH_4, (af4 & m) | 5);
+
+    let basic = read32(BASIC);
+    let m = !(BASIC_ADDRMB_MSK_MASK | BASIC_LINEAR_BND_B_MASK);
+    let v = (MEM_SIZE << BASIC_ADDRMB_MSK_OFFSET)
+        | (PAGE_SIZE << BASIC_LINEAR_BND_B_OFFSET)
+        | BASIC_AF_EN_BIT;
+    write32(BASIC, (basic & m) | v);
+
+    let basic = read32(BASIC);
+    write32(BASIC, basic | BASIC_INIT_EN_BIT);
 
     println!("PSRAM init done :)");
 }
