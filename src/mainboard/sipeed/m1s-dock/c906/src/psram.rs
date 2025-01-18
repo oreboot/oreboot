@@ -20,22 +20,22 @@ const AUTO_FRESH_4: usize = CONTROLLER_BASE + 0x001C;
 const CONFIGURE: usize = CONTROLLER_BASE + 0x0020;
 const STATUS: usize = CONTROLLER_BASE + 0x0024;
 
-const BASIC_INIT_EN_BIT: u32 = 0;
-const BASIC_AF_EN_BIT: u32 = 1;
-const BASIC_ADDRMB_MSK_OFFSET: u32 = 16;
-const BASIC_ADDRMB_MSK_MASK: u32 = 0b1111_1111 << BASIC_ADDRMB_MSK_OFFSET;
-const BASIC_LINEAR_BND_B_OFFSET: u32 = 28;
-const BASIC_LINEAR_BND_B_MASK: u32 = 0b1111 << BASIC_LINEAR_BND_B_OFFSET;
-
 const TIMING_CTRL: usize = CONTROLLER_BASE + 0x0030;
 
 const DEBUG_SELECT: usize = CONTROLLER_BASE + 0x00C0;
 
+const BASIC_INIT_EN_BIT: u32 = 0;
+const BASIC_AF_EN_BIT: u32 = 1;
+const BASIC_ADDR_MB_OFFSET: u32 = 16;
+const BASIC_ADDR_MB_MASK: u32 = 0b1111_1111 << BASIC_ADDR_MB_OFFSET;
+const BASIC_LINEAR_BND_B_OFFSET: u32 = 28;
+const BASIC_LINEAR_BND_B_MASK: u32 = 0b1111 << BASIC_LINEAR_BND_B_OFFSET;
+
 const MANUAL_P_CLOCK_T_DIVIDER_OFFSET: u32 = 24;
 const MANUAL_P_CLOCK_T_DIVIDER_MASK: u32 = 0b1111_1111 << MANUAL_P_CLOCK_T_DIVIDER_OFFSET;
 
-const AUTO_FRESH_4_BUST_CYCLE_MASK: u32 = 0x7f;
 const AUTO_FRESH_2_REFI_CYCLE_MASK: u32 = 0xffff;
+const AUTO_FRESH_4_BUST_CYCLE_MASK: u32 = 0x7f;
 
 const PHY_CFG_BASE: usize = CONTROLLER_BASE + 0x0100;
 const PHY_CFG_00: usize = PHY_CFG_BASE;
@@ -107,6 +107,7 @@ const PHY_TIMER_1_ARRAY_WRITE_OFFSET: u32 = 16;
 const PHY_TIMER_1_ARRAY_READ_OFFSET: u32 = 24;
 
 const PHY_TIMER_2_AUTO_REFRESH_OFFSET: u32 = 0;
+// FIXME: It looks like WRITE and READ are swapped. In the constants, they are.
 const PHY_TIMER_2_REG_WRITE_OFFSET: u32 = 8;
 const PHY_TIMER_2_REG_READ_OFFSET: u32 = 16;
 const PHY_TIMER_2_DQS_STOP_OFFSET: u32 = 24;
@@ -330,6 +331,9 @@ const CFG_1066: PhyCfg = PhyCfg {
     wl_cen_ana: 1,
 };
 
+// WE GET:      0f270212 09020303 04030c13 07d11515 060f060c
+// NOTE: The order of timer_reg_read and timer_reg_write is swapped in the
+// register definitions (also in C reference code).
 /* cfg_30..44 = 0f270212 09020303 040c0313 07d11515 060f060c */
 const CFG_1600: PhyCfg = PhyCfg {
     wl_dq_dig: 2,
@@ -365,12 +369,12 @@ const CFG_1600: PhyCfg = PhyCfg {
 pub fn config_uhs_phy() {
     // NOTE: The C code panics earlier for freq >= 2200.
     let cfg = match P_CLOCK_FREQUENCY {
-        1866.. => todo!(),
-        1600..1866 => CFG_1600,
-        1066..1600 => CFG_1066,
-        800..1066 => todo!(),
-        666..800 => CFG_666,
-        400..666 => todo!(),
+        1867.. => todo!(),
+        1601..=1866 => todo!(),
+        1067..=1600 => CFG_1600,
+        801..=1066 => CFG_1066,
+        667..=800 => todo!(), // CFG_800,
+        401..=666 => CFG_666,
         _ => todo!(),
     };
 
@@ -410,6 +414,14 @@ pub fn config_uhs_phy() {
         | (cfg.timer_reg_write_busy << PHY_TIMER_4_REG_WRITE_BUSY_OFFSET);
     write32(PHY_TIMER_4, cfg_timer4);
 
+    let c30 = read32(PHY_CFG_30);
+    let t1 = read32(PHY_TIMER_1);
+    let t2 = read32(PHY_TIMER_2);
+    let t3 = read32(PHY_TIMER_3);
+    let t4 = read32(PHY_TIMER_4);
+
+    println!("CHECK: {c30:08x} {t1:08x} {t2:08x} {t3:08x} {t4:08x}");
+
     let cfg50 = read32(PHY_CFG_50);
     let m = !(PHY_CFG_50_WL_CEN_ANA_MASK);
     write32(
@@ -419,19 +431,24 @@ pub fn config_uhs_phy() {
 }
 
 pub fn init() {
-    //
-    // TIMING_CTRL_TRFC_CYCLE
-    // TIMING_CTRL_TCPHW_CYCLE
-    // TIMING_CTRL_TCPHR_CYCLE
-    // TIMING_CTRL_TRC_CYCLE
+    const TIMING_CTRL_TRFC_CYCLE_OFFSET: u32 = 24;
+    const TIMING_CTRL_TCPHW_CYCLE_OFFSET: u32 = 16;
+    const TIMING_CTRL_TCPHR_CYCLE_OFFSET: u32 = 8;
+    const TIMING_CTRL_TRC_CYCLE_OFFSET: u32 = 0;
+
     let timing = match P_CLOCK_FREQUENCY {
         // FIXME: guarantee at build time
-        2200.. => panic!("..."),
-        1800..2200 => todo!(),
-        1500..1800 => todo!(),
-        1400..1500 => (18 << 24) | (2 << 16) | 11,
-        666..1400 => todo!(),
-        _ => todo!(),
+        2301.. => panic!("..."),
+        1601..=2300 => {
+            (26 << TIMING_CTRL_TRFC_CYCLE_OFFSET)
+                | (3 << TIMING_CTRL_TCPHW_CYCLE_OFFSET)
+                | (15 << TIMING_CTRL_TRC_CYCLE_OFFSET)
+        }
+        ..=1600 => {
+            (18 << TIMING_CTRL_TRFC_CYCLE_OFFSET)
+                | (2 << TIMING_CTRL_TCPHW_CYCLE_OFFSET)
+                | (11 << TIMING_CTRL_TRC_CYCLE_OFFSET)
+        }
     };
     write32(TIMING_CTRL, timing);
 
@@ -472,8 +489,8 @@ pub fn init() {
     write32(AUTO_FRESH_4, (af4 & m) | 5);
 
     let basic = read32(BASIC);
-    let m = !(BASIC_ADDRMB_MSK_MASK | BASIC_LINEAR_BND_B_MASK);
-    let v = ((MEM_SIZE - 1) << BASIC_ADDRMB_MSK_OFFSET)
+    let m = !(BASIC_ADDR_MB_MASK | BASIC_LINEAR_BND_B_MASK);
+    let v = ((MEM_SIZE - 1) << BASIC_ADDR_MB_OFFSET)
         | (PAGE_SIZE << BASIC_LINEAR_BND_B_OFFSET)
         | BASIC_AF_EN_BIT;
     write32(BASIC, (basic & m) | v);
