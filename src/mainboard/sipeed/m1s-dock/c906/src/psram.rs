@@ -8,15 +8,19 @@ const P_CLOCK_FREQUENCY: u32 = 1400;
 const MEM_SIZE: u32 = 64;
 const PAGE_SIZE: u32 = 11;
 
+// Controller
 const CONTROLLER_BASE: usize = 0x3000_F000;
+
 const BASIC: usize = CONTROLLER_BASE;
 const CMD: usize = CONTROLLER_BASE + 0x0004;
 const FIFO_THRE: usize = CONTROLLER_BASE + 0x0008;
 const MANUAL: usize = CONTROLLER_BASE + 0x000C;
+
 const AUTO_FRESH_1: usize = CONTROLLER_BASE + 0x0010;
 const AUTO_FRESH_2: usize = CONTROLLER_BASE + 0x0014;
 const AUTO_FRESH_3: usize = CONTROLLER_BASE + 0x0018;
 const AUTO_FRESH_4: usize = CONTROLLER_BASE + 0x001C;
+
 const CONFIGURE: usize = CONTROLLER_BASE + 0x0020;
 const STATUS: usize = CONTROLLER_BASE + 0x0024;
 
@@ -37,7 +41,9 @@ const MANUAL_P_CLOCK_T_DIVIDER_MASK: u32 = 0b1111_1111 << MANUAL_P_CLOCK_T_DIVID
 const AUTO_FRESH_2_REFI_CYCLE_MASK: u32 = 0xffff;
 const AUTO_FRESH_4_BUST_CYCLE_MASK: u32 = 0x7f;
 
+// PHY
 const PHY_CFG_BASE: usize = CONTROLLER_BASE + 0x0100;
+
 const PHY_CFG_00: usize = PHY_CFG_BASE;
 const PHY_CFG_04: usize = PHY_CFG_BASE + 0x04;
 
@@ -63,7 +69,7 @@ const PHY_CFG_40: usize = PHY_CFG_BASE + 0x40;
 
 const PHY_TIMER_4: usize = PHY_CFG_BASE + 0x44;
 
-const PHY_CFG_48: usize = PHY_CFG_BASE + 0x48;
+const PHY_PSRAM_TYPE: usize = PHY_CFG_BASE + 0x48;
 const PHY_ODT: usize = PHY_CFG_BASE + 0x4C;
 const PHY_CFG_DQ: usize = PHY_CFG_BASE + 0x50;
 
@@ -107,7 +113,7 @@ const PHY_TIMER_1_ARRAY_WRITE_OFFSET: u32 = 16;
 const PHY_TIMER_1_ARRAY_READ_OFFSET: u32 = 24;
 
 const PHY_TIMER_2_AUTO_REFRESH_OFFSET: u32 = 0;
-// FIXME: It looks like WRITE and READ are swapped. In the constants, they are.
+// FIXME: It looks like WRITE and READ are swapped. In the struct, they are.
 const PHY_TIMER_2_REG_WRITE_OFFSET: u32 = 8;
 const PHY_TIMER_2_REG_READ_OFFSET: u32 = 16;
 const PHY_TIMER_2_DQS_STOP_OFFSET: u32 = 24;
@@ -128,12 +134,12 @@ const PHY_TIMER_4_ARRAY_WRITE_BUSY_OFFSET: u32 = 8;
 const PHY_TIMER_4_REG_READ_BUSY_OFFSET: u32 = 16;
 const PHY_TIMER_4_REG_WRITE_BUSY_OFFSET: u32 = 24;
 
-const PHY_CFG_48_PSRAM_TYPE_OFFSET: u32 = 8;
-const PHY_CFG_48_PSRAM_TYPE_MASK: u32 = 0b11 << PHY_CFG_48_PSRAM_TYPE_OFFSET;
+const PHY_PSRAM_TYPE_OFFSET: u32 = 8;
+const PHY_PSRAM_TYPE_MASK: u32 = 0b11 << PHY_PSRAM_TYPE_OFFSET;
 
-const PHY_ODT_SEL_DLY_OFFSET: u32 = 16;
-const PHY_ODT_SEL_DLY_MASK: u32 = 0b1111 << PHY_ODT_SEL_DLY_OFFSET;
-const PHY_ODT_SEL_HW_BIT: u32 = 20;
+const PHY_ODT_SELECT_DELAY_OFFSET: u32 = 16;
+const PHY_ODT_SELECT_DELAY_MASK: u32 = 0b1111 << PHY_ODT_SELECT_DELAY_OFFSET;
+const PHY_ODT_SELECT_HW_BIT: u32 = 20;
 
 const PHY_CFG_DQ_OE_MID_P_OFFSET: u32 = 8;
 const PHY_CFG_DQ_OE_MID_N_OFFSET: u32 = 12;
@@ -205,14 +211,14 @@ pub fn analog_init() {
     let v = (3 << 24) | (1 << PHY_CFG_30_VREF_MODE_BIT);
     write32(PHY_CFG_30, (cfg30 & m) | v);
 
-    let cfg48 = read32(PHY_CFG_48);
-    let m = !(PHY_CFG_48_PSRAM_TYPE_MASK);
-    let v = (2 << PHY_CFG_48_PSRAM_TYPE_OFFSET);
-    write32(PHY_CFG_48, (cfg48 & m) | v);
+    let pt = read32(PHY_PSRAM_TYPE);
+    let m = !(PHY_PSRAM_TYPE_MASK);
+    let v = 2 << PHY_PSRAM_TYPE_OFFSET;
+    write32(PHY_PSRAM_TYPE, (pt & m) | v);
 
     let odt = read32(PHY_ODT);
-    let m = !(PHY_ODT_SEL_DLY_MASK | (1 << PHY_ODT_SEL_HW_BIT));
-    write32(PHY_ODT, (odt & m) | (15 << PHY_ODT_SEL_DLY_OFFSET));
+    let m = !(PHY_ODT_SELECT_DELAY_MASK | (1 << PHY_ODT_SELECT_HW_BIT));
+    write32(PHY_ODT, (odt & m) | (15 << PHY_ODT_SELECT_DELAY_OFFSET));
 
     let v = (7 << PHY_CFG_DQ_OE_UP_P_OFFSET)
         | (7 << PHY_CFG_DQ_OE_UP_N_OFFSET)
