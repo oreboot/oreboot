@@ -95,7 +95,7 @@ const DRAM_TEST_PATTERN_3: u32 = 0x6688_9900;
 
 fn dram_test(base: usize, size: usize) {
     let limit = base + size;
-    let step_size = 0x100;
+    let step_size = 0x10;
     // print 64 steps, which gets slower with a higher size to test
     let print_step = size / step_size / 64;
 
@@ -133,14 +133,13 @@ fn main() {
     let serial = uart::BSerial::new(p.UART0);
     init_logger(serial);
 
-    udelay(0x5000);
+    sleep();
     println!("oreboot 🦀");
 
     init::pll();
     psram::init();
 
-    // dram_test(PSRAM_BASE, PSRAM_SIZE);
-    dram_test(PSRAM_BASE, 0x0000_0200);
+    dram_test(PSRAM_BASE, PSRAM_SIZE / 64);
 
     unsafe {
         loop {

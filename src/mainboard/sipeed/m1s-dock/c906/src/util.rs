@@ -41,12 +41,12 @@ pub fn dump_block(base: usize, size: usize, step_size: usize) {
 
 pub fn udelay(t: usize) {
     unsafe {
-        for _ in 0..t * 3 {
+        for _ in 0..t * 480 {
             riscv::asm::nop();
         }
     }
 }
 
 pub fn sleep() {
-    udelay(0x1a000);
+    udelay(1000);
 }
