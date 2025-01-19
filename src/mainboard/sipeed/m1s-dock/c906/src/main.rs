@@ -76,8 +76,9 @@ static mut SERIAL: Option<uart::BSerial> = None;
 #[inline]
 fn init_logger(s: uart::BSerial) {
     unsafe {
-        (*(&raw mut SERIAL)).replace(s);
-        if let Some(m) = (*(&raw mut SERIAL)).as_mut() {
+        SERIAL = Some(s);
+        #[allow(static_mut_refs)]
+        if let Some(m) = SERIAL.as_mut() {
             log::init(m);
         }
     }
