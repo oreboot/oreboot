@@ -71,14 +71,16 @@ pub unsafe extern "C" fn start() -> ! {
     )
 }
 
-fn init_logger(u: uart::BSerial) {
-    static ONCE: spin::Once<()> = spin::Once::new();
+static mut SERIAL: Option<uart::BSerial> = None;
 
-    ONCE.call_once(|| unsafe {
-        static mut SERIAL: Option<uart::BSerial> = None;
-        SERIAL.replace(u);
-        log::init(SERIAL.as_mut().unwrap());
-    });
+#[inline]
+fn init_logger(s: uart::BSerial) {
+    unsafe {
+        (*(&raw mut SERIAL)).replace(s);
+        if let Some(m) = (*(&raw mut SERIAL)).as_mut() {
+            log::init(m);
+        }
+    }
 }
 
 fn check32(addr: usize, val: u32) {
