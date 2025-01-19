@@ -64,8 +64,8 @@ const PHY_CFG_40: usize = PHY_CFG_BASE + 0x40;
 const PHY_TIMER_4: usize = PHY_CFG_BASE + 0x44;
 
 const PHY_CFG_48: usize = PHY_CFG_BASE + 0x48;
-const PHY_CFG_4C: usize = PHY_CFG_BASE + 0x4C;
-const PHY_CFG_50: usize = PHY_CFG_BASE + 0x50;
+const PHY_ODT: usize = PHY_CFG_BASE + 0x4C;
+const PHY_CFG_DQ: usize = PHY_CFG_BASE + 0x50;
 
 const DQ_REGS: [usize; 8] = [
     PHY_CFG_DQ0,
@@ -116,12 +116,12 @@ const PHY_TIMER_3_SELF_REFRESH1_IN_OFFSET: u32 = 0;
 const PHY_TIMER_3_SELF_REFRESH1_EXIT_OFFSET: u32 = 8;
 const PHY_TIMER_3_GLOBAL_RST_OFFSET: u32 = 16;
 
+const PHY_CFG_40_DMY0_OFFSET: u32 = 8;
 const PHY_CFG_40_UNK0_OFFSET: u32 = 16;
 const PHY_CFG_40_UNK1_OFFSET: u32 = 20;
-const PHY_CFG_40_DMY0_OFFSET: u32 = 8;
+const PHY_CFG_40_DMY0_MASK: u32 = 0b1111_1111 << PHY_CFG_40_DMY0_OFFSET;
 const PHY_CFG_40_UNK0_MASK: u32 = 0b11 << PHY_CFG_40_UNK0_OFFSET;
 const PHY_CFG_40_UNK1_MASK: u32 = 0b11 << PHY_CFG_40_UNK1_OFFSET;
-const PHY_CFG_40_DMY0_MASK: u32 = 0b1111_1111 << PHY_CFG_40_DMY0_OFFSET;
 
 const PHY_TIMER_4_ARRAY_READ_BUSY_OFFSET: u32 = 0;
 const PHY_TIMER_4_ARRAY_WRITE_BUSY_OFFSET: u32 = 8;
@@ -131,20 +131,20 @@ const PHY_TIMER_4_REG_WRITE_BUSY_OFFSET: u32 = 24;
 const PHY_CFG_48_PSRAM_TYPE_OFFSET: u32 = 8;
 const PHY_CFG_48_PSRAM_TYPE_MASK: u32 = 0b11 << PHY_CFG_48_PSRAM_TYPE_OFFSET;
 
-const PHY_CFG_4C_ODT_SEL_DLY_OFFSET: u32 = 16;
-const PHY_CFG_4C_ODT_SEL_DLY_MASK: u32 = 0b1111 << PHY_CFG_4C_ODT_SEL_DLY_OFFSET;
-const PHY_CFG_4C_ODT_SEL_HW_BIT: u32 = 20;
+const PHY_ODT_SEL_DLY_OFFSET: u32 = 16;
+const PHY_ODT_SEL_DLY_MASK: u32 = 0b1111 << PHY_ODT_SEL_DLY_OFFSET;
+const PHY_ODT_SEL_HW_BIT: u32 = 20;
 
-const PHY_CFG_50_DQ_OE_MID_P_OFFSET: u32 = 8;
-const PHY_CFG_50_DQ_OE_MID_N_OFFSET: u32 = 12;
-const PHY_CFG_50_DQ_OE_UP_P_OFFSET: u32 = 0;
-const PHY_CFG_50_DQ_OE_UP_N_OFFSET: u32 = 4;
-const PHY_CFG_50_DQ_OE_DN_P_OFFSET: u32 = 16;
-const PHY_CFG_50_DQ_OE_DN_N_OFFSET: u32 = 20;
-const PHY_CFG_50_WL_CEN_ANA_OFFSET: u32 = 24;
-const PHY_CFG_50_DQ_OE_MID_P_MASK: u32 = 0b11 << PHY_CFG_50_DQ_OE_MID_P_OFFSET;
-const PHY_CFG_50_DQ_OE_MID_N_MASK: u32 = 0b11 << PHY_CFG_50_DQ_OE_MID_N_OFFSET;
-const PHY_CFG_50_WL_CEN_ANA_MASK: u32 = 0b111 << PHY_CFG_50_WL_CEN_ANA_OFFSET;
+const PHY_CFG_DQ_OE_MID_P_OFFSET: u32 = 8;
+const PHY_CFG_DQ_OE_MID_N_OFFSET: u32 = 12;
+const PHY_CFG_DQ_OE_UP_P_OFFSET: u32 = 0;
+const PHY_CFG_DQ_OE_UP_N_OFFSET: u32 = 4;
+const PHY_CFG_DQ_OE_DN_P_OFFSET: u32 = 16;
+const PHY_CFG_DQ_OE_DN_N_OFFSET: u32 = 20;
+const PHY_CFG_WL_CEN_ANA_OFFSET: u32 = 24;
+const PHY_CFG_DQ_OE_MID_P_MASK: u32 = 0b11 << PHY_CFG_DQ_OE_MID_P_OFFSET;
+const PHY_CFG_DQ_OE_MID_N_MASK: u32 = 0b11 << PHY_CFG_DQ_OE_MID_N_OFFSET;
+const PHY_CFG_WL_CEN_ANA_MASK: u32 = 0b111 << PHY_CFG_WL_CEN_ANA_OFFSET;
 
 const PHY_CFG_DQN_SR_OFFSET: u32 = 0;
 const PHY_CFG_DQN_DLY_RX_OFFSET: u32 = 8;
@@ -163,10 +163,11 @@ pub fn analog_init() {
     glb_power_up_ldo12uhs();
 
     // disable CEn, CK, CKn
-    let cfg50 = read32(PHY_CFG_50);
-    let m = !(PHY_CFG_50_DQ_OE_MID_P_MASK | PHY_CFG_50_DQ_OE_MID_N_MASK);
-    write32(PHY_CFG_50, (cfg50 & m));
+    let cfg_dq = read32(PHY_CFG_DQ);
+    let m = !(PHY_CFG_DQ_OE_MID_P_MASK | PHY_CFG_DQ_OE_MID_N_MASK);
+    write32(PHY_CFG_DQ, (cfg_dq & m));
     udelay(1);
+
     let cfg40 = read32(PHY_CFG_40);
     let m = !(PHY_CFG_40_UNK0_MASK | PHY_CFG_40_DMY0_MASK);
     write32(PHY_CFG_40, (cfg40 & m) | (3 << PHY_CFG_40_UNK0_OFFSET));
@@ -201,26 +202,24 @@ pub fn analog_init() {
     let m =
         !(PHY_CFG_30_OE_TIMER_MASK | (1 << PHY_CFG_30_VREF_MODE_BIT) | PHY_CFG_30_OE_TIMER_MASK);
     let cfg30 = read32(PHY_CFG_30);
-    write32(
-        PHY_CFG_30,
-        (cfg30 & m) | (3 << 24) | (1 << PHY_CFG_30_VREF_MODE_BIT),
-    );
+    let v = (3 << 24) | (1 << PHY_CFG_30_VREF_MODE_BIT);
+    write32(PHY_CFG_30, (cfg30 & m) | v);
+
     let cfg48 = read32(PHY_CFG_48);
-    write32(
-        PHY_CFG_48,
-        !(PHY_CFG_48_PSRAM_TYPE_MASK) | (2 << PHY_CFG_48_PSRAM_TYPE_OFFSET),
-    );
-    let cfg4c = read32(PHY_CFG_4C);
-    write32(
-        PHY_CFG_4C,
-        !(PHY_CFG_4C_ODT_SEL_DLY_MASK | PHY_CFG_4C_ODT_SEL_HW_BIT),
-    );
-    let v = (7 << PHY_CFG_50_DQ_OE_UP_P_OFFSET)
-        | (7 << PHY_CFG_50_DQ_OE_UP_N_OFFSET)
-        | (7 << PHY_CFG_50_DQ_OE_DN_P_OFFSET)
-        | (7 << PHY_CFG_50_DQ_OE_DN_N_OFFSET);
-    let cfg50 = read32(PHY_CFG_50);
-    write32(PHY_CFG_50, cfg50 | v);
+    let m = !(PHY_CFG_48_PSRAM_TYPE_MASK);
+    let v = (2 << PHY_CFG_48_PSRAM_TYPE_OFFSET);
+    write32(PHY_CFG_48, (cfg48 & m) | v);
+
+    let odt = read32(PHY_ODT);
+    let m = !(PHY_ODT_SEL_DLY_MASK | (1 << PHY_ODT_SEL_HW_BIT));
+    write32(PHY_ODT, (odt & m) | (15 << PHY_ODT_SEL_DLY_OFFSET));
+
+    let v = (7 << PHY_CFG_DQ_OE_UP_P_OFFSET)
+        | (7 << PHY_CFG_DQ_OE_UP_N_OFFSET)
+        | (7 << PHY_CFG_DQ_OE_DN_P_OFFSET)
+        | (7 << PHY_CFG_DQ_OE_DN_N_OFFSET);
+    let cfg_dq = read32(PHY_CFG_DQ);
+    write32(PHY_CFG_DQ, cfg_dq | v);
     udelay(1);
 
     // switch to LDO 1V2
@@ -230,12 +229,13 @@ pub fn analog_init() {
 
     // reenable CEn, CK, CKn
     let cfg40 = read32(PHY_CFG_40);
-    let m = !(PHY_CFG_40_UNK0_MASK | PHY_CFG_40_DMY0_MASK);
+    let m = !(PHY_CFG_40_DMY0_MASK | PHY_CFG_40_UNK0_MASK);
     write32(PHY_CFG_40, (cfg40 & m) | (3 << PHY_CFG_40_UNK0_OFFSET));
     udelay(1);
-    let cfg50 = read32(PHY_CFG_50);
-    let v = PHY_CFG_50_DQ_OE_MID_P_MASK | PHY_CFG_50_DQ_OE_MID_N_MASK;
-    write32(PHY_CFG_50, cfg50 | v);
+
+    let cfg_dq = read32(PHY_CFG_DQ);
+    let v = PHY_CFG_DQ_OE_MID_P_MASK | PHY_CFG_DQ_OE_MID_N_MASK;
+    write32(PHY_CFG_DQ, cfg_dq | v);
     udelay(1);
 }
 
@@ -269,7 +269,7 @@ struct PhyCfg {
     wl_cen_ana: u32,
 }
 
-/* cfg_30..44 = 0f130010 05000101 02080108 03420909 040b0408 */
+// cfg_30..44 = 0f130010 05000101 02080108 03420909 040b0408
 const CFG_666: PhyCfg = PhyCfg {
     wl_dq_dig: 0,
     wl_dq_ana: 1,
@@ -300,7 +300,7 @@ const CFG_666: PhyCfg = PhyCfg {
     wl_cen_ana: 0,
 };
 
-/* cfg_30..44 = 0f270212 06010202 0309020d 05360e0e 050c0509 */
+// cfg_30..44 = 0f270212 06010202 0309020d 05360e0e 050c0509
 const CFG_1066: PhyCfg = PhyCfg {
     wl_dq_dig: 2,
     wl_dq_ana: 1,
@@ -331,10 +331,10 @@ const CFG_1066: PhyCfg = PhyCfg {
     wl_cen_ana: 1,
 };
 
-// WE GET:      0f270212 09020303 04030c13 07d11515 060f060c
 // NOTE: The order of timer_reg_read and timer_reg_write is swapped in the
 // register definitions (also in C reference code).
-/* cfg_30..44 = 0f270212 09020303 040c0313 07d11515 060f060c */
+// WE GET:      0f270212 09020303 04030c13 07d11515 060f060c
+// cfg_30..44 = 0f270212 09020303 040c0313 07d11515 060f060c
 const CFG_1600: PhyCfg = PhyCfg {
     wl_dq_dig: 2,
     wl_dq_ana: 1,
@@ -422,12 +422,10 @@ pub fn config_uhs_phy() {
 
     println!("CHECK: {c30:08x} {t1:08x} {t2:08x} {t3:08x} {t4:08x}");
 
-    let cfg50 = read32(PHY_CFG_50);
-    let m = !(PHY_CFG_50_WL_CEN_ANA_MASK);
-    write32(
-        PHY_CFG_50,
-        (cfg50 & m) | (cfg.wl_cen_ana << PHY_CFG_50_WL_CEN_ANA_OFFSET),
-    );
+    let cfg_dq = read32(PHY_CFG_DQ);
+    let m = !(PHY_CFG_WL_CEN_ANA_MASK);
+    let v = cfg.wl_cen_ana << PHY_CFG_WL_CEN_ANA_OFFSET;
+    write32(PHY_CFG_DQ, (cfg_dq & m) | v);
 }
 
 pub fn init() {
@@ -492,11 +490,11 @@ pub fn init() {
     let m = !(BASIC_ADDR_MB_MASK | BASIC_LINEAR_BND_B_MASK);
     let v = ((MEM_SIZE - 1) << BASIC_ADDR_MB_OFFSET)
         | (PAGE_SIZE << BASIC_LINEAR_BND_B_OFFSET)
-        | BASIC_AF_EN_BIT;
+        | (1 << BASIC_AF_EN_BIT);
     write32(BASIC, (basic & m) | v);
 
     let basic = read32(BASIC);
-    write32(BASIC, basic | BASIC_INIT_EN_BIT);
+    write32(BASIC, basic | (1 << BASIC_INIT_EN_BIT));
 
     println!("PSRAM init done :)");
 }
