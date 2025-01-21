@@ -9,7 +9,7 @@ authors = [
 edition = "2021"
 
 [dependencies]
-bl808-pac = { git = "https://github.com/bouffalolab/bl-pac", commit = "eb62bbb", features = ["rt", "critical-section"] }
+bl808-pac = { git = "https://github.com/bouffalolab/bl-pac", rev = "eb62bbb", features = ["rt", "critical-section"] }
 critical-section = "1.0"
 embedded-hal = "1.0.0"
 embedded-hal-nb = "1.0.0"
