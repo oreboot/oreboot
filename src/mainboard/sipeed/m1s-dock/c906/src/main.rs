@@ -6,6 +6,7 @@
 
 use core::{
     arch::naked_asm,
+    mem::MaybeUninit,
     panic::PanicInfo,
     ptr::{read_volatile, write_volatile},
 };
@@ -71,16 +72,15 @@ pub unsafe extern "C" fn start() -> ! {
     )
 }
 
-static mut SERIAL: Option<uart::BSerial> = None;
+static mut SERIAL: MaybeUninit<uart::BSerial> = MaybeUninit::uninit();
 
 #[inline]
 fn init_logger(s: uart::BSerial) {
     unsafe {
-        SERIAL = Some(s);
+        SERIAL = MaybeUninit::new(s);
         #[allow(static_mut_refs)]
-        if let Some(m) = SERIAL.as_mut() {
-            log::init(m);
-        }
+        let r = SERIAL.assume_init_mut();
+        log::init(r);
     }
 }
 
