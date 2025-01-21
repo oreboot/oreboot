@@ -58,6 +58,7 @@
 //! }
 //! ```
 #![no_std]
+#![allow(static_mut_refs)]
 
 use core::fmt;
 use embedded_hal_nb::serial::{ErrorType, Write};
