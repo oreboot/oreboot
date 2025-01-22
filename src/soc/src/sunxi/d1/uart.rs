@@ -178,7 +178,7 @@ impl<UART: Instance, PINS: Send> Drop for D1Serial<UART, PINS> {
     }
 }
 
-impl<UART: Instance + Sync, PINS: Send + Sync> Serial for D1Serial<UART, PINS> {}
+impl<UART: Instance, PINS: Send> Serial for D1Serial<UART, PINS> {}
 
 impl<UART: Instance, PINS: Send> embedded_hal_nb::serial::ErrorType for D1Serial<UART, PINS> {
     type Error = Error;
