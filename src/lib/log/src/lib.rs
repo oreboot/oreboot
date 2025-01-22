@@ -58,13 +58,14 @@
 //! }
 //! ```
 #![no_std]
-#![allow(static_mut_refs)]
 
+use core::cell::OnceCell;
 use core::fmt;
+use core::ptr::addr_of_mut;
 use embedded_hal_nb::serial::{ErrorType, Write};
 use nb::block;
 
-pub trait Serial: ErrorType + Write + Sync {}
+pub trait Serial: ErrorType + Write {}
 
 type SerialLogger = dyn Serial<Error = Error>;
 
@@ -72,7 +73,7 @@ type SerialLogger = dyn Serial<Error = Error>;
 static LOGGER: spin::Mutex<Option<&'static mut SerialLogger>> = spin::Mutex::new(None);
 
 #[cfg(not(feature = "mutex"))]
-static mut LOGGER: spin::Once<&'static mut SerialLogger> = spin::Once::new();
+static mut LOGGER: OnceCell<&'static mut SerialLogger> = OnceCell::new();
 
 /// Set the globally available logger that enables the macros.
 pub fn init(serial: &'static mut SerialLogger) {
@@ -80,7 +81,7 @@ pub fn init(serial: &'static mut SerialLogger) {
     LOGGER.lock().replace(serial);
     #[cfg(not(feature = "mutex"))]
     unsafe {
-        LOGGER.call_once(|| serial);
+        (*addr_of_mut!(LOGGER)).get_or_init(|| serial);
     }
 }
 
@@ -134,7 +135,7 @@ pub fn print(args: fmt::Arguments) {
         l.write_fmt(args).ok();
     }
     #[cfg(not(feature = "mutex"))]
-    if let Some(l) = unsafe { LOGGER.get_mut() } {
+    if let Some(l) = unsafe { (*addr_of_mut!(LOGGER)).get_mut() } {
         l.write_fmt(args).ok();
     }
 }
