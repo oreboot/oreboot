@@ -9,19 +9,14 @@ authors = [
 edition = "2021"
 
 [dependencies]
-embedded-hal = "=1.0.0"
-embedded-hal-nb = "=1.0.0"
-log = { path = "../../../../lib/log" }
+embedded-hal.workspace = true
+embedded-hal-nb.workspace = true
 nb = "1"
 spin = "0.9"
+riscv = { version = "0.10.1", features = ["critical-section-single-hart"] }
 
-[dependencies.oreboot-soc]
-path = "../../../../soc"
-features = ["sunxi_d1"]
-
-[dependencies.riscv]
-version = "0.10.1"
-features = ["critical-section-single-hart"]
+log = { path = "../../../../lib/log" }
+oreboot-soc = { path = "../../../../soc", features = ["sunxi_d1"] }
 
 [features]
 default = ["nezha"]

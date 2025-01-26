@@ -231,7 +231,7 @@ checksum = "e03be09af0d1db27a816e681f260bb4be2412153a6ef0afbf94d974414630ceb"
 dependencies = [
  "bare-metal",
  "critical-section",
- "riscv",
+ "riscv 0.10.1",
  "vcell",
 ]
 
@@ -367,7 +367,7 @@ dependencies = [
  "heapless",
  "jh71xx-pac",
  "nb 1.1.0",
- "riscv",
+ "riscv 0.10.1",
  "riscv-rt",
 ]
 
@@ -378,7 +378,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38a471fbd5d226c6a262f5548a7ef597e2160fa860c113bf070005b83679d74c"
 dependencies = [
  "critical-section",
- "riscv",
+ "riscv 0.10.1",
  "riscv-rt",
  "vcell",
 ]
@@ -484,9 +484,10 @@ name = "oreboot-arch"
 version = "0.1.0"
 dependencies = [
  "log 0.1.0",
- "riscv",
+ "riscv 0.12.1",
  "rustsbi",
- "sbi-spec 0.0.4",
+ "sbi-rt",
+ "sbi-spec 0.0.7",
 ]
 
 [[package]]
@@ -506,7 +507,7 @@ dependencies = [
  "log 0.1.0",
  "nb 1.1.0",
  "oreboot-soc",
- "riscv",
+ "riscv 0.10.1",
  "spin",
 ]
 
@@ -523,7 +524,7 @@ dependencies = [
  "oreboot-arch",
  "oreboot-soc",
  "oreboot_compression",
- "riscv",
+ "riscv 0.12.1",
  "rustsbi",
  "sbi-spec 0.0.4",
  "spin",
@@ -558,6 +559,12 @@ dependencies = [
  "log 0.1.0",
  "lzss",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pathdiff"
@@ -639,13 +646,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "riscv"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f5c1b8bf41ea746266cdee443d1d1e9125c86ce1447e1a2615abd34330d33a9"
+dependencies = [
+ "critical-section",
+ "embedded-hal 1.0.0",
+]
+
+[[package]]
+name = "riscv"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ea8ff73d3720bdd0a97925f0bf79ad2744b6da8ff36be3840c48ac81191d7a7"
+dependencies = [
+ "critical-section",
+ "embedded-hal 1.0.0",
+ "paste",
+ "riscv-macros",
+ "riscv-pac",
+]
+
+[[package]]
+name = "riscv-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f265be5d634272320a7de94cea15c22a3bfdd4eb42eb43edc528415f066a1f25"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "riscv-pac"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8188909339ccc0c68cfb5a04648313f09621e8b87dc03095454f1a11f6c5d436"
+
+[[package]]
 name = "riscv-rt"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "102c52c89defde24dedf9ac077cc69df77b85aa2400dd2d5aad6eea6a6a5c089"
 dependencies = [
  "r0",
- "riscv",
+ "riscv 0.10.1",
  "riscv-rt-macros",
  "riscv-target",
 ]
@@ -682,12 +729,33 @@ dependencies = [
 
 [[package]]
 name = "rustsbi"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c74c6df5cecd1ddc81f953d100cee1111acd981535526d3e89d2854015cf93b"
+checksum = "44c13763120794ed11d64bac885fb31d384ae385c3287b0697711b97affbf8ab"
 dependencies = [
- "riscv",
- "sbi-spec 0.0.5",
+ "riscv 0.11.1",
+ "rustsbi-macros",
+ "sbi-spec 0.0.7",
+]
+
+[[package]]
+name = "rustsbi-macros"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a71347da9582cc6b6f3652c7d2c06516c9555690b3738ecdff7e84297f4e17fc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "sbi-rt"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fbaa69be1eedc61c426e6d489b2260482e928b465360576900d52d496a58bd0"
+dependencies = [
+ "sbi-spec 0.0.7",
 ]
 
 [[package]]
@@ -701,12 +769,9 @@ dependencies = [
 
 [[package]]
 name = "sbi-spec"
-version = "0.0.5"
+version = "0.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a535b1f16d5517a020539569f7e37e61fad35ed0d5352f9fd7073304e2f2dc72"
-dependencies = [
- "static_assertions",
-]
+checksum = "e6e36312fb5ddc10d08ecdc65187402baba4ac34585cb9d1b78522ae2358d890"
 
 [[package]]
 name = "scopeguard"
@@ -743,7 +808,7 @@ dependencies = [
  "embedded-hal-nb",
  "log 0.1.0",
  "nb 1.1.0",
- "riscv",
+ "riscv 0.10.1",
  "spin",
 ]
 
@@ -754,7 +819,7 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-hal-nb",
  "nb 1.1.0",
- "riscv",
+ "riscv 0.10.1",
  "spin",
 ]
 
@@ -771,7 +836,7 @@ dependencies = [
  "log 0.1.0",
  "nb 1.1.0",
  "oreboot-soc",
- "riscv",
+ "riscv 0.10.1",
  "spin",
 ]
 
@@ -783,7 +848,7 @@ dependencies = [
  "embedded-hal-nb",
  "nb 1.1.0",
  "oreboot-soc",
- "riscv",
+ "riscv 0.10.1",
  "spin",
 ]
 

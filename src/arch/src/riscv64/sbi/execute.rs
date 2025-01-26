@@ -6,11 +6,10 @@ use core::{
     pin::Pin,
 };
 use log::{print, println};
-use riscv::register::{
-    mie, mip,
-    scause::{Exception, Trap},
-};
+use riscv::interrupt::{Exception, Interrupt, Trap};
+use riscv::register::{mie, mip};
 use rustsbi::spec::binary::SbiRet;
+use rustsbi::RustSBI;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
 const ECALL_OREBOOT: usize = 0x0A023B00;
@@ -22,6 +21,9 @@ const DEBUG_MTIMER: bool = false;
 const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
+
+const ILLEGAL_INSTRUCTION: Trap<Interrupt, Exception> =
+    Trap::Exception(Exception::IllegalInstruction);
 
 fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
     match method {
@@ -76,7 +78,8 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
     }
 }
 
-pub fn execute_supervisor(
+pub fn execute_supervisor<S: RustSBI>(
+    sbi: S,
     supervisor_mepc: usize,
     hartid: usize,
     dtb_addr: usize,
@@ -100,7 +103,7 @@ pub fn execute_supervisor(
                     LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
                     _ => {
                         print_ecall_context(ctx);
-                        rustsbi::ecall(ctx.a7, ctx.a6, param)
+                        sbi.handle_ecall(ctx.a7, ctx.a6, param)
                     }
                 };
                 if ans.error & (0xFFFFFFFF << 32) == 0x114514 << 32 {
@@ -132,10 +135,7 @@ pub fn execute_supervisor(
                     }
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
-                            feature::do_transfer_trap(
-                                ctx,
-                                Trap::Exception(Exception::IllegalInstruction),
-                            )
+                            feature::do_transfer_trap(ctx, ILLEGAL_INSTRUCTION)
                         } else {
                             println!("[rustsbi] Na na na! {:#04X?}", ctx);
                             fail_illegal_instruction(ctx, ins)

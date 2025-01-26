@@ -33,3 +33,7 @@ debug = true
 opt-level = 1 # Use slightly better optimizations.
 overflow-checks = false # Disable integer overflow checks.
 lto = true
+
+[workspace.dependencies]
+embedded-hal = "=1.0.0"
+embedded-hal-nb = "=1.0.0"

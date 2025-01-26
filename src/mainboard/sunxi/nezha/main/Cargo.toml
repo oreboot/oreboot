@@ -9,8 +9,8 @@ embedded-hal = "=1.0.0"
 embedded-hal-nb = "=1.0.0"
 lazy_static = { version = "1", features = ["spin_no_std"] }
 nb = "1"
-riscv = { version = "0.10.0", features = ["critical-section-single-hart"] }
-rustsbi = "0.3.2"
+riscv = { version = "=0.12.1", features = ["critical-section-single-hart"] }
+rustsbi = { version = "=0.4.0", features = ["machine"] }
 sbi-spec = "0.0.4"
 spin = "0.9"
 vcell = "0.1.3"
