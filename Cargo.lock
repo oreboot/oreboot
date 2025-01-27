@@ -507,7 +507,7 @@ dependencies = [
  "log 0.1.0",
  "nb 1.1.0",
  "oreboot-soc",
- "riscv 0.10.1",
+ "riscv 0.12.1",
  "spin",
 ]
 

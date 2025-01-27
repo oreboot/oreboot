@@ -12,8 +12,8 @@ edition = "2021"
 embedded-hal.workspace = true
 embedded-hal-nb.workspace = true
 nb = "1"
+riscv = { version = "=0.12.1", features = ["critical-section-single-hart"] }
 spin = "0.9"
-riscv = { version = "0.10.1", features = ["critical-section-single-hart"] }
 
 log = { path = "../../../../lib/log" }
 oreboot-soc = { path = "../../../../soc", features = ["sunxi_d1"] }
