@@ -16,7 +16,7 @@
 //! your serial in a `static mut` holding an `Option` for your serial's type and
 //! extracting it again in `.as_mut().unwrap()`. Consider putting that into a
 //! function and adding either a `spin::Once` or some other gating mechanism to
-//! avoid dupliate initialization and mutable aliasing.
+//! avoid duplicate initialization and mutable aliasing.
 //! It may simply `panic!()` if you choose so.
 //!
 //! Here is an example for a `spin::Once` that results in a no-op for further
@@ -59,11 +59,21 @@
 //! ```
 #![no_std]
 
+use core::cell::OnceCell;
 use core::fmt;
+use core::ptr::addr_of_mut;
 use embedded_hal_nb::serial::{ErrorType, Write};
 use nb::block;
 
 pub trait Serial: ErrorType + Write {}
+
+type SerialLogger = dyn Serial<Error = Error>;
+
+#[cfg(feature = "mutex")]
+static LOGGER: spin::Mutex<Option<&'static mut SerialLogger>> = spin::Mutex::new(None);
+
+#[cfg(not(feature = "mutex"))]
+static mut LOGGER: OnceCell<&'static mut SerialLogger> = OnceCell::new();
 
 /// Set the globally available logger that enables the macros.
 pub fn init(serial: &'static mut SerialLogger) {
@@ -71,7 +81,7 @@ pub fn init(serial: &'static mut SerialLogger) {
     LOGGER.lock().replace(serial);
     #[cfg(not(feature = "mutex"))]
     unsafe {
-        LOGGER.replace(serial);
+        (*addr_of_mut!(LOGGER)).get_or_init(|| serial);
     }
 }
 
@@ -103,14 +113,6 @@ impl embedded_hal_nb::serial::Error for Error {
     }
 }
 
-type SerialLogger = dyn Serial<Error = Error>;
-
-#[cfg(feature = "mutex")]
-static LOGGER: spin::Mutex<Option<&'static mut SerialLogger>> = spin::Mutex::new(None);
-
-#[cfg(not(feature = "mutex"))]
-static mut LOGGER: Option<&mut SerialLogger> = None;
-
 impl fmt::Write for SerialLogger {
     fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
         for &byte in s.as_bytes() {
@@ -133,10 +135,8 @@ pub fn print(args: fmt::Arguments) {
         l.write_fmt(args).ok();
     }
     #[cfg(not(feature = "mutex"))]
-    unsafe {
-        if let Some(l) = LOGGER.as_mut() {
-            l.write_fmt(args).ok();
-        }
+    if let Some(l) = unsafe { (*addr_of_mut!(LOGGER)).get_mut() } {
+        l.write_fmt(args).ok();
     }
 }
 

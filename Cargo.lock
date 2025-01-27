@@ -575,14 +575,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ptdump"
-version = "0.1.0"
-dependencies = [
- "bit_field",
- "bitflags 2.6.0",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
