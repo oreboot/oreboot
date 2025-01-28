@@ -3,17 +3,23 @@ use log::println;
 use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
 use riscv::register::{mie, mip};
 use rustsbi::spec::binary::SbiRet;
-use rustsbi::HartMask;
+use rustsbi::{HartMask, RustSBI};
 
-pub fn init() {
+#[derive(RustSBI)]
+pub struct PlatSbi {
+    ipi: Ipi,
+    reset: Reset,
+    timer: Timer,
+}
+
+pub fn init() -> PlatSbi {
     init_pmp();
     init_plic();
-    println!("timer init");
-    rustsbi::init_timer(&Timer);
-    println!("reset init");
-    rustsbi::init_reset(&Reset);
-    println!("ipi init");
-    rustsbi::init_ipi(&Ipi);
+    PlatSbi {
+        ipi: Ipi,
+        reset: Reset,
+        timer: Timer,
+    }
 }
 
 /**
@@ -51,7 +57,7 @@ fn init_plic() {
     }
 }
 
-struct Ipi;
+pub struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
         // TODO: This was a member function in previous RustSBI
@@ -69,7 +75,7 @@ impl rustsbi::Ipi for Ipi {
     }
 }
 
-struct Timer;
+pub struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, stime_value: u64) {
         // clear any pending timer

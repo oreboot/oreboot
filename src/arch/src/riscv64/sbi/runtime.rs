@@ -4,9 +4,9 @@ use core::{
     pin::Pin,
 };
 use log::println;
+use riscv::interrupt::{Exception, Interrupt, Trap};
 use riscv::register::{
-    mcause::{self, Exception, Interrupt, Trap},
-    medeleg, mepc, mideleg, mie,
+    mcause, medeleg, mepc, mideleg, mie,
     mstatus::{self, Mstatus, MPP},
     mtval,
     mtvec::{self, TrapMode},
@@ -41,6 +41,8 @@ fn delegate_interrupt_exception() {
     }
 }
 
+// Set up the trap mode and entry point (vector) for the M-mode trap handler.
+// Then delegate most interrupts and exceptions to S-mode (the OS).
 pub fn init() {
     // NOTE: This must be aligned to 4 bytes, asserted via repr() directive.
     let addr = supervisor_save as usize;
@@ -97,7 +99,8 @@ impl Coroutine for Runtime {
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
-        let trap = match mcause::read().cause() {
+        let t: Trap<Interrupt, Exception> = mcause::read().cause().try_into().unwrap();
+        let trap = match t {
             Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
             Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
             Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),

@@ -9,7 +9,13 @@ pub unsafe fn should_transfer_trap(ctx: &mut SupervisorContext) -> bool {
     ctx.mstatus.mpp() != MPP::Machine
 }
 
-pub unsafe fn do_transfer_trap(ctx: &mut SupervisorContext, cause: scause::Trap) {
+pub unsafe fn do_transfer_trap<
+    I: riscv::CoreInterruptNumber + core::fmt::Debug,
+    E: riscv::ExceptionNumber + core::fmt::Debug,
+>(
+    ctx: &mut SupervisorContext,
+    cause: scause::Trap<I, E>,
+) {
     // 设置S层异常原因为：非法指令
     // The reason for setting S-layer exception is: illegal instruction
     scause::set(cause);

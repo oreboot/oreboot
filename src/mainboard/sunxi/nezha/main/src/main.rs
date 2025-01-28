@@ -323,20 +323,18 @@ extern "C" fn main() -> usize {
 
     let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
-        use oreboot_arch::riscv64::sbi;
-        sbi_platform::init();
+        use oreboot_arch::riscv64::sbi as ore_sbi;
+        let sbi = sbi_platform::init();
         init_csrs();
 
-        sbi::runtime::init();
-        sbi::info::print_info(PLATFORM, VERSION);
+        ore_sbi::runtime::init();
+        ore_sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
-        println!(
-            "Enter supervisor at {:x} with DTB from {:x}",
-            LINUXBOOT_ADDR, DTB_ADDR
-        );
+        println!("Enter supervisor at {LINUXBOOT_ADDR:08x} with DTB from {DTB_ADDR:08x}");
+        let hart_id = 0;
         let (reset_type, reset_reason) =
-            sbi::execute::execute_supervisor(LINUXBOOT_ADDR, 0, DTB_ADDR);
+            ore_sbi::execute::execute_supervisor(sbi, LINUXBOOT_ADDR, hart_id, DTB_ADDR);
         print!("oreboot: reset reason = {}", reset_reason);
         reset_type
     } else {
