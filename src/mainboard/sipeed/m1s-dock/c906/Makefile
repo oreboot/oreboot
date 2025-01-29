@@ -25,7 +25,7 @@ mainboard:
 	cargo objcopy -- -O binary "$(IMAGE_BIN)"
 
 run: mainboard
-	bl_boot run -p $(PORT) empty.bin "$(IMAGE_BIN)"
+	bl_boot run -p $(PORT) --d0-binary "$(IMAGE_BIN)"
 
 objdump: mainboard
 	riscv64-unknown-elf-objdump -D "$(IMAGE_ELF)"
