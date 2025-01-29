@@ -6,4 +6,4 @@ edition = "2021"
 
 [dependencies]
 log = { path = "../log" }
-lzss = { version = "0.9", default-features = false }
+miniz_oxide = { version = "0.8.5", default-features = false }
