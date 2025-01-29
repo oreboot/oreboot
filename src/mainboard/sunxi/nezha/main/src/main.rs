@@ -21,53 +21,47 @@ use spin;
 
 mod sbi_platform;
 
-const MEM: usize = 0x4000_0000;
+const RAM_BASE: usize = 0x4000_0000;
 
 // see ../fixed-dtfs.dts
-// const PAYLOAD_OFFSET: usize = 0x2_0000;
-const PAYLOAD_SIZE: usize = 0x20_0000; // 2 MB
-const PAYLOAD_ADDR: usize = MEM + 0x20_0000;
-
-// compressed image
-const LINUXBOOT_TMP_OFFSET: usize = 0x0400_0000;
-const LINUXBOOT_TMP_ADDR: usize = MEM + LINUXBOOT_TMP_OFFSET;
-
 // target location for decompressed image
-const LINUXBOOT_OFFSET: usize = 0x0020_0000;
-const LINUXBOOT_ADDR: usize = MEM + LINUXBOOT_OFFSET;
-const LINUXBOOT_SIZE: usize = 0x0200_0000;
-// DTB_OFFSET should be >=LINUXBOOT_OFFSET+LINUXBOOT_SIZE and match bt0
-// TODO: Should we just copy it to a higher address before decompressing Linux?
-const DTB_OFFSET: usize = LINUXBOOT_OFFSET + LINUXBOOT_SIZE;
-const DTB_ADDR: usize = MEM + DTB_OFFSET;
+const PAYLOAD_OFFSET: usize = 0x20_0000;
+const PAYLOAD_ADDR: usize = RAM_BASE + PAYLOAD_OFFSET;
+const PAYLOAD_SIZE: usize = 0x0200_0000; // 32 MB
+
+const DTB_ADDR: usize = PAYLOAD_ADDR + PAYLOAD_SIZE;
+const DTB_SIZE: usize = 0x0001_0000;
+
+const COMPRESSED_ADDR: usize = RAM_BASE + 0x0400_0000;
+const COMPRESSED_SIZE: usize = 0x00fe_0000;
 
 fn decompress_lb() {
     // check for Device Tree header, d00dfeed
     let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
     if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x}\n", dtb);
+        panic!("DTB looks wrong: {dtb:08x}");
     } else {
-        print!("DTB looks fine, yay!\n");
+        println!("DTB looks fine, yay!");
     }
 
     unsafe {
-        decompress(LINUXBOOT_TMP_ADDR, LINUXBOOT_ADDR, LINUXBOOT_SIZE);
+        decompress(COMPRESSED_ADDR, PAYLOAD_ADDR, COMPRESSED_SIZE, PAYLOAD_SIZE);
     }
 
     // check for kernel to be okay
-    let a = LINUXBOOT_ADDR + 0x30;
+    let a = PAYLOAD_ADDR + 0x30;
     let r = unsafe { read_volatile(a as *mut u32) };
     if r == u32::from_le_bytes(*b"RISC") {
-        print!("Payload looks like Linux Image, yay!\n");
+        println!("Payload looks like Linux Image, yay!");
     } else {
-        panic!("Payload does not look like Linux Image: {:x}\n", r);
+        panic!("Payload does not look like Linux Image: {r:x}");
     }
     // Recheck on DTB, kernel should not run into it
     let dtb = unsafe { read_volatile(DTB_ADDR as *mut u32) };
     if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {:08x} - was it overridden?\n", dtb);
+        panic!("DTB looks wrong: {dtb:08x} - was it overridden?");
     } else {
-        print!("DTB still fine, yay!\n");
+        println!("DTB still fine, yay!");
     }
 }
 
@@ -184,8 +178,13 @@ fn decompress_lb() {
 // • When DPLD is 3, 16 cache lines are prefetched.
 // These bits will be reset to 2’b10.
 
-// when handled from BT0 stage, DDR is prepared.
-// this code runs from DDR start
+#[link_section = ".bss.uninit"]
+static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+const STACK_SIZE: usize = 16 * 1024;
+
+static PLATFORM: &str = "Allwinner D1";
+static VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[naked]
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
@@ -221,14 +220,6 @@ unsafe extern "C" fn start() -> ! {
         finish     =   sym finish,
     )
 }
-
-// stack which the bootloader environment would make use of.
-#[link_section = ".bss.uninit"]
-static mut ENV_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-const STACK_SIZE: usize = 8 * 1024; // 8KiB
-
-static PLATFORM: &str = "T-HEAD Xuantie Platform";
-static VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn dump_csrs() {
     let mut v: usize;
@@ -331,11 +322,12 @@ extern "C" fn main() -> usize {
         ore_sbi::info::print_info(PLATFORM, VERSION);
 
         decompress_lb();
-        println!("Enter supervisor at {LINUXBOOT_ADDR:08x} with DTB from {DTB_ADDR:08x}");
-        let hart_id = 0;
+        println!("Enter supervisor at {PAYLOAD_ADDR:08x} with DTB from {DTB_ADDR:08x}");
+
+        let hart_id = riscv::register::mhartid::read();
         let (reset_type, reset_reason) =
-            ore_sbi::execute::execute_supervisor(sbi, LINUXBOOT_ADDR, hart_id, DTB_ADDR);
-        print!("oreboot: reset reason = {}", reset_reason);
+            ore_sbi::execute::execute_supervisor(sbi, PAYLOAD_ADDR, hart_id, DTB_ADDR);
+        println!("oreboot: reset reason = {reset_reason}");
         reset_type
     } else {
         // TODO: Do we need more stuff here?
@@ -344,9 +336,9 @@ extern "C" fn main() -> usize {
         }
         println!("You are NOT MY SUPERVISOR!");
         unsafe {
-            decompress(LINUXBOOT_TMP_ADDR, PAYLOAD_ADDR, PAYLOAD_SIZE);
+            decompress(COMPRESSED_ADDR, PAYLOAD_ADDR, COMPRESSED_SIZE, PAYLOAD_SIZE);
         }
-        println!("Running payload at 0x{:x}", PAYLOAD_ADDR);
+        println!("Running payload at 0x{PAYLOAD_ADDR:x}");
         unsafe {
             let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
             f();
@@ -376,7 +368,7 @@ extern "C" fn finish(reset_type: u32) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     if let Some(location) = info.location() {
         println!("panic in '{}' line {}", location.file(), location.line(),);
-        print!("{:?}", info.message());
+        println!("{:?}", info.message());
     } else {
         println!("panic at unknown location");
     };

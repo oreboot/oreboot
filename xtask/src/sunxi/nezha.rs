@@ -10,8 +10,6 @@ use std::{
     process::{self, Command, Stdio},
 };
 
-use oreboot_compression::OreLzss;
-
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
 const BOARD_DIR: &str = "src/mainboard/sunxi/nezha";
@@ -168,8 +166,7 @@ fn align_up_to(len: u64, target_align: u64) -> u64 {
 }
 
 const FLASH_IMG_SIZE: u64 = 16 * 1024 * 1024;
-// 4 bytes describe the payload size
-const MAX_COMPRESSED_SIZE: usize = 0x00fe_0000 - 4;
+const MAX_COMPRESSED_SIZE: usize = 0x00fc_0000;
 
 fn concat_binaries(env: &Env) {
     println!("Stitching final image 🏗️");
@@ -236,26 +233,17 @@ fn concat_binaries(env: &Env) {
         let pos = SeekFrom::Start(payload_offset);
         output_file.seek(pos).expect("seek after main stage");
         println!("  Compressing...");
-        let mut compressed = vec![0; MAX_COMPRESSED_SIZE];
-        let result = OreLzss::compress_heap(
-            lzss::SliceReader::new(&payload),
-            lzss::SliceWriter::new(&mut compressed),
-        );
-        match result {
-            Ok(r) => {
-                println!("  Compressed size: {r}");
-                output_file
-                    .write_u32::<LittleEndian>(r as u32)
-                    .expect("writing compressed payload size");
-                output_file
-                    .write_all(&compressed[..r])
-                    .expect("copying payload");
-            }
-            Err(e) => {
-                error!("compression failed, payload too large?\n  {e}\n");
-                process::exit(1);
-            }
+        let compressed = miniz_oxide::deflate::compress_to_vec_zlib(&payload, 9);
+        let size = compressed.len();
+        if size <= MAX_COMPRESSED_SIZE {
+            println!("  Compressed size: {size}");
+        } else {
+            panic!("  Compressed payload too large: {size} (max. {MAX_COMPRESSED_SIZE})");
         }
+
+        println!("{:02x?}", &compressed[..0x20]);
+
+        output_file.write_all(&compressed).expect("copying payload");
         if let Some(dtb) = env.dtb.as_deref() {
             println!("DTB\n  File: {dtb}");
             let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
