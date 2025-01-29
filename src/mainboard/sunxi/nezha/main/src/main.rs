@@ -35,10 +35,10 @@ const LINUXBOOT_TMP_ADDR: usize = MEM + LINUXBOOT_TMP_OFFSET;
 // target location for decompressed image
 const LINUXBOOT_OFFSET: usize = 0x0020_0000;
 const LINUXBOOT_ADDR: usize = MEM + LINUXBOOT_OFFSET;
-const LINUXBOOT_SIZE: usize = 0x0180_0000;
+const LINUXBOOT_SIZE: usize = 0x0200_0000;
 // DTB_OFFSET should be >=LINUXBOOT_OFFSET+LINUXBOOT_SIZE and match bt0
 // TODO: Should we just copy it to a higher address before decompressing Linux?
-const DTB_OFFSET: usize = 0x01a0_0000;
+const DTB_OFFSET: usize = LINUXBOOT_OFFSET + LINUXBOOT_SIZE;
 const DTB_ADDR: usize = MEM + DTB_OFFSET;
 
 fn decompress_lb() {
