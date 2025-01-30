@@ -162,6 +162,23 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
+// The machine mode processor model register (MCPUID) stores the processor
+// model information. Its reset value is determined by the product itself and
+// complies with the Pingtouge product definition specifications to facilitate
+// software identification. By continuously reading the MCPUID register, up to
+// 7 different return values can be obtained to represent C906 product
+// information, as shown in Figure ??.
+
+// T-Head CPU model register
+const MCPUID: u32 = 0xfc0;
+fn print_cpuid() {
+    let mut id: u32;
+    for i in 0..7 {
+        unsafe { asm!("csrr {}, 0xfc0", out(reg) id) };
+        println!("MCPUID {i}: {id:08x}");
+    }
+}
+
 #[no_mangle]
 fn main() {
     let mut ini_pc: usize = 0;
@@ -173,6 +190,7 @@ fn main() {
     println!("initial program counter (PC) {ini_pc:016x}");
 
     print_ids();
+    print_cpuid();
 
     unsafe { riscv::asm::wfi() }
 }
