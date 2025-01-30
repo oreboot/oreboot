@@ -18,6 +18,9 @@ use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
 use util::{read32, write32};
 
+mod ddr_data;
+mod dram;
+mod memtest;
 mod uart;
 mod util;
 
@@ -191,6 +194,11 @@ fn main() {
 
     print_ids();
     print_cpuid();
+
+    dram::init();
+    println!("DRAM init done :)");
+
+    memtest::mem_test(0x1000, 0x20_0000);
 
     unsafe { riscv::asm::wfi() }
 }
