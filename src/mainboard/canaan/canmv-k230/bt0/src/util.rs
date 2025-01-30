@@ -3,6 +3,12 @@ use core::slice;
 
 use log::{print, println};
 
+pub fn udelay(time: usize) {
+    for _ in 0..time {
+        unsafe { core::arch::asm!("nop") }
+    }
+}
+
 pub fn dump(addr: usize, length: usize) {
     let s = unsafe { slice::from_raw_parts(addr as *const u8, length) };
     for w in s.iter() {
