@@ -182,6 +182,11 @@ fn print_cpuid() {
     }
 }
 
+const DO_MEMTEST: bool = false;
+
+const MASK_ROM_BASE: usize = 0x9120_0000;
+const LOADER: usize = MASK_ROM_BASE;
+
 #[no_mangle]
 fn main() {
     let mut ini_pc: usize = 0;
@@ -198,10 +203,14 @@ fn main() {
     dram::init();
     println!("DRAM init done :)");
 
-    let mb = 1024 * 1024;
-    memtest::mem_test(2 * mb, 20 * mb);
-    memtest::mem_test(100 * mb, 20 * mb);
-    memtest::mem_test(200 * mb, 20 * mb);
+    if DO_MEMTEST {
+        let mb = 1024 * 1024;
+        memtest::mem_test(2 * mb, 20 * mb);
+        memtest::mem_test(100 * mb, 20 * mb);
+        memtest::mem_test(200 * mb, 20 * mb);
+    }
+
+    exec_payload(LOADER);
 
     unsafe { riscv::asm::wfi() }
 }
