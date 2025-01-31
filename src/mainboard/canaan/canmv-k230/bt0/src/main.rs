@@ -198,7 +198,10 @@ fn main() {
     dram::init();
     println!("DRAM init done :)");
 
-    memtest::mem_test(0x1000, 0x20_0000);
+    let mb = 1024 * 1024;
+    memtest::mem_test(2 * mb, 20 * mb);
+    memtest::mem_test(100 * mb, 20 * mb);
+    memtest::mem_test(200 * mb, 20 * mb);
 
     unsafe { riscv::asm::wfi() }
 }
