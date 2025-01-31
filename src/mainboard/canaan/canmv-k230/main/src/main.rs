@@ -14,22 +14,25 @@ use core::{
 };
 
 use embedded_hal_nb::serial::Write;
-use riscv::register::{marchid, mhartid, mimpid, mvendorid, time};
+use riscv::register::{marchid, mhartid, mimpid, mvendorid};
 
-use util::{read32, write32};
+use util::{dump, dump_block, read32, write32};
 
-mod ddr_data;
-mod dram;
 mod mem_map;
-mod memtest;
+mod sbi_platform;
 mod uart;
 mod util;
+
+const DEBUG: bool = false;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
 const BOOT_HART_ID: usize = 0;
 
 const STACK_SIZE: usize = 8 * 1024;
+
+static PLATFORM: &str = "Canaan Kendryte K230D";
+static VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
@@ -66,8 +69,8 @@ pub unsafe extern "C" fn start() -> ! {
         // "csrw   mie, (1 << 3)",
         "wfi",
         "call   {payload}",
-        ".boothart:",
 
+        ".boothart:",
         "call   {reset}",
         boothart   = const BOOT_HART_ID,
         stack      = sym BT0_STACK,
@@ -166,6 +169,48 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
+fn dump_csrs() {
+    let mut v: usize;
+    unsafe {
+        println!("==== platform CSRs ====");
+        asm!("csrr {}, 0x7c0", out(reg) v);
+        println!("   MXSTATUS  {v:08x}");
+        asm!("csrr {}, 0x7c1", out(reg) v);
+        println!("   MHCR      {v:08x}");
+        asm!("csrr {}, 0x7c2", out(reg) v);
+        println!("   MCOR      {v:08x}");
+        asm!("csrr {}, 0x7c5", out(reg) v);
+        println!("   MHINT     {v:08x}");
+        println!("see C906 manual p581 ff");
+        println!("=======================");
+    }
+}
+
+fn init_csrs() {
+    println!("Set up extension CSRs");
+    if DEBUG {
+        dump_csrs();
+    }
+    unsafe {
+        // MXSTATUS: T-Head ISA extension enable, MAEE, MM, UCME, CLINTEE
+        // NOTE: Linux relies on detecting errata via mvendorid, marchid and
+        // mipmid. If that detection fails, and we enable MAEE, Linux won't come
+        // up. When D-cache is enabled, and the detection fails, we run into
+        // cache coherency issues. Welcome to the minefield! :)
+        // NOTE: We already set part of this in bt0, but it seems to get lost?
+        asm!("csrs 0x7c0, {}", in(reg) 0x00638000);
+        // MCOR: invalidate ICACHE/DCACHE/BTB/BHT
+        asm!("csrw 0x7c2, {}", in(reg) 0x00070013);
+        // MHCR
+        asm!("csrw 0x7c1, {}", in(reg) 0x000011ff);
+        // MHINT
+        asm!("csrw 0x7c5, {}", in(reg) 0x0016e30c);
+    }
+    if DEBUG {
+        dump_csrs();
+    }
+}
+
 // The machine mode processor model register (MCPUID) stores the processor
 // model information. Its reset value is determined by the product itself and
 // complies with the Pingtouge product definition specifications to facilitate
@@ -183,21 +228,9 @@ fn print_cpuid() {
     }
 }
 
-const DO_MEMTEST: bool = false;
+const MASK_ROM_LOADER: usize = mem_map::MASK_ROM_BASE;
 
-const LOADER: usize = mem_map::MASK_ROM_BASE;
-
-// TODO: move to SoC lib crate
-const CPU0_X: usize = mem_map::HDI_BASE + 0x0020;
-const CPU1_X: usize = mem_map::HDI_BASE + 0x0030;
-// We don't know why, but this enables the mtimer clock.
-// see k230_linux_sdk
-// buildroot-overlay/boot/uboot/u-boot-2022.10-overlay/arch/riscv/cpu/k230/cpu.c
-// harts_early_init
-fn enable_mtimer_clock() {
-    write32(CPU0_X, 1);
-    write32(CPU1_X, 1);
-}
+const CPU0_RESET_CONTROL: usize = mem_map::RMU_BASE + 0x0004;
 
 #[no_mangle]
 fn main() {
@@ -206,38 +239,44 @@ fn main() {
 
     let s = uart::K230Serial::new();
     init_logger(s);
-    println!("oreboot 🦀 bt0");
+    println!("oreboot 🦀 main");
     println!("initial program counter (PC) {ini_pc:016x}");
-
-    enable_mtimer_clock();
-
     print_ids();
     print_cpuid();
+    init_csrs();
 
-    let start = time::read64();
-    dram::init();
-    let t = time::read64() - start;
-    println!("DRAM init done in {t} :)");
-
-    if DO_MEMTEST {
-        let mb = 1024 * 1024;
-        memtest::mem_test(2 * mb, 20 * mb);
-        memtest::mem_test(100 * mb, 20 * mb);
-        memtest::mem_test(200 * mb, 20 * mb);
-    }
-
-    exec_payload(LOADER);
-
-    unsafe { riscv::asm::wfi() }
+    exec_payload();
 }
 
-// jump to main stage or payload
-fn exec_payload(addr: usize) {
-    unsafe {
-        let f: EntryPoint = transmute(addr);
-        asm!("fence.i");
-        f();
+fn exec_payload() {
+    let payload_addr = mem_map::DRAM_BASE_ADDR + 0x20_0000;
+
+    if DEBUG {
+        println!("Payload @ {payload_addr:08x}");
+        dump_block(payload_addr, 0x50, 0x10);
     }
+
+    let use_sbi = true;
+    if use_sbi {
+        use oreboot_arch::riscv64::sbi as ore_sbi;
+        let sbi = sbi_platform::init();
+
+        ore_sbi::runtime::init();
+        ore_sbi::info::print_info(PLATFORM, VERSION);
+
+        let hart_id = mhartid::read();
+        let dtb_addr = 0;
+        let (reset_type, reset_reason) =
+            ore_sbi::execute::execute_supervisor(sbi, payload_addr, hart_id, dtb_addr);
+        println!("[oreboot] reset reason: {reset_reason}");
+    } else {
+        unsafe {
+            let f: EntryPoint = transmute(payload_addr);
+            asm!("fence.i");
+            f();
+        }
+    }
+    unsafe { riscv::asm::wfi() }
 }
 
 #[cfg_attr(not(test), panic_handler)]

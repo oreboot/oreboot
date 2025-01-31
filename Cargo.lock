@@ -520,6 +520,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "oreboot-k230-main"
+version = "0.1.0"
+dependencies = [
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "log 0.1.0",
+ "nb 1.1.0",
+ "oreboot-arch",
+ "oreboot_compression",
+ "riscv 0.12.1",
+ "rustsbi",
+ "sbi-spec 0.0.4",
+ "spin",
+]
+
+[[package]]
 name = "oreboot-nezha-bt0"
 version = "0.1.0"
 dependencies = [
