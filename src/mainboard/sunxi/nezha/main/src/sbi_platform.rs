@@ -46,11 +46,12 @@ fn init_pmp() {
 fn init_plic() {
     let mut addr: usize;
     unsafe {
-        // What? 0xfc1 is BADADDR as per C906 manual; this seems to work though
+        // 0xfc1 is MAPBADDR (M-mode APB address) as per C906 manual
+        // reflects the base address of on-chip registers (CLINT, PLIC)
         asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
         let a = addr + 0x001ffffc; // 0x101f_fffc
         if false {
-            println!("BADADDR {:x} SOME ADDR {:x}", addr, a);
+            println!("MAPBADDR {addr:08x} SOME ADDR (PLIC?) {a:08x}");
         }
         // allow S-mode to access PLIC regs, D1 manual p210
         core::ptr::write_volatile(a as *mut u8, 0x1);
