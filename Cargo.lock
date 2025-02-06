@@ -282,7 +282,16 @@ dependencies = [
 name = "emulation-qemu-riscv-main"
 version = "0.1.0"
 dependencies = [
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "layoutflash",
+ "log 0.1.0",
+ "nb 1.1.0",
  "ns16550a",
+ "oreboot-arch",
+ "oreboot_compression",
+ "riscv 0.12.1",
+ "rustsbi",
 ]
 
 [[package]]
