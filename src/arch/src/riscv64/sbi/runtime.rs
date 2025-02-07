@@ -4,7 +4,6 @@ use core::{
     pin::Pin,
 };
 use log::println;
-use riscv::interrupt::{Exception, Interrupt, Trap};
 use riscv::register::{
     mcause, medeleg, mepc, mideleg, mie,
     mstatus::{self, Mstatus, MPP},
@@ -45,7 +44,7 @@ fn delegate_interrupt_exception() {
 // Then delegate most interrupts and exceptions to S-mode (the OS).
 pub fn init() {
     // NOTE: This must be aligned to 4 bytes, asserted via repr() directive.
-    let addr = supervisor_save as usize;
+    let addr = from_supervisor_save as usize;
     unsafe { mtvec::write(addr, TrapMode::Direct) };
     delegate_interrupt_exception();
 }
@@ -55,13 +54,13 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    pub fn new_sbi_supervisor(supervisor_mepc: usize, a0: usize, a1: usize) -> Self {
+    pub fn new(supervisor_mepc: usize, a0: usize, a1: usize) -> Self {
         let context: SupervisorContext = unsafe { core::mem::MaybeUninit::zeroed().assume_init() };
-        let mut ans = Runtime { context };
-        ans.prepare_supervisor(supervisor_mepc);
-        ans.context.a0 = a0;
-        ans.context.a1 = a1;
-        ans
+        let mut rt = Runtime { context };
+        rt.prepare_supervisor(supervisor_mepc);
+        rt.context.a0 = a0;
+        rt.context.a1 = a1;
+        rt
     }
 
     fn reset(&mut self) {
@@ -83,46 +82,29 @@ impl Runtime {
     }
 }
 
-// best debugging function on the planet
-fn crap() {
-    println!(
-        "[rustsbi] 0x{:x} 0x{:x} {:?}\n",
-        mtval::read(),
-        mepc::read(),
-        mcause::read().cause()
-    );
-}
+use riscv::interrupt::{Exception as E, Interrupt as I, Trap as T};
+pub const ILLEGAL_INSTRUCTION: T<I, E> = T::Exception(E::IllegalInstruction);
+pub const INSTRUCTION_FAULT: T<I, E> = T::Exception(E::InstructionFault);
 
 impl Coroutine for Runtime {
-    type Yield = MachineTrap;
+    type Yield = Trap;
     type Return = ();
     fn resume(mut self: Pin<&mut Self>, _arg: ()) -> CoroutineState<Self::Yield, Self::Return> {
         unsafe { do_resume(&mut self.context as *mut _) };
         let mtval = mtval::read();
-        let t: Trap<Interrupt, Exception> = mcause::read().cause().try_into().unwrap();
+        let t: T<I, E> = mcause::read().cause().try_into().unwrap();
         let trap = match t {
-            Trap::Exception(Exception::SupervisorEnvCall) => MachineTrap::SbiCall(),
-            Trap::Exception(Exception::IllegalInstruction) => MachineTrap::IllegalInstruction(),
-            Trap::Exception(Exception::InstructionFault) => MachineTrap::InstructionFault(mtval),
-            Trap::Exception(Exception::Breakpoint) => MachineTrap::IllegalInstruction(),
-            Trap::Exception(Exception::LoadFault) => MachineTrap::LoadFault(mtval),
-            Trap::Exception(Exception::StoreFault) => MachineTrap::StoreFault(mtval),
-            Trap::Interrupt(Interrupt::MachineExternal) => MachineTrap::ExternalInterrupt(),
-            Trap::Interrupt(Interrupt::MachineTimer) => {
-                println!("mtimer traaaaap");
-                crap();
-                MachineTrap::MachineTimer()
+            T::Exception(E::SupervisorEnvCall) => Trap::SbiCall,
+            T::Exception(E::IllegalInstruction) => Trap::IllegalInstruction,
+            T::Exception(E::InstructionFault) => Trap::InstructionFault,
+            T::Interrupt(I::MachineExternal) => Trap::MachineExternal,
+            T::Interrupt(I::MachineSoft) => Trap::MachineSoft,
+            T::Interrupt(I::MachineTimer) => Trap::MachineTimer,
+            e => {
+                println!("[SBI] unhandled {e:?}");
+                println!("  mtval: {mtval:08x}");
+                panic!("{:#x?}", self.context);
             }
-            Trap::Interrupt(Interrupt::MachineSoft) => MachineTrap::MachineSoft(),
-            Trap::Exception(Exception::InstructionPageFault) => {
-                MachineTrap::InstructionPageFault(mtval)
-            }
-            Trap::Exception(Exception::LoadPageFault) => MachineTrap::LoadPageFault(mtval),
-            Trap::Exception(Exception::StorePageFault) => MachineTrap::StorePageFault(mtval),
-            e => panic!(
-                "unhandled exception: {:?}! mtval: {:#x?}, ctx: {:#x?}",
-                e, mtval, self.context
-            ),
         };
         CoroutineState::Yielded(trap)
     }
@@ -130,18 +112,13 @@ impl Coroutine for Runtime {
 
 #[repr(C)]
 #[derive(Debug)]
-pub enum MachineTrap {
-    SbiCall(),
-    IllegalInstruction(),
-    ExternalInterrupt(),
-    MachineTimer(),
-    MachineSoft(),
-    InstructionFault(usize),
-    LoadFault(usize),
-    StoreFault(usize),
-    InstructionPageFault(usize),
-    LoadPageFault(usize),
-    StorePageFault(usize),
+pub enum Trap {
+    SbiCall,
+    IllegalInstruction,
+    InstructionFault,
+    MachineExternal,
+    MachineSoft,
+    MachineTimer,
 }
 
 #[derive(Debug)]
@@ -192,8 +169,8 @@ pub struct SupervisorContext {
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
     naked_asm!(
-        "j     {machine_save}",
-        machine_save = sym machine_save,
+        "j     {from_machine_save}",
+        from_machine_save = sym from_machine_save,
     )
 }
 
@@ -205,10 +182,12 @@ unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
 /// Handle with care.
 #[naked]
 #[link_section = ".text"]
-unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
+unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
     naked_asm!(
         // Top of the stack
         "addi   sp, sp, -15*8",
+        // Before entering the function, the caller's registers have been saved,
+        // and the callee's registers need to be saved
         "sd     ra,  0*8(sp)
          sd     gp,  1*8(sp)
          sd     tp,  2*8(sp)
@@ -224,19 +203,20 @@ unsafe extern "C" fn machine_save(_supervisor_context: *mut SupervisorContext) -
          sd     s9, 12*8(sp)
          sd    s10, 13*8(sp)
          sd    s11, 14*8(sp)",
-        "j     {supervisor_restore}",
-        supervisor_restore = sym supervisor_restore,
+        // a0: privileged context
+        "j     {to_supervisor_restore}",
+        to_supervisor_restore = sym to_supervisor_restore
     )
 }
 
 /// # Safety
 ///
 /// Restore S-mode state and return to S-mode.
-/// This is the reverse of supervisor_save.
+/// This is the reverse of from_supervisor_save.
 /// Handle with care.
 #[naked]
 #[link_section = ".text"]
-pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
+pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     naked_asm!(
         // Save top of stack
         "sd     sp,  33*8(a0)",
@@ -295,7 +275,7 @@ pub unsafe extern "C" fn supervisor_restore(_supervisor_context: *mut Supervisor
 #[naked]
 #[repr(align(4))]
 #[link_section = ".text"]
-pub unsafe extern "C" fn supervisor_save() -> ! {
+pub unsafe extern "C" fn from_supervisor_save() -> ! {
     naked_asm!(
         // Swap this sp (stack pointer) with mscratch (M-mode scratch register).
         ".p2align 2",
@@ -339,7 +319,7 @@ pub unsafe extern "C" fn supervisor_save() -> ! {
         // Store the sp on the stack.
         "sd     t2,  1*8(sp)",
         "j      {machine_restore}",
-        machine_restore = sym machine_restore,
+        machine_restore = sym to_machine_restore,
     )
 }
 /// # Safety
@@ -348,7 +328,7 @@ pub unsafe extern "C" fn supervisor_save() -> ! {
 /// Handle with care.
 #[naked]
 #[link_section = ".text"]
-unsafe extern "C" fn machine_restore() -> ! {
+unsafe extern "C" fn to_machine_restore() -> ! {
     naked_asm!(
         // Restore M-mode / SBI runtime sp from mscratch.
         "csrr   sp, mscratch",
