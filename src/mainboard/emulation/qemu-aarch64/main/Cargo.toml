@@ -1,0 +1,8 @@
+[package]
+name = "emulation-qemu-aarch64-main"
+version = "0.1.0"
+authors = ["Oreboot Authors"]
+edition = "2021"
+
+[dependencies]
+aarch64-cpu = "9.4.0"

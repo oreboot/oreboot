@@ -44,6 +44,7 @@ pub(crate) fn parse_target(
             ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
             ("starfive", "visionfive2") => Vendor::StarFive(starfive::Board::VisionFive2),
             ("emulation", "qemu-riscv") => Vendor::Emulation(qemu::Board::RiscV),
+            ("emulation", "qemu-aarch64") => Vendor::Emulation(qemu::Board::AArch64),
             _ => return None,
         };
         return Some(Target {
