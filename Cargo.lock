@@ -111,6 +111,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 
 [[package]]
+name = "bl808-pac"
+version = "0.0.0"
+source = "git+https://github.com/bouffalolab/bl-pac?rev=eb62bbb#eb62bbb0c102fa0d8bf18d1c667d479ab6332868"
+dependencies = [
+ "critical-section",
+ "portable-atomic",
+ "riscv 0.10.1",
+ "riscv-rt",
+ "vcell",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -582,6 +594,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d61c5ce1153ab5b689d0c074c4e7fc613e942dfb7dd9eea5ab202d2ad91fe361"
 
 [[package]]
+name = "portable-atomic"
+version = "1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "280dc24453071f1b63954171985a0b0d30058d287960968b9b2aca264c8d4ee6"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -793,6 +811,36 @@ name = "semver"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
+
+[[package]]
+name = "sipeed-m1s-dock-c906"
+version = "0.1.0"
+dependencies = [
+ "bl808-pac",
+ "critical-section",
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "log 0.1.0",
+ "nb 1.1.0",
+ "riscv 0.10.1",
+ "riscv-rt",
+ "spin",
+]
+
+[[package]]
+name = "sipeed-m1s-dock-e907"
+version = "0.1.0"
+dependencies = [
+ "bl808-pac",
+ "critical-section",
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "log 0.1.0",
+ "nb 1.1.0",
+ "riscv 0.10.1",
+ "riscv-rt",
+ "spin",
+]
 
 [[package]]
 name = "spin"

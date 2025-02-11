@@ -1,0 +1,20 @@
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "sipeed-m1s-dock-e907"
+version = "0.1.0"
+authors = [
+  "Daniel Maslowski <info@orangecms.org>",
+]
+edition = "2021"
+
+[dependencies]
+bl808-pac = { git = "https://github.com/bouffalolab/bl-pac", rev = "eb62bbb", features = ["rt", "critical-section"] }
+critical-section = "1.0"
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+log = { path = "../../../../lib/log" }
+nb = "1"
+riscv = { version = "0.10.1", features = ["critical-section-single-hart"] }
+riscv-rt = "0.11.0"
+spin = "0.9"

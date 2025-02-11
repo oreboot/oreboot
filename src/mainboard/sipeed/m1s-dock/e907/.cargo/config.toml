@@ -1,0 +1,8 @@
+[build]
+target = "riscv32imac-unknown-none-elf"
+
+[target.riscv32imac-unknown-none-elf]
+rustflags = [
+  "-C",
+  "link-arg=-Tlink-bl808-e907.ld",
+]
