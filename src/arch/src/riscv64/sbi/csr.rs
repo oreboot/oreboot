@@ -34,9 +34,9 @@ fn print_misa() {
     let isa = misa::read();
     if let Some(isa) = isa {
         let mxl_str = match isa.mxl() {
-            misa::MXL::XLEN32 => "RV32",
-            misa::MXL::XLEN64 => "RV64",
-            misa::MXL::XLEN128 => "RV128",
+            misa::XLEN::XLEN32 => "RV32",
+            misa::XLEN::XLEN64 => "RV64",
+            misa::XLEN::XLEN128 => "RV128",
         };
         print!("[rustsbi] misa: {mxl_str}");
         for ext in 'A'..='Z' {
@@ -55,20 +55,11 @@ fn print_mideleg() {
     if mideleg.ssoft() {
         print!("ssoft ")
     }
-    if mideleg.usoft() {
-        print!("usoft ")
-    }
     if mideleg.stimer() {
         print!("stimer ")
     }
-    if mideleg.utimer() {
-        print!("utimer ")
-    }
     if mideleg.sext() {
         print!("sext ")
-    }
-    if mideleg.uext() {
-        print!("uext ")
     }
     println!("({:#08x})", mideleg.bits());
 }
@@ -83,26 +74,17 @@ fn print_mie() {
     if mie.ssoft() {
         print!("ssoft ")
     }
-    if mie.usoft() {
-        print!("usoft ")
-    }
     if mie.mtimer() {
         print!("mtimer ")
     }
     if mie.stimer() {
         print!("stimer ")
     }
-    if mie.utimer() {
-        print!("utimer ")
-    }
     if mie.mext() {
         print!("mext ")
     }
     if mie.sext() {
         print!("sext ")
-    }
-    if mie.uext() {
-        print!("uext ")
     }
     println!("({:#08x})", mie.bits());
 }
@@ -140,9 +122,6 @@ fn print_medeleg() {
     }
     if medeleg.supervisor_env_call() {
         print!("secall ")
-    }
-    if medeleg.machine_env_call() {
-        print!("mecall ")
     }
     if medeleg.instruction_page_fault() {
         print!("ipage ")

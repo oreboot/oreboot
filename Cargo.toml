@@ -5,18 +5,8 @@ members = [
   "src/console",
   "src/cpu",
   "src/soc",
-
-  "src/lib/compression",
-  "src/lib/consts",
-  "src/lib/log",
-  "src/lib/util",
-  "src/lib/layoutflash",
-
-  "src/mainboard/starfive/visionfive1/*",
-  "src/mainboard/starfive/visionfive2/*",
-  "src/mainboard/sunxi/nezha/*",
-  "src/mainboard/emulation/qemu-riscv/*",
-
+  "src/lib/*",
+  "src/mainboard/*/*/*",
   "xtask",
 ]
 default-members = ["xtask"]
@@ -33,3 +23,7 @@ debug = true
 opt-level = 1 # Use slightly better optimizations.
 overflow-checks = false # Disable integer overflow checks.
 lto = true
+
+[workspace.dependencies]
+embedded-hal = "=1.0.0"
+embedded-hal-nb = "=1.0.0"

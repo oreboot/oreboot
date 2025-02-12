@@ -1,19 +1,17 @@
-use super::feature;
-use super::runtime::{MachineTrap, Runtime, SupervisorContext};
 use core::{
     arch::asm,
     ops::{Coroutine, CoroutineState},
     pin::Pin,
 };
-use log::{print, println};
-use riscv::register::{
-    mie, mip,
-    scause::{Exception, Trap},
-};
+use riscv::register::{mcause, mepc, mie, mip, mtval};
 use rustsbi::spec::binary::SbiRet;
+use rustsbi::RustSBI;
 use sbi_spec::legacy::LEGACY_CONSOLE_PUTCHAR;
 
-const ECALL_OREBOOT: usize = 0x0A023B00;
+use super::feature;
+use super::runtime::{Runtime, SupervisorContext, Trap, ILLEGAL_INSTRUCTION, INSTRUCTION_FAULT};
+use log::{print, println};
+
 const EBREAK: u16 = 0x9002;
 
 const DEBUG: bool = false;
@@ -23,48 +21,44 @@ const DEBUG_EBREAK: bool = true;
 const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
 
-fn ore_sbi(method: usize, args: [usize; 6]) -> SbiRet {
+const ECALL_OREBOOT: usize = 0x0A02_3B00;
+const ORE_SBI_DUMP_CSR: usize = 0x023A_DC52;
+
+// These are our custom SBI calls for debugging.
+fn ore_sbi(ctx: &SupervisorContext) -> SbiRet {
+    let method = ctx.a6;
     match method {
-        0x023A_DC52 => {
-            let mut val = 0;
-            let mut err = 0;
-            let csr = args[0];
+        ORE_SBI_DUMP_CSR => {
+            let mut value = 0;
+            let mut error = 0;
+            let csr = ctx.a0;
             if DEBUG {
-                println!("[rustsbi] read CSR {:x}", csr);
+                println!("[SBI] read CSR {csr:x}");
             }
             match csr {
                 0x7c0 => unsafe {
-                    asm!("csrr {0}, 0x7c0", out(reg) val);
+                    asm!("csrr {0}, 0x7c0", out(reg) value);
                 },
                 0x7c1 => unsafe {
-                    asm!("csrr {0}, 0x7c1", out(reg) val);
+                    asm!("csrr {0}, 0x7c1", out(reg) value);
                 },
                 0x7c2 => unsafe {
-                    asm!("csrr {0}, 0x7c2", out(reg) val);
+                    asm!("csrr {0}, 0x7c2", out(reg) value);
                 },
                 0x7c5 => unsafe {
-                    asm!("csrr {0}, 0x7c5", out(reg) val);
+                    asm!("csrr {0}, 0x7c5", out(reg) value);
                 },
                 _ => {
-                    err = 1;
+                    error = 1;
                 }
             }
             if DEBUG {
-                println!("[rustsbi] CSR {:x} is {:08x}, err {:x}", csr, val, err);
+                println!("[SBI] CSR {csr:02x} is {value:08x}, error {error:x}");
             }
-            SbiRet {
-                value: val,
-                error: err,
-            }
+            SbiRet { value, error }
         }
         _ => SbiRet { value: 0, error: 1 },
     }
-}
-
-fn putchar(method: usize, args: [usize; 6]) -> SbiRet {
-    let char = args[0] as u8 as char;
-    print!("{char}");
-    SbiRet { value: 0, error: 0 }
 }
 
 fn print_ecall_context(ctx: &mut SupervisorContext) {
@@ -76,31 +70,45 @@ fn print_ecall_context(ctx: &mut SupervisorContext) {
     }
 }
 
-pub fn execute_supervisor(
+fn dump_mstate() {
+    println!(
+        "[SBI] 0x{:x} 0x{:x} {:?}",
+        mtval::read(),
+        mepc::read(),
+        mcause::read().cause()
+    );
+}
+
+pub fn execute_supervisor<S: RustSBI>(
+    sbi: S,
     supervisor_mepc: usize,
     hartid: usize,
     dtb_addr: usize,
 ) -> (usize, usize) {
     println!(
-        "[rustsbi] Enter supervisor on hart {hartid} at {:x} with DTB from {:x}",
+        "[SBI] Prepare supervisor on hart {hartid} at {:x} with DTB from {:x}",
         supervisor_mepc, dtb_addr
     );
-    let mut rt = Runtime::new_sbi_supervisor(supervisor_mepc, hartid, dtb_addr);
+    let mut rt = Runtime::new(supervisor_mepc, hartid, dtb_addr);
     println!("[SBI] Enter loop...");
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
         match Pin::new(&mut rt).resume(()) {
-            CoroutineState::Yielded(MachineTrap::SbiCall()) => {
+            CoroutineState::Yielded(Trap::SbiCall) => {
                 let ctx = rt.context_mut();
                 // specific for 1.9.1; see document for details
                 feature::preprocess_supervisor_external(ctx);
                 let param = [ctx.a0, ctx.a1, ctx.a2, ctx.a3, ctx.a4, ctx.a5];
                 let ans = match ctx.a7 {
-                    ECALL_OREBOOT => ore_sbi(ctx.a6, param),
-                    LEGACY_CONSOLE_PUTCHAR => putchar(ctx.a6, param),
+                    ECALL_OREBOOT => ore_sbi(ctx),
+                    LEGACY_CONSOLE_PUTCHAR => {
+                        let char = ctx.a0 as u8 as char;
+                        print!("{char}");
+                        SbiRet { value: 0, error: 0 }
+                    }
                     _ => {
                         print_ecall_context(ctx);
-                        rustsbi::ecall(ctx.a7, ctx.a6, param)
+                        sbi.handle_ecall(ctx.a7, ctx.a6, param)
                     }
                 };
                 if ans.error & (0xFFFFFFFF << 32) == 0x114514 << 32 {
@@ -111,7 +119,7 @@ pub fn execute_supervisor(
                 ctx.a1 = ans.value;
                 ctx.mepc = ctx.mepc.wrapping_add(4);
             }
-            CoroutineState::Yielded(MachineTrap::IllegalInstruction()) => {
+            CoroutineState::Yielded(Trap::IllegalInstruction) => {
                 let ctx = rt.context_mut();
                 let ins = unsafe { get_vaddr_u32(ctx.mepc) } as usize;
                 // NOTE: Not all instructions are 32 bit
@@ -119,33 +127,49 @@ pub fn execute_supervisor(
                     // dump context on breakpoints for debugging
                     // TODO: how would we allow for "real" debugging?
                     if DEBUG_EBREAK {
-                        panic!("[rustsbi] Take an EBREAK!\r {:#04X?}", ctx);
+                        println!("[SBI] Take an EBREAK!");
+                        dump_mstate();
+                        panic!("{ctx:#04X?}");
                     }
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
                 } else if !emulate_instruction(ctx, ins) {
                     if DEBUG_ILLEGAL {
-                        println!(
-                            "[rustsbi] Illegal instruction {ins:08x} not emulated {ctx:#04X?}"
-                        );
+                        println!("[SBI] Illegal instruction {ins:08x} not emulated");
+                        dump_mstate();
+                        println!("{ctx:#04X?}");
                     }
                     unsafe {
                         if feature::should_transfer_trap(ctx) {
-                            feature::do_transfer_trap(
-                                ctx,
-                                Trap::Exception(Exception::IllegalInstruction),
-                            )
+                            feature::do_transfer_trap(ctx, ILLEGAL_INSTRUCTION)
                         } else {
-                            println!("[rustsbi] Na na na! {:#04X?}", ctx);
                             fail_illegal_instruction(ctx, ins)
                         }
                     }
                 }
             }
-            CoroutineState::Yielded(MachineTrap::MachineTimer()) => {
+            CoroutineState::Yielded(Trap::InstructionFault) => {
+                let ctx = rt.context_mut();
+                unsafe {
+                    if feature::should_transfer_trap(ctx) {
+                        feature::do_transfer_trap(ctx, INSTRUCTION_FAULT)
+                    } else {
+                        println!("[SBI] Instruction fault");
+                        dump_mstate();
+                        panic!("{ctx:#04X?}");
+                    }
+                }
+            }
+            CoroutineState::Yielded(Trap::MachineExternal) => {
+                // TODO
+            }
+            CoroutineState::Yielded(Trap::MachineSoft) => {
+                // TODO
+            }
+            CoroutineState::Yielded(Trap::MachineTimer) => {
                 if DEBUG && DEBUG_MTIMER {
-                    println!("[rustsbi] M-timer interrupt");
+                    println!("[SBI] M-timer interrupt");
                 }
                 // NOTE: The ECALL handler enables the interrupt.
                 unsafe { mie::clear_mtimer() }
@@ -153,15 +177,6 @@ pub fn execute_supervisor(
                 // for this hart.
                 unsafe { mip::set_stimer() }
             }
-            // NOTE: These are all delegated.
-            CoroutineState::Yielded(MachineTrap::ExternalInterrupt()) => {}
-            CoroutineState::Yielded(MachineTrap::MachineSoft()) => {}
-            CoroutineState::Yielded(MachineTrap::InstructionFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::LoadFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::LoadPageFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::StorePageFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::StoreFault(_addr)) => {}
-            CoroutineState::Yielded(MachineTrap::InstructionPageFault(_addr)) => {}
             CoroutineState::Complete(()) => unreachable!(),
         }
     }
@@ -187,7 +202,7 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
 
 fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
     if DEBUG && DEBUG_EMULATE {
-        println!("[rustsbi] Emulating instruction {ins:08x}, {ctx:#04X?}");
+        println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
     }
     if feature::emulate_rdtime(ctx, ins) {
         return true;
@@ -200,5 +215,9 @@ fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
 
 // Real illegal instruction happening in M-mode
 fn fail_illegal_instruction(ctx: &mut SupervisorContext, ins: usize) -> ! {
-    panic!("invalid instruction from machine level, mepc: {:016x?}, instruction: {:016x?}, context: {:016x?}", ctx.mepc, ins, ctx);
+    let mepc = ctx.mepc;
+    println!("[SBI] Invalid instruction from M-mode");
+    println!("  mepc:        {mepc:016x?}");
+    println!("  instruction: {ins:04x?}");
+    panic!("{ctx:04x?}");
 }

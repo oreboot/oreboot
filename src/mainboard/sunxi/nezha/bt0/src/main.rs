@@ -3,9 +3,10 @@
 #![no_std]
 #![no_main]
 
+use core::arch::{asm, naked_asm};
 use core::intrinsics::transmute;
+use core::panic::PanicInfo;
 use core::ptr::{read_volatile, write_volatile};
-use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::OutputPin;
 use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
@@ -34,51 +35,36 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
-// taken from oreboot
-pub type EntryPoint = unsafe extern "C" fn(r0: usize, r1: usize);
+// Allwinner SoCs need a special header. For details, see also:
+// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/board/sunxi/README.sunxi64
+// https://linux-sunxi.org/EGON
 
-const STACK_SIZE: usize = 1 * 1024; // 1KiB
-
-#[link_section = ".bss.uninit"]
-static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-
-/// Jump over head data to executable code.
-///
-/// # Safety
-///
-/// Naked function.
-#[naked]
-#[link_section = ".head.text"]
-#[export_name = "_head_jump"]
-pub unsafe extern "C" fn head_jump() {
-    asm!(
-        ".option push",
-        ".option rvc",
-        "c.j    0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
-        ".option pop",
-        // sym _start,
-        options(noreturn)
-    )
-}
-
-// todo: option(noreturn) generates an extra `unimp` insn
+// Use global assembly for a 4 byte jump instruction to _start.
+// The reason is that rust adds an extra `unimp` insn after the jump if inline assembly is used.
+// This messes up the location of the eGON header
+core::arch::global_asm!(
+    ".section .head.text, \"ax\"",
+    ".global _head_jump",
+    "_head_jump:",
+    "    j start"
+);
 
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
-// This header takes 0x60 bytes.
+// NOTE: The "real" header includes the initial jump.
+// It must be 32-byte aligned. See also:
+// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/include/sunxi_image.h#L80
 #[repr(C)]
 pub struct EgonHead {
     magic: [u8; 8],
     checksum: u32,
     length: u32,
-    pub_head_size: u32,
-    fel_script_address: u32,
-    fel_uenv_length: u32,
-    dt_name_offset: u32,
-    dram_size: u32,
-    boot_media: u32,
-    string_pool: [u32; 13],
+    _padding: [u32; 3],
 }
+
+use core::mem::size_of;
+// Ugly but does the job to assert the alignment.
+const _: () = assert!((size_of::<EgonHead>() + 4) % 0x20 == 0);
 
 const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
 
@@ -92,39 +78,20 @@ const DTF_SIZE: usize = 0x1_0000; // 64K
 const LIN_SIZE: usize = 0x00fc_0000;
 const DTB_SIZE: usize = 0x0001_0000;
 
-// clobber used by KEEP(*(.head.egon)) in link script
+#[used]
 #[link_section = ".head.egon"]
+// NOTE: The real checksum and length are filled in by xtask.
 pub static EGON_HEAD: EgonHead = EgonHead {
     magic: *b"eGON.BT0",
-    checksum: STAMP_CHECKSUM, // real checksum filled by blob generator
-    length: 0,                // real size filled by blob generator
-    pub_head_size: 0,
-    fel_script_address: 0,
-    fel_uenv_length: 0,
-    dt_name_offset: 0,
-    dram_size: 0,
-    boot_media: 0,
-    string_pool: [0; 13],
+    checksum: STAMP_CHECKSUM,
+    length: 0,
+    _padding: [0; 3],
 };
 
-// Private use; not designed as conventional header structure.
-// Real data filled by xtask.
-// This header takes 0x8 bytes. When modifying this structure, make sure
-// the offset in `head_jump` function is also modified.
-#[repr(C)]
-pub struct MainStageHead {
-    offset: u32,
-    length: u32,
-}
+const STACK_SIZE: usize = 1 * 1024; // 1KiB
 
-// clobber used by KEEP(*(.head.main)) in link script
-// To avoid optimization, always read from flash page. Do NOT use this
-// variable directly.
-#[link_section = ".head.main"]
-pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
-    offset: 0, // real offset filled by xtask
-    length: 0, // real size filled by xtask
-};
+#[link_section = ".bss.uninit"]
+static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
 /*
 see https://linux-sunxi.org/D1 for the C906 manual
@@ -253,10 +220,9 @@ This bit will be reset to 1’b0.
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
 #[naked]
-#[export_name = "_start"]
-#[link_section = ".text.entry"]
+#[no_mangle]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // 1. clear cache and processor states
         "csrw   mie, zero",
         // enable theadisaee and maee
@@ -286,7 +252,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         egon_head  =   sym EGON_HEAD,
         main       =   sym main,
-        options(noreturn)
     )
 }
 
@@ -402,7 +367,7 @@ const RST_BIT: u32 = 1 << 16;
 fn udelay(micros: usize) {
     unsafe {
         for _ in 0..micros {
-            core::arch::asm!("nop")
+            asm!("nop")
         }
     }
 }

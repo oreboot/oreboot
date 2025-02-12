@@ -12,11 +12,9 @@ MEMORY {
 SECTIONS {
     .head : {
         *(.head.text)
-        KEEP(*(.head.egon))
-        KEEP(*(.head.main))
+        *(.head.egon)
     } > SRAM
     .text : {
-        KEEP(*(.text.entry))
         *(.text .text.*)
     } > SRAM
     .rodata : ALIGN(4) {
