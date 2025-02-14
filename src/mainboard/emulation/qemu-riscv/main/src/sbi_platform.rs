@@ -1,4 +1,4 @@
-use riscv::register::{self as reg, mie, mip};
+use riscv::register::{self as reg, mhartid, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::{HartMask, RustSBI};
 
@@ -42,9 +42,11 @@ impl rustsbi::Timer for Timer {
         if DEBUG && DEBUG_TIMER {
             println!("[SBI] setTimer {stime_value}");
         }
-        // clear any pending timer
+        // Clear any pending timer
         unsafe { mip::clear_stimer() };
-        write64(crate::mem_map::MTIME_COMPARE, stime_value);
+        // Set new value for this hart
+        let hartid = mhartid::read();
+        write64(crate::mem_map::MTIME_COMPARE + 4 * hartid, stime_value);
         // Reenable the interrupt
         unsafe { mie::set_mtimer() }
     }
