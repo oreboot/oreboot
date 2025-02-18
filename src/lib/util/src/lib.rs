@@ -2,6 +2,7 @@
 #![deny(warnings)]
 #![no_std]
 
+pub mod mem;
 pub mod mmio;
 
 #[inline]
