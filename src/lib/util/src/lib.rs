@@ -2,6 +2,16 @@
 #![deny(warnings)]
 #![no_std]
 
+pub mod mem;
+pub mod mmio;
+
+// A simple busy-loop delay, iterating over NOPs.
+pub fn nop_delay(nops: usize) {
+    for _ in 0..nops {
+        unsafe { core::arch::asm!("nop") }
+    }
+}
+
 #[inline]
 pub fn round_up_4k(num: usize) -> usize {
     num.checked_add(0xfff).expect("overflow in round_up_4k()") & !0xfff

@@ -1,5 +1,5 @@
 use core::arch::asm;
-use riscv::register::{mie, mip};
+use riscv::register::{mhartid, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::{HartMask, RustSBI};
 
@@ -78,16 +78,8 @@ fn get_time() -> u64 {
     mtime
 }
 
-fn dump_time() {
-    let t = get_time();
-    println!("[SBI] current time (CSR): {t:016x}");
-    let v = read64(get_mtime_reg());
-    println!("[SBI] current mtime (MMIO): {v:016x}");
-}
-
 const DEBUG: bool = false;
 
-// TODO: How the heck is this supposed to work?
 struct Timer;
 impl rustsbi::Timer for Timer {
     fn set_timer(&self, value: u64) {
@@ -97,35 +89,12 @@ impl rustsbi::Timer for Timer {
         // Clear any pending timer
         unsafe { mip::clear_stimer() };
 
-        if DEBUG {
-            dump_time();
-        }
-
-        let mtime_cmp = get_mtime_compare_reg();
-        if DEBUG {
-            let v = read64(mtime_cmp);
-            println!("[SBI] current mtime cmp: {v:016x}");
-        }
+        // Set new value for this hart
+        let hartid = mhartid::read();
+        let mtime_cmp = get_mtime_compare_reg() + 4 * hartid;
         write64(mtime_cmp, value);
-        if DEBUG {
-            let v = read64(mtime_cmp);
-            println!("[SBI] current mtime cmp: {v:016x}");
-        }
 
         // Reenable the interrupt
-        if DEBUG {
-            println!("[SBI] enable timer interrupt");
-        }
         unsafe { mie::set_mtimer() }
-
-        if DEBUG {
-            dump_time();
-        }
-
-        if false {
-            let clint = get_clint_base();
-            write32(clint, 1);
-            println!("[SBI] manually triggered interrupt");
-        }
     }
 }

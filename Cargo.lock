@@ -497,6 +497,8 @@ dependencies = [
  "rustsbi",
  "sbi-rt",
  "sbi-spec 0.0.7",
+ "util",
+ "xuantie",
 ]
 
 [[package]]
@@ -955,6 +957,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 [[package]]
 name = "util"
 version = "0.1.0"
+dependencies = [
+ "log 0.1.0",
+]
 
 [[package]]
 name = "vcell"
@@ -1097,4 +1102,14 @@ dependencies = [
  "lzss",
  "oreboot_compression",
  "pathdiff",
+]
+
+[[package]]
+name = "xuantie"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "665988535dfbd9ccfb42bff0f8e82ab4b41d164ec9084f2823a8c972fb5da975"
+dependencies = [
+ "bit_field",
+ "bitflags 1.3.2",
 ]
