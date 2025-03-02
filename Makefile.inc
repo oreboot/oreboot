@@ -56,8 +56,5 @@ test:
 skiptest:
 	echo Not doing test for this target
 
-coverage:
-	cargo tarpaulin --out Lcov
-
 clean:
 	rm -rf $(TOP)/target
