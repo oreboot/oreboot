@@ -30,31 +30,27 @@ mainboards: $(MAINBOARDS)
 $(MAINBOARDS):
 	make --no-print-directory -C $(dir $@) cibuild
 
+.PHONY: firsttime
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
+.PHONY: nexttime
 nexttime:
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
 	$(CARGOINST) --force $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
+.PHONY: debiansysprepare
+debiansysprepare: rustprepare
+	# -y makes the install command non-interactive.
+	sudo apt-get install -y device-tree-compiler qemu-system
 
-debiansysprepare:
-	sudo apt-get install \
-		device-tree-compiler \
-		pkg-config \
-		libssl-dev \
-		llvm-dev \
-		libclang-dev \
-		clang \
-		qemu-system-x86 \
-		binutils-riscv64-unknown-elf \
-		libudev-dev \
-
-	# -y makes it non-interactive.
+.PHONY: rustprepare
+rustprepare:
+	# -y makes the installation non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
 
-.PHONY: ciprepare debiansysprepare firsttime
+.PHONY: ciprepare
 ciprepare: debiansysprepare firsttime
 
 update:
