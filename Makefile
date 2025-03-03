@@ -50,11 +50,13 @@ rustprepare:
 	# -y makes the installation non-interactive.
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
 
-.PHONY: ciprepare
-ciprepare: debiansysprepare firsttime
-
+.PHONY: update
 update:
 	rustup update
+	rustup toolchain install
+
+.PHONY: ciprepare
+ciprepare: debiansysprepare firsttime update
 
 # NOTE: do NOT use the cargo command in targets below.
 # ALWAYS USE MAKE!
