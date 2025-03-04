@@ -21,7 +21,6 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 # NOTE: These are the host utilities, requiring their own recent Rust version.
 RUST_VER := 1.85
 BINUTILS_VER := 0.3.6
-TARPAULIN_VER := 0.27.1
 DPRINT_VER := 0.41.0
 
 CARGOINST := rustup run --install $(RUST_VER) cargo install
@@ -33,12 +32,10 @@ $(MAINBOARDS):
 
 firsttime:
 	$(CARGOINST) $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	$(CARGOINST) $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	$(CARGOINST) $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 nexttime:
 	$(CARGOINST) --force $(if $(BINUTILS_VER),--version $(BINUTILS_VER),) cargo-binutils
-	$(CARGOINST) --force $(if $(TARPAULIN_VER),--version $(TARPAULIN_VER),) cargo-tarpaulin
 	$(CARGOINST) --force $(if $(DPRINT_VER),--version $(DPRINT_VER),) dprint
 
 
@@ -92,29 +89,6 @@ format:
 .PHONY: checkformat
 checkformat:
 	dprint check
-
-# There are a number of targets which can not test.
-# Once those are fixed, we can just use a test target.
-CRATES_TO_TEST := $(patsubst %/Makefile,%/Makefile.test,$(ALLMAKEFILE))
-$(CRATES_TO_TEST):
-	make --no-print-directory -C $(dir $@) test
-.PHONY: test $(CRATES_TO_TEST)
-
-# NOTE: In CI, we run tests with coverage report.
-# The individual crates' Makefiles use the `citest` target.
-# However, there are a number of crates which can not test.
-# Hence, `citest` either points to `coverage` or `skiptest`.
-# We use the LCOV format so that we can simply concatenate
-# the multiple reports. See ./Makefile.inc for details.
-CRATES_TO_CITEST := $(patsubst %/Makefile,%/Makefile.citest,$(ALLMAKEFILE))
-$(CRATES_TO_CITEST):
-	make --no-print-directory -C $(dir $@) citest
-.PHONY: test $(CRATES_TO_CITEST)
-citest: $(CRATES_TO_CITEST)
-	# concatenate all the results from the indidividual directories
-	mkdir -p coverall
-	find . -name "lcov.info" -exec cat > coverall/lcov.txt {} +
-
 
 # TODO: Remove write_with_newline
 CRATES_TO_CLIPPY := $(patsubst %/Makefile,%/Makefile.clippy,$(ALLMAKEFILE))
