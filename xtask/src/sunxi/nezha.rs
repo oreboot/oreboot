@@ -196,6 +196,7 @@ fn concat_binaries(env: &Env) {
     let mut output_file = File::options()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&output_file_path)
         .expect("create output binary file");
 

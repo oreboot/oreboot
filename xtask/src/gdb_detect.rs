@@ -82,6 +82,7 @@ pub fn save_gdb_path_to_file(gdb_path: &str) {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(true)
         .open(
             project_root()
                 .join("target")
@@ -107,6 +108,7 @@ pub fn save_gdb_server_to_file(gdb_server: &str) {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(true)
         .open(
             project_root()
                 .join("target")

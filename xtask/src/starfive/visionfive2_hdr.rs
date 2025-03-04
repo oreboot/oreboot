@@ -5,10 +5,10 @@ const BACKUP_OFFSET: u32 = 0x20_0000;
 /* Offset from HDR to SPL_IMAGE, 0x400 (00 04 00 00) currently */
 pub const HEADER_SIZE: u32 = 0x0400;
 
-fn crc32(data: &Vec<u8>) -> u32 {
+fn crc32(data: &[u8]) -> u32 {
     let c = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
     let mut digest = c.digest();
-    digest.update(&data);
+    digest.update(data);
     digest.finalize().to_le()
 }
 

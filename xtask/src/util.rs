@@ -5,8 +5,8 @@ use std::{
     process::{self, Command, Stdio},
 };
 
-/// These utilities help find and run external commands.
-/// Those are mostly toolchain components and vendor specific tools.
+// These utilities help find and run external commands.
+// Those are mostly toolchain components and vendor specific tools.
 
 /// This gets you the `cargo` command in a specific directory.
 /// Use it to build a stage of a mainboard, which is a board's subdirectory.

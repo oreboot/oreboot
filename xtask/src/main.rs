@@ -193,7 +193,7 @@ fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
 
             let data = {
                 if !Path::new(&path).is_absolute() {
-                    fs::read(&dir.join(&path))
+                    fs::read(dir.join(&path))
                 } else {
                     fs::read(&path)
                 }

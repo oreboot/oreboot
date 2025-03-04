@@ -100,6 +100,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
     let mut output_file = File::options()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&output_file_path)
         .expect("create output binary file");
 
@@ -125,6 +126,7 @@ fn xtask_build_dtb_image(env: &Env) {
     let output_file = File::options()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&output_file_path)
         .expect("create output binary file");
 
