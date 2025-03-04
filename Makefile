@@ -21,7 +21,7 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 # NOTE: These are the host utilities, requiring their own recent Rust version.
 RUST_VER := 1.85
 BINUTILS_VER := 0.3.6
-DPRINT_VER := 0.41.0
+DPRINT_VER := 0.49.0
 
 CARGOINST := rustup run --install $(RUST_VER) cargo install
 
