@@ -19,6 +19,7 @@ log = { path = "../../../../lib/log" }
 oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
 oreboot-soc = { path = "../../../../soc", features = ["sunxi_d1"] }
 oreboot_compression = { path = "../../../../lib/compression" }
+util = { path = "../../../../lib/util" }
 
 [features]
 default = []

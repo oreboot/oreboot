@@ -563,6 +563,7 @@ dependencies = [
  "rustsbi",
  "sbi-spec 0.0.4",
  "spin",
+ "util",
  "vcell",
 ]
 
