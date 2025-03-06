@@ -88,7 +88,7 @@ pub static EGON_HEAD: EgonHead = EgonHead {
     _padding: [0; 19],
 };
 
-const STACK_SIZE: usize = 1 * 1024; // 1KiB
+const STACK_SIZE: usize = 2 * 1024;
 
 #[link_section = ".bss.uninit"]
 static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
