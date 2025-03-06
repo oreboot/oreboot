@@ -1,9 +1,12 @@
 use core::arch::asm;
-use log::println;
-use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
+
 use riscv::register::{mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::{HartMask, RustSBI};
+
+use log::println;
+use oreboot_arch::riscv64::xuantie;
+use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
 
 #[derive(RustSBI)]
 pub struct PlatSbi {
@@ -14,7 +17,7 @@ pub struct PlatSbi {
 
 pub fn init() -> PlatSbi {
     init_pmp();
-    init_plic();
+    xuantie::init_plic();
     PlatSbi {
         ipi: Ipi,
         reset: Reset,
@@ -41,21 +44,6 @@ fn init_pmp() {
     pmpaddr2::write(0x80000000usize >> 2);
     pmpaddr3::write(0x80200000usize >> 2);
     pmpaddr4::write(0xffffffffusize >> 2);
-}
-
-fn init_plic() {
-    let mut addr: usize;
-    unsafe {
-        // 0xfc1 is MAPBADDR (M-mode APB address) as per C906 manual
-        // reflects the base address of on-chip registers (CLINT, PLIC)
-        asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
-        let a = addr + 0x001ffffc; // 0x101f_fffc
-        if false {
-            println!("MAPBADDR {addr:08x} SOME ADDR (PLIC?) {a:08x}");
-        }
-        // allow S-mode to access PLIC regs, D1 manual p210
-        core::ptr::write_volatile(a as *mut u8, 0x1);
-    }
 }
 
 pub struct Ipi;
