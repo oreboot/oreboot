@@ -11,5 +11,5 @@ pub mod sbi {
     pub mod runtime;
 }
 
-mod util;
-mod xuantie;
+pub mod util;
+pub mod xuantie;
