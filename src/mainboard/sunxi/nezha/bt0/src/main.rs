@@ -59,7 +59,7 @@ pub struct EgonHead {
     magic: [u8; 8],
     checksum: u32,
     length: u32,
-    _padding: [u32; 3],
+    _padding: [u32; 19],
 }
 
 use core::mem::size_of;
@@ -85,7 +85,7 @@ pub static EGON_HEAD: EgonHead = EgonHead {
     magic: *b"eGON.BT0",
     checksum: STAMP_CHECKSUM,
     length: 0,
-    _padding: [0; 3],
+    _padding: [0; 19],
 };
 
 const STACK_SIZE: usize = 1 * 1024; // 1KiB
