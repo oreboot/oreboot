@@ -1,12 +1,13 @@
 use core::arch::asm;
 
-use riscv::register::{mie, mip};
+use riscv::register::{mhartid, mie, mip};
 use rustsbi::spec::binary::SbiRet;
 use rustsbi::{HartMask, RustSBI};
 
 use log::println;
 use oreboot_arch::riscv64::xuantie;
-use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
+use oreboot_soc::sunxi::d1::clint::msip;
+use util::mmio::write64le;
 
 #[derive(RustSBI)]
 pub struct PlatSbi {
@@ -66,10 +67,13 @@ impl rustsbi::Ipi for Ipi {
 
 pub struct Timer;
 impl rustsbi::Timer for Timer {
-    fn set_timer(&self, stime_value: u64) {
-        // clear any pending timer
+    fn set_timer(&self, value: u64) {
+        // Clear any pending timer
         unsafe { mip::clear_stimer() };
-        mtimecmp::write(stime_value);
+        // Set new value for this hart
+        let hartid = mhartid::read();
+        let mtime_cmp = xuantie::get_mtime_compare_reg() + 4 * hartid;
+        write64le(mtime_cmp, value);
         // Reenable the interrupt
         unsafe { mie::set_mtimer() }
     }
