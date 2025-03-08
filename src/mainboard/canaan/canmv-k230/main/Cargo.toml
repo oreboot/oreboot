@@ -12,7 +12,6 @@ spin = "0.9"
 
 log = { path = "../../../../lib/log" }
 oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
-oreboot_compression = { path = "../../../../lib/compression" }
 
 riscv = { version = "=0.12.1", features = ["critical-section-single-hart"] }
 rustsbi = { version = "=0.4.0", features = ["machine"] }
