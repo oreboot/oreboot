@@ -160,8 +160,10 @@ const LIGHT_VO_SUBSYS_ADDRBASE: usize = 0xff_ff40_1000;
 const LIGHT_DSP_SUBSYS_ADDRBASE: usize = 0xff_ff04_1000;
 const LIGHT_AONCLK_ADDRBASE: usize = 0xff_fff4_6000;
 
+// board/thead/light-c910/spl.c
 pub fn init() {
     sys_clk_config();
+    cpu_clk_config();
     lpddr4_init(RANK, FREQ, DDR_BIT_WIDTH);
 }
 
@@ -173,6 +175,45 @@ fn udelay(micros: usize) {
             core::arch::asm!("nop")
         }
     }
+}
+
+// board/thead/light-c910/sys_clk.c
+fn cpu_clk_config() {
+    // Update c910_cclk to 750MHz
+    // Set cpu_pll1_foutpostdiv to 750MHz
+    write32(LIGHT_APCLK_ADDRBASE + 0x14, 0x20000000);
+    write32(LIGHT_APCLK_ADDRBASE + 0x10, 0x01407d01);
+    write32(LIGHT_APCLK_ADDRBASE + 0x14, 0x23000000);
+    udelay(3);
+    write32(LIGHT_APCLK_ADDRBASE + 0x14, 0x03000000);
+
+    // Wait for PLL lock
+    read32(LIGHT_APCLK_ADDRBASE + 0x80);
+    read32(LIGHT_APCLK_ADDRBASE + 0x80);
+    while (read32(LIGHT_APCLK_ADDRBASE + 0x80) & 0x10) == 0 {}
+    udelay(11);
+
+    // Configure bus: cpu clk ratio to 1:1
+    let mut tmp = read32(LIGHT_APCLK_ADDRBASE + 0x100);
+    // ratio=0
+    tmp = (tmp & !(0x7 << 8)) | (0x0 << 8);
+    write32(LIGHT_APCLK_ADDRBASE + 0x100, tmp);
+
+    // sync=0
+    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x100);
+    tmp &= !(0x1 << 11);
+    write32(LIGHT_APCLK_ADDRBASE + 0x100, tmp);
+
+    // sync=1
+    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x100);
+    tmp |= 0x1 << 11;
+    write32(LIGHT_APCLK_ADDRBASE + 0x100, tmp);
+
+    // Switch c910_cclk to cpu_pll1_foutpostdiv
+    tmp = read32(LIGHT_APCLK_ADDRBASE + 0x100);
+    tmp |= 0x1;
+    write32(LIGHT_APCLK_ADDRBASE + 0x100, tmp);
+    udelay(1);
 }
 
 // board/thead/light-c910/sys_clk.c

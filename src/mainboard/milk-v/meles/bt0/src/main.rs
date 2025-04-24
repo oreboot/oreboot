@@ -245,7 +245,7 @@ fn main() {
     dump_pmp();
 
     dram::setup_ddr_addrmap();
-    test(DRAM_BASE_4, 0x0002_0000);
+    test(DRAM_BASE_0, 0x0002_0000);
 
     unsafe {
         asm!("wfi");
