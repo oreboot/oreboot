@@ -28,7 +28,7 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0x4055, 0x19f);
     ddr_phy_reg_wr(0x5055, 0x19f);
     ddr_phy_reg_wr(0x200c5, 0x19);
-    ddr_phy_reg_wr(0x2002e, 0x5);
+    ddr_phy_reg_wr(0x2002e, 0x2);
     ddr_phy_reg_wr(0x90204, 0x0);
     ddr_phy_reg_wr(0x20024, 0x1e3);
     ddr_phy_reg_wr(0x2003a, 0x2);
@@ -82,8 +82,12 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0x200f5, 0x0);
     ddr_phy_reg_wr(0x200f6, 0x0);
     ddr_phy_reg_wr(0x200f7, 0xf000);
+    ddr_phy_reg_wr(0x1004a, 0x500);
+    ddr_phy_reg_wr(0x1104a, 0x500);
+    ddr_phy_reg_wr(0x1204a, 0x500);
+    ddr_phy_reg_wr(0x1304a, 0x500);
     ddr_phy_reg_wr(0x20025, 0x0);
-    ddr_phy_reg_wr(0x2002d, 0x1);
+    ddr_phy_reg_wr(0x2002d, 0x0);
     ddr_phy_reg_wr(0x20021, 0x0);
     ddr_phy_reg_wr(0x2002c, 0x0);
     ddr_phy_reg_wr(0x20060, 0x2);
@@ -194,6 +198,9 @@ fn lp4x_3733_phy_train1d2d() {
     for i in 0..702 {
         ddr_phy_reg_wr(0x54000 + i, DCCM_ARRAY1[i]);
     }
+
+    ddr_phy_reg_wr(0x54009, 0x4);
+    // ddr_phy_reg_wr(0x54007,0x18);
 
     ddr_phy_reg_wr(0xd0000, 0x1);
     ddr_phy_reg_wr(0xd0000, 0x1);
@@ -723,7 +730,7 @@ fn lp4x_3733_phy_train1d2d() {
     ddr_phy_reg_wr(0x200be, 0x3);
     ddr_phy_reg_wr(0x2000b, 0x74);
     ddr_phy_reg_wr(0x2000c, 0xe9);
-    ddr_phy_reg_wr(0x2000d, 0x91c);
+    ddr_phy_reg_wr(0x2000d, 0x91b);
     ddr_phy_reg_wr(0x2000e, 0x2c);
     ddr_phy_reg_wr(0x9000c, 0x0);
     ddr_phy_reg_wr(0x9000d, 0x173);

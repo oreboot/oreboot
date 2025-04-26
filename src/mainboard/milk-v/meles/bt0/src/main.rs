@@ -198,22 +198,22 @@ const PMP_BASE: usize = 0xff_dc02_0000;
 // The mask ROM configures PMP by itself.
 fn reset_pmp() {
     write32(PMP_BASE, 0);
-    write32(PMP_BASE + 0x1000, 0);
-    write32(PMP_BASE + 0x1004, 0);
-    write32(PMP_BASE + 0x1008, 0);
-    write32(PMP_BASE + 0x100c, 0);
+    write32(PMP_BASE + 0x100, 0);
+    write32(PMP_BASE + 0x104, 0);
+    write32(PMP_BASE + 0x108, 0);
+    write32(PMP_BASE + 0x10c, 0);
 }
 
 fn dump_pmp() {
     let v = read32(PMP_BASE);
     println!("  PMP {v:08x}");
-    let v = read32(PMP_BASE + 0x1000);
+    let v = read32(PMP_BASE + 0x100);
     println!("  PMP 0 {v:08x}");
-    let v = read32(PMP_BASE + 0x1004);
+    let v = read32(PMP_BASE + 0x104);
     println!("  PMP 1 {v:08x}");
-    let v = read32(PMP_BASE + 0x1008);
+    let v = read32(PMP_BASE + 0x108);
     println!("  PMP 2 {v:08x}");
-    let v = read32(PMP_BASE + 0x100c);
+    let v = read32(PMP_BASE + 0x10c);
     println!("  PMP 3 {v:08x}");
 }
 
@@ -245,7 +245,8 @@ fn main() {
     dump_pmp();
 
     dram::setup_ddr_addrmap();
-    test(DRAM_BASE_0, 0x0002_0000);
+    // TODO: Change this
+    test(0x1000, 0x0000_1000);
 
     unsafe {
         asm!("wfi");

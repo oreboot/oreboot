@@ -1,6 +1,7 @@
 // board/thead/light-c910/lpddr4/src/init_ddr.c
 
 use bitfield::bitfield;
+use core::arch::asm;
 
 use crate::dram_helpers::{
     ddr_phy0_reg_wr, ddr_phy1_reg_rd, ddr_phy1_reg_wr, ddr_phy_broadcast_en, ddr_phy_reg_rd,
@@ -330,9 +331,7 @@ fn lpddr4_init(rank: u8, freq: u16, bits: Bits) {
     pll_config(freq);
     deassert_pwrok_apb(bits.clone());
     ctrl_init(rank, freq);
-    println!("[+] ctrl_init Complete...");
     addrmap(rank, bits.clone());
-    println!("[+] addrmap Complete...");
 
     // adjust_ddr_addrmap(type, rank_num, speed, bits, size);
     // msic regu restore for str
@@ -340,7 +339,6 @@ fn lpddr4_init(rank: u8, freq: u16, bits: Bits) {
 
     // after this step, only PwrOk is still low
     de_assert_other_reset_ddr();
-    println!("[+] de_asssert_other_reset_ddr Complete...");
     dq_pinmux(bits.clone()); // pinmux config before training
     println!("[+] dq_pinmux Complete...");
     lp4_phy_train1d2d(freq, bits.clone());
@@ -716,7 +714,7 @@ fn dq_pinmux(bits: Bits) {
         ddr_phy1_reg_wr(0x130a5, 0x1);
         ddr_phy1_reg_wr(0x130a6, 0x5);
         ddr_phy1_reg_wr(0x130a7, 0x6);
-        ddr_phy_broadcast_en(1);
+        // ddr_phy_broadcast_en(1);
     }
 }
 
@@ -845,7 +843,8 @@ fn enable_axi_port(port: u8) {
     // Full bypass scramble
     // write32(0xff_ff00_4008, 0xff40_0000);
     // Full bypass scramble
-    // write32(0xff_ff00_4008, 0xff40_0000);
+    // FIXME: might have to comment this
+    write32(0xff_ff00_4008, 0xff40_0000);
     // axi rst->release
     write32(DDR_CFG0, 0x00f0);
     write32(DDR_CFG0, 0x1ff0);
