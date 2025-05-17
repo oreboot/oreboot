@@ -202,21 +202,30 @@ You should definitely do this before reporting any issues.
 
 There are two different things in the project:
 
-1. `src/mainboards/*` the actual targets; those depend on and share crates, which
-   can be drivers, SoC init code, and similar. For mainboards, `Cargo.lock`
-   **must** be tracked.
-2. `src/*` everything else; these are the aforementioned crates, for which, we
-   do not track the `Cargo.lock` files.
+1. `src/mainboard/*` the actual targets; those depend on and share crates, which
+   can be drivers, SoC init code, and similar.
+2. `src/*` everything else; these are the aforementioned crates
 
-Checking in a mainboard's `Cargo.lock` file records the state of its dependencies
-at the time of a successful build, enabling reproducibility. Ideally, a lock file
-is updated follwoing successful boot on hardware.
+### Adding a new target
 
-For more, see: https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries
+Looking at how other targets are set up for the same architecture is a good
+start. Be aware that oreboot is targeting bare metal, so there is no standard
+library available.
 
-When creating a new mainboard, looking at how others are set up for the same
-architecture is a good start. Be aware that oreboot is targeting bare metal, so
-there is no standard library available.
+1. Create a new directory structure for the vendor and platform under
+   `src/mainboard/`, e.g., `mkdir -p src/mainboard/acme-silicon/soc-123/`.
+2. Add the sub directories `bt0` for DRAM init and `main` for
+   the main oreboot stage. Each stage needs at least
+   - `Cargo.toml` to define the crate as usual
+   - `src/main.rs` as usual for the entry point
+   - `build.rs` for the linker script
+   - `.cargo/config.toml` to define the target
+
+We also add a convenience `Makefile` with the target `build` for every stage and
+a board-level `Makefile` to wrap the stages. This is where you integrate with
+external tools and with the [oreboot build system](xtask/README.md).
+If possible, add a `run` target for `bt0` to run the code immediately. Many SoCs
+have a mask ROM that can load code via USB or serial for doing so.
 
 ## Building oreboot
 
@@ -314,10 +323,6 @@ oreboot seeks to support:
 
 ## Ground Rules
 
-- `Makefile`s must be simple. Use `xtask` instead for control flow, e.g., adding
-  headers or checksums to the binaries, sitchting images, etc..
-- `Cargo.toml` in the respective `src/mainboard/$VENDOR/$BOARD` (sub)directories
-  allow for board-specific dependencies and building all stages in parallel.
 - All code and markup is auto-formatted with `make format` with no exceptions.
   A CI check will tell if a change does not adhere to the formatting rules.
 - There will be no code written in C. We write all code in Rust.
