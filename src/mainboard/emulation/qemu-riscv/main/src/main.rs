@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(naked_functions)]
 #![no_std]
 #![no_main]
 

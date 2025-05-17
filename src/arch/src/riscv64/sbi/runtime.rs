@@ -165,7 +165,7 @@ pub struct SupervisorContext {
 /// This is the entry point to get back to S-mode.
 /// Before resuming S-mode, save the M-mode state and restore the S-mode state.
 /// Handle with care.
-#[naked]
+#[unsafe(naked)]
 #[link_section = ".text"]
 unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
     naked_asm!(
@@ -180,7 +180,7 @@ unsafe extern "C" fn do_resume(_supervisor_context: *mut SupervisorContext) {
 /// This is the reverse of machine_restore. Store current M-mode state.
 /// a0 holds the supervisor context.
 /// Handle with care.
-#[naked]
+#[unsafe(naked)]
 #[link_section = ".text"]
 unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorContext) -> ! {
     naked_asm!(
@@ -214,7 +214,7 @@ unsafe extern "C" fn from_machine_save(_supervisor_context: *mut SupervisorConte
 /// Restore S-mode state and return to S-mode.
 /// This is the reverse of from_supervisor_save.
 /// Handle with care.
-#[naked]
+#[unsafe(naked)]
 #[link_section = ".text"]
 pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut SupervisorContext) -> ! {
     naked_asm!(
@@ -272,7 +272,7 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 ///       csrrw rd, csr, rs1
 ///       copy csr to rd and initial value of rs1 to csr, atomically
 /// NOTE: must be 4-byte aligned
-#[naked]
+#[unsafe(naked)]
 #[repr(align(4))]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {
@@ -326,7 +326,7 @@ pub unsafe extern "C" fn from_supervisor_save() -> ! {
 ///
 /// Restore M-mode state from stack.
 /// Handle with care.
-#[naked]
+#[unsafe(naked)]
 #[link_section = ".text"]
 unsafe extern "C" fn to_machine_restore() -> ! {
     naked_asm!(

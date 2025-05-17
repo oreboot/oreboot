@@ -1,8 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(naked_functions)]
-#![feature(asm_const)]
-#![feature(panic_info_message)]
 
 use core::arch::{asm, naked_asm};
 use core::panic::PanicInfo;
@@ -186,7 +183,7 @@ const STACK_SIZE: usize = 16 * 1024;
 static PLATFORM: &str = "Allwinner D1";
 static VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[naked]
+#[unsafe(naked)]
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 unsafe extern "C" fn start() -> ! {

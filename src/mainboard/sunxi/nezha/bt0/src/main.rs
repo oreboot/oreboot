@@ -1,5 +1,4 @@
 #![doc = include_str!("README.md")]
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 
@@ -219,7 +218,7 @@ This bit will be reset to 1’b0.
 ///
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
-#[naked]
+#[unsafe(naked)]
 #[no_mangle]
 pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
