@@ -1,4 +1,3 @@
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 
@@ -16,7 +15,7 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
