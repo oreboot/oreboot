@@ -253,37 +253,6 @@ make mainboards
 make -j mainboards
 ```
 
-## QEMU
-
-```
-# Install QEMU for your target platform, e.g. x86
-sudo apt install qemu-system-x86
-
-# Build release build and start with QEMU
-cd src/mainboard/emulation/qemu-q35 && make run
-# Quit qemu with CTRL-A X
-```
-
-To build QEMU from source for RISC-V:
-
-```
-git clone https://github.com/qemu/qemu && cd qemu
-mkdir build-riscv64 && cd build-riscv64
-../configure --target-list=riscv64-softmmu
-make -j$(nproc)
-# QEMU binary is at riscv64-softmmu/qemu-system-riscv64
-```
-
-To build QEMU from source for aarch64:
-
-```
-git clone https://github.com/qemu/qemu && cd qemu
-mkdir build-aarch64 && cd build-aarch64
-../configure --target-list=aarch64-softmmu
-make -j$(nproc)
-# QEMU binary is at aarch64-softmmu/qemu-system-aarch64
-```
-
 ## Mainboards
 
 Similar to coreboot, the structure in oreboot is per vendor and mainboard.
@@ -291,20 +260,8 @@ Multiple architectures and SoCs are supported respectively, and their common
 code is shared between the boards. Boards may have variants if minor deviations
 would otherwise cause too much code duplication.
 
-### Emulation
-
-- `qemu-riscv`
-
-### Hardware
-
-#### RISC-V
-
-##### Allwinner D1 SoC
-
-- Sipeed Lichee RV Dock / Dock Pro
-- MangoPi MQ-Pro
-- DongshanPi Nezha STU
-- Allwinner Nezha
+See `src/mainboard/` for supported platforms, including
+`src/mainboard/emulation/` for QEMU.
 
 ### Previous Implementations
 
