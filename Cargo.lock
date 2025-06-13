@@ -712,6 +712,7 @@ dependencies = [
  "nb 1.1.0",
  "riscv 0.10.1",
  "spin",
+ "util",
 ]
 
 [[package]]

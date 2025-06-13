@@ -1,3 +1,4 @@
+#![doc = include_str!("../../README.md")]
 #![feature(naked_functions, asm_const)]
 #![feature(panic_info_message)]
 #![no_std]
@@ -5,31 +6,31 @@
 // TODO: remove when done debugging crap
 #![allow(unused)]
 
-use dwc3::dwc3_gadget_run;
-use embedded_hal_nb::serial::Write;
-
 #[macro_use]
 extern crate log;
-
 use core::{
-    arch::asm,
+    arch::{asm, naked_asm},
     intrinsics::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
-    slice::from_raw_parts as slice_from,
 };
-use riscv::register::{marchid, mhartid, mimpid, mip, mvendorid};
+
+use embedded_hal_nb::serial::Write;
+use riscv::register::{marchid, mhartid, mimpid, mvendorid};
+
+use dwc3::dwc3_gadget_run;
+use oreboot_util::mem::test;
+use util::{read32, write32};
 
 mod dram;
 mod dwc3;
 mod uart;
 mod util;
 
-use uart::TH1520Serial;
-use util::{read32, write32};
-
 pub type EntryPoint = unsafe extern "C" fn();
 
+// NOTE: signed images would have a header of size 0x800, i.e. code would start
+// at 0xff_e000_0800.
 const SRAM0_BASE: usize = 0xFF_E000_0000;
 const SRAM0_SIZE: usize = 0x00_0018_0000;
 
@@ -40,7 +41,12 @@ const USB0_IOPMP_BASE: usize = 0xFF_FC02_E000;
 const QSPI0_BASE: usize = 0xFF_EA00_0000;
 const QSPI0_SIZE: usize = 0x00_0200_0000;
 
-const DRAM_BASE: usize = 0x0000_0000;
+// DRAM starts here, according to the SoC manual.
+const DRAM_BASE_0: usize = 0x00_0000_0000;
+const DRAM_BASE_4: usize = 0x00_4000_0000;
+const DRAM_BASE_8: usize = 0x00_8000_0000;
+// U-Boot puts its main code at this address.
+const DRAM_BASE_UBOOT: usize = 0x00_C000_0000;
 
 const BROM_BASE: usize = 0xFF_FFD0_0000;
 // One sweet megabyte mask ROM
@@ -58,12 +64,12 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "start"]
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         "auipc  s4, 0",
 
         "csrw   mstatus, zero",
@@ -94,7 +100,6 @@ pub unsafe extern "C" fn start() -> ! {
         payload    = sym exec_payload,
         reset      = sym reset,
         start      = sym start,
-        options(noreturn)
     )
 }
 
@@ -115,8 +120,10 @@ pub unsafe extern "C" fn reset() {
     }
 
     let bss_size = addr_of!(_ebss) as usize - addr_of!(_sbss) as usize;
-    ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
-
+    // FIXME: why is this broken now, Rust?!
+    if false {
+        ptr::write_bytes(addr_of_mut!(_sbss), 0, bss_size);
+    }
     let data_size = addr_of!(_edata) as usize - addr_of!(_sdata) as usize;
     ptr::copy_nonoverlapping(addr_of!(_sidata), addr_of_mut!(_sdata), data_size);
     // Call user entry point
@@ -183,48 +190,6 @@ fn copy(source: usize, target: usize, size: usize) {
     println!(" done.");
 }
 
-fn dram_test() {
-    let limit = 0x8000_0000;
-    let range = DRAM_BASE..limit;
-    let steps = 0x1000;
-
-    println!("DRAM test: write patterns...");
-
-    for i in range.clone().step_by(steps) {
-        write32(i + 0x0, 0x2233_ccee | i as u32);
-        write32(i + 0x4, 0x5577_aadd | i as u32);
-        write32(i + 0x8, 0x1144_bbff | i as u32);
-        write32(i + 0xc, 0x6688_9900 | i as u32);
-    }
-
-    println!("DRAM test: reading back...");
-
-    for i in range.clone().step_by(steps) {
-        let v = read32(i + 0x0);
-        let e = 0x2233_ccee | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0x4);
-        let e = 0x5577_aadd | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0x8);
-        let e = 0x1144_bbff | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-        let v = read32(i + 0xc);
-        let e = 0x6688_9900 | i as u32;
-        if v != e {
-            println!("Error: {i:08x} != {e:08x}, got {v:08x}");
-        }
-    }
-
-    println!("DRAM test: done :)");
-}
-
 #[no_mangle]
 fn main() {
     let mut ini_pc: usize = 0;
@@ -234,7 +199,7 @@ fn main() {
     init_logger(s);
     println!("oreboot 🦀 bt0");
 
-    println!("initial PC {ini_pc:016x}");
+    println!("initial program counter (PC) {ini_pc:016x}");
 
     print_ids();
 
@@ -246,14 +211,15 @@ fn main() {
 
     dram::init();
 
-    // dram_test();
+    // TODO: Change this
+    // test(0x1000, 0x0000_1000);
 
     unsafe {
         asm!("wfi");
     }
 
     // GO!
-    let load_addr = DRAM_BASE;
+    let load_addr = DRAM_BASE_UBOOT;
     println!("[bt0] Jump to main stage @{load_addr:08x}");
     exec_payload(load_addr);
     println!("[bt0] Exit from main stage, resetting...");
@@ -284,9 +250,8 @@ fn panic(info: &PanicInfo) -> ! {
     } else {
         println!("[bt0] panic at unknown location");
     };
-    if let Some(msg) = info.message() {
-        println!("[bt0]   {msg}");
-    }
+    let msg = info.message();
+    println!("[bt0]   {msg}");
     loop {
         core::hint::spin_loop();
     }
