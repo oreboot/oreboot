@@ -135,7 +135,7 @@ impl<SPI: Instance, PINS> SpiNor<SPI, PINS> {
     /// Copies bytes from address `addr` to `buf`.
     #[inline]
     pub fn copy_into(&mut self, addr: [u8; 3]) -> [u8; 64] {
-        let cmd = [CMD_NOR_READ, addr[0], addr[1], addr[2]];
+        let cmd = [CMD_NOR_READ_FAST, addr[0], addr[1], addr[2], 0xff]; // CMD, addr, dummy byte
         let mut buf = [0u8; 64];
         self.0.transfer(cmd, 0, &mut buf);
         buf
