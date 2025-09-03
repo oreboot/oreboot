@@ -8,6 +8,7 @@
 
 #[macro_use]
 extern crate log;
+
 use core::{
     arch::{asm, naked_asm},
     intrinsics::transmute,
@@ -26,6 +27,7 @@ mod dram;
 mod dwc3;
 mod uart;
 mod util;
+mod dram_training_data;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
