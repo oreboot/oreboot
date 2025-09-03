@@ -1,4 +1,8 @@
-use oreboot_util::mmio::write32;
+use crate::dram_training_data::{
+    DCCM_1D_TRAIN_FW, ICCM_1D_TRAIN_FW, MCU_START, PINMUX_CFG_PHY0, PINMUX_CFG_PHY1,
+    PRE_CCM_LOADING,
+};
+use oreboot_util::mmio::{write16, write32};
 use oreboot_util::nop_delay;
 
 macro_rules! genmask {
@@ -244,6 +248,8 @@ pub fn init() {
 
     reset |= bitn!(0) | bitn!(1) | bitn!(2) | bitn!(3) | bitn!(4) | TH1520_SYS_DDR_CFG0_CTRL_RSTN;
     write32(TH1520_DDR_SYS_BASE + TH1520_SYS_DDR_CFG0, reset);
+
+    lpddr4_load_firmware();
 }
 
 // drivers/ram/thead/th1520_ddr.c: static int th1520_ddr_pll_config(void __iomem *sysreg, unsigned int frequency)
@@ -483,3 +489,63 @@ fn th1520_ddr_ctrl_init(ranknum: u8, freq: u8, bitwidth: Bits) {
 
     println!("[+] th1520_ddr_ctrl_init Complete...");
 }
+
+// drivers/ram/thead/th1520_ddr.c: static int lpddr4_load_firmware(struct th1520_ddr_priv *priv, struct th1520_ddr_fw *fw)
+fn lpddr4_load_firmware() {
+    // PINMUX_CFG training data
+    // PHY0 data
+    for data in PINMUX_CFG_PHY0 {
+        write16(TH1520_DDR_PHY0_BASE + data.addr, data.value);
+    }
+
+    // PHY1 data
+    for data in PINMUX_CFG_PHY1 {
+        write16(TH1520_DDR_PHY1_BASE + data.addr, data.value);
+    }
+
+    // PRE_CCM_LOADING training data
+    for data in PRE_CCM_LOADING {
+        write16(TH1520_DDR_PHY0_BASE + data.addr, data.value);
+        write16(TH1520_DDR_PHY1_BASE + data.addr, data.value);
+    }
+
+    // ICCM_1D_TRAIN_FW training data
+    for (i, &data) in ICCM_1D_TRAIN_FW.iter().enumerate() {
+        write16(TH1520_DDR_PHY0_BASE + 0x50000 + i * 2, data);
+        write16(TH1520_DDR_PHY1_BASE + 0x50000 + i * 2, data);
+    }
+
+    // unknown operation sequence
+    // { op = "phy", addr = 0xd0000, data = 0x1 },
+    write16(TH1520_DDR_PHY0_BASE + 0xd0000, 0x1);
+    write16(TH1520_DDR_PHY1_BASE + 0xd0000, 0x1);
+    // { op = "phy", addr = 0xd0000, data = 0x0 },
+    write16(TH1520_DDR_PHY0_BASE + 0xd0000, 0x0);
+    write16(TH1520_DDR_PHY1_BASE + 0xd0000, 0x0);
+
+    // DCCM_1D_TRAIN_FW training data
+    for (i, &data) in DCCM_1D_TRAIN_FW.iter().enumerate() {
+        write16(TH1520_DDR_PHY0_BASE + 0x54000 + i * 2, data);
+        write16(TH1520_DDR_PHY1_BASE + 0x54000 + i * 2, data);
+    }
+
+    // not implemented
+    // --[[ Enable debug message of the ddr firmware ]]
+    // -- { op = "phy", addr = 0x54009, data = 0x4 },
+
+    // start the MCU
+    for data in MCU_START {
+        write16(TH1520_DDR_PHY0_BASE + data.addr, data.value);
+        write16(TH1520_DDR_PHY1_BASE + data.addr, data.value);
+    }
+
+    // --[[ Wait for firmware completion ]]
+    // { op = "waitphy0" },
+    // { op = "waitphy1" },
+
+    th1520_phy_wait_pmu_completion(TH1520_DDR_PHY0_BASE);
+
+    println!("[+] lpddr4_load_firmware complete...");
+}
+
+fn th1520_phy_wait_pmu_completion(phy_mem: usize) {}

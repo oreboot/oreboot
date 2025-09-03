@@ -8,6 +8,7 @@
 
 #[macro_use]
 extern crate log;
+
 use core::{
     arch::{asm, naked_asm},
     intrinsics::transmute,
@@ -23,6 +24,7 @@ use oreboot_util::mem::test;
 use util::{read32, write32};
 
 mod dram;
+mod dram_training_data;
 mod dwc3;
 mod uart;
 mod util;
