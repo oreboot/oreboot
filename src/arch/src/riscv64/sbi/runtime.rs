@@ -273,7 +273,7 @@ pub unsafe extern "C" fn to_supervisor_restore(_supervisor_context: *mut Supervi
 ///       copy csr to rd and initial value of rs1 to csr, atomically
 /// NOTE: must be 4-byte aligned
 #[unsafe(naked)]
-#[repr(align(4))]
+#[rustc_align(4)]
 #[link_section = ".text"]
 pub unsafe extern "C" fn from_supervisor_save() -> ! {
     naked_asm!(
