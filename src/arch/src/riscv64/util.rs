@@ -12,7 +12,7 @@ pub fn delay(t: u64) {
     while rdtime() < later {}
 }
 
-#[repr(align(4))]
+#[rustc_align(4)]
 fn trap(a: usize, b: usize) {
     println!("stop it {a:08x} {b:08x}");
 }
