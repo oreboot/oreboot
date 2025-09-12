@@ -22,13 +22,31 @@ const DEBUG_EMULATE: bool = false;
 const DEBUG_ILLEGAL: bool = true;
 
 const ECALL_OREBOOT: usize = 0x0A02_3B00;
-const ORE_SBI_DUMP_CSR: usize = 0x023A_DC52;
+// dump CSR
+const ECALL_DCSR: usize = usize::from_be_bytes(*b"\0\0\0\0DCSR");
+// dump register as hex
+const ECALL_DHEX: usize = usize::from_be_bytes(*b"\0\0\0\0DHEX");
+// dump memory as hex
+const ECALL_DUMP: usize = usize::from_be_bytes(*b"\0\0\0\0DUMP");
+// dump machine state
+const ECALL_STAT: usize = usize::from_be_bytes(*b"\0\0\0\0STAT");
+// undelegate traps
+const ECALL_TRAP: usize = usize::from_be_bytes(*b"\0\0\0\0TRAP");
+
+use riscv::register::medeleg;
 
 // These are our custom SBI calls for debugging.
 fn ore_sbi(ctx: &SupervisorContext) -> SbiRet {
     let method = ctx.a6;
     match method {
-        ORE_SBI_DUMP_CSR => {
+        // Dump a single value in hex.
+        ECALL_DHEX => {
+            let val = ctx.a0;
+            println!("[SBI] dump hex: {val:016x}");
+            SbiRet { value: 0, error: 0 }
+        }
+        // Dump a CSR. Only few specific CSRs are supported.
+        ECALL_DCSR => {
             let mut value = 0;
             let mut error = 0;
             let csr = ctx.a0;
@@ -56,6 +74,39 @@ fn ore_sbi(ctx: &SupervisorContext) -> SbiRet {
                 println!("[SBI] CSR {csr:02x} is {value:08x}, error {error:x}");
             }
             SbiRet { value, error }
+        }
+        // Dump a block of memory and the current program counter.
+        ECALL_DUMP => {
+            let base = ctx.a0;
+            let size = ctx.a1;
+            print!("[SBI]: ");
+            util::mem::dump_block(base, size, 0x20);
+            println!("[SBI] mepc: {:016x}", ctx.mepc);
+            SbiRet { value: 0, error: 0 }
+        }
+        // Dump the machine state.
+        ECALL_STAT => {
+            println!("[SBI] machine state: {ctx:#x?}");
+            SbiRet { value: 0, error: 0 }
+        }
+        // Undelegate traps. We used this to debug an alignment issue in Linux
+        // kexec/purgatory.
+        ECALL_TRAP => {
+            println!("[SBI] undelegate traps; mepc: {:016x}", ctx.mepc);
+            unsafe {
+                medeleg::clear_instruction_misaligned();
+                medeleg::clear_instruction_fault();
+                medeleg::clear_breakpoint();
+                medeleg::clear_load_fault();
+                medeleg::clear_load_misaligned();
+                medeleg::clear_store_misaligned();
+                medeleg::clear_store_fault();
+                medeleg::clear_user_env_call();
+                medeleg::clear_instruction_page_fault();
+                medeleg::clear_load_page_fault();
+                medeleg::clear_store_page_fault();
+            }
+            SbiRet { value: 0, error: 0 }
         }
         _ => SbiRet { value: 0, error: 1 },
     }
