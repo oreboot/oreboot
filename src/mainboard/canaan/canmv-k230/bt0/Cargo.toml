@@ -7,13 +7,14 @@ edition = "2021"
 [dependencies]
 embedded-hal = "=1.0.0"
 embedded-hal-nb = "=1.0.0"
-log = { path = "../../../../lib/log" }
 nb = "1"
 spin = "0.9"
 
-[dependencies.riscv]
-version = "0.10.1"
-features = ["critical-section-single-hart"]
+riscv = { version = "=0.12.1", features = ["critical-section-single-hart"] }
+
+log = { path = "../../../../lib/log" }
+oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
+util = { path = "../../../../lib/util" }
 
 [features]
 default = []
