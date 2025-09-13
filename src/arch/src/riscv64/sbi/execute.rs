@@ -130,17 +130,26 @@ fn dump_mstate() {
     );
 }
 
+// Machine Time is a 64-bit register
+const MTIME_OFFSET: usize = 0xbff8;
+
 pub fn execute_supervisor<S: RustSBI>(
     sbi: S,
     supervisor_mepc: usize,
     hartid: usize,
     dtb_addr: usize,
+    clint_base: Option<usize>,
 ) -> (usize, usize) {
     println!(
         "[SBI] Prepare supervisor on hart {hartid} at {:x} with DTB from {:x}",
         supervisor_mepc, dtb_addr
     );
     let mut rt = Runtime::new(supervisor_mepc, hartid, dtb_addr);
+    let mtime: Option<usize> = if let Some(b) = clint_base {
+        Some(b + MTIME_OFFSET)
+    } else {
+        None
+    };
     println!("[SBI] Enter loop...");
     loop {
         // NOTE: `resume()` drops into S-mode by calling `mret` (asm) eventually
@@ -185,7 +194,7 @@ pub fn execute_supervisor<S: RustSBI>(
                     // skip instruction; this will likely cause the OS to crash
                     // use DEBUG to get actual information
                     ctx.mepc = ctx.mepc.wrapping_add(2);
-                } else if !emulate_instruction(ctx, ins) {
+                } else if !emulate_instruction(ctx, ins, mtime) {
                     if DEBUG_ILLEGAL {
                         println!("[SBI] Illegal instruction {ins:08x} not emulated");
                         dump_mstate();
@@ -251,11 +260,11 @@ unsafe fn get_vaddr_u16(vaddr: usize) -> u16 {
     ans
 }
 
-fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize) -> bool {
+fn emulate_instruction(ctx: &mut SupervisorContext, ins: usize, mtime: Option<usize>) -> bool {
     if DEBUG && DEBUG_EMULATE {
         println!("[SBI] Emulating instruction {ins:08x}, {ctx:#04X?}");
     }
-    if feature::emulate_rdtime(ctx, ins) {
+    if feature::emulate_rdtime(ctx, ins, mtime) {
         return true;
     }
     if feature::emulate_sfence_vma(ctx, ins) {
