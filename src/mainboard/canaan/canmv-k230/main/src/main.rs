@@ -267,7 +267,7 @@ fn exec_payload() {
         let hart_id = mhartid::read();
         let dtb_addr = 0;
         let (reset_type, reset_reason) =
-            ore_sbi::execute::execute_supervisor(sbi, payload_addr, hart_id, dtb_addr);
+            ore_sbi::execute::execute_supervisor(sbi, payload_addr, hart_id, dtb_addr, None);
         println!("[oreboot] reset reason: {reset_reason}");
     } else {
         unsafe {

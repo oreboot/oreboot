@@ -62,8 +62,13 @@ pub extern "C" fn _start(dtb_address: usize) -> ! {
     }
 
     let hart_id = mhartid::read();
-    let (reset_type, reset_reason) =
-        ore_sbi::execute::execute_supervisor(sbi, mem_map::PAYLOAD_ADDR, hart_id, dtb_address);
+    let (reset_type, reset_reason) = ore_sbi::execute::execute_supervisor(
+        sbi,
+        mem_map::PAYLOAD_ADDR,
+        hart_id,
+        dtb_address,
+        Some(mem_map::CLINT_BASE),
+    );
     println!("[oreboot] reset; reason: {reset_reason}, type: {reset_type}");
 
     loop {
