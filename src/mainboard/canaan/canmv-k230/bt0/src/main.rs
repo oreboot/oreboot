@@ -6,6 +6,7 @@
 
 #[macro_use]
 extern crate log;
+
 use core::{
     arch::{asm, naked_asm},
     intrinsics::transmute,
@@ -16,14 +17,13 @@ use core::{
 use embedded_hal_nb::serial::Write;
 use riscv::register::{marchid, mhartid, mimpid, mvendorid, time};
 
-use util::{read32, write32};
+use util::mem;
+use util::mmio::{read32, write32};
 
 mod ddr_data;
 mod dram;
 mod mem_map;
-mod memtest;
 mod uart;
-mod util;
 
 pub type EntryPoint = unsafe extern "C" fn();
 
@@ -188,15 +188,22 @@ const DO_MEMTEST: bool = false;
 const LOADER: usize = mem_map::MASK_ROM_BASE;
 
 // TODO: move to SoC lib crate
-const CPU0_X: usize = mem_map::HDI_BASE + 0x0020;
-const CPU1_X: usize = mem_map::HDI_BASE + 0x0030;
-// We don't know why, but this enables the mtimer clock.
+const STC2_CFG: usize = mem_map::STC_BASE + 0x0020;
+const STC3_CFG: usize = mem_map::STC_BASE + 0x0030;
+// This enables the mtimer clock and is specific to the K230 SoC.
+// It is apparently backed by the STC, which probably means System Time Clock.
+// The manual says:
+// > K230 provides 9 timers (six general timer and three stc timer).
+// > Six general-purpose timers can be used as system clock of operating system
+// > and used to count external sinal input. Stc0 timer can be used for
+// > video-input/video-output and audio synchronization.
+// > STC2 timer is used for cpu0 and STC3 timer is used for cpu1.
 // see k230_linux_sdk
 // buildroot-overlay/boot/uboot/u-boot-2022.10-overlay/arch/riscv/cpu/k230/cpu.c
 // harts_early_init
-fn enable_mtimer_clock() {
-    write32(CPU0_X, 1);
-    write32(CPU1_X, 1);
+fn enable_system_time_clock() {
+    write32(STC2_CFG, 1);
+    write32(STC3_CFG, 1);
 }
 
 #[no_mangle]
@@ -209,7 +216,10 @@ fn main() {
     println!("oreboot 🦀 bt0");
     println!("initial program counter (PC) {ini_pc:016x}");
 
-    enable_mtimer_clock();
+    enable_system_time_clock();
+
+    // hart 1
+    write32(mem_map::CMU_BASE + 0x0004, 0x8019_9805);
 
     print_ids();
     print_cpuid();
@@ -221,9 +231,9 @@ fn main() {
 
     if DO_MEMTEST {
         let mb = 1024 * 1024;
-        memtest::mem_test(2 * mb, 20 * mb);
-        memtest::mem_test(100 * mb, 20 * mb);
-        memtest::mem_test(200 * mb, 20 * mb);
+        mem::test(2 * mb, 20 * mb);
+        mem::test(100 * mb, 20 * mb);
+        mem::test(200 * mb, 20 * mb);
     }
 
     exec_payload(LOADER);

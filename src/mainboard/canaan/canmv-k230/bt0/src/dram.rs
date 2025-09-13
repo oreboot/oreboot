@@ -1,4 +1,5 @@
-use crate::util::{read32, udelay, write32};
+use util::mmio::{read32, write32};
+use util::nop_delay;
 
 // This DRAM init code for the K230D is adapted from vendor SDK>
 // <https://github.com/kendryte/k230_linux_sdk>
@@ -101,7 +102,7 @@ fn change_pll_2660() {
     // switch source to pll2 div4
     write32(DDR_CLK_CFG, 0x43fc | (1 << 31) | (1 << 1));
 
-    udelay(50);
+    nop_delay(50);
 }
 
 fn init_phy() {
