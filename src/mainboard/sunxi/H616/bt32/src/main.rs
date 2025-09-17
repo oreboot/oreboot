@@ -1,9 +1,10 @@
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 
-use core::ptr::{read_volatile, write_volatile};
+use core::arch::naked_asm;
 use core::{arch::asm, panic::PanicInfo};
+
+use util::mmio::write32;
 
 /*
 // FIXME: The compiler would add a `BRK` (aarch64) instruction hereafter.
@@ -98,17 +99,16 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // hack to include eGON header; we skip this via the jump from header
         "ldr     r0, {egon_head}",
         "bl   {main}",
         egon_head  =   sym EGON_HEAD,
-        main       =   sym main,
-        options(noreturn)
+        main       =   sym main
     )
 }
 
@@ -129,11 +129,11 @@ const RVBAR: usize = 0x0170_00a0;
 const START_AARCH64: u32 = 0x0002_0200;
 
 unsafe fn blink() {
-    write_volatile(GPIO_PORTC_DATA as *mut u32, PC13_HIGH);
+    write32(GPIO_PORTC_DATA, PC13_HIGH);
     for _ in 0..0x1f0000 {
         core::hint::spin_loop();
     }
-    write_volatile(GPIO_PORTC_DATA as *mut u32, 0);
+    write32(GPIO_PORTC_DATA, 0);
     for _ in 0..0x1f0000 {
         core::hint::spin_loop();
     }
@@ -142,9 +142,9 @@ unsafe fn blink() {
 extern "C" fn main() -> ! {
     unsafe {
         // set PC13 high (status LED)
-        write_volatile(GPIO_PORTC_CFG1 as *mut u32, PC13_OUT); // set to out
+        write32(GPIO_PORTC_CFG1, PC13_OUT); // set to out
         let new_addr = START_AARCH64;
-        write_volatile(RVBAR as *mut u32, new_addr);
+        write32(RVBAR, new_addr);
         blink();
         asm!(
             "add     r0, pc, #88",

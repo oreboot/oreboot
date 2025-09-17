@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-const LINKER_SCRIPT_FILE: &str = "link-mangopi-mqquad-bt32.ld";
+const LINKER_SCRIPT_FILE: &str = "link-allwinner-h616-bt32.ld";
 
 const LINKER_SCRIPT: &[u8] = b"
 OUTPUT_ARCH(armv7a)

@@ -547,6 +547,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "oreboot-mangopi-mqquad-bt0"
+version = "0.1.0"
+dependencies = [
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "nb 1.1.0",
+ "spin",
+]
+
+[[package]]
+name = "oreboot-mangopi-mqquad-bt32"
+version = "0.1.0"
+dependencies = [
+ "util",
+]
+
+[[package]]
 name = "oreboot-nezha-bt0"
 version = "0.1.0"
 dependencies = [
