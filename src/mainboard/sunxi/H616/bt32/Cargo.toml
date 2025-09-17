@@ -5,4 +5,6 @@ authors = ["oreboot authors"]
 edition = "2021"
 
 [dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
 util = { path = "../../../../lib/util" }

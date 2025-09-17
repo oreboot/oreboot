@@ -15,7 +15,7 @@ use util::mmio::write32;
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[link_section = ".head.text"]
 #[export_name = "head_jump"]
 pub unsafe extern "C" fn head_jump() {
@@ -31,7 +31,7 @@ pub unsafe extern "C" fn head_jump() {
 // This header takes 0x60 bytes.
 #[repr(C)]
 pub struct EgonHead {
-    jump: u32,
+    jump32: u32,
     magic: [u8; 8],
     checksum: u32,
 
@@ -52,7 +52,7 @@ const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
 // clobber used by KEEP(*(.head.egon)) in link script
 #[link_section = ".head.egon"]
 pub static EGON_HEAD: EgonHead = EgonHead {
-    jump: 0xea000017, // b 0x64
+    jump32: 0xea000016, // b 0x60
     magic: *b"eGON.BT0",
     checksum: STAMP_CHECKSUM, // real checksum filled by blob generator
     length: 0,                // real size filled by blob generator
@@ -105,8 +105,9 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
 pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
         // hack to include eGON header; we skip this via the jump from header
-        "ldr     r0, {egon_head}",
         "bl   {main}",
+        "ldr  r0, {egon_head}",
+        ".word 0x14000047", // b 0x11c in Aarch64
         egon_head  =   sym EGON_HEAD,
         main       =   sym main
     )
@@ -121,34 +122,71 @@ const GPIO_PORTC_DATA: usize = GPIO_BASE + 0x0058;
 const PC13_OUT: u32 = 0b001 << 20;
 const PC13_HIGH: u32 = 1 << 13;
 
-// SUN50I GEN H6
-const RVBAR: usize = 0x0170_00a0;
+// See U-Boot arch/arm/mach-sunxi/Kconfig
+//   under config MACH_SUN50I_H6(16), there is select SUN50I_GEN_H6
+// for H6 targets
+const RVBAR: usize = 0x0901_0040;
+// non-H6 targets
+// const RVBAR: usize = 0x0170_00a0;
 
-// const RVBAR: usize = 0x0901_0040;
+const RVBAR_ALT: usize = 0x0810_0040;
+// for non-H6
+// const RVBAR_ALT: usize = RVBAR;
 
-const START_AARCH64: u32 = 0x0002_0200;
+const START_AARCH64: u32 = 0x0002_0000 + 2048;
 
-unsafe fn blink() {
+fn blink(delay: u32) {
+    let cycs = delay * 0x10000;
     write32(GPIO_PORTC_DATA, PC13_HIGH);
-    for _ in 0..0x1f0000 {
+    for _ in 0..cycs {
         core::hint::spin_loop();
     }
     write32(GPIO_PORTC_DATA, 0);
-    for _ in 0..0x1f0000 {
+    for _ in 0..cycs {
         core::hint::spin_loop();
     }
 }
 
-extern "C" fn main() -> ! {
+#[inline]
+fn reset64() {
+    if false {
+        write32(RVBAR, START_AARCH64);
+    } else {
+        write32(RVBAR_ALT, START_AARCH64);
+    }
     unsafe {
-        // set PC13 high (status LED)
-        write32(GPIO_PORTC_CFG1, PC13_OUT); // set to out
-        let new_addr = START_AARCH64;
-        write32(RVBAR, new_addr);
-        blink();
         asm!(
-            "add     r0, pc, #88",
-            "ldr     r1, [pc, #84]",
+            "dsb	sy",
+            "isb	sy",
+            "mrc	p15, 0, r0, cr12, cr0, 2", // read RMR register
+            "orr	r0, r0, #3",               // request reset in AArch64
+            "mcr	p15, 0, r0, cr12, cr0, 2", // write RMR register
+            "isb	sy",
+        );
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn main() -> ! {
+    // set PC13 (status LED) to output
+    write32(GPIO_PORTC_CFG1, PC13_OUT);
+    // first sign of life
+    blink(23);
+    #[allow(named_asm_labels)]
+    unsafe {
+        asm!(
+            "b .cont",
+            ".word 0x14000047", // b 0x11c in Aarch64
+            ".fel_stash_addr: ",
+            ".word 0x12341234",
+            ".word 0x00000000",
+            ".word 0x00000000",
+            ".word 0x00000000",
+            ".word 0x00000000",
+            ".word 0x00000000",
+            ".cont:",
+            "adr     r0, .fel_stash_addr",
+            "ldr     r1, .fel_stash_addr",
             "add     r0, r0, r1",
             "str     sp, [r0]",
             "str     lr, [r0, #4]",
@@ -159,19 +197,12 @@ extern "C" fn main() -> ! {
             "mrc     p15, 0, lr, cr12, cr0, 0",
             "str     lr, [r0, #16]",
         );
-        blink();
-        asm!(
-            "dsb	sy",
-            "isb	sy",
-            "mrc	p15, 0, r0, cr12, cr0, 2", // read RMR register
-            "orr	r0, r0, #3",               // request reset in AArch64
-            "mcr	p15, 0, r0, cr12, cr0, 2", // write RMR register
-            "isb	sy",
-        );
-        blink();
-        loop {
-            asm!("wfi");
-        }
+    }
+
+    blink(23);
+    reset64();
+    loop {
+        blink(10);
     }
 }
 

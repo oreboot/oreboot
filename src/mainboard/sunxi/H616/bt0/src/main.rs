@@ -1,9 +1,12 @@
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 
-use core::ptr::{read_volatile, write_volatile};
-use core::{arch::asm, panic::PanicInfo};
+use core::{
+    arch::{asm, naked_asm},
+    panic::PanicInfo,
+};
+
+use util::mmio::write32;
 
 const STACK_SIZE: usize = 1 * 1024; // 1KiB
 
@@ -20,11 +23,11 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         "bl   {main}", // TODO: remove
         // 2. initialize programming language runtime
         // clear bss segment
@@ -50,7 +53,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
         main       =   sym main,
-        options(noreturn)
     )
 }
 
@@ -67,23 +69,28 @@ const GPIO_PORTC_DATA: usize = GPIO_BASE + 0x0058;
 const PC13_OUT: u32 = 0b001 << 20;
 const PC13_HIGH: u32 = 1 << 13;
 
-extern "C" fn main() -> usize {
-    unsafe {
-        // set PC13 high (status LED)
-        write_volatile(GPIO_PORTC_CFG1 as *mut u32, PC13_OUT); // set to out
-        for _ in 0..3 {
-            write_volatile(GPIO_PORTC_DATA as *mut u32, PC13_HIGH);
-            for _ in 0..0x1f0000 {
-                core::hint::spin_loop();
-            }
-            write_volatile(GPIO_PORTC_DATA as *mut u32, 0);
-            for _ in 0..0x1f0000 {
-                core::hint::spin_loop();
-            }
-        }
+fn blink(delay: u32) {
+    let cycs = delay * 0x10000;
+    write32(GPIO_PORTC_DATA, PC13_HIGH);
+    for _ in 0..cycs {
+        core::hint::spin_loop();
+    }
+    write32(GPIO_PORTC_DATA, 0);
+    for _ in 0..cycs {
+        core::hint::spin_loop();
+    }
+}
+
+extern "C" fn main() -> ! {
+    // set PC13 high (status LED)
+    write32(GPIO_PORTC_CFG1, PC13_OUT); // set to out
+    for _ in 0..3 {
+        blink(42)
     }
     // TODO: code.....
-    0
+    loop {
+        unsafe { asm!("wfi") };
+    }
 }
 
 #[cfg_attr(not(test), panic_handler)]
