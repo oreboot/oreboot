@@ -200,10 +200,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fd119d74b830634cea2a0f58bbd0d54540518a14397557951e79340abc28c0"
 
 [[package]]
-name = "consts"
-version = "0.1.0"
-
-[[package]]
 name = "crc"
 version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -588,7 +584,6 @@ dependencies = [
 name = "oreboot-soc"
 version = "0.1.0"
 dependencies = [
- "consts",
  "d1-pac",
  "embedded-hal 1.0.0",
  "embedded-hal-nb",
