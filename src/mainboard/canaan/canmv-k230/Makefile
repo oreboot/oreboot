@@ -9,21 +9,15 @@ ciclippy: nop
 citest: nop
 checkformat: nop
 
-bt0:
-	make -C bt0
-
-main:
-	make -C main
-
-build: bt0 main
-
-mainboard: build
+mainboard:
+	$(MAKE) -C bt0
+	$(MAKE) -C main
 
 run_bt0:
-	make -C bt0 run
+	$(MAKE) -C bt0 run
 
 run_main:
-	make -C main run
+	$(MAKE) -C main run
 
 load_payload:
 	sleep 2
