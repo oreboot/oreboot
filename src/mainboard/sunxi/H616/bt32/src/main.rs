@@ -13,7 +13,12 @@ extern crate log;
 mod mem_map;
 mod uart;
 
-use mem_map::{CCU_BASE, UART0_BASE};
+use mem_map::CCU_BASE;
+
+const STACK_SIZE: usize = 1 * 2048; // 1KiB
+
+#[link_section = ".bss.uninit"]
+static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
 /*
 // FIXME: The compiler would add a `BRK` (aarch64) instruction hereafter.
@@ -113,12 +118,14 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
-        // hack to include eGON header; we skip this via the jump from header
-        "bl   {main}",
+        "2:",             //
+        "adr  r9, 2b", //
+        "bl   {reset}",
         ".word 0x140001e7", // b #0x490 in Aarch64
+        // hack to include eGON header; we skip this via the jump from header
         "ldr  r0, {egon_head}",
         egon_head  =   sym EGON_HEAD,
-        main       =   sym main
+        reset      =   sym reset
     )
 }
 
@@ -259,15 +266,22 @@ pub fn print_hex(s: &mut uart::SunxiSerial, i: u32) {
     s.write(b'\n').ok();
 }
 
+// #[unsafe(naked)]
+#[no_mangle]
+unsafe extern "C" fn reset() {
+    // stack setup
+    asm!("mov sp, {}", in(reg) &raw const STACK);
+    asm!(
+        "ldr  r1, ={stack_size}",
+        "bl   {main}",
+        stack_size = const STACK_SIZE,
+        main       = sym main
+    );
+}
+
 // see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
-    unsafe {
-        asm!(
-            "2:",             //
-            "adr     r9, 2b", //
-        );
-    }
     let mut ini_pc: usize = 0;
     unsafe { asm!("mov {}, r9", out(reg) ini_pc) };
 
@@ -311,13 +325,14 @@ pub extern "C" fn main() -> ! {
     serial.write(b':').ok();
     serial.write(b' ').ok();
     // this verifies that our base address is correct
+    // should be SRAM base address + 0x60, i.e., right after eGON header
     print_hex(&mut serial, ini_pc as u32);
+
     // currently crashes here, as it seems
     init_logger(serial);
-
-    blink(5);
-    print!("asdf");
-    blink(23);
+    println!("🦀");
+    // println!("oreboot 🦀 in aarch32");
+    // println!("earlier program counter (PC) {ini_pc:016x}");
 
     loop {
         blink(42);
