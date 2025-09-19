@@ -44,6 +44,7 @@ SECTIONS {
         ebss = .;
     } > SRAM
     /DISCARD/ : {
+        *(.ARM.exidx)
         *(.eh_frame)
     }
 }";
