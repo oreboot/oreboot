@@ -33,15 +33,15 @@ pub unsafe extern "C" fn start() -> ! {
         // clear bss segment
         "ldr     w1, sbss",
         "ldr     w2, ebss",
-        "1:",
+        "2:",
         // jump out of loop once x2 reaches x1
         "sub     w3, w2, w1",
-        "cbz     w3, 1f",
+        "cbz     w3, 2f",
         // clear out the respective address in memory
         "str     w0, [x2], #0",
         "sub     w2, w2, 4",
-        "bl      1b",
-        "1:",
+        "bl      2b",
+        "2:",
         // does not init data segment as BT0 runs in sram
         // 3. prepare stack
         "ldr     x1, {stack}",
