@@ -273,6 +273,7 @@ unsafe extern "C" fn reset() {
     asm!("mov sp, {}", in(reg) &raw const STACK);
     asm!(
         "ldr  r1, ={stack_size}",
+        "add  sp, r1",
         "bl   {main}",
         stack_size = const STACK_SIZE,
         main       = sym main
@@ -284,6 +285,8 @@ unsafe extern "C" fn reset() {
 pub extern "C" fn main() -> ! {
     let mut ini_pc: usize = 0;
     unsafe { asm!("mov {}, r9", out(reg) ini_pc) };
+    let mut ini_sp: usize = 0;
+    unsafe { asm!("mov {}, sp", out(reg) ini_sp) };
 
     // System init: select APB@24MHz
     let v = read32(APB2_CFG_REG) & !(0b11 << 24);
@@ -312,13 +315,21 @@ pub extern "C" fn main() -> ! {
     let mut serial = uart::SunxiSerial::new();
     blink(5);
 
+    if false {
+        serial.write(b'P').ok();
+        serial.write(b'C').ok();
+        serial.write(b':').ok();
+        serial.write(b' ').ok();
+        // this verifies that our base address is correct
+        // should be SRAM base address + 0x60, i.e., right after eGON header
+        print_hex(&mut serial, ini_pc as u32);
+    }
+
+    serial.write(b'S').ok();
     serial.write(b'P').ok();
-    serial.write(b'C').ok();
     serial.write(b':').ok();
     serial.write(b' ').ok();
-    // this verifies that our base address is correct
-    // should be SRAM base address + 0x60, i.e., right after eGON header
-    print_hex(&mut serial, ini_pc as u32);
+    print_hex(&mut serial, ini_sp as u32);
 
     // currently crashes here, as it seems
     init_logger(serial);
