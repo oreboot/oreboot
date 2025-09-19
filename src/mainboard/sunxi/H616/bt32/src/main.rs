@@ -106,8 +106,8 @@ pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
         // hack to include eGON header; we skip this via the jump from header
         "bl   {main}",
+        ".word 0x140001e7", // b #0x490 in Aarch64
         "ldr  r0, {egon_head}",
-        ".word 0x14000047", // b 0x11c in Aarch64
         egon_head  =   sym EGON_HEAD,
         main       =   sym main
     )
@@ -175,27 +175,37 @@ pub extern "C" fn main() -> ! {
     #[allow(named_asm_labels)]
     unsafe {
         asm!(
-            "b .cont",
-            ".word 0x14000047", // b 0x11c in Aarch64
-            ".fel_stash_addr: ",
-            ".word 0x12341234",
-            ".word 0x00000000",
-            ".word 0x00000000",
-            ".word 0x00000000",
-            ".word 0x00000000",
-            ".word 0x00000000",
-            ".cont:",
-            "adr     r0, .fel_stash_addr",
-            "ldr     r1, .fel_stash_addr",
-            "add     r0, r0, r1",
+            "b .code",
+            // leave space to store information
+            ".fel_stash: ",
+            ".word 0x00000000", // SP
+            ".word 0x00000000", // LR
+            ".word 0x00000000", // CPSR
+            ".word 0x00000000", // SCTLR
+            ".word 0x00000000", // VBAR
+            ".word 0x00000000", // SP_IRQ
+            ".word 0x00000000", // ICC_PMR
+            ".word 0x00000000", // ICC_IGRPEN1
+            ".code:",
+            "adr     r0, .fel_stash",
+            // "ldr     r1, .fel_stash",
+            // "add     r0, r0, r1",
             "str     sp, [r0]",
             "str     lr, [r0, #4]",
             "mrs     lr, CPSR",
             "str     lr, [r0, #8]",
-            "mrc     p15, 0, lr, cr1, cr0, 0",
+            "mrc     p15, 0, lr, cr1, cr0, 0", // SCTLR
             "str     lr, [r0, #12]",
-            "mrc     p15, 0, lr, cr12, cr0, 0",
+            "mrc     p15, 0, lr, cr12, cr0, 0", // VBAR
             "str     lr, [r0, #16]",
+            "mrc     p15, 0, lr, cr12, cr12, 5", // ICC_SRE
+            "tst     lr, #1",
+            "beq     2f",
+            "mrc     p15, 0, lr, c4, c6, 0", // ICC_PMR
+            "str     lr, [r0, #24]",
+            "mrc     p15, 0, lr, c12, c12, 7", // ICC_IGRPEN1
+            "str     lr, [r0, #28]",
+            "2:"
         );
     }
 
