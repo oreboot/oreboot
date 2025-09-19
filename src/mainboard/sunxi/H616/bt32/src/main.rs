@@ -265,6 +265,9 @@ pub extern "C" fn main() -> ! {
     let v = read32(LCR) | DLAB;
     write32(LCR, v);
 
+    let v = read32(LCR) & !(0b00 << 4) & !(1 << 2) | (0b11 << 0);
+    write32(LCR, v);
+
     write32(UART0_BASE + 0x0000, dll as u32);
     write32(UART0_BASE + 0x0004, dlh as u32);
 
