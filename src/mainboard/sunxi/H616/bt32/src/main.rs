@@ -4,7 +4,7 @@
 use core::arch::naked_asm;
 use core::{arch::asm, panic::PanicInfo};
 
-use util::mmio::write32;
+use util::mmio::{read32, write32};
 
 /*
 // FIXME: The compiler would add a `BRK` (aarch64) instruction hereafter.
@@ -113,14 +113,21 @@ pub unsafe extern "C" fn start() -> ! {
     )
 }
 
-// H0 is TX, H1 is RX
-
-// p695
+// see "Port controller" in the manual
 const GPIO_BASE: usize = 0x0300_B000;
 const GPIO_PORTC_CFG1: usize = GPIO_BASE + 0x004C; // PC8-15
 const GPIO_PORTC_DATA: usize = GPIO_BASE + 0x0058;
+const GPIO_PORTH_CFG0: usize = GPIO_BASE + 0x00FC;
+const GPIO_PORTH_PULL: usize = GPIO_BASE + 0x0118;
+
 const PC13_OUT: u32 = 0b001 << 20;
 const PC13_HIGH: u32 = 1 << 13;
+
+const UART0_BASE: usize = 0x0500_0000; //1KB
+
+const CCU_BASE: usize = 0x0300_1000; //1KB
+const APB2_CFG_REG: usize = CCU_BASE + 0x0524;
+const UART_BGR_REG: usize = CCU_BASE + 0x090C;
 
 // See U-Boot arch/arm/mach-sunxi/Kconfig
 //   under config MACH_SUN50I_H6(16), there is select SUN50I_GEN_H6
@@ -206,18 +213,76 @@ fn reset64() {
     }
 }
 
+const IER: usize = UART0_BASE + 0x0004;
+const FCR: usize = UART0_BASE + 0x0008;
+const LCR: usize = UART0_BASE + 0x000C;
+const MCR: usize = UART0_BASE + 0x0010;
+
 // see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
+    // System init: select APB@24MHz
+    let v = read32(APB2_CFG_REG) & !(0b11 << 24);
+    write32(APB2_CFG_REG, v);
+
     // set PC13 (status LED) to output
     write32(GPIO_PORTC_CFG1, PC13_OUT);
     // first sign of life
     blink(23);
-    save_regs();
+
+    // UART0: TX on port H pin 0, RX on port H pin 1
+    let v = read32(GPIO_PORTH_CFG0) & 0xffff_ff00;
+    write32(GPIO_PORTH_CFG0, v | (0b010 << 4) | (0b010 << 0));
+    let v = read32(GPIO_PORTH_PULL) & 0xffff_fff0;
+    write32(GPIO_PORTH_PULL, v | (0b01 << 2) | (0b01 << 0));
+
+    const UART0_GATING: u32 = 1 << 16;
+    const UART0_RESET: u32 = 1 << 0;
+    if false {
+        // assert reset
+        let v = read32(UART_BGR_REG) & !UART0_RESET;
+        write32(UART_BGR_REG, v);
+        // gating mask
+        let v = read32(UART_BGR_REG) & !UART0_GATING;
+        write32(UART_BGR_REG, v);
+    }
+    // deassert reset
+    let v = read32(UART_BGR_REG) & !UART0_GATING;
+    write32(UART_BGR_REG, v | UART0_GATING);
+    // gating pass
+    let v = read32(UART_BGR_REG) & !UART0_RESET;
+    write32(UART_BGR_REG, v | UART0_RESET);
+
+    // disable interrupts
+    write32(IER, 0);
+
+    let hz = 24_000_000;
+    let bps = 115_200;
+    let clk = (hz + 8 * bps) / (16 * bps);
+    let (dlh, dll) = ((clk >> 8) as u8, clk as u8);
+
+    const DLAB: u32 = 1 << 7;
+    let v = read32(LCR) | DLAB;
+    write32(LCR, v);
+
+    write32(UART0_BASE + 0x0000, dll as u32);
+    write32(UART0_BASE + 0x0004, dlh as u32);
+
+    let v = read32(LCR) & !DLAB;
+    write32(LCR, v);
+
+    // let v = read32(MCR) & !(0b11 << 6) & !(1 << 5) & !(1 << 4) & !(1 << 1) & !(1 << 0);
+    write32(MCR, 0);
+
+    // let v = read32(FCR);
+    // disable FIFO
+    write32(FCR, 0);
+
     blink(23);
-    reset64();
+
     loop {
-        blink(10);
+        write32(UART0_BASE, 0x42);
+        blink(42);
     }
 }
 

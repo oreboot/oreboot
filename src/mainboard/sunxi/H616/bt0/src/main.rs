@@ -6,7 +6,7 @@ use core::{
     panic::PanicInfo,
 };
 
-use util::mmio::{write32, read32};
+use util::mmio::{read32, write32};
 
 const STACK_SIZE: usize = 1 * 1024; // 1KiB
 
@@ -80,39 +80,6 @@ fn blink(delay: u32) {
         core::hint::spin_loop();
     }
 }
-
-const UART0_BASE: usize = 0x0500_0000;  //1KB
-const UART_BGR_REG: usize = UART0_BASE + 0x090C;
-
-
-const CCU_BASE: usize = 0x0300_1000;    //1KB
-const APB2_CFG_REG: usize = CCU_BASE + 0x0524; 
-
-//PF2/PF3
-const GPIO_CFG_UART: u32 = 0b011; // alt func 3
-const GPIO_PORTF_CFG0: usize = GPIO_BASE + 0x00B4;
-const GPIO_PORTF_PULL: usize = GPIO_BASE + 0x1040;
-
-//TODO: make a std macro for just enabling/disabling a few bits
-fn init_uart() {
-
-    //System init
-    let mut reg = read32(APB2_CFG_REG) & !(0x3 << 24);
-    write32(APB2_CFG_REG, reg); // select APB@24MHz
-    
-    reg = read32(UART_BGR_REG) | (0x1001 << 0);   // enable gate and dassert rst
-    write32(UART_BGR_REG, reg);
-
-    //Uart controller init
-
-    //enable gpio alt function for uart
-    reg = read32(GPIO_PORTF_CFG0) | (0b011 << 8) | (0b011 << 16);
-    write32(GPIO_PORTF_CFG0, reg);
-
-    //set pull up 
-    reg = read32(GPIO_PORTF_PULL) | (0b01 << 4) | (0b01 << 8);
-    write32(GPIO_PORTF_PULL, reg); 
-} 
 
 extern "C" fn main() -> ! {
     // set PC13 high (status LED)
