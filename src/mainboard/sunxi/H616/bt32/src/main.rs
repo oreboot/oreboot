@@ -271,8 +271,8 @@ pub extern "C" fn main() -> ! {
     let v = read32(LCR) & !DLAB;
     write32(LCR, v);
 
-    // let v = read32(MCR) & !(0b11 << 6) & !(1 << 5) & !(1 << 4) & !(1 << 1) & !(1 << 0);
-    write32(MCR, 0);
+    let v = read32(MCR) & !(0b11 << 6) & !(1 << 5) & !(1 << 4) & !(1 << 1) & !(1 << 0);
+    write32(MCR, v);
 
     // let v = read32(FCR);
     // disable FIFO
