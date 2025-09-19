@@ -280,6 +280,9 @@ unsafe extern "C" fn reset() {
     );
 }
 
+const PRINT_PC: bool = false;
+const PRINT_SP: bool = true;
+
 // see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
@@ -315,21 +318,23 @@ pub extern "C" fn main() -> ! {
     let mut serial = uart::SunxiSerial::new();
     blink(5);
 
-    if false {
+    if PRINT_PC {
+        // this verifies that our base address is correct
+        // should be SRAM base address + 0x60, i.e., right after eGON header
         serial.write(b'P').ok();
         serial.write(b'C').ok();
         serial.write(b':').ok();
         serial.write(b' ').ok();
-        // this verifies that our base address is correct
-        // should be SRAM base address + 0x60, i.e., right after eGON header
         print_hex(&mut serial, ini_pc as u32);
     }
 
-    serial.write(b'S').ok();
-    serial.write(b'P').ok();
-    serial.write(b':').ok();
-    serial.write(b' ').ok();
-    print_hex(&mut serial, ini_sp as u32);
+    if PRINT_SP {
+        serial.write(b'S').ok();
+        serial.write(b'P').ok();
+        serial.write(b':').ok();
+        serial.write(b' ').ok();
+        print_hex(&mut serial, ini_sp as u32);
+    }
 
     // currently crashes here, as it seems
     init_logger(serial);
