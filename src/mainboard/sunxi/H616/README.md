@@ -28,3 +28,9 @@ We assign UART0 to the GPIO pins that are labeled for it on the 2x10-pin header.
 I.e., pin 17 is TX, pin 15 is RX.
 
 See also: <https://linux-sunxi.org/Kickpi_K2B_H618>
+
+### [BigTreeTech Pi 1.2](https://github.com/bigtreetech/BTT-Pi/)
+
+A USB serial converter is already on the board, accessible via the USB-C port.
+We assign UART0 to it.
+FEL is on the top USB-A port in the middle. You can use a USB A-to-A cable.
