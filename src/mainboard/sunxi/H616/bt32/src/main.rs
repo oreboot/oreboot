@@ -1,10 +1,19 @@
 #![no_std]
 #![no_main]
+#![feature(once_cell_get_mut)]
 
 use core::arch::naked_asm;
 use core::{arch::asm, panic::PanicInfo};
 
+use embedded_hal_nb::serial::Write;
 use util::mmio::{read32, write32};
+
+#[macro_use]
+extern crate log;
+mod mem_map;
+mod uart;
+
+use mem_map::{CCU_BASE, UART0_BASE};
 
 /*
 // FIXME: The compiler would add a `BRK` (aarch64) instruction hereafter.
@@ -123,9 +132,6 @@ const GPIO_PORTH_PULL: usize = GPIO_BASE + 0x0118;
 const PC13_OUT: u32 = 0b001 << 20;
 const PC13_HIGH: u32 = 1 << 13;
 
-const UART0_BASE: usize = 0x0500_0000; //1KB
-
-const CCU_BASE: usize = 0x0300_1000; //1KB
 const APB2_CFG_REG: usize = CCU_BASE + 0x0524;
 const UART_BGR_REG: usize = CCU_BASE + 0x090C;
 
@@ -213,14 +219,58 @@ fn reset64() {
     }
 }
 
-const IER: usize = UART0_BASE + 0x0004;
-const FCR: usize = UART0_BASE + 0x0008;
-const LCR: usize = UART0_BASE + 0x000C;
-const MCR: usize = UART0_BASE + 0x0010;
+fn init_logger(s: uart::SunxiSerial) {
+    use core::{cell::OnceCell, ptr::addr_of_mut};
+    static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
+
+    unsafe {
+        log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
+    }
+}
+
+#[inline(always)]
+// shift n by s and convert to what represents its hex digit in ASCII
+fn shift_and_hex(n: u32, s: u8) -> u8 {
+    // drop to a single nibble (4 bits), i.e., what a hex digit can hold
+    let x = (n >> s) as u8 & 0x0f;
+    // digits are in the range 0x30..0x39
+    // letters start at 0x40, i.e., off by 7 from 0x3a
+    if x > 9 {
+        x + 0x37
+    } else {
+        x + 0x30
+    }
+}
+
+#[inline(always)]
+pub fn print_hex(s: &mut uart::SunxiSerial, i: u32) {
+    s.write(b'0').ok();
+    s.write(b'x').ok();
+    // nibble by nibble... keep it simple
+    s.write(shift_and_hex(i, 28)).ok();
+    s.write(shift_and_hex(i, 24)).ok();
+    s.write(shift_and_hex(i, 20)).ok();
+    s.write(shift_and_hex(i, 16)).ok();
+    s.write(shift_and_hex(i, 12)).ok();
+    s.write(shift_and_hex(i, 8)).ok();
+    s.write(shift_and_hex(i, 4)).ok();
+    s.write(shift_and_hex(i, 0)).ok();
+    s.write(b'\r').ok();
+    s.write(b'\n').ok();
+}
 
 // see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
+    unsafe {
+        asm!(
+            "2:",             //
+            "adr     r9, 2b", //
+        );
+    }
+    let mut ini_pc: usize = 0;
+    unsafe { asm!("mov {}, r9", out(reg) ini_pc) };
+
     // System init: select APB@24MHz
     let v = read32(APB2_CFG_REG) & !(0b11 << 24);
     write32(APB2_CFG_REG, v);
@@ -228,7 +278,7 @@ pub extern "C" fn main() -> ! {
     // set PC13 (status LED) to output
     write32(GPIO_PORTC_CFG1, PC13_OUT);
     // first sign of life
-    blink(23);
+    blink(5);
 
     // UART0: TX on port H pin 0, RX on port H pin 1
     let v = read32(GPIO_PORTH_CFG0) & 0xffff_ff00;
@@ -253,38 +303,23 @@ pub extern "C" fn main() -> ! {
     let v = read32(UART_BGR_REG) & !UART0_RESET;
     write32(UART_BGR_REG, v | UART0_RESET);
 
-    // disable interrupts
-    write32(IER, 0);
+    let mut serial = uart::SunxiSerial::new();
+    blink(5);
 
-    let hz = 24_000_000;
-    let bps = 115_200;
-    let clk = (hz + 8 * bps) / (16 * bps);
-    let (dlh, dll) = ((clk >> 8) as u8, clk as u8);
+    serial.write(b'P').ok();
+    serial.write(b'C').ok();
+    serial.write(b':').ok();
+    serial.write(b' ').ok();
+    // this verifies that our base address is correct
+    print_hex(&mut serial, ini_pc as u32);
+    // currently crashes here, as it seems
+    init_logger(serial);
 
-    const DLAB: u32 = 1 << 7;
-    let v = read32(LCR) | DLAB;
-    write32(LCR, v);
-
-    let v = read32(LCR) & !(0b00 << 4) & !(1 << 2) | (0b11 << 0);
-    write32(LCR, v);
-
-    write32(UART0_BASE + 0x0000, dll as u32);
-    write32(UART0_BASE + 0x0004, dlh as u32);
-
-    let v = read32(LCR) & !DLAB;
-    write32(LCR, v);
-
-    let v = read32(MCR) & !(0b11 << 6) & !(1 << 5) & !(1 << 4) & !(1 << 1) & !(1 << 0);
-    write32(MCR, v);
-
-    // let v = read32(FCR);
-    // disable FIFO
-    write32(FCR, 0);
-
+    blink(5);
+    print!("asdf");
     blink(23);
 
     loop {
-        write32(UART0_BASE, 0x42);
         blink(42);
     }
 }

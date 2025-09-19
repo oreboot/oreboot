@@ -6,7 +6,7 @@ BIN_FILE := $(BASE_DIR)/oreboot-allwinner-h616-bt32.bin
 all:
 	cargo build --release -vv
 	cargo objcopy -- --strip-all -O binary $(BIN_FILE)
-	echo $(BIN_FILE)
+	ls -l $(BIN_FILE)
 
 objdump: all
 	cargo objdump -- -D
@@ -17,3 +17,6 @@ hexdump: all
 run: all
 	xfel write 0x20000 $(BIN_FILE)
 	xfel exec 0x20000
+
+runx: all
+	sunxi-fel spl $(BIN_FILE)
