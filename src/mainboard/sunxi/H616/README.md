@@ -34,3 +34,5 @@ See also: <https://linux-sunxi.org/Kickpi_K2B_H618>
 A USB serial converter is already on the board, accessible via the USB-C port.
 We assign UART0 to it.
 FEL is on the top USB-A port in the middle. You can use a USB A-to-A cable.
+
+See also: <https://linux-sunxi.org/Biqu_BTT_Pi>
