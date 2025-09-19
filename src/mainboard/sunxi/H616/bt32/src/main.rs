@@ -166,6 +166,7 @@ fn reset64() {
     }
 }
 
+// see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
     // set PC13 (status LED) to output
