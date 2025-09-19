@@ -302,14 +302,6 @@ pub extern "C" fn main() -> ! {
 
     const UART0_GATING: u32 = 1 << 16;
     const UART0_RESET: u32 = 1 << 0;
-    if false {
-        // assert reset
-        let v = read32(UART_BGR_REG) & !UART0_RESET;
-        write32(UART_BGR_REG, v);
-        // gating mask
-        let v = read32(UART_BGR_REG) & !UART0_GATING;
-        write32(UART_BGR_REG, v);
-    }
     // deassert reset
     let v = read32(UART_BGR_REG) & !UART0_GATING;
     write32(UART_BGR_REG, v | UART0_GATING);
