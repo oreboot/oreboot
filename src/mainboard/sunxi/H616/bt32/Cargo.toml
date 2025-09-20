@@ -1,0 +1,14 @@
+[package]
+name = "oreboot-allwinner-h616-bt32"
+version = "0.1.0"
+authors = ["oreboot authors"]
+edition = "2021"
+
+[dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+nb = "1"
+spin = "0.9"
+
+log = { path = "../../../../lib/log" }
+util = { path = "../../../../lib/util" }

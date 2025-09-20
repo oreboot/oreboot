@@ -1,0 +1,8 @@
+[build]
+target = "aarch64-unknown-none-softfloat"
+
+[target.aarch64-unknown-none-softfloat]
+rustflags = [
+  "-C",
+  "link-arg=-Tlink-mangopi-mqquad-bt0.ld",
+]
