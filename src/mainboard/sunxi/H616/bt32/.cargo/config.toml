@@ -1,17 +1,7 @@
 [build]
-#target = "armv7-unknown-linux-gnueabi"
 target = "armv7a-none-eabi"
 
 [target.armv7a-none-eabi]
-rustflags = [
-  "-C",
-  "link-arg=-Tlink-allwinner-h616-bt32.ld",
-]
-
-[target.armv7-unknown-linux-gnueabi]
-#linker = "arm-linux-gnueabi-gcc"
-linker = "lld"
-#linker = "arm-none-eabi-gcc"
 rustflags = [
   "-C",
   "link-arg=-Tlink-allwinner-h616-bt32.ld",

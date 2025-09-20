@@ -4,7 +4,6 @@ components = ["rust-src", "llvm-tools", "rustfmt", "clippy"]
 targets = [
   "riscv32imac-unknown-none-elf",
   "riscv64imac-unknown-none-elf",
-  "armv7-unknown-linux-gnueabi",
   "armv7a-none-eabi",
   "aarch64-unknown-none-softfloat",
 ]
