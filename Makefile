@@ -5,9 +5,9 @@ help:
 	@echo 'format -- to format all files'
 
 # NOTE: These are the host utilities, requiring their own recent Rust version.
-RUST_VER := 1.85
-BINUTILS_VER := 0.3.6
-DPRINT_VER := 0.49.1
+RUST_VER := 1.90
+BINUTILS_VER := 0.4.0
+DPRINT_VER := 0.50.2
 
 CARGOINST := rustup run --install $(RUST_VER) cargo install
 
