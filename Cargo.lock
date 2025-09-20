@@ -496,6 +496,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c95cfa77c5f85e4f876790f6f127a0b7599ec92723600b17da4c5c05845bd2ce"
 
 [[package]]
+name = "oreboot-allwinner-h616-bt0"
+version = "0.1.0"
+dependencies = [
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "nb 1.1.0",
+ "spin",
+ "util",
+]
+
+[[package]]
+name = "oreboot-allwinner-h616-bt32"
+version = "0.1.0"
+dependencies = [
+ "embedded-hal 1.0.0",
+ "embedded-hal-nb",
+ "log 0.1.0",
+ "nb 1.1.0",
+ "spin",
+ "util",
+]
+
+[[package]]
 name = "oreboot-arch"
 version = "0.1.0"
 dependencies = [
@@ -544,29 +567,6 @@ dependencies = [
  "rustsbi",
  "sbi-spec 0.0.4",
  "spin",
-]
-
-[[package]]
-name = "oreboot-mangopi-mqquad-bt0"
-version = "0.1.0"
-dependencies = [
- "embedded-hal 1.0.0",
- "embedded-hal-nb",
- "nb 1.1.0",
- "spin",
- "util",
-]
-
-[[package]]
-name = "oreboot-mangopi-mqquad-bt32"
-version = "0.1.0"
-dependencies = [
- "embedded-hal 1.0.0",
- "embedded-hal-nb",
- "log 0.1.0",
- "nb 1.1.0",
- "spin",
- "util",
 ]
 
 [[package]]

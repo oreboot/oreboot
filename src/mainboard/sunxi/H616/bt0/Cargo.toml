@@ -1,5 +1,5 @@
 [package]
-name = "oreboot-mangopi-mqquad-bt0"
+name = "oreboot-allwinner-h616-bt0"
 version = "0.1.0"
 authors = ["oreboot authors"]
 edition = "2021"
