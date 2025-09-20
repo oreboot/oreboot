@@ -3,6 +3,9 @@ BASE_DIR := $(ORE_DIR)/target/armv7a-none-eabi/release
 ELF_FILE := $(BASE_DIR)/oreboot-allwinner-h616-bt32
 BIN_FILE := $(BASE_DIR)/oreboot-allwinner-h616-bt32.bin
 
+OBJDUMP ?= arm-linux-gnueabi-objdump
+# aarch64-linux-gnu-objdump
+
 all:
 	cargo build --release -vv
 	cargo objcopy -- --strip-all -O binary $(BIN_FILE)
@@ -10,6 +13,9 @@ all:
 
 objdump: all
 	cargo objdump -- -D
+
+objdumpgcc: all
+	$(OBJDUMP) -D $(ELF_FILE)
 
 hexdump: all
 	xxd $(BIN_FILE)

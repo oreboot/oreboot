@@ -57,7 +57,8 @@ const TFNF: u32 = 1 << 1;
 impl embedded_hal_nb::serial::Write<u8> for SunxiSerial {
     #[inline]
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        for _ in 0..200 {
+        // FIXME: which register/bit do we need to check?
+        for _ in 0..400 {
             core::hint::spin_loop();
         }
         // if read32(USR) & TFNF == 0 {

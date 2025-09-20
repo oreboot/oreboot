@@ -155,16 +155,19 @@ const RVBAR_ALT: usize = 0x0810_0040;
 
 const START_AARCH64: u32 = 0x0002_0000 + 2048;
 
-fn blink(delay: u32) {
+fn sleep(t: usize) {
+    for _ in 0..t {
+        core::hint::spin_loop();
+    }
+}
+
+// blink the LED on the MangoPi MQ-Quad
+fn blink(delay: usize) {
     let cycs = delay * 0x10000;
     write32(GPIO_PORTC_DATA, PC13_HIGH);
-    for _ in 0..cycs {
-        core::hint::spin_loop();
-    }
+    sleep(cycs);
     write32(GPIO_PORTC_DATA, 0);
-    for _ in 0..cycs {
-        core::hint::spin_loop();
-    }
+    sleep(cycs);
 }
 
 #[inline]
@@ -226,13 +229,37 @@ fn reset64() {
     }
 }
 
-fn init_logger(s: uart::SunxiSerial) {
-    use core::{cell::OnceCell, ptr::addr_of_mut};
-    static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
+// crappy debug prints
+fn pchar(c: u32) {
+    write32(mem_map::UART0_BASE, c);
+    sleep(400);
+}
 
-    unsafe {
-        log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
+const NEW_METHOD: bool = true;
+
+// FIXME: both methods fail at the moment. Why?
+fn init_logger(s: uart::SunxiSerial) {
+    pchar(0x30);
+    if NEW_METHOD {
+        // This is the new method that also compiles in Rust 2024.
+        use core::{cell::OnceCell, ptr::addr_of_mut};
+        static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
+        pchar(0x31);
+        unsafe {
+            log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
+        }
+    } else {
+        // This is the old method we've been using for now.
+        static ONCE: spin::Once<()> = spin::Once::new();
+        static mut SERIAL: Option<uart::SunxiSerial> = None;
+        ONCE.call_once(|| unsafe {
+            pchar(0x31);
+            SERIAL.replace(s);
+            pchar(0x32);
+            log::init(SERIAL.as_mut().unwrap());
+        });
     }
+    pchar(0x42);
 }
 
 #[inline(always)]
@@ -318,6 +345,9 @@ pub extern "C" fn main() -> ! {
     let mut serial = uart::SunxiSerial::new();
     blink(5);
 
+    serial.write(b'\r').ok();
+    serial.write(b'\n').ok();
+
     if PRINT_PC {
         // this verifies that our base address is correct
         // should be SRAM base address + 0x60, i.e., right after eGON header
@@ -338,7 +368,7 @@ pub extern "C" fn main() -> ! {
 
     // currently crashes here, as it seems
     init_logger(serial);
-    println!("🦀");
+    // println!("🦀");
     // println!("oreboot 🦀 in aarch32");
     // println!("earlier program counter (PC) {ini_pc:016x}");
 
