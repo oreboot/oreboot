@@ -11,6 +11,9 @@ all:
 	cargo objcopy -- --strip-all -O binary $(BIN_FILE)
 	ls -l $(BIN_FILE)
 
+clean:
+	cargo clean
+
 objdump: all
 	cargo objdump -- -D
 
