@@ -1,4 +1,3 @@
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use zerocopy::IntoBytes;
 use zerocopy_derive::{FromBytes, Immutable, IntoBytes};
 
@@ -51,7 +50,7 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
     let length = align_up_to(len, 16 * 1024) as u32;
     let jump_instruction = match arch {
         Arch::Arm32 => JUMP_ARM_32,
-        _ => todo!(),
+        Arch::Riscv64 => todo!(),
     };
     // NOTE: We have to initialize the checksum with the stamp value.
     // The head itself is then used in the checksum calculcation.
