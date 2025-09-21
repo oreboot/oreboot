@@ -143,37 +143,14 @@ fn reset64() {
     }
 }
 
-// crappy debug prints
-fn pchar(c: u32) {
-    write32(mem_map::UART0_BASE, c);
-    sleep(400);
-}
-
-const NEW_METHOD: bool = true;
-
 // FIXME: both methods fail at the moment. Why?
 fn init_logger(s: uart::SunxiSerial) {
-    pchar(0x30);
-    if NEW_METHOD {
-        // This is the new method that also compiles in Rust 2024.
-        use core::{cell::OnceCell, ptr::addr_of_mut};
-        static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
-        pchar(0x31);
-        unsafe {
-            log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
-        }
-    } else {
-        // This is the old method we've been using for now.
-        static ONCE: spin::Once<()> = spin::Once::new();
-        static mut SERIAL: Option<uart::SunxiSerial> = None;
-        ONCE.call_once(|| unsafe {
-            pchar(0x31);
-            SERIAL.replace(s);
-            pchar(0x32);
-            log::init(SERIAL.as_mut().unwrap());
-        });
+    // This is the new method that also compiles in Rust 2024.
+    use core::{cell::OnceCell, ptr::addr_of_mut};
+    static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
+    unsafe {
+        log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
     }
-    pchar(0x42);
 }
 
 #[inline(always)]
@@ -256,35 +233,11 @@ pub extern "C" fn main() -> ! {
     let v = read32(UART_BGR_REG) & !UART0_RESET;
     write32(UART_BGR_REG, v | UART0_RESET);
 
-    let mut serial = uart::SunxiSerial::new();
-    blink(5);
-
-    serial.write(b'\r').ok();
-    serial.write(b'\n').ok();
-
-    if PRINT_PC {
-        // this verifies that our base address is correct
-        // should be SRAM base address + 0x60, i.e., right after eGON header
-        serial.write(b'P').ok();
-        serial.write(b'C').ok();
-        serial.write(b':').ok();
-        serial.write(b' ').ok();
-        print_hex(&mut serial, ini_pc as u32);
-    }
-
-    if PRINT_SP {
-        serial.write(b'S').ok();
-        serial.write(b'P').ok();
-        serial.write(b':').ok();
-        serial.write(b' ').ok();
-        print_hex(&mut serial, ini_sp as u32);
-    }
-
-    // currently crashes here, as it seems
+    let serial = uart::SunxiSerial::new();
     init_logger(serial);
-    println!("🦀");
     println!("oreboot 🦀 in aarch32");
-    println!("earlier program counter (PC) {ini_pc:016x}");
+    println!("  program counter (PC): {ini_pc:016x}");
+    println!("    stack pointer (SP): {ini_sp:016x}");
 
     loop {
         blink(42);
