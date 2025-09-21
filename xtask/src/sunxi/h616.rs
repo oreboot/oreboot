@@ -32,20 +32,19 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             info!("Build and flash oreboot image for H616");
             todo!();
             /*
-            let xfel = fel::find_xfel();
-            fel::xfel_find_connected_device(xfel);
+            fel::xfel_find_connected_device();
             build_image(&args.env, &features);
-            fel::flash_image(xfel, &args.env);
+            fel::flash_image(&args.env, TARGET, FULL_BIN);
             */
         }
         Commands::Run => {
             // TODO: print out variant etc
             info!("Run image on H616 via FEL");
-            let xfel = fel::find_xfel();
-            fel::xfel_find_connected_device(xfel);
+            let _ = fel::find_xfel();
+            fel::xfel_find_connected_device();
             build_image(&args.env, &features);
             // fel::xfel_run(xfel, &args.env, TARGET, BT32_BIN_WITH_HEADER, BT0_ADDR);
-            fel::run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
+            fel::sunxi_fel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
         }
         Commands::Asm => {
             todo!("Build bt0 and view assembly for H616");

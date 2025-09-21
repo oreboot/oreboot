@@ -36,10 +36,9 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
-            let xfel = fel::find_xfel();
-            fel::xfel_find_connected_device(xfel);
+            fel::xfel_find_connected_device();
             build_image(&args.env, &features);
-            fel::flash_image(xfel, &args.env, TARGET, IMAGE_BIN);
+            fel::flash_image(&args.env, TARGET, IMAGE_BIN);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");

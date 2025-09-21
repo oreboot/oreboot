@@ -49,19 +49,21 @@ pub(crate) fn find_sunxi_fel() -> &'static str {
     find_cmd(FelCommand::SunxiFel)
 }
 
-pub(crate) fn xfel_find_connected_device(xfel: &str) {
+pub(crate) fn xfel_find_connected_device() {
+    let xfel = find_cmd(FelCommand::Xfel);
     let mut command = Command::new(xfel);
     command.arg("version");
     let output = command.output().unwrap();
     if !output.status.success() {
-        error!("xfel failed with code {}", output.status);
+        error!("{xfel} failed with code {}", output.status);
         error!("Is your device in FEL mode?");
         process::exit(1);
     }
     info!("Found {}", String::from_utf8_lossy(&output.stdout).trim());
 }
 
-pub(crate) fn flash_image(xfel: &str, env: &Env, image_bin: &str, target_dir: &str) {
+pub(crate) fn flash_image(env: &Env, image_bin: &str, target_dir: &str) {
+    let xfel = find_cmd(FelCommand::Xfel);
     println!("Write to flash with {xfel}");
     let mut cmd = Command::new(xfel);
     cmd.current_dir(dist_dir(env, target_dir));
@@ -74,50 +76,38 @@ pub(crate) fn flash_image(xfel: &str, env: &Env, image_bin: &str, target_dir: &s
             process::exit(1);
         }
     };
-    cmd.args(["write", "0"]);
-    cmd.arg(image_bin);
+    cmd.args(["write", "0", image_bin]);
+    run_command(&mut cmd);
+}
+
+fn run_command(cmd: &mut Command) {
     println!("Command: {cmd:?}");
     let status = cmd.status().unwrap();
-    trace!("xfel returned {status}");
+    trace!("{cmd:?} returned {status}");
     if !status.success() {
-        error!("xfel failed with {status}");
+        error!("{cmd:?} failed with {status}");
         process::exit(1);
     }
 }
 
-pub(crate) fn xfel_run(cmd: &str, env: &Env, target_dir: &str, image_bin: &str, addr: usize) {
-    println!("Run with {cmd}");
-    let mut command = Command::new(cmd);
+pub(crate) fn xfel_run(env: &Env, target_dir: &str, image_bin: &str, addr: usize) {
+    let xfel = find_cmd(FelCommand::Xfel);
+    println!("Run with {xfel}");
+    let mut command = Command::new(xfel);
     command.current_dir(dist_dir(env, target_dir));
     command.args(["write", format!("0x{addr:x}").as_str(), image_bin]);
-    println!("Command: {cmd:?}");
-    let status = command.status().unwrap();
-    trace!("{cmd} returned {status}");
-    if !status.success() {
-        error!("{cmd} failed with {status}");
-        process::exit(1);
-    }
-    let mut command = Command::new(cmd);
+    run_command(&mut command);
+    let mut command = Command::new(xfel);
     command.current_dir(dist_dir(env, target_dir));
     command.args(["exec", format!("0x{addr:x}").as_str()]);
-    let status = command.status().unwrap();
-    trace!("{cmd} returned {status}");
-    if !status.success() {
-        error!("{cmd} failed with {status}");
-        process::exit(1);
-    }
+    run_command(&mut command);
 }
 
-pub(crate) fn run(env: &Env, target_dir: &str, image_bin: &str) {
+pub(crate) fn sunxi_fel_run(env: &Env, target_dir: &str, image_bin: &str) {
     let cmd = find_sunxi_fel();
     println!("Run with {cmd}");
     let mut command = Command::new(cmd);
     command.current_dir(dist_dir(env, target_dir));
     command.args(["spl", image_bin]);
-    let status = command.status().unwrap();
-    trace!("{cmd} returned {status}");
-    if !status.success() {
-        error!("{cmd} failed with {status}");
-        process::exit(1);
-    }
+    run_command(&mut command);
 }
