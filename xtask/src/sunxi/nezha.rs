@@ -1,14 +1,16 @@
-use crate::util::{
-    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
-};
-use crate::{gdb_detect, Cli, Commands, Env, Memory};
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use log::{error, info, trace};
 use std::{
     fs::File,
     io::{self, ErrorKind, Seek, SeekFrom, Write},
-    process::{self, Command, Stdio},
+    process::{self, Command},
 };
+
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use log::{error, info, trace};
+
+use crate::util::{
+    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
+};
+use crate::{gdb_detect, sunxi::xfel, Cli, Commands, Env};
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
@@ -28,23 +30,26 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             info!("Build oreboot image for D1");
             build_image(&args.env, &features);
         }
+        Commands::Run => {
+            todo!("implemented {:?} command", args.command);
+        }
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
-            let xfel = find_xfel();
-            xfel_find_connected_device(xfel);
+            let xfel = xfel::find_xfel();
+            xfel::xfel_find_connected_device(xfel);
             build_image(&args.env, &features);
-            burn_d1_bt0(xfel, &args.env);
+            xfel::flash_image(xfel, &args.env, TARGET, IMAGE_BIN);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_d1_bt0(&args.env, &features);
+            build_bt0(&args.env, &features);
             objdump(&args.env, binutils_prefix, TARGET, BT0_ELF);
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_d1_bt0(&args.env, &features);
+            build_bt0(&args.env, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
@@ -70,7 +75,7 @@ fn build_image(env: &Env, features: &[String]) {
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     // Build the stages - should we parallelize this?
-    build_d1_bt0(env, features);
+    build_bt0(env, features);
     build_d1_main(env);
     objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
     objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
@@ -78,7 +83,7 @@ fn build_image(env: &Env, features: &[String]) {
     concat_binaries(env);
 }
 
-fn build_d1_bt0(env: &Env, features: &[String]) {
+fn build_bt0(env: &Env, features: &[String]) {
     trace!("build D1 bt0");
     let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
     if !features.is_empty() {
@@ -263,30 +268,6 @@ fn concat_binaries(env: &Env) {
     println!("======= DONE =======");
 }
 
-fn burn_d1_bt0(xfel: &str, env: &Env) {
-    println!("Write to flash with {xfel}");
-    let mut cmd = Command::new(xfel);
-    cmd.current_dir(dist_dir(env, TARGET));
-    match env.memory {
-        Some(Memory::Nand) => cmd.arg("spinand"),
-        Some(Memory::Nor) => cmd.arg("spinor"),
-        // FIXME: error early, not here after minutes of build time!
-        None => {
-            error!("no memory parameter found; use --memory nand or --memory nor");
-            process::exit(1);
-        }
-    };
-    cmd.args(["write", "0"]);
-    cmd.arg(IMAGE_BIN);
-    println!("Command: {cmd:?}");
-    let status = cmd.status().unwrap();
-    trace!("xfel returned {status}");
-    if !status.success() {
-        error!("xfel failed with {status}");
-        process::exit(1);
-    }
-}
-
 fn debug_gdb(gdb_path: &str, gdb_server: &str, env: &Env) {
     let mut command = Command::new(gdb_path);
     command.current_dir(dist_dir(env, TARGET));
@@ -305,45 +286,6 @@ fn debug_gdb(gdb_path: &str, gdb_server: &str, env: &Env) {
         error!("gdb failed with {}", status);
         process::exit(1);
     }
-}
-
-// TODO: factor out generic command detection function
-const CMD: &str = "xfel";
-
-fn find_xfel() -> &'static str {
-    let mut command = Command::new(CMD);
-    command.stdout(Stdio::null());
-    match command.status() {
-        Ok(status) if status.success() => return CMD,
-        Ok(status) => match status.code() {
-            Some(code) => {
-                error!("{CMD} command failed with code {code}");
-                process::exit(code)
-            }
-            None => error!("xfel command terminated by signal"),
-        },
-        Err(e) if e.kind() == ErrorKind::NotFound => error!(
-            "{CMD} not found
-    install xfel from: https://github.com/xboot/xfel"
-        ),
-        Err(e) => error!(
-            "I/O error occurred when detecting xfel: {e}.
-    Please check your xfel program and try again."
-        ),
-    }
-    process::exit(1)
-}
-
-fn xfel_find_connected_device(xfel: &str) {
-    let mut command = Command::new(xfel);
-    command.arg("version");
-    let output = command.output().unwrap();
-    if !output.status.success() {
-        error!("xfel failed with code {}", output.status);
-        error!("Is your device in FEL mode?");
-        process::exit(1);
-    }
-    info!("Found {}", String::from_utf8_lossy(&output.stdout).trim());
 }
 
 fn board_project_root() -> std::path::PathBuf {
