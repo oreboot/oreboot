@@ -8,7 +8,7 @@ use crate::{
     Cli, Commands, Env,
 };
 
-const ARCH: &str = "arm32";
+const ARCH: &str = "arm";
 const TARGET: &str = "armv7a-none-eabi";
 const BOARD_DIR: &str = "src/mainboard/sunxi/H616";
 
@@ -40,9 +40,10 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         Commands::Run => {
             // TODO: print out variant etc
             info!("Run image on H616 via FEL");
+            build_image(&args.env, &features);
             let xfel = xfel::find_xfel();
             xfel::xfel_find_connected_device(xfel);
-            build_image(&args.env, &features);
+            // build_image(&args.env, &features);
             xfel::run(xfel, &args.env, TARGET, BT32_BIN, BT0_ADDR);
         }
         Commands::Asm => {
@@ -95,6 +96,7 @@ fn build_image(env: &Env, features: &[String]) {
     let egon_bin = egon::add_header(&bt32, egon::Arch::Arm32);
     let output_file_path = dist_dir.join(BT32_BIN_WITH_HEADER);
     info!("{output_file_path:?}");
+    println!("{output_file_path:?}");
     let mut output_file = File::options()
         .write(true)
         .create(true)

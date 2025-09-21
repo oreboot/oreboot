@@ -73,7 +73,7 @@ pub(crate) fn run(xfel: &str, env: &Env, target_dir: &str, image_bin: &str, addr
     println!("Run with {xfel}");
     let mut cmd = Command::new(xfel);
     cmd.current_dir(dist_dir(env, target_dir));
-    cmd.args(["write", format!("0x{addr}").as_str()]);
+    cmd.args(["write", format!("0x{addr:x}").as_str()]);
     cmd.arg(image_bin);
     println!("Command: {cmd:?}");
     let status = cmd.status().unwrap();
@@ -84,7 +84,7 @@ pub(crate) fn run(xfel: &str, env: &Env, target_dir: &str, image_bin: &str, addr
     }
     let mut cmd = Command::new(xfel);
     cmd.current_dir(dist_dir(env, target_dir));
-    cmd.args(["exec", format!("0x{addr}").as_str()]);
+    cmd.args(["exec", format!("0x{addr:x}").as_str()]);
     println!("Command: {cmd:?}");
     let status = cmd.status().unwrap();
     trace!("xfel returned {status}");

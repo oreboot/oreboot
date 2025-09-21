@@ -1,5 +1,5 @@
 use crate::Env;
-use log::{error, trace};
+use log::{error, info, trace};
 use std::{
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
@@ -50,6 +50,7 @@ pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
     cmd.args(["-O", "binary", bin_path]);
+    info!("run {cmd:?}");
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
     if !status.success() {
