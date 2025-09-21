@@ -36,6 +36,8 @@ struct Cli {
 enum Commands {
     /// Make this project
     Make,
+    /// Run from SRAM
+    Run,
     /// Build flash and burn into target
     Flash,
     /// View assembly code
