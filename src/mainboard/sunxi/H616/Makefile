@@ -18,5 +18,4 @@ mainboard:
 	cat $(BT0_BIN) >> $(ALL_BIN)
 
 run: mainboard
-	$(FEL) write $(LOAD_ADDR) $(ALL_BIN)
-	$(FEL) exec $(LOAD_ADDR)
+	carrgo xtask run
