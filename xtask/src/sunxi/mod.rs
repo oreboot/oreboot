@@ -1,9 +1,9 @@
 use super::Cli;
 
 mod egon;
+mod fel;
 mod h616;
 mod nezha;
-mod xfel;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Board {

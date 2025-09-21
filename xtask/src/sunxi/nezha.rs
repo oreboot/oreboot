@@ -10,7 +10,7 @@ use log::{error, info, trace};
 use crate::util::{
     dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
 };
-use crate::{gdb_detect, sunxi::xfel, Cli, Commands, Env};
+use crate::{gdb_detect, sunxi::fel, Cli, Commands, Env};
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
@@ -36,10 +36,10 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
-            let xfel = xfel::find_xfel();
-            xfel::xfel_find_connected_device(xfel);
+            let xfel = fel::find_xfel();
+            fel::xfel_find_connected_device(xfel);
             build_image(&args.env, &features);
-            xfel::flash_image(xfel, &args.env, TARGET, IMAGE_BIN);
+            fel::flash_image(xfel, &args.env, TARGET, IMAGE_BIN);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");

@@ -3,7 +3,7 @@ use std::{fs::File, io::Write, process};
 use log::{error, info, trace};
 
 use crate::{
-    sunxi::{egon, xfel},
+    sunxi::{egon, fel},
     util::{dist_dir, get_cargo_cmd_in, objcopy, project_root},
     Cli, Commands, Env,
 };
@@ -29,22 +29,23 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         }
         Commands::Flash => {
             // TODO: print out variant etc
-            todo!("Build and flash oreboot image for H616");
+            info!("Build and flash oreboot image for H616");
+            todo!();
             /*
-            let xfel = find_xfel();
-            xfel_find_connected_device(xfel);
+            let xfel = fel::find_xfel();
+            fel::xfel_find_connected_device(xfel);
             build_image(&args.env, &features);
-            burn_H616_bt0(xfel, &args.env);
+            fel::flash_image(xfel, &args.env);
             */
         }
         Commands::Run => {
             // TODO: print out variant etc
             info!("Run image on H616 via FEL");
+            let xfel = fel::find_xfel();
+            fel::xfel_find_connected_device(xfel);
             build_image(&args.env, &features);
-            let xfel = xfel::find_xfel();
-            xfel::xfel_find_connected_device(xfel);
-            // build_image(&args.env, &features);
-            xfel::run(xfel, &args.env, TARGET, BT32_BIN, BT0_ADDR);
+            // fel::xfel_run(xfel, &args.env, TARGET, BT32_BIN_WITH_HEADER, BT0_ADDR);
+            fel::run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
         }
         Commands::Asm => {
             todo!("Build bt0 and view assembly for H616");
