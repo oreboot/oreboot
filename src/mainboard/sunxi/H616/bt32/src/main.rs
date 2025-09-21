@@ -5,7 +5,6 @@
 use core::arch::naked_asm;
 use core::{arch::asm, panic::PanicInfo};
 
-use embedded_hal_nb::serial::Write;
 use util::mmio::{read32, write32};
 
 #[macro_use]
@@ -20,95 +19,12 @@ const STACK_SIZE: usize = 1 * 2048; // 1KiB
 #[link_section = ".bss.uninit"]
 static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
-/*
-// FIXME: The compiler would add a `BRK` (aarch64) instruction hereafter.
-// FIXME: The compiler would add a `UDF` (aarch32) instruction hereafter.
-// No clue why, so just add `jump` as an inline word to eGON header instead.
-/// Jump over head data to executable code.
-///
-/// # Safety
-///
-/// Naked function.
-#[unsafe(naked)]
-#[link_section = ".head.text"]
-#[export_name = "head_jump"]
-pub unsafe extern "C" fn head_jump() {
-    asm!(
-        "b .+0x64", // 0x60: eGON.BT0 header; 0x08: FlashHead
-        // ".word 0x54000341", // this is the result...
-        options(noreturn)
-    )
-}
-*/
-// eGON.BT0 header. This header is identified by D1 ROM code
-// to copy BT0 stage bootloader into SRAM memory.
-// This header takes 0x60 bytes.
-#[repr(C)]
-pub struct EgonHead {
-    jump32: u32,
-    magic: [u8; 8],
-    checksum: u32,
-
-    length: u32,
-    pub_head_size: u32,
-    fel_script_address: u32,
-    fel_uenv_length: u32,
-
-    dt_name_offset: u32,
-    dram_size: u32,
-    boot_media: u32,
-
-    string_pool: [u32; 13],
-}
-
-const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
-
-// clobber used by KEEP(*(.head.egon)) in link script
-#[link_section = ".head.egon"]
-pub static EGON_HEAD: EgonHead = EgonHead {
-    jump32: 0xea000016, // b 0x60
-    magic: *b"eGON.BT0",
-    checksum: STAMP_CHECKSUM, // real checksum filled by blob generator
-    length: 0,                // real size filled by blob generator
-    pub_head_size: 0,
-    fel_script_address: 0,
-    fel_uenv_length: 0,
-    dt_name_offset: 0,
-    dram_size: 0,
-    boot_media: 0,
-    string_pool: [0; 13],
-};
-
-// Private use; not designed as conventional header structure.
-// Real data filled by xtask.
-// This header takes 0x8 bytes. When modifying this structure, make sure
-// the offset in `head_jump` function is also modified.
-#[repr(C)]
-pub struct MainStageHead {
-    offset: u32,
-    length: u32,
-}
-
-// clobber used by KEEP(*(.head.main)) in link script
-// To avoid optimization, always read from flash page. Do NOT use this
-// variable directly.
-#[link_section = ".head.main"]
-pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
-    offset: 0, // real offset filled by xtask
-    length: 0, // real size filled by xtask
-};
-
+/// Clear stuff and jump to main.
 /// All 64-bit capable Allwinner SoCs reset in AArch32 (and continue to
 /// exectute the Boot ROM in this state), so we need to switch to AArch64
 /// at some point.
 /// https://github.com/u-boot/u-boot/blob/master/arch/arm/mach-sunxi/rmr_switch.S
-///
-/// Clear stuff and jump to main.
-/// Kudos to Azeria \o/
-/// https://azeria-labs.com/memory-instructions-load-and-store-part-4/
-/// Xn registers are 64-bit, general purpose; X31 aka Xzr is always 0
-/// Wn registers are 32-bit and aliases of lower half of Xn
-/// https://linux-sunxi.org/Arm64
+/// See also: https://linux-sunxi.org/Arm64
 ///
 /// # Safety
 ///
@@ -118,13 +34,10 @@ pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
-        "2:",             //
+        "2:",          //
         "adr  r9, 2b", //
         "bl   {reset}",
         ".word 0x140001e7", // b #0x490 in Aarch64
-        // hack to include eGON header; we skip this via the jump from header
-        "ldr  r0, {egon_head}",
-        egon_head  =   sym EGON_HEAD,
         reset      =   sym reset
     )
 }
@@ -154,6 +67,25 @@ const RVBAR_ALT: usize = 0x0810_0040;
 // const RVBAR_ALT: usize = RVBAR;
 
 const START_AARCH64: u32 = 0x0002_0000 + 2048;
+
+// bits 0..5 describe the processor mode
+// https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/The-System-Level-Programmers--Model/ARM-processor-modes-and-ARM-core-registers/ARM-processor-modes?lang=en#CIHGHDGI
+#[inline]
+fn get_mode() -> &'static str {
+    let cpsr: u32;
+    unsafe {
+        asm!(
+            "mrs {}, cpsr",
+            out(reg) cpsr
+        );
+    }
+    let el = cpsr & 0b11111;
+
+    match el {
+        0b10011 => "Supervisor (svc)",
+        _ => "unknown",
+    }
+}
 
 fn sleep(t: usize) {
     for _ in 0..t {
@@ -229,68 +161,14 @@ fn reset64() {
     }
 }
 
-// crappy debug prints
-fn pchar(c: u32) {
-    write32(mem_map::UART0_BASE, c);
-    sleep(400);
-}
-
-const NEW_METHOD: bool = true;
-
 // FIXME: both methods fail at the moment. Why?
 fn init_logger(s: uart::SunxiSerial) {
-    pchar(0x30);
-    if NEW_METHOD {
-        // This is the new method that also compiles in Rust 2024.
-        use core::{cell::OnceCell, ptr::addr_of_mut};
-        static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
-        pchar(0x31);
-        unsafe {
-            log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
-        }
-    } else {
-        // This is the old method we've been using for now.
-        static ONCE: spin::Once<()> = spin::Once::new();
-        static mut SERIAL: Option<uart::SunxiSerial> = None;
-        ONCE.call_once(|| unsafe {
-            pchar(0x31);
-            SERIAL.replace(s);
-            pchar(0x32);
-            log::init(SERIAL.as_mut().unwrap());
-        });
+    // This is the new method that also compiles in Rust 2024.
+    use core::{cell::OnceCell, ptr::addr_of_mut};
+    static mut SERIAL: OnceCell<uart::SunxiSerial> = OnceCell::new();
+    unsafe {
+        log::init((*addr_of_mut!(SERIAL)).get_mut_or_init(|| s));
     }
-    pchar(0x42);
-}
-
-#[inline(always)]
-// shift n by s and convert to what represents its hex digit in ASCII
-fn shift_and_hex(n: u32, s: u8) -> u8 {
-    // drop to a single nibble (4 bits), i.e., what a hex digit can hold
-    let x = (n >> s) as u8 & 0x0f;
-    // digits are in the range 0x30..0x39
-    // letters start at 0x40, i.e., off by 7 from 0x3a
-    if x > 9 {
-        x + 0x37
-    } else {
-        x + 0x30
-    }
-}
-
-#[inline(always)]
-pub fn print_hex(s: &mut uart::SunxiSerial, i: u32) {
-    s.write(b'0').ok();
-    s.write(b'x').ok();
-    // nibble by nibble... keep it simple
-    s.write(shift_and_hex(i, 28)).ok();
-    s.write(shift_and_hex(i, 24)).ok();
-    s.write(shift_and_hex(i, 20)).ok();
-    s.write(shift_and_hex(i, 16)).ok();
-    s.write(shift_and_hex(i, 12)).ok();
-    s.write(shift_and_hex(i, 8)).ok();
-    s.write(shift_and_hex(i, 4)).ok();
-    s.write(shift_and_hex(i, 0)).ok();
-    s.write(b'\r').ok();
-    s.write(b'\n').ok();
 }
 
 // #[unsafe(naked)]
@@ -307,10 +185,8 @@ unsafe extern "C" fn reset() {
     );
 }
 
-const PRINT_PC: bool = false;
-const PRINT_SP: bool = true;
-
-// see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
+// see https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
+// and https://students.mimuw.edu.pl/~zbyszek/asm/arm/asm_guide.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
     let mut ini_pc: usize = 0;
@@ -342,35 +218,14 @@ pub extern "C" fn main() -> ! {
     let v = read32(UART_BGR_REG) & !UART0_RESET;
     write32(UART_BGR_REG, v | UART0_RESET);
 
-    let mut serial = uart::SunxiSerial::new();
-    blink(5);
-
-    serial.write(b'\r').ok();
-    serial.write(b'\n').ok();
-
-    if PRINT_PC {
-        // this verifies that our base address is correct
-        // should be SRAM base address + 0x60, i.e., right after eGON header
-        serial.write(b'P').ok();
-        serial.write(b'C').ok();
-        serial.write(b':').ok();
-        serial.write(b' ').ok();
-        print_hex(&mut serial, ini_pc as u32);
-    }
-
-    if PRINT_SP {
-        serial.write(b'S').ok();
-        serial.write(b'P').ok();
-        serial.write(b':').ok();
-        serial.write(b' ').ok();
-        print_hex(&mut serial, ini_sp as u32);
-    }
-
-    // currently crashes here, as it seems
+    let serial = uart::SunxiSerial::new();
     init_logger(serial);
-    // println!("🦀");
-    // println!("oreboot 🦀 in aarch32");
-    // println!("earlier program counter (PC) {ini_pc:016x}");
+    println!("oreboot 🦀 in aarch32");
+    println!("  program counter (PC): {ini_pc:016x}");
+    println!("    stack pointer (SP): {ini_sp:016x}");
+
+    let mode = get_mode();
+    println!("  running in {mode} mode");
 
     loop {
         blink(42);

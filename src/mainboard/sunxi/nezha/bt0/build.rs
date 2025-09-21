@@ -5,16 +5,17 @@ use std::path::PathBuf;
 
 const NEZHA_FLASH: &[u8] = b"
 OUTPUT_ARCH(riscv)
-ENTRY(_head_jump)
+ENTRY(start)
 MEMORY {
-    SRAM : ORIGIN = 0x00020000, LENGTH = 32K
+    SRAM : ORIGIN = 0x00020060, LENGTH = 32672
 }
 SECTIONS {
     .head : {
         *(.head.text)
-        *(.head.egon)
+        KEEP(*(.head.main))
     } > SRAM
     .text : {
+    KEEP(*(.text.entry))
         *(.text .text.*)
     } > SRAM
     .rodata : ALIGN(4) {

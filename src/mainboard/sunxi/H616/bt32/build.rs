@@ -5,16 +5,16 @@ use std::path::PathBuf;
 
 const LINKER_SCRIPT_FILE: &str = "link-allwinner-h616-bt32.ld";
 
+// NOTE: The first 60 bytes are for the header, which we prepend via xtask.
 const LINKER_SCRIPT: &[u8] = b"
 OUTPUT_ARCH(armv7a)
-ENTRY(head_jump)
+ENTRY(start)
 MEMORY {
-    SRAM : ORIGIN = 0x00020000, LENGTH = 32K
+    SRAM : ORIGIN = 0x00020060, LENGTH = 16288
 }
 SECTIONS {
     .head : {
         *(.head.text)
-        KEEP(*(.head.egon))
         KEEP(*(.head.main))
     } > SRAM
     .text : {
