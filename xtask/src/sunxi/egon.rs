@@ -68,7 +68,9 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
         string_pool: [0; 13],
     };
 
-    let mut bin = [initial_head.as_bytes(), &image].concat();
+    let pre = [initial_head.as_bytes(), &image].concat();
+    let mut bin = pre.to_vec();
+    bin.resize(16 * 1024, 0);
 
     let mut checksum: u32 = 0;
     for c in bin.chunks_exact(4).into_iter() {

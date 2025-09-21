@@ -282,9 +282,9 @@ pub extern "C" fn main() -> ! {
 
     // currently crashes here, as it seems
     init_logger(serial);
-    // println!("🦀");
-    // println!("oreboot 🦀 in aarch32");
-    // println!("earlier program counter (PC) {ini_pc:016x}");
+    println!("🦀");
+    println!("oreboot 🦀 in aarch32");
+    println!("earlier program counter (PC) {ini_pc:016x}");
 
     loop {
         blink(42);

@@ -10,7 +10,7 @@ const LINKER_SCRIPT: &[u8] = b"
 OUTPUT_ARCH(armv7a)
 ENTRY(head_jump)
 MEMORY {
-    SRAM : ORIGIN = 0x00020060, LENGTH = 8096
+    SRAM : ORIGIN = 0x00020060, LENGTH = 16288
 }
 SECTIONS {
     .head : {
