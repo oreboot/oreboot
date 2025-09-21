@@ -1,8 +1,13 @@
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use zerocopy::IntoBytes;
+use zerocopy_derive::{FromBytes, Immutable, IntoBytes};
+
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
 // NOTE: The "real" header includes the initial jump.
 // It must be 32-byte aligned. See also:
 // https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/include/sunxi_image.h#L80
+#[derive(FromBytes, Immutable, IntoBytes, Clone, Copy, Debug)]
 #[repr(C)]
 struct EgonHead {
     jump_instruction: u32,
@@ -64,13 +69,18 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
         string_pool: [0; 13],
     };
 
-    let mut bin = initial_head.as_bytes();
+    let mut bin = [initial_head.as_bytes(), &image].concat();
 
-    let mut checksum = 0;
-    for c in image.chunks_exact(4).iter() {
-        let v = c.read_u32::<LittleEndian>();
+    let mut checksum: u32 = 0;
+    for c in bin.chunks_exact(4).into_iter() {
+        let v = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
         checksum = checksum.wrapping_add(v);
     }
 
-    vec![]
+    bin[12] = checksum as u8;
+    bin[13] = (checksum >> 8) as u8;
+    bin[14] = (checksum >> 16) as u8;
+    bin[15] = (checksum >> 24) as u8;
+
+    bin
 }

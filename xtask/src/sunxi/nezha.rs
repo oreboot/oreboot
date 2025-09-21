@@ -1,14 +1,16 @@
-use crate::util::{
-    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
-};
-use crate::{gdb_detect, sunxi::xfel, Cli, Commands, Env};
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use log::{error, info, trace};
 use std::{
     fs::File,
     io::{self, ErrorKind, Seek, SeekFrom, Write},
     process::{self, Command},
 };
+
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use log::{error, info, trace};
+
+use crate::util::{
+    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
+};
+use crate::{gdb_detect, sunxi::xfel, Cli, Commands, Env};
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";

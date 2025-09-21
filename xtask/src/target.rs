@@ -41,6 +41,7 @@ pub(crate) fn parse_target(
     if let Some((vendor, board)) = parse_target_str(cur_path, param_mainboard) {
         let vendor_board = match (vendor.as_ref(), board.as_ref()) {
             ("sunxi", "nezha") => Vendor::Sunxi(sunxi::Board::Nezha),
+            ("sunxi", "H616") => Vendor::Sunxi(sunxi::Board::H616),
             ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
             ("starfive", "visionfive2") => Vendor::StarFive(starfive::Board::VisionFive2),
             ("emulation", "qemu-riscv") => Vendor::Emulation(qemu::Board::RiscV),
