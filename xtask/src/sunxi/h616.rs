@@ -4,13 +4,12 @@ use log::{error, info, trace};
 
 use crate::{
     sunxi::{egon, fel},
-    util::{dist_dir, get_cargo_cmd_in, objcopy, project_root},
+    util::{dist_dir, get_cargo_cmd_in, objcopy},
     Cli, Commands, Env,
 };
 
 const ARCH: &str = "arm";
 const TARGET: &str = "armv7a-none-eabi";
-const BOARD_DIR: &str = "src/mainboard/sunxi/H616";
 
 // const BT0_ELF: &str = "oreboot-allwinner-h616-bt0";
 // const BT0_BIN: &str = "oreboot-allwinner-h616-bt0.bin";
@@ -43,8 +42,11 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             let _ = fel::find_xfel();
             fel::xfel_find_connected_device();
             build_image(&args.env, &features);
-            // fel::xfel_run(xfel, &args.env, TARGET, BT32_BIN_WITH_HEADER, BT0_ADDR);
-            fel::sunxi_fel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
+            if false {
+                fel::xfel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER, BT0_ADDR);
+            } else {
+                fel::sunxi_fel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
+            }
         }
         Commands::Asm => {
             todo!("Build bt0 and view assembly for H616");
@@ -60,13 +62,9 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join(BOARD_DIR)
-}
-
 fn build_bt32(env: &Env, features: &[String]) {
     trace!("build H616 bt32");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt32", "build");
+    let mut command = get_cargo_cmd_in(env, "bt32", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");

@@ -1,6 +1,10 @@
 use zerocopy::IntoBytes;
 use zerocopy_derive::{FromBytes, Immutable, IntoBytes};
 
+// Allwinner SoCs need a special header. For details, see also:
+// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/board/sunxi/README.sunxi64
+// https://linux-sunxi.org/EGON
+
 // eGON.BT0 header. This header is identified by D1 ROM code
 // to copy BT0 stage bootloader into SRAM memory.
 // NOTE: The "real" header includes the initial jump.
@@ -27,7 +31,7 @@ struct EgonHead {
 }
 
 const JUMP_ARM_32: u32 = 0xea000016;
-// TODO: const JUMP_RISCV_64: u32 = 0x...;
+const JUMP_RISCV_64: u32 = 0x0600006f;
 
 pub enum Arch {
     Riscv64,
@@ -50,7 +54,7 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
     let length = align_up_to(len, 16 * 1024) as u32;
     let jump_instruction = match arch {
         Arch::Arm32 => JUMP_ARM_32,
-        Arch::Riscv64 => todo!(),
+        Arch::Riscv64 => JUMP_RISCV_64,
     };
     // NOTE: We have to initialize the checksum with the stamp value.
     // The head itself is then used in the checksum calculcation.

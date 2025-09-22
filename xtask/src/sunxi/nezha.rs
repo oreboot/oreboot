@@ -1,20 +1,20 @@
 use std::{
     fs::File,
-    io::{self, ErrorKind, Seek, SeekFrom, Write},
+    io::{self, Seek, SeekFrom, Write},
     process::{self, Command},
 };
 
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use log::{error, info, trace};
 
-use crate::util::{
-    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
+use crate::util::{dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump};
+use crate::{
+    gdb_detect,
+    sunxi::{egon, fel},
+    Cli, Commands, Env,
 };
-use crate::{gdb_detect, sunxi::fel, Cli, Commands, Env};
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
-const BOARD_DIR: &str = "src/mainboard/sunxi/nezha";
 
 const BT0_ELF: &str = "oreboot-nezha-bt0";
 const BT0_BIN: &str = "oreboot-nezha-bt0.bin";
@@ -31,7 +31,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             build_image(&args.env, &features);
         }
         Commands::Run => {
-            todo!("implemented {:?} command", args.command);
+            todo!("implement {:?} command", args.command);
         }
         Commands::Flash => {
             // TODO: print out variant etc
@@ -71,102 +71,60 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
 }
 
 fn build_image(env: &Env, features: &[String]) {
-    // Get binutils first so we can fail early
-    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     // Build the stages - should we parallelize this?
     build_bt0(env, features);
-    build_d1_main(env);
-    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
-    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-    bt0_egon_header(env);
+    build_main(env);
     concat_binaries(env);
 }
 
 fn build_bt0(env: &Env, features: &[String]) {
-    trace!("build D1 bt0");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
+    trace!("build bt0");
+    // Get binutils first so we can fail early
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
+    let dist_dir = dist_dir(env, TARGET);
+    let mut command = get_cargo_cmd_in(env, "bt0", "build");
     if !features.is_empty() {
-        let command_line_features = features.join(",");
-        trace!("append command line features: {command_line_features}");
+        let platform_features = features.join(",");
+        trace!("append features: {platform_features}");
         command.arg("--no-default-features");
-        command.args(["--features", &command_line_features]);
+        command.args(["--features", &platform_features]);
     } else {
-        trace!("no command line features appended");
+        trace!("no features appended");
     }
-    trace!("run D1 bt0 build command: {command:?}");
+    trace!("run build command: {command:?}");
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
     if !status.success() {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-}
-
-fn build_d1_main(env: &Env) {
-    trace!("build D1 main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
-    if env.supervisor {
-        command.arg("--features");
-        command.arg("supervisor");
-    }
-    let status = command.status().unwrap();
-    trace!("cargo returned {status}");
-    if !status.success() {
-        error!("cargo build failed with {status}");
-        process::exit(1);
-    }
-}
-
-const EGON_HEAD_LENGTH: u64 = 0x60;
-
-// This function does:
-// 1. fill in binary length of bt0
-// 2. calculate checksum of bt0 image
-// NOTE: old checksum value must be filled as stamp value
-fn bt0_egon_header(env: &Env) {
-    println!("Filling eGON header...");
-    let path = dist_dir(env, TARGET);
-    let mut bt0_bin = File::options()
-        .read(true)
+    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
+    let f = dist_dir.join(BT0_BIN);
+    let bt0 = std::fs::read(&f).expect("opening bt0 binary file");
+    let egon_bin = egon::add_header(&bt0, egon::Arch::Riscv64);
+    let mut output_file = File::options()
         .write(true)
-        .open(path.join(BT0_BIN))
-        .expect("open bt0 binary file");
-    let bt0_len = bt0_bin.metadata().unwrap().len();
-    if bt0_len < EGON_HEAD_LENGTH {
-        error!("bt0 size {bt0_len} less than minimal header length {EGON_HEAD_LENGTH}");
-    }
-    let new_len = align_up_to(bt0_len, 16 * 1024); // align up to 16KB
-    bt0_bin.set_len(new_len).unwrap();
-    bt0_bin.seek(SeekFrom::Start(0x10)).unwrap();
-    bt0_bin.write_u32::<LittleEndian>(new_len as u32).unwrap();
-
-    // fill in checksum
-    bt0_bin.seek(SeekFrom::Start(0x0C)).unwrap();
-    let stamp = bt0_bin.read_u32::<LittleEndian>().unwrap();
-    if stamp != 0x5F0A6C39 {
-        error!("wrong stamp value; check your generated blob and try again")
-    }
-    let mut checksum: u32 = 0;
-    bt0_bin.rewind().unwrap();
-    loop {
-        match bt0_bin.read_u32::<LittleEndian>() {
-            Ok(val) => checksum = checksum.wrapping_add(val),
-            Err(e) if e.kind() == ErrorKind::UnexpectedEof => break,
-            Err(e) => error!("calculating checksum: {e:?}"),
-        }
-    }
-    bt0_bin.seek(SeekFrom::Start(0x0C)).unwrap();
-    bt0_bin.write_u32::<LittleEndian>(checksum).unwrap();
-    bt0_bin.sync_all().unwrap();
+        .create(true)
+        .truncate(true)
+        .open(&f)
+        .expect("create output binary file");
+    output_file.write_all(&egon_bin).unwrap();
 }
 
-fn align_up_to(len: u64, target_align: u64) -> u64 {
-    let (div, rem) = (len / target_align, len % target_align);
-    if rem != 0 {
-        (div + 1) * target_align
-    } else {
-        len
+fn build_main(env: &Env) {
+    trace!("build D1 main");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
+    let mut command = get_cargo_cmd_in(env, "main", "build");
+    if env.supervisor {
+        command.args(["--features", "supervisor"]);
     }
+    let status = command.status().unwrap();
+    trace!("cargo returned {status}");
+    if !status.success() {
+        error!("cargo build failed with {status}");
+        process::exit(1);
+    }
+    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
 }
 
 const FLASH_IMG_SIZE: u64 = 16 * 1024 * 1024;
@@ -285,8 +243,4 @@ fn debug_gdb(gdb_path: &str, gdb_server: &str, env: &Env) {
         error!("gdb failed with {}", status);
         process::exit(1);
     }
-}
-
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join(BOARD_DIR)
 }

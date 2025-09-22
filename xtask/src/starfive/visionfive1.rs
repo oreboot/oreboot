@@ -1,6 +1,5 @@
 use crate::util::{
     compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    project_root,
 };
 use crate::{layout_flash, Commands, Env};
 // use fdt;
@@ -46,7 +45,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
             xtask_concat_flash_binaries(&args.env);
             // dtb
-            compile_board_dt(&args.env, TARGET, &board_project_root(), BOARD_DTB);
+            compile_board_dt(&args.env, TARGET, BOARD_DTB);
             xtask_build_dtb_image(&args.env);
         }
         _ => {
@@ -57,7 +56,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
 
 fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
     trace!("build JH7100 flash bt0");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -76,7 +75,7 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
 
 fn xtask_build_jh7100_flash_main(env: &Env) {
     trace!("build JH7100 flash main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
+    let mut command = get_cargo_cmd_in(env, "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
@@ -153,9 +152,4 @@ fn xtask_build_dtb_image(env: &Env) {
     .unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
-}
-
-// FIXME: factor out, rework, share!
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join("src/mainboard/starfive/visionfive1")
 }

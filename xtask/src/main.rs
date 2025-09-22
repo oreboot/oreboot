@@ -22,7 +22,7 @@ use layoutflash::areas::Area;
 
 #[derive(Parser)]
 #[clap(name = "xtask")]
-#[clap(about = "Program that help you build and debug Oreboot project", long_about = None)]
+#[clap(about = "The oreboot build system", long_about = None)]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
@@ -38,7 +38,7 @@ enum Commands {
     Make,
     /// Run from SRAM
     Run,
-    /// Build flash and burn into target
+    /// Build image and flash to target
     Flash,
     /// View assembly code
     Asm,
@@ -107,9 +107,9 @@ struct Env {
     #[clap(long, global = true, help = "Target memory description")]
     memory: Option<Memory>,
     #[clap(long, global = true, help = "Board variant")]
-    dram_size: Option<DramSize>,
-    #[clap(long, global = true, help = "DRAM size")]
     variant: Option<String>,
+    #[clap(long, global = true, help = "DRAM size")]
+    dram_size: Option<DramSize>,
     #[clap(long, global = true, help = "Path to raw payload")]
     payload: Option<String>,
     #[clap(long, global = true, help = "Path to dtb")]

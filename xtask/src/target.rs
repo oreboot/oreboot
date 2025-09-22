@@ -4,7 +4,8 @@ use std::path::{Component, Path};
 use crate::qemu;
 use crate::starfive;
 use crate::sunxi;
-use crate::util::project_root;
+use crate::util::PLATFORM_BASE_PATH;
+use crate::util::{platform_base_dir, project_root};
 
 pub(crate) struct Target {
     vendor_board: Vendor,
@@ -57,9 +58,9 @@ pub(crate) fn parse_target(
 
 // mainboard format: vendor/board
 fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(String, String)> {
-    trace!("parse target string, mainboard: {:?}", param_mainboard);
+    trace!("parse target string, mainboard: {param_mainboard:?}");
     if let Some(mainboard_str) = param_mainboard {
-        trace!("try parse from parameter mainboard: {:?}", mainboard_str);
+        trace!("try parse from parameter mainboard: {mainboard_str:?}");
         let mut split = mainboard_str.split('/');
         let vendor = if let Some(vendor) = split.next() {
             vendor
@@ -70,20 +71,16 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
         let board = if let Some(board) = split.next() {
             board
         } else {
-            trace!("no input board");
+            trace!("no board given");
             return None;
         };
         if split.next().is_some() {
             trace!("there is unexpected remaining string");
             return None;
         }
-        let input_mainboard_path = project_root()
-            .join("src")
-            .join("mainboard")
-            .join(vendor)
-            .join(board);
+        let input_mainboard_path = platform_base_dir().join(vendor).join(board);
         if !input_mainboard_path.exists() {
-            trace!("path not exist");
+            trace!("path does not exist");
             return None;
         }
         return Some((vendor.to_string(), board.to_string()));
@@ -95,18 +92,17 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
             return None;
         }
     };
-    trace!("current relative path: {:?}", relative_path);
-    let mainboard_base_path = Path::new("src/mainboard");
+    trace!("current relative path: {relative_path:?}");
     // note(unwrap): both paths are relative
-    let mainboard = pathdiff::diff_paths(relative_path, mainboard_base_path).unwrap();
-    trace!("path diff to mainboard folder: {:?}", mainboard);
+    let mainboard = pathdiff::diff_paths(relative_path, PLATFORM_BASE_PATH).unwrap();
+    trace!("path diff to mainboard folder: {mainboard:?}");
     let mut components = mainboard.components();
     let vendor_board_from_path = match components.next() {
         Some(Component::Normal(vendor)) => {
-            trace!("vendor from path: {:?}", vendor);
+            trace!("vendor from path: {vendor:?}");
             match components.next() {
                 Some(Component::Normal(board)) => {
-                    trace!("board from path: {:?}", board);
+                    trace!("board from path: {board:?}");
                     Some((vendor, board))
                 }
                 Some(Component::ParentDir | Component::CurDir) => {
@@ -118,7 +114,7 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
                     None
                 }
                 illegal @ Some(Component::Prefix(_) | Component::RootDir) => {
-                    trace!("illegal path diffs: {:?}", illegal);
+                    trace!("illegal path diffs: {illegal:?}");
                     unreachable!()
                 }
             }
@@ -132,7 +128,7 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
             None
         }
         illegal @ Some(Component::Prefix(_) | Component::RootDir) => {
-            trace!("illegal path diffs: {:?}", illegal);
+            trace!("illegal path diffs: {illegal:?}");
             unreachable!()
         }
     };

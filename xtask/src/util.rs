@@ -10,10 +10,10 @@ use std::{
 
 /// This gets you the `cargo` command in a specific directory.
 /// Use it to build a stage of a mainboard, which is a board's subdirectory.
-pub fn get_cargo_cmd_in(env: &Env, root: PathBuf, dir: &str, command: &str) -> Command {
+pub fn get_cargo_cmd_in(env: &Env, stage_dir: &str, command: &str) -> Command {
     let cargo = std::env::var("CARGO").unwrap_or("cargo".to_string());
     trace!("found cargo at {cargo}");
-    let d = root.join(dir);
+    let d = platform_dir(env).join(stage_dir);
     let mut cmd = Command::new(cargo);
     cmd.current_dir(d);
     cmd.arg(command);
@@ -24,14 +24,14 @@ pub fn get_cargo_cmd_in(env: &Env, root: PathBuf, dir: &str, command: &str) -> C
 }
 
 /// Compile the board device tree.
-pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
+pub fn compile_board_dt(env: &Env, target: &str, dtb: &str) {
     trace!("compile board device tree {dtb}");
     let cwd = dist_dir(env, target);
     let mut command = Command::new("dtc");
     command.current_dir(cwd);
     command.arg("-o");
     command.arg(dtb);
-    command.arg(root.join("board.dts"));
+    command.arg(platform_dir(env).join("board.dts"));
     let status = command.status().unwrap();
     trace!("dtc returned {status}");
     if !status.success() {
@@ -100,12 +100,24 @@ pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
     process::exit(1)
 }
 
+pub const PLATFORM_BASE_PATH: &str = "src/mainboard";
+
 /// Get the oreboot root directory.
 pub fn project_root() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
         .nth(1)
         .unwrap()
+}
+
+/// Get the base directory of all platforms.
+pub fn platform_base_dir() -> std::path::PathBuf {
+    project_root().join(PLATFORM_BASE_PATH)
+}
+
+/// Get the platform directory.
+fn platform_dir(env: &Env) -> std::path::PathBuf {
+    platform_base_dir().join(env.mainboard.clone().unwrap())
 }
 
 /// Get the target specific build output directory.

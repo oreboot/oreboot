@@ -5,7 +5,6 @@
 use core::arch::naked_asm;
 use core::{arch::asm, panic::PanicInfo};
 
-use embedded_hal_nb::serial::Write;
 use util::mmio::{read32, write32};
 
 #[macro_use]
@@ -153,37 +152,6 @@ fn init_logger(s: uart::SunxiSerial) {
     }
 }
 
-#[inline(always)]
-// shift n by s and convert to what represents its hex digit in ASCII
-fn shift_and_hex(n: u32, s: u8) -> u8 {
-    // drop to a single nibble (4 bits), i.e., what a hex digit can hold
-    let x = (n >> s) as u8 & 0x0f;
-    // digits are in the range 0x30..0x39
-    // letters start at 0x40, i.e., off by 7 from 0x3a
-    if x > 9 {
-        x + 0x37
-    } else {
-        x + 0x30
-    }
-}
-
-#[inline(always)]
-pub fn print_hex(s: &mut uart::SunxiSerial, i: u32) {
-    s.write(b'0').ok();
-    s.write(b'x').ok();
-    // nibble by nibble... keep it simple
-    s.write(shift_and_hex(i, 28)).ok();
-    s.write(shift_and_hex(i, 24)).ok();
-    s.write(shift_and_hex(i, 20)).ok();
-    s.write(shift_and_hex(i, 16)).ok();
-    s.write(shift_and_hex(i, 12)).ok();
-    s.write(shift_and_hex(i, 8)).ok();
-    s.write(shift_and_hex(i, 4)).ok();
-    s.write(shift_and_hex(i, 0)).ok();
-    s.write(b'\r').ok();
-    s.write(b'\n').ok();
-}
-
 // #[unsafe(naked)]
 #[no_mangle]
 unsafe extern "C" fn reset() {
@@ -197,9 +165,6 @@ unsafe extern "C" fn reset() {
         main       = sym main
     );
 }
-
-const PRINT_PC: bool = false;
-const PRINT_SP: bool = true;
 
 // see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
 #[no_mangle]
