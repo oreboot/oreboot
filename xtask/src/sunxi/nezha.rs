@@ -1,6 +1,7 @@
 use std::{
     fs::File,
     io::{self, Seek, SeekFrom, Write},
+    path::PathBuf,
     process::{self, Command},
 };
 
@@ -24,11 +25,11 @@ const MAIN_BIN: &str = "oreboot-nezha-main.bin";
 
 const IMAGE_BIN: &str = "oreboot-nezha.bin";
 
-pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for D1");
-            build_image(&args.env, &features);
+            build_image(&args.env, dir, &features);
         }
         Commands::Run => {
             todo!("implement {:?} command", args.command);
@@ -37,18 +38,18 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
             fel::xfel_find_connected_device();
-            build_image(&args.env, &features);
+            build_image(&args.env, dir, &features);
             fel::flash_image(&args.env, TARGET, IMAGE_BIN);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_bt0(&args.env, &features);
+            build_bt0(&args.env, dir, &features);
             objdump(&args.env, binutils_prefix, TARGET, BT0_ELF);
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_bt0(&args.env, &features);
+            build_bt0(&args.env, dir, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
@@ -70,19 +71,19 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn build_image(env: &Env, features: &[String]) {
+fn build_image(env: &Env, dir: &PathBuf, features: &[String]) {
     // Build the stages - should we parallelize this?
-    build_bt0(env, features);
-    build_main(env);
+    build_bt0(env, dir, features);
+    build_main(env, dir);
     concat_binaries(env);
 }
 
-fn build_bt0(env: &Env, features: &[String]) {
+fn build_bt0(env: &Env, dir: &PathBuf, features: &[String]) {
     trace!("build bt0");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let dist_dir = dist_dir(env, TARGET);
-    let mut command = get_cargo_cmd_in(env, "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "bt0", "build");
     if !features.is_empty() {
         let platform_features = features.join(",");
         trace!("append features: {platform_features}");
@@ -111,10 +112,10 @@ fn build_bt0(env: &Env, features: &[String]) {
     output_file.write_all(&egon_bin).unwrap();
 }
 
-fn build_main(env: &Env) {
+fn build_main(env: &Env, dir: &PathBuf) {
     trace!("build D1 main");
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let mut command = get_cargo_cmd_in(env, "main", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "main", "build");
     if env.supervisor {
         command.args(["--features", "supervisor"]);
     }

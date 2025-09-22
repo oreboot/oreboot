@@ -117,7 +117,7 @@ struct Env {
 }
 
 fn main() {
-    let args = Cli::parse();
+    let mut args = Cli::parse();
     env_logger::Builder::new()
         .filter_level(args.verbose.log_level_filter())
         .init();

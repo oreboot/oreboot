@@ -1,10 +1,16 @@
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process,
+};
+
+use fdt::Fdt;
+use log::{error, info, trace, warn};
+
 use crate::util::{
     compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
 };
 use crate::{layout_flash, Cli, Commands, Env};
-use fdt::Fdt;
-use log::{error, info, trace, warn};
-use std::{fs, path::Path, process};
 
 extern crate layoutflash;
 use layoutflash::areas::{create_areas, Area};
@@ -28,22 +34,22 @@ const DTFS_IMAGE: &str = "starfive-visionfive2-dtfs.bin";
 
 const IMAGE: &str = "starfive-visionfive2.bin";
 
-pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("building VisionFive2");
             // Get binutils first so we can fail early
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
             // Build the stages - should we parallelize this?
-            xtask_build_jh7110_bt0(&args.env, &features);
-            xtask_build_jh7110_main(&args.env);
+            build_bt0(&args.env, dir, &features);
+            build_main(&args.env, dir);
 
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
             // dtfs
-            compile_board_dt(&args.env, TARGET, BOARD_DTFS);
+            compile_board_dt(&args.env, dir, TARGET, BOARD_DTFS);
             // final image
-            xtask_build_image(&args.env);
+            build_image(&args.env);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -51,9 +57,9 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
+fn build_bt0(env: &Env, dir: &PathBuf, features: &[String]) {
     trace!("build JH7110 bt0");
-    let mut command = get_cargo_cmd_in(env, "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -82,9 +88,9 @@ fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
     }
 }
 
-fn xtask_build_jh7110_main(env: &Env) {
+fn build_main(env: &Env, dir: &PathBuf) {
     trace!("build JH7110 main");
-    let mut command = get_cargo_cmd_in(env, "main", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
     if !status.success() {
@@ -93,7 +99,7 @@ fn xtask_build_jh7110_main(env: &Env) {
     }
 }
 
-fn xtask_build_image(env: &Env) {
+fn build_image(env: &Env) {
     let dir = dist_dir(env, TARGET);
     let dtfs_path = dir.join(BOARD_DTFS);
     let dtfs_file = fs::read(dtfs_path).expect("dtfs");

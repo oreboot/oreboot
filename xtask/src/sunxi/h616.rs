@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write, process};
+use std::{fs::File, io::Write, path::PathBuf, process};
 
 use log::{error, info, trace};
 
@@ -18,11 +18,11 @@ const BT0_ADDR: usize = 0x20000;
 const BT32_ELF: &str = "oreboot-allwinner-h616-bt32";
 const BT32_BIN: &str = "oreboot-allwinner-h616-bt32.bin";
 
-pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for H616");
-            build_image(&args.env, &features);
+            build_image(&args.env, dir, &features);
         }
         Commands::Flash => {
             // TODO: print out variant etc
@@ -39,7 +39,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             info!("Run image on H616 via FEL");
             let _ = fel::find_xfel();
             fel::xfel_find_connected_device();
-            build_image(&args.env, &features);
+            build_image(&args.env, dir, &features);
             if false {
                 fel::xfel_run(&args.env, TARGET, BT32_BIN, BT0_ADDR);
             } else {
@@ -60,12 +60,12 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn build_bt32(env: &Env, features: &[String]) {
+fn build_bt32(env: &Env, dir: &PathBuf, features: &[String]) {
     trace!("build H616 bt32");
     let dist_dir = dist_dir(env, TARGET);
     // Get binutils first so we can fail early
     let binutils_prefix = "arm-linux-gnueabi-";
-    let mut command = get_cargo_cmd_in(env, "bt32", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "bt32", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -94,7 +94,7 @@ fn build_bt32(env: &Env, features: &[String]) {
     output_file.write_all(&egon_bin).unwrap();
 }
 
-fn build_image(env: &Env, features: &[String]) {
+fn build_image(env: &Env, directory: &PathBuf, features: &[String]) {
     // Build the stages - should we parallelize this?
-    build_bt32(env, features);
+    build_bt32(env, directory, features);
 }

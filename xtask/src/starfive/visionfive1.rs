@@ -4,6 +4,7 @@ use crate::util::{
 use crate::{layout_flash, Commands, Env};
 // use fdt;
 use log::{error, info, trace};
+use std::path::PathBuf;
 use std::{
     fs::{self, File},
     io::{self, Seek, SeekFrom},
@@ -32,21 +33,21 @@ const FDT_BIN: &str = "starfive-visionfive1-board.fdtbin";
 
 const IMAGE_BIN: &str = "starfive-visionfive1.bin";
 
-pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
+pub(crate) fn execute_command(args: &crate::Cli, dir: &PathBuf, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("building VisionFive1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
             // Build the stages - should we parallelize this?
-            xtask_build_jh7100_flash_bt0(&args.env, &features);
-            xtask_build_jh7100_flash_main(&args.env);
+            build_jh7100_flash_bt0(&args.env, dir, &features);
+            build_jh7100_flash_main(&args.env, dir);
 
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-            xtask_concat_flash_binaries(&args.env);
+            concat_flash_binaries(&args.env);
             // dtb
-            compile_board_dt(&args.env, TARGET, BOARD_DTB);
-            xtask_build_dtb_image(&args.env);
+            compile_board_dt(&args.env, dir, TARGET, BOARD_DTB);
+            build_dtb_image(&args.env);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -54,9 +55,9 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
+fn build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, features: &[String]) {
     trace!("build JH7100 flash bt0");
-    let mut command = get_cargo_cmd_in(env, "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -73,9 +74,9 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
     }
 }
 
-fn xtask_build_jh7100_flash_main(env: &Env) {
+fn build_jh7100_flash_main(env: &Env, dir: &PathBuf) {
     trace!("build JH7100 flash main");
-    let mut command = get_cargo_cmd_in(env, "main", "build");
+    let mut command = get_cargo_cmd_in(env, dir, "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
@@ -84,7 +85,7 @@ fn xtask_build_jh7100_flash_main(env: &Env) {
     }
 }
 
-fn xtask_concat_flash_binaries(env: &Env) {
+fn concat_flash_binaries(env: &Env) {
     let dist_dir = dist_dir(env, TARGET);
     let mut bt0_file = File::options()
         .read(true)
@@ -116,7 +117,7 @@ fn xtask_concat_flash_binaries(env: &Env) {
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
-fn xtask_build_dtb_image(env: &Env) {
+fn build_dtb_image(env: &Env) {
     let dist_dir = dist_dir(env, TARGET);
     let dtb_path = dist_dir.join(BOARD_DTB);
     let dtb = fs::read(dtb_path).expect("dtb");
