@@ -107,7 +107,7 @@ fn build_bt0(env: &Env, features: &[String]) {
         .create(true)
         .truncate(true)
         .open(&f)
-        .expect("create output binary file");
+        .expect("create bt0 binary file");
     output_file.write_all(&egon_bin).unwrap();
 }
 

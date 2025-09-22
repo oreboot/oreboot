@@ -17,14 +17,12 @@ const BT0_ADDR: usize = 0x20000;
 
 const BT32_ELF: &str = "oreboot-allwinner-h616-bt32";
 const BT32_BIN: &str = "oreboot-allwinner-h616-bt32.bin";
-const BT32_BIN_WITH_HEADER: &str = "oreboot-allwinner-h616-bt32-wheader.bin";
 
 pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for H616");
-            todo!();
-            // build_image(&args.env, &features);
+            build_image(&args.env, &features);
         }
         Commands::Flash => {
             // TODO: print out variant etc
@@ -43,9 +41,9 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             fel::xfel_find_connected_device();
             build_image(&args.env, &features);
             if false {
-                fel::xfel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER, BT0_ADDR);
+                fel::xfel_run(&args.env, TARGET, BT32_BIN, BT0_ADDR);
             } else {
-                fel::sunxi_fel_run(&args.env, TARGET, BT32_BIN_WITH_HEADER);
+                fel::sunxi_fel_run(&args.env, TARGET, BT32_BIN);
             }
         }
         Commands::Asm => {
@@ -64,6 +62,9 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
 
 fn build_bt32(env: &Env, features: &[String]) {
     trace!("build H616 bt32");
+    let dist_dir = dist_dir(env, TARGET);
+    // Get binutils first so we can fail early
+    let binutils_prefix = "arm-linux-gnueabi-";
     let mut command = get_cargo_cmd_in(env, "bt32", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
@@ -80,26 +81,20 @@ fn build_bt32(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-}
-
-fn build_image(env: &Env, features: &[String]) {
-    let dist_dir = dist_dir(env, TARGET);
-    // Get binutils first so we can fail early
-    // let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let binutils_prefix = "arm-linux-gnueabi-";
-    // Build the stages - should we parallelize this?
-    build_bt32(env, features);
     objcopy(env, binutils_prefix, TARGET, ARCH, BT32_ELF, BT32_BIN);
-    let bt32 = std::fs::read(dist_dir.join(BT32_BIN)).expect("opening bt32 binary file");
+    let f = dist_dir.join(BT32_BIN);
+    let bt32 = std::fs::read(&f).expect("opening bt32 binary file");
     let egon_bin = egon::add_header(&bt32, egon::Arch::Arm32);
-    let output_file_path = dist_dir.join(BT32_BIN_WITH_HEADER);
-    info!("{output_file_path:?}");
-    println!("{output_file_path:?}");
     let mut output_file = File::options()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(&output_file_path)
-        .expect("create output binary file");
+        .open(&f)
+        .expect("create bt0 binary file");
     output_file.write_all(&egon_bin).unwrap();
+}
+
+fn build_image(env: &Env, features: &[String]) {
+    // Build the stages - should we parallelize this?
+    build_bt32(env, features);
 }
