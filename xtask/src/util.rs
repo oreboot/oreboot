@@ -8,12 +8,14 @@ use std::{
 // These utilities help find and run external commands.
 // Those are mostly toolchain components and vendor specific tools.
 
+pub const PLATFORM_BASE_PATH: &str = "src/mainboard";
+
 /// This gets you the `cargo` command in a specific directory.
 /// Use it to build a stage of a mainboard, which is a board's subdirectory.
-pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage_dir: &str, command: &str) -> Command {
+pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &str) -> Command {
     let cargo = std::env::var("CARGO").unwrap_or("cargo".to_string());
     trace!("found cargo at {cargo}");
-    let d = platform_dir(plat_dir).join(stage_dir);
+    let d = platform_dir(plat_dir).join(stage);
     let mut cmd = Command::new(cargo);
     cmd.current_dir(d);
     cmd.arg(command);
@@ -21,6 +23,29 @@ pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage_dir: &str, command:
         cmd.arg("--release");
     }
     cmd
+}
+
+/// Use this to define a per-platform struct of named binaries for the stages.
+/// I.e., something along the lines of:
+/// ```rs
+/// struct Bins<'a> {
+///     bt0: &'a Bin<'a>,
+///     main: &'a Bin<'a>,
+/// }
+/// ```
+pub struct Bin<'a> {
+    pub elf_name: &'a str,
+    pub bin_name: &'a str,
+}
+
+const CARGO_TOML: &str = "Cargo.toml";
+
+pub fn get_manifest_in(plat_dir: &PathBuf, stage: &str) -> cargo_toml::Manifest {
+    let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
+    trace!("manifest at {f:?}");
+    let m = cargo_toml::Manifest::from_path(&f);
+    trace!("{m:#?}");
+    m.unwrap()
 }
 
 /// Compile the board device tree.
@@ -100,14 +125,10 @@ pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
     process::exit(1)
 }
 
-pub const PLATFORM_BASE_PATH: &str = "src/mainboard";
-
 /// Get the oreboot root directory.
 pub fn project_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
+    let d = env!("CARGO_MANIFEST_DIR");
+    Path::new(d).ancestors().nth(1).unwrap()
 }
 
 /// Get the base directory of all platforms.

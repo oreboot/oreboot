@@ -18,3 +18,4 @@ pathdiff = "0.2"
 layoutflash = { path = "../src/lib/layoutflash" }
 zerocopy-derive = "0.8.27"
 zerocopy = "0.8.27"
+cargo_toml = "0.22.3"
