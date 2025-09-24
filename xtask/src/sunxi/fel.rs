@@ -1,6 +1,7 @@
-use crate::util::dist_dir;
+use crate::util::{platform_dir, target_dir, Bin};
 use crate::{Env, Memory};
 use log::{error, info, trace};
+use std::path::PathBuf;
 use std::{
     io::ErrorKind,
     process::{self, Command, Stdio},
@@ -62,11 +63,11 @@ pub(crate) fn xfel_find_connected_device() {
     info!("Found {}", String::from_utf8_lossy(&output.stdout).trim());
 }
 
-pub(crate) fn flash_image(env: &Env, image_bin: &str, target_dir: &str) {
+pub(crate) fn flash_image(env: &Env, dir: &PathBuf, image_bin: &str) {
     let xfel = find_cmd(FelCommand::Xfel);
     println!("Write to flash with {xfel}");
     let mut cmd = Command::new(xfel);
-    cmd.current_dir(dist_dir(env, target_dir));
+    cmd.current_dir(platform_dir(dir));
     match env.memory {
         Some(Memory::Nand) => cmd.arg("spinand"),
         Some(Memory::Nor) => cmd.arg("spinor"),
@@ -90,24 +91,25 @@ fn run_command(cmd: &mut Command) {
     }
 }
 
-pub(crate) fn xfel_run(env: &Env, target_dir: &str, image_bin: &str, addr: usize) {
+pub(crate) fn xfel_run(env: &Env, bin: &Bin, addr: usize) {
     let xfel = find_cmd(FelCommand::Xfel);
+    let target_dir = target_dir(env, &bin.target);
     println!("Run with {xfel}");
     let mut command = Command::new(xfel);
-    command.current_dir(dist_dir(env, target_dir));
-    command.args(["write", format!("0x{addr:x}").as_str(), image_bin]);
+    command.current_dir(&target_dir);
+    command.args(["write", format!("0x{addr:x}").as_str(), &bin.bin_name]);
     run_command(&mut command);
     let mut command = Command::new(xfel);
-    command.current_dir(dist_dir(env, target_dir));
+    command.current_dir(&target_dir);
     command.args(["exec", format!("0x{addr:x}").as_str()]);
     run_command(&mut command);
 }
 
-pub(crate) fn sunxi_fel_run(env: &Env, target_dir: &str, image_bin: &str) {
+pub(crate) fn sunxi_fel_run(env: &Env, bin: &Bin) {
     let cmd = find_sunxi_fel();
     println!("Run with {cmd}");
     let mut command = Command::new(cmd);
-    command.current_dir(dist_dir(env, target_dir));
-    command.args(["spl", image_bin]);
+    command.current_dir(target_dir(env, &bin.target));
+    command.args(["spl", &bin.bin_name]);
     run_command(&mut command);
 }

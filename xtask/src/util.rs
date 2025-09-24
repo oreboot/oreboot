@@ -28,53 +28,73 @@ pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &st
 /// Use this to define a per-platform struct of named binaries for the stages.
 /// I.e., something along the lines of:
 /// ```rs
-/// struct Bins<'a> {
-///     bt0: &'a Bin<'a>,
-///     main: &'a Bin<'a>,
+/// struct Stages {
+///     bt0: Bin,
+///     main: Bin,
 /// }
 /// ```
-pub struct Bin<'a> {
-    pub elf_name: &'a str,
-    pub bin_name: &'a str,
+pub struct Bin {
+    pub elf_name: String,
+    pub bin_name: String,
+    pub target: String,
 }
 
+const CARGO_CFG: &str = ".cargo/config.toml";
 const CARGO_TOML: &str = "Cargo.toml";
 
-pub fn get_manifest_in(plat_dir: &PathBuf, stage: &str) -> cargo_toml::Manifest {
+/// See https://doc.rust-lang.org/cargo/reference/config.html
+/// and https://doc.rust-lang.org/cargo/reference/manifest.html
+pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
     let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
-    trace!("manifest at {f:?}");
     let m = cargo_toml::Manifest::from_path(&f);
-    trace!("{m:#?}");
-    m.unwrap()
+    trace!("{f:?}: {m:#?}");
+    let elf_name = m.unwrap().bin.first().unwrap().name.clone().unwrap();
+    let bin_name = format!("{elf_name}.bin");
+    let f = platform_dir(plat_dir).join(stage).join(CARGO_CFG);
+    let settings = config::Config::builder()
+        .add_source(config::File::with_name(f.to_str().unwrap()))
+        .build()
+        .unwrap();
+    let target: String = settings.get("build.target").unwrap();
+    Bin {
+        elf_name,
+        bin_name,
+        target,
+    }
 }
 
-/// Compile the board device tree.
-pub fn compile_board_dt(env: &Env, plat_dir: &PathBuf, target: &str, dtb: &str) {
-    trace!("compile board device tree {dtb}");
-    let cwd = dist_dir(env, target);
+const PLATFORM_DTS: &str = "board.dts";
+const PLATFORM_DTB: &str = "board.dtb";
+
+/// Compile the platform device tree.
+pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
+    trace!("compile platform device tree for {plat_dir:?}");
+    let cwd = platform_dir(plat_dir);
+    let dtb = cwd.join(PLATFORM_DTB);
     let mut command = Command::new("dtc");
-    command.current_dir(cwd);
+    command.current_dir(&cwd);
     command.arg("-o");
-    command.arg(dtb);
-    command.arg(platform_dir(plat_dir).join("board.dts"));
+    command.arg(&dtb);
+    command.arg(cwd.join(PLATFORM_DTS));
     let status = command.status().unwrap();
     trace!("dtc returned {status}");
     if !status.success() {
         error!("dtc build failed with {status}");
         process::exit(1);
     }
+    dtb
 }
 
 /// Create a raw binary from an ELF.
-pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str, bin_path: &str) {
+pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
     trace!("objcopy binary, prefix: '{prefix}'");
-    let dir = dist_dir(env, target);
+    let dir = target_dir(env, &bin.target);
     let mut cmd = Command::new(format!("{prefix}objcopy"));
     cmd.current_dir(dir);
-    cmd.arg(elf_path);
+    cmd.arg(&bin.elf_name);
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
-    cmd.args(["-O", "binary", bin_path]);
+    cmd.args(["-O", "binary", &bin.bin_name]);
     info!("run {cmd:?}");
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
@@ -85,11 +105,11 @@ pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str
 }
 
 /// Disssemble an ELF for inspection.
-pub fn objdump(env: &Env, prefix: &str, target: &str, elf_path: &str) {
+pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = dist_dir(env, target);
+    let dir = target_dir(env, &bin.target);
     cmd.current_dir(dir);
-    cmd.arg(elf_path);
+    cmd.arg(&bin.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
 }
@@ -131,19 +151,21 @@ pub fn project_root() -> &'static Path {
     Path::new(d).ancestors().nth(1).unwrap()
 }
 
-/// Get the base directory of all platforms.
+/// Get the full path of the base directory of all platforms.
 pub fn platform_base_dir() -> PathBuf {
     project_root().join(PLATFORM_BASE_PATH)
 }
 
-/// Get the full path to the platform directory.
-fn platform_dir(plat_dir: &PathBuf) -> PathBuf {
+/// Get the full path to a specific platform directory.
+/// This is where the final oreboot images for the given platform are found.
+pub fn platform_dir(plat_dir: &PathBuf) -> PathBuf {
     platform_base_dir().join(plat_dir)
 }
 
 /// Get the target specific build output directory.
-/// Example: `$OREBOOT_ROOT/target/riscv64imac-unknown-none-elf/release
-pub fn dist_dir(env: &Env, target: &str) -> PathBuf {
+/// This is where the ELF and objcopied binaries of the stages are found.
+/// Example: `$OREBOOT_ROOT/target/riscv64imac-unknown-none-elf/release/`
+pub fn target_dir(env: &Env, target: &str) -> PathBuf {
     let target_dir = project_root().join("target").join(target);
     let mode = if env.release { "release" } else { "debug" };
     target_dir.join(mode)
