@@ -18,4 +18,4 @@ mainboard:
 	cat $(BT0_BIN) >> $(ALL_BIN)
 
 run: mainboard
-	carrgo xtask run
+	cargo xtask run
