@@ -2,11 +2,10 @@ use std::{fs::File, io::Write, path::PathBuf, process};
 
 use log::{error, info, trace};
 
-use crate::{
-    sunxi::{egon, fel},
-    util::{get_bin_for, get_cargo_cmd_in, objcopy, target_dir, Bin},
-    Cli, Commands, Env,
-};
+use crate::util::{get_bin_for, get_cargo_cmd_in, objcopy, target_dir, Bin};
+use crate::{Cli, Commands, Env};
+
+use super::{egon, fel};
 
 const ARCH: &str = "arm";
 

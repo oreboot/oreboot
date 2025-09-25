@@ -166,7 +166,8 @@ unsafe extern "C" fn reset() {
     );
 }
 
-// see also https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
+// see https://iitd-plos.github.io/col718/ref/arm-instructionset.pdf
+// and https://students.mimuw.edu.pl/~zbyszek/asm/arm/asm_guide.pdf
 #[no_mangle]
 pub extern "C" fn main() -> ! {
     let mut ini_pc: usize = 0;

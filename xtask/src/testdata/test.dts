@@ -21,7 +21,7 @@
                 compatible = "ore-dtfs";
                 offset = <0x80000>;
                 size = <0x80000>; // 512KiB
-		file = "src/testdata/test.dtb";
+                file = "test.dtb";
             };
             area@2 {
                 description = "NVRAM A";

@@ -1,20 +1,20 @@
 use std::{
     fs::{self, File},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process,
 };
 
 use fdt::Fdt;
+
+use layoutflash::areas::{create_areas, Area};
 use log::{error, info, trace, warn};
 
+use crate::dtfs::layout_flash;
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, Bin,
 };
-use crate::{layout_flash, Cli, Commands, Env};
-
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use crate::{Cli, Commands, Env};
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
@@ -115,6 +115,7 @@ fn build_dtfs_image(dir: &PathBuf) {
         },
     );
     let areas = create_areas(&dtfs, &mut areas);
+    trace!("{areas:#?}");
 
     // preallocate image file
     let dtfs_bin = File::options()

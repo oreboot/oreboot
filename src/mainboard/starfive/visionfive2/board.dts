@@ -19,27 +19,28 @@
                 description = "JH7110 specific header";
                 compatible = "none";
                 size = <0x400>; // 1k
+                stage = "header";
             };
 
             area@1 {
                 description = "oreboot bt0";
                 compatible = "ore-bt0";
                 size = <0x10000>; // 64k
-                file = "starfive-visionfive2-bt0.bin";
+                stage = "bt0";
             };
 
             area@2 {
                 description = "oreboot DTFS";
                 compatible = "ore-dtfs";
                 size = <0x1000>;
-                file = "starfive-visionfive2-board.dtb";
+                file = "$(DTFS)";
             };
 
             area@3 {
                 description = "oreboot main";
                 compatible = "ore-main";
                 size = <0x10000>; // 64k
-                file = "starfive-visionfive2-main.bin";
+                stage = "main";
             };
 
             // FIXME: This currently expands the output image.

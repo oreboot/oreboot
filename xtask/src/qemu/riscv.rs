@@ -1,21 +1,20 @@
-use std::path::PathBuf;
 use std::{
     fs::{self, File},
-    io,
-    path::Path,
+    path::PathBuf,
     process,
 };
 
 use fdt::Fdt;
-// use fdt;
+
 use layoutflash::areas::{create_areas, Area};
 use log::{error, info, trace};
 
+use crate::dtfs::layout_flash;
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, Bin,
 };
-use crate::{layout_flash, Commands, Env};
+use crate::{Cli, Commands, Env};
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
@@ -30,7 +29,7 @@ struct Stages {
     main: Bin,
 }
 
-pub(crate) fn execute_command(args: &crate::Cli, dir: &PathBuf, features: Vec<String>) {
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
     let main = get_bin_for(dir, MAIN_STAGE);
     let stages = Stages { main };
 
