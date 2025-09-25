@@ -95,9 +95,16 @@ pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()>
 #[test]
 fn read_create() {
     use crate::areas::{create_areas, find_fdt};
-
-    static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
-    let fdt = fdt::Fdt::new(&DATA).unwrap();
+    // This is relative to this file.
+    let dtfs = include_bytes!("testdata/test.dtb");
+    let image_fixture = "src/testdata/test.out";
+    // This is relative to from where `cargo test` is run.
+    let dir = Path::new(".");
+    let image = Path::new("out.bin");
+    // This is the same as in `test.dtb` itself (see `./testdata/test.dts`).
+    // Generated via: `dtc -o testdata/test.dtb testdata/test.dts`
+    let dtfs_file = "src/testdata/test.dtb";
+    let fdt = fdt::Fdt::new(dtfs).unwrap();
     let mut areas: Vec<Area> = vec![];
     areas.resize(
         8,
@@ -120,7 +127,7 @@ fn read_create() {
             name: "area@1",
             offset: Some(524288),
             size: 524288,
-            file: Some("src/testdata/test.dtb"),
+            file: Some(dtfs_file),
         },
         Area {
             name: "area@2",
@@ -184,11 +191,10 @@ fn read_create() {
         );
     }
 
-    let image = Path::new("out.bin");
-    layout_flash(Path::new("."), image, areas.to_vec()).unwrap();
+    layout_flash(dir, image, areas.to_vec()).unwrap();
     // Make sure we can read what we wrote.
-    let data = fs::read(image).expect("Unable to read file produced by layout");
-    let reference = fs::read("src/testdata/test.out").expect("Unable to read testdata file");
+    let data = fs::read(&image).expect("Unable to read file produced by layout");
+    let reference = fs::read(&image_fixture).expect("Unable to read image fixture");
     assert_eq!(data, reference, "Data and reference differ");
     let mut vec = Vec::with_capacity(16384);
     vec.resize(16384, 0u8);
