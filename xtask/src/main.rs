@@ -4,7 +4,6 @@ use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
 use log::{error, info};
 
-mod dtfs;
 mod gdb_detect;
 mod qemu;
 mod starfive;

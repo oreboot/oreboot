@@ -6,10 +6,12 @@ use std::{
 
 use fdt::Fdt;
 
-use layoutflash::areas::{create_areas, Area};
+use layoutflash::{
+    areas::{create_areas, Area},
+    layout::layout_flash,
+};
 use log::{error, info, trace, warn};
 
-use crate::dtfs::layout_flash;
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, Bin,
