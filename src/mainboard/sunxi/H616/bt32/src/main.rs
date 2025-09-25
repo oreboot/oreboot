@@ -227,6 +227,9 @@ pub extern "C" fn main() -> ! {
     let mode = get_mode();
     println!("  running in {mode} mode");
 
+    reset64();
+    println!("reset hasn't worked!");
+
     loop {
         blink(42);
     }
