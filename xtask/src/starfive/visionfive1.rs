@@ -7,10 +7,7 @@ use std::{
 
 use fdt::Fdt;
 
-use layoutflash::{
-    areas::{create_areas, Area},
-    layout::layout_flash,
-};
+use layoutflash::layout::{create_areas, layout_flash};
 use log::{error, info, trace};
 
 use crate::util::{
@@ -131,17 +128,7 @@ fn build_dtfs_image(dir: &PathBuf) {
 
     let dtb = fs::read(dtfs_dtb).expect("DTFS DTB");
     let dtfs = Fdt::new(&dtb).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&dtfs, &mut areas);
+    let areas = create_areas(&dtfs).unwrap();
 
     let dtfs_bin = File::options()
         .write(true)
