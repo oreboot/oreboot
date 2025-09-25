@@ -1,0 +1,21 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        board-name = "QEMU armv7";
+        category = "emulation";
+        board-url = "http://wiki.qemu.org/Main_Page";
+        areas {
+            area@0 {
+                description = "Boot Blob";
+                compatible = "ore-bootblob";
+                offset = <0x0>;
+                size = <0x80000>; // 512KiB
+            };
+        };
+    };
+};
