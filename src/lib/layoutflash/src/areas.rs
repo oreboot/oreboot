@@ -1,7 +1,3 @@
-use core::option::Option;
-use core::result::Result;
-use core::result::Result::Err;
-use core::result::Result::Ok;
 use fdt::node::FdtNode;
 
 pub struct FdtIterator<'a, 'b> {
