@@ -1,17 +1,19 @@
-use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    platform_dir,
-};
-use crate::{layout_flash, Cli, Commands, Env};
-use fdt::Fdt;
-use log::{error, info, trace, warn};
 use std::{
     fs,
     path::{Path, PathBuf},
     process,
 };
 
-use layoutflash::layout::create_areas;
+use fdt::Fdt;
+use log::{error, info, trace, warn};
+
+use layoutflash::layout::{create_areas, layout_flash};
+
+use crate::util::{
+    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
+    platform_dir,
+};
+use crate::{Cli, Commands, Env};
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
