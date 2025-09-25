@@ -68,6 +68,25 @@ const RVBAR_ALT: usize = 0x0810_0040;
 
 const START_AARCH64: u32 = 0x0002_0000 + 2048;
 
+// bits 0..5 describe the processor mode
+// https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/The-System-Level-Programmers--Model/ARM-processor-modes-and-ARM-core-registers/ARM-processor-modes?lang=en#CIHGHDGI
+#[inline]
+fn get_mode() -> &'static str {
+    let cpsr: u32;
+    unsafe {
+        asm!(
+            "mrs {}, cpsr",
+            out(reg) cpsr
+        );
+    }
+    let el = cpsr & 0b11111;
+
+    match el {
+        0b10011 => "Supervisor (svc)",
+        _ => "unknown",
+    }
+}
+
 fn sleep(t: usize) {
     for _ in 0..t {
         core::hint::spin_loop();
@@ -204,6 +223,9 @@ pub extern "C" fn main() -> ! {
     println!("oreboot 🦀 in aarch32");
     println!("  program counter (PC): {ini_pc:016x}");
     println!("    stack pointer (SP): {ini_sp:016x}");
+
+    let mode = get_mode();
+    println!("  running in {mode} mode");
 
     loop {
         blink(42);
