@@ -15,4 +15,4 @@ log = "0.4"
 miniz_oxide = "0.8.5"
 pathdiff = "0.2"
 
-layoutflash = { path = "../src/lib/layoutflash" }
+layoutflash = { path = "../src/lib/layoutflash", features = ["std"] }
