@@ -1,5 +1,14 @@
 # Allwinner H616
 
+## Processor Modes
+
+The H616 starts in aarch32. In order to have EL3 available, a switch to aarch64
+is necessary:
+
+> The Armv8-R AArch32 exception model defines Exception levels EL0-EL2
+
+[^1]: <https://developer.arm.com/documentation/100026/0104/Programmers-Model/Armv8-R-AArch32-architecture-concepts/Exception-levels>
+
 ## Developing oreboot
 
 TL;DR `make run`
