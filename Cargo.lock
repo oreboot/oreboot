@@ -177,6 +177,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "cast_iron"
+version = "0.1.0"
+dependencies = [
+ "fdt",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -427,9 +434,9 @@ dependencies = [
 name = "emulation-qemu-riscv-main"
 version = "0.1.0"
 dependencies = [
+ "cast_iron",
  "embedded-hal 1.0.0",
  "embedded-hal-nb",
- "layoutflash",
  "log 0.1.0",
  "nb 1.1.0",
  "ns16550a",
@@ -645,13 +652,6 @@ dependencies = [
  "pest",
  "pest_derive",
  "serde",
-]
-
-[[package]]
-name = "layoutflash"
-version = "0.1.0"
-dependencies = [
- "fdt",
 ]
 
 [[package]]
@@ -1323,12 +1323,12 @@ dependencies = [
 name = "starfive-visionfive2-bt0"
 version = "0.1.0"
 dependencies = [
+ "cast_iron",
  "embedded-hal 1.0.0",
  "embedded-hal-nb",
  "fdt",
  "jh71xx-hal",
  "jh71xx-pac",
- "layoutflash",
  "log 0.1.0",
  "nb 1.1.0",
  "oreboot-soc",
@@ -1649,6 +1649,7 @@ version = "0.1.0"
 dependencies = [
  "byteorder",
  "cargo_toml",
+ "cast_iron",
  "clap",
  "clap-verbosity-flag",
  "config",
@@ -1656,7 +1657,6 @@ dependencies = [
  "ctrlc",
  "env_logger",
  "fdt",
- "layoutflash",
  "log 0.4.22",
  "miniz_oxide",
  "pathdiff",

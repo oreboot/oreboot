@@ -8,7 +8,7 @@ use embedded_hal_nb::serial::Write;
 #[macro_use]
 extern crate log;
 extern crate jh71xx_hal as hal;
-use layoutflash::areas::{find_fdt, FdtIterator};
+use cast_iron::areas::{find_fdt, FdtIterator};
 
 use core::{
     arch::{asm, naked_asm},

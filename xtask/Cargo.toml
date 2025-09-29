@@ -21,4 +21,4 @@ rand = "0.8"
 zerocopy = "0.8.27"
 zerocopy-derive = "0.8.27"
 
-layoutflash = { path = "../src/lib/layoutflash" }
+cast_iron = { path = "../src/lib/cast_iron" }
