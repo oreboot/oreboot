@@ -23,6 +23,7 @@ impl<'a, 'b> Iterator for FdtIterator<'a, 'b> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Area<'a> {
     pub name: &'a str,
+    pub stage: Option<&'a str>,
     pub offset: Option<usize>,
     pub size: usize,
     pub file: Option<&'a str>,
@@ -52,6 +53,6 @@ fn iterator() {
     let it = &mut fdt.find_all_nodes("/flash-info/areas");
     let areas = FdtIterator::new(it);
     let count = areas.map(|e| e.children().count()).sum::<usize>();
-    let expected = 8;
+    let expected = 4;
     assert_eq!(count, expected, "Expected {expected} areas, got {count}");
 }
