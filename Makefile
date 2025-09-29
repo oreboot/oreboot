@@ -62,7 +62,7 @@ $(MAINBOARDS):
 
 .PHONY: test
 test:
-	$(CARGOTEST) --package layoutflash --features std
+	$(CARGOTEST) --package cast_iron --features std
 	$(CARGOTEST) --package xtask
 
 # convenience target: this should be the full ci flow

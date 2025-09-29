@@ -24,4 +24,4 @@ zerocopy-derive = "0.8.27"
 byteorder = "1"
 crc = "*"
 
-layoutflash = { path = "../src/lib/layoutflash", features = ["std"] }
+cast_iron = { path = "../src/lib/cast_iron", features = ["std"] }
