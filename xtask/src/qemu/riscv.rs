@@ -6,7 +6,7 @@ use std::{
 
 use fdt::Fdt;
 
-use layoutflash::layout::{create_areas, layout_flash};
+use cast_iron::layout::{create_areas, layout_flash};
 use log::{error, info, trace};
 
 use crate::util::{

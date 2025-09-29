@@ -1,0 +1,15 @@
+[package]
+name = "cast_iron"
+version = "0.1.0"
+authors = [
+    "Ryan O'Leary <ryanoleary@google.com>",
+    "Daniel Maslowski <info@orangecms.org>"
+]
+edition = "2024"
+
+[dependencies]
+fdt = "0.1.4"
+
+[features]
+default = ["std"]
+std = []

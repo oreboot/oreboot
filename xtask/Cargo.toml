@@ -15,7 +15,7 @@ log = "0.4"
 miniz_oxide = "0.8.5"
 pathdiff = "0.2"
 
-layoutflash = { path = "../src/lib/layoutflash" }
+cast_iron = { path = "../src/lib/cast_iron" }
 zerocopy-derive = "0.8.27"
 zerocopy = "0.8.27"
 cargo_toml = "0.22.3"
