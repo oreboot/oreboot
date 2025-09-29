@@ -45,62 +45,13 @@ pub fn find_fdt(data: &[u8]) -> Result<fdt::Fdt<'_>, fdt::FdtError> {
     Err(fdt::FdtError::BadMagic)
 }
 
-// create_areas: create the areas from the fdt. This is unnecessarily messy,
-// as we want to use this same code in std and no_std.
-pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>, areas: &'a mut [Area<'a>]) -> &'a mut [Area<'a>] {
-    // Assemble the bits of the fdt we care about into Areas.
-
-    let mut i = 0;
-    for node in fdt.find_all_nodes("/flash-info/areas") {
-        for child in node.children() {
-            let mut a: Area<'a> = Area {
-                name: child.name,
-                offset: None,
-                size: 0,
-                file: None,
-            };
-            for p in child.properties() {
-                // There can be all kinds of properties in a node.
-                // we only care about file, size, and offset.
-                // Not that we remove any, just that those relate
-                // to data we put in the image.
-
-                match p.name {
-                    "file" => {
-                        a.file = Some(p.as_str().expect("MISSING NAME"));
-                    }
-                    "offset" => {
-                        a.offset = Some(p.as_usize().unwrap());
-                    }
-                    "size" => {
-                        a.size = p.as_usize().unwrap();
-                    }
-                    _ => {}
-                }
-            }
-            areas[i] = a;
-            i += 1;
-        }
-    }
-
-    areas
-}
-
 #[test]
-fn read_create() {
-    static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
-    let fdt = fdt::Fdt::new(&DATA).unwrap();
+fn iterator() {
+    let data = include_bytes!("testdata/test.dtb");
+    let fdt = fdt::Fdt::new(data).unwrap();
     let it = &mut fdt.find_all_nodes("/flash-info/areas");
-    let a = FdtIterator::new(it);
-    let mut i = 0;
-    for aa in a {
-        for c in aa.children() {
-            i += 1;
-            for _p in c.properties() {}
-        }
-    }
-    if i != 8 {
-        panic!("Supposed to have 8 areas, but found {i}");
-    }
+    let areas = FdtIterator::new(it);
+    let count = areas.map(|e| e.children().count()).sum::<usize>();
+    let expected = 8;
+    assert_eq!(count, expected, "Expected {expected} areas, got {count}");
 }
-//}

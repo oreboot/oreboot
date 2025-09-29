@@ -8,5 +8,5 @@ edition = "2021"
 fdt = "0.1.4"
 
 [features]
-default = ["std"]
+default = []
 std = []
