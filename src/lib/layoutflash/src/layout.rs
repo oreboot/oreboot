@@ -10,6 +10,7 @@ pub fn create_areas<'a>(fdt: &fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
     let mut areas: Vec<Area> = vec![];
     for node in fdt.find_all_nodes("/flash-info/areas") {
         for child in node.children() {
+            let name = child.name;
             let stage = child
                 .properties()
                 .find(|p| p.name == "stage")
@@ -23,11 +24,11 @@ pub fn create_areas<'a>(fdt: &fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
                 .find(|p| p.name == "offset")
                 .map_or_else(|| None, |e| e.as_usize());
             let Some(size) = child.properties().find(|p| p.name == "size") else {
-                return Err("a size MUST be provided".to_string());
+                return Err(format!("{name}: No size provided"));
             };
-            let name = stage.unwrap_or(child.name);
             areas.push(Area {
                 name,
+                stage,
                 file,
                 offset,
                 size: size.as_usize().unwrap(),
@@ -145,6 +146,13 @@ fn no_size() {
     assert!(areas.is_err())
 }
 
+/// Fixtures generated via:
+/// ```sh
+/// `dtc -o src/testdata/test.dt{b,s}`
+/// # https://remysharp.com/2020/06/17/how-to-pad-a-file-with-specific-bytes
+/// `tr '\0' '\377' < /dev/zero | head -c 16777216 > src/testdata/test.out`
+/// `dd if=src/testdata/test.dtb bs=1024 seek=512 conv=notrunc of=src/testdata/test.out`
+/// ```
 #[test]
 fn read_create() {
     use crate::areas::find_fdt;
@@ -155,57 +163,36 @@ fn read_create() {
     let dir = Path::new(".");
     let image = Path::new("out.bin");
     // This is the same as in `test.dtb` itself (see `./testdata/test.dts`).
-    // Generated via: `dtc -o testdata/test.dtb testdata/test.dts`
     let dtfs_file = "src/testdata/test.dtb";
     let fdt = fdt::Fdt::new(dtfs).unwrap();
     let areas = create_areas(&fdt).unwrap();
     let want: Vec<Area> = vec![
         Area {
             name: "area@0",
+            stage: Some("bt0"),
             offset: Some(0),
-            size: 524288,
+            size: 512 * 1024,
             file: None,
         },
         Area {
             name: "area@1",
-            offset: Some(524288),
-            size: 524288,
+            stage: None,
+            offset: Some(512 * 1024),
+            size: 512 * 1024,
             file: Some(dtfs_file),
         },
         Area {
             name: "area@2",
-            offset: Some(1048576),
-            size: 524288,
+            stage: Some("main"),
+            offset: Some(1024 * 1024),
+            size: 1024 * 1024,
             file: None,
         },
         Area {
             name: "area@3",
-            offset: Some(1572864),
-            size: 524288,
-            file: None,
-        },
-        Area {
-            name: "area@4",
-            offset: Some(2097152),
-            size: 1048576,
-            file: None,
-        },
-        Area {
-            name: "area@5",
-            offset: Some(3145728),
-            size: 1048576,
-            file: None,
-        },
-        Area {
-            name: "area@6",
-            offset: Some(4194304),
-            size: 6291456,
-            file: None,
-        },
-        Area {
-            name: "area@7",
-            offset: Some(10485760),
-            size: 6291456,
+            stage: Some("payload"),
+            offset: Some(2 * 1024 * 1024),
+            size: 14 * 1024 * 1024,
             file: None,
         },
     ];
@@ -235,10 +222,11 @@ fn read_create() {
     }
 
     layout_flash(dir, image, areas.to_vec()).unwrap();
-    // Make sure we can read what we wrote.
+    // Make sure we can read what we wrote and got the expected result.
     let data = fs::read(&image).expect("Unable to read file produced by layout");
-    let reference = fs::read(&image_fixture).expect("Unable to read image fixture");
-    assert_eq!(data, reference, "Data and reference differ");
+    let expected = fs::read(&image_fixture).expect("Unable to read image fixture");
+    // NOTE: Do NOT use assert_eq! here. If it fails, it prints all the bytes.
+    assert!(data.eq(&expected), "Data and reference differ");
     let mut vec = Vec::with_capacity(16384);
     vec.resize(16384, 0u8);
     match find_fdt(&vec) {
