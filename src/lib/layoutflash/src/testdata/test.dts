@@ -5,65 +5,32 @@
     #size-cells = <1>;
 
     flash-info {
-        compatible = "ore-flashinfo";
-        board-name = "QEMU armv7";
-        category = "emulation";
-        board-url = "http://wiki.qemu.org/Main_Page";
+        board-name = "no real board";
+        board-url = "http://example.com/NoBoard";
         areas {
             area@0 {
-                description = "Boot Blob";
-                compatible = "ore-bootblob";
+                stage = "bt0";
+                description = "oreboot bt0";
                 offset = <0x0>;
-                size = <0x80000>; // 512KiB
+                size = <0x80000>;
             };
             area@1 {
-                description = "Fixed DTFS";
-                compatible = "ore-dtfs";
+                description = "oreboot DTFS";
                 offset = <0x80000>;
-                size = <0x80000>; // 512KiB
-		file = "src/testdata/test.dtb";
+                size = <0x80000>;
+                file = "src/testdata/test.dtb";
             };
             area@2 {
-                description = "NVRAM A";
-                compatible = "ore-nvram";
-                half = <0>;
+                stage = "main";
+                description = "oreboot main";
                 offset = <0x100000>;
-                size = <0x80000>; // 512KiB
+                size = <0x100000>;
             };
             area@3 {
-                description = "NVRAM B";
-                compatible = "ore-nvram";
-                half = <1>;
-                offset = <0x180000>;
-                size = <0x80000>; // 512KiB
-            };
-            area@4 {
-                description = "RomPayload DTFS A";
-                compatible = "ore-rompayload";
-                half = <0>;
+                stage = "payload";
+                description = "LinuxBoot";
                 offset = <0x200000>;
-                size = <0x100000>; // 1MiB
-            };
-            area@5 {
-                description = "RomPayload DTFS B";
-                compatible = "ore-rompayload";
-                half = <1>;
-                offset = <0x300000>;
-                size = <0x100000>; // 1MiB
-            };
-            area@6 {
-                description = "RamPayload DTFS A";
-                compatible = "ore-rampayload";
-                half = <0>;
-                offset = <0x400000>;
-                size = <0x600000>; // 6MiB
-            };
-            area@7 {
-                description = "RamPayload DTFS B";
-                compatible = "ore-rampayload";
-                half = <1>;
-                offset = <0xa00000>;
-                size = <0x600000>; // 6MiB
+                size = <0xe00000>;
             };
         };
     };
