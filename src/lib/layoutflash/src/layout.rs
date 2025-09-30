@@ -141,6 +141,39 @@ fn no_size() {
     assert!(areas.is_err())
 }
 
+// This is the same as in `test.dtb` itself (see `./testdata/test.dts`).
+#[cfg(test)]
+const AREAS_FIXTURE: [Area; 4] = [
+    Area {
+        name: "area@0",
+        stage: Some("bt0"),
+        offset: Some(0),
+        size: 512 * 1024,
+        file: None,
+    },
+    Area {
+        name: "area@1",
+        stage: None,
+        offset: Some(512 * 1024),
+        size: 512 * 1024,
+        file: Some("src/testdata/test.dtb"),
+    },
+    Area {
+        name: "area@2",
+        stage: Some("main"),
+        offset: Some(1024 * 1024),
+        size: 1024 * 1024,
+        file: None,
+    },
+    Area {
+        name: "area@3",
+        stage: Some("payload"),
+        offset: Some(2 * 1024 * 1024),
+        size: 14 * 1024 * 1024,
+        file: None,
+    },
+];
+
 /// Fixtures generated via:
 /// ```sh
 /// `dtc -o src/testdata/test.dt{b,s}`
@@ -151,46 +184,9 @@ fn no_size() {
 #[test]
 fn read_create() {
     use crate::areas::find_fdt;
-    // This is relative to this file.
-    let dtfs = include_bytes!("testdata/test.dtb");
-    let image_fixture = "src/testdata/test.out";
-    // This is relative to from where `cargo test` is run.
-    let dir = Path::new(".");
-    let image = Path::new("out.bin");
-    // This is the same as in `test.dtb` itself (see `./testdata/test.dts`).
-    let dtfs_file = "src/testdata/test.dtb";
-    let fdt = fdt::Fdt::new(dtfs).unwrap();
+    let fdt = fdt::Fdt::new(crate::areas::TEST_DTB).unwrap();
     let areas = create_areas(&fdt).unwrap();
-    let want: Vec<Area> = vec![
-        Area {
-            name: "area@0",
-            stage: Some("bt0"),
-            offset: Some(0),
-            size: 512 * 1024,
-            file: None,
-        },
-        Area {
-            name: "area@1",
-            stage: None,
-            offset: Some(512 * 1024),
-            size: 512 * 1024,
-            file: Some(dtfs_file),
-        },
-        Area {
-            name: "area@2",
-            stage: Some("main"),
-            offset: Some(1024 * 1024),
-            size: 1024 * 1024,
-            file: None,
-        },
-        Area {
-            name: "area@3",
-            stage: Some("payload"),
-            offset: Some(2 * 1024 * 1024),
-            size: 14 * 1024 * 1024,
-            file: None,
-        },
-    ];
+    let want = AREAS_FIXTURE;
     assert_eq!(areas.len(), want.len());
     for i in 0..areas.len() {
         println!("Check element {i}");
@@ -216,12 +212,17 @@ fn read_create() {
         );
     }
 
-    layout_flash(dir, image, areas.to_vec()).unwrap();
+    // This is relative to from where `cargo test` is run.
+    let image = Path::new("out.bin");
+    layout_flash(Path::new("."), image, areas.to_vec()).unwrap();
+
     // Make sure we can read what we wrote and got the expected result.
     let data = fs::read(&image).expect("Unable to read file produced by layout");
-    let expected = fs::read(&image_fixture).expect("Unable to read image fixture");
     // NOTE: Do NOT use assert_eq! here. If it fails, it prints all the bytes.
-    assert!(data.eq(&expected), "Data and reference differ");
+    assert!(
+        data.eq(crate::areas::IMAGE_FIXTURE),
+        "Data and reference differ"
+    );
     let mut vec = Vec::with_capacity(16384);
     vec.resize(16384, 0u8);
     match find_fdt(&vec) {
