@@ -9,7 +9,10 @@ RUST_VER := 1.90
 BINUTILS_VER := 0.4.0
 DPRINT_VER := 0.50.2
 
-CARGOINST := rustup run --install $(RUST_VER) cargo install
+# cargo command wrapper and shorthands
+CARGO := rustup run --install $(RUST_VER) cargo
+CARGOINST := $(CARGO) install
+CARGOTEST := $(CARGO) test --release
 
 .PHONY: firsttime
 firsttime:
@@ -56,6 +59,10 @@ MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 mainboards: $(MAINBOARDS)
 $(MAINBOARDS):
 	make --no-print-directory -C $(dir $@)
+
+.PHONY: test
+test:
+	$(CARGOTEST) --package layoutflash
 
 # convenience target: this should be the full ci flow
 checkandbuildall: ciprepare clippy checkformat mainboards
