@@ -1,5 +1,5 @@
 use crate::mem_map::{CCU_BASE, DRAM_COM_BASE, DRAM_CTL_BASE, PRCM_BASE};
-use core::arch::naked_asm;
+use core::arch::{asm, naked_asm};
 use util::mmio::{read32, write32};
 extern crate log;
 
@@ -205,7 +205,51 @@ fn mctl_phy_write_leveling(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
-fn mctl_phy_configure_odt() {}
+#[inline(always)]
+fn mask_byte(reg: u32, nr: u32) -> u32 {
+    (reg >> (nr * 8)) & 0x1f
+}
+
+unsafe fn mctl_phy_configure_odt(para: &dram_para) {
+    // LPDDR4
+    clearset_bits32(DRAM_PHY_BASE + 0x390, 1 << 5, 1 << 4);
+    clearset_bits32(DRAM_PHY_BASE + 0x3d0, 1 << 5, 1 << 4);
+    clearset_bits32(DRAM_PHY_BASE + 0x410, 1 << 5, 1 << 4);
+    clearset_bits32(DRAM_PHY_BASE + 0x450, 1 << 5, 1 << 4);
+
+    let val_lo = para.dx_dri;
+    let val_hi = 0x04040404;
+    write32(DRAM_PHY_BASE + 0x388, mask_byte(val_lo, 0));
+    write32(DRAM_PHY_BASE + 0x38c, mask_byte(val_hi, 0));
+    write32(DRAM_PHY_BASE + 0x3c8, mask_byte(val_lo, 1));
+    write32(DRAM_PHY_BASE + 0x3cc, mask_byte(val_hi, 1));
+    write32(DRAM_PHY_BASE + 0x408, mask_byte(val_lo, 2));
+    write32(DRAM_PHY_BASE + 0x40c, mask_byte(val_hi, 2));
+    write32(DRAM_PHY_BASE + 0x448, mask_byte(val_lo, 3));
+    write32(DRAM_PHY_BASE + 0x44c, mask_byte(val_hi, 3));
+
+    let val_lo = para.ca_dri;
+    let val_hi = para.ca_dri;
+    write32(DRAM_PHY_BASE + 0x340, mask_byte(val_lo, 0));
+    write32(DRAM_PHY_BASE + 0x344, mask_byte(val_hi, 0));
+    write32(DRAM_PHY_BASE + 0x348, mask_byte(val_lo, 1));
+    write32(DRAM_PHY_BASE + 0x34c, mask_byte(val_hi, 1));
+
+    let val_lo = para.dx_odt;
+    let val_hi = 0;
+    write32(DRAM_PHY_BASE + 0x380, mask_byte(val_lo, 0));
+    write32(DRAM_PHY_BASE + 0x384, mask_byte(val_lo, 0));
+    write32(DRAM_PHY_BASE + 0x3c0, mask_byte(val_lo, 1));
+    write32(DRAM_PHY_BASE + 0x3c4, mask_byte(val_lo, 1));
+    write32(DRAM_PHY_BASE + 0x400, mask_byte(val_lo, 2));
+    write32(DRAM_PHY_BASE + 0x404, mask_byte(val_lo, 2));
+    write32(DRAM_PHY_BASE + 0x440, mask_byte(val_lo, 3));
+    write32(DRAM_PHY_BASE + 0x444, mask_byte(val_lo, 3));
+
+    unsafe {
+        asm!("dsb sy", "isb");
+    }
+}
 
 fn mctl_phy_bit_delay_compensation() {}
 
