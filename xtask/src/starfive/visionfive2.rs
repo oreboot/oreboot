@@ -1,14 +1,15 @@
+use std::{fs, path::Path, process};
+
+use fdt::Fdt;
+
+use layoutflash::layout::{create_areas, layout_flash};
+use log::{error, info, trace, warn};
+
 use crate::util::{
     compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
     project_root,
 };
-use crate::{layout_flash, Cli, Commands, Env};
-use fdt::Fdt;
-use log::{error, info, trace, warn};
-use std::{fs, path::Path, process};
-
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use crate::{Cli, Commands, Env};
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
@@ -98,18 +99,9 @@ fn xtask_build_image(env: &Env) {
     let dir = dist_dir(env, TARGET);
     let dtfs_path = dir.join(BOARD_DTFS);
     let dtfs_file = fs::read(dtfs_path).expect("dtfs");
+
     let dtfs = Fdt::new(&dtfs_file).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&dtfs, &mut areas);
+    let areas = create_areas(&dtfs).unwrap();
 
     let dtfs_image_path = dir.join(DTFS_IMAGE);
     if let Err(e) = layout_flash(Path::new(&dir), Path::new(&dtfs_image_path), areas.to_vec()) {

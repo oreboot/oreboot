@@ -57,6 +57,10 @@ mainboards: $(MAINBOARDS)
 $(MAINBOARDS):
 	make --no-print-directory -C $(dir $@)
 
+.PHONY: test
+test:
+	cd src/lib/layoutflash && cargo test --release --features std
+
 # convenience target: this should be the full ci flow
 checkandbuildall: ciprepare clippy checkformat mainboards
 	echo "Done CI!"
