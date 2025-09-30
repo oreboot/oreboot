@@ -46,6 +46,12 @@ pub fn find_fdt(data: &[u8]) -> Result<fdt::Fdt<'_>, fdt::FdtError> {
     Err(fdt::FdtError::BadMagic)
 }
 
+#[cfg(test)]
+pub const TEST_DTB: &[u8] = include_bytes!("testdata/test.dtb");
+
+#[cfg(test)]
+pub const IMAGE_FIXTURE: &[u8] = include_bytes!("testdata/test.out");
+
 #[test]
 fn iterator() {
     let data = include_bytes!("testdata/test.dtb");
