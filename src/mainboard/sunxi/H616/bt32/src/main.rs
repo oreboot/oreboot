@@ -10,9 +10,9 @@ use util::mmio::{read32, write32};
 
 #[macro_use]
 extern crate log;
+mod dram;
 mod mem_map;
 mod uart;
-mod dram;
 
 use mem_map::CCU_BASE;
 
