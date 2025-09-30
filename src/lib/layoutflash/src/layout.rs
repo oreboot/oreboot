@@ -3,27 +3,23 @@ use std::prelude::rust_2021::*;
 use std::io::{self, Seek, SeekFrom, Write};
 use std::{env, fs, path::Path};
 
-use crate::areas::Area;
+use crate::areas::{Area, AREAS_PATH};
 
 /// Create the areas from the FDT.
 pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
     let mut areas: Vec<Area> = vec![];
     let mut offset = 0;
-    for node in fdt.find_all_nodes("/flash-info/areas") {
+    for node in fdt.find_all_nodes(AREAS_PATH) {
         for c in node.children() {
-            let Some(size) = c.property("size").map_or_else(|| None, |e| e.as_usize()) else {
-                return Err("a size MUST be provided".to_string());
-            };
-
-            areas.push(Area {
-                name: c.name,
-                stage: c.property("stage").map_or_else(|| None, |e| e.as_str()),
-                file: c.property("file").map_or_else(|| None, |e| e.as_str()),
-                offset: c
-                    .property("offset")
-                    .map_or_else(|| Some(offset), |e| e.as_usize()),
-                size,
-            });
+            match Area::from_node(c) {
+                Ok(mut a) => {
+                    if a.offset.is_none() {
+                        a.offset = Some(offset);
+                    }
+                    areas.push(a);
+                }
+                Err(e) => return Err(format!("{}: {e:?}", c.name)),
+            }
             if let Some(o) = c.property("offset") {
                 offset = o.as_usize().unwrap();
             }
