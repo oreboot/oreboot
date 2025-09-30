@@ -160,22 +160,20 @@ fn shift_and_hex(n: u32, s: u8) -> u8 {
 #[cfg(feature = "debug")]
 #[inline(always)]
 pub fn print_hex(i: u32) {
-    unsafe {
-        if let Some(l) = &mut LOGGER {
-            nb::block!(l.write(b'0')).unwrap();
-            nb::block!(l.write(b'x')).unwrap();
-            // nibble by nibble... keep it simple
-            nb::block!(l.write(shift_and_hex(i, 28))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 24))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 20))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 16))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 12))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 8))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 4))).unwrap();
-            nb::block!(l.write(shift_and_hex(i, 0))).unwrap();
-            nb::block!(l.write(b'\r')).unwrap();
-            nb::block!(l.write(b'\n')).unwrap();
-        }
+    if let Some(l) = unsafe { (*addr_of_mut!(LOGGER)).get_mut() } {
+        nb::block!(l.write(b'0')).unwrap();
+        nb::block!(l.write(b'x')).unwrap();
+        // nibble by nibble... keep it simple
+        nb::block!(l.write(shift_and_hex(i, 28))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 24))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 20))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 16))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 12))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 8))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 4))).unwrap();
+        nb::block!(l.write(shift_and_hex(i, 0))).unwrap();
+        nb::block!(l.write(b'\r')).unwrap();
+        nb::block!(l.write(b'\n')).unwrap();
     }
 }
 
@@ -211,16 +209,14 @@ pub fn print_strmem(s: &str) {
 #[cfg(feature = "debug")]
 #[no_mangle]
 pub fn print_str(s: &str) {
-    unsafe {
-        #[cfg(not(feature = "mutex"))]
-        if let Some(l) = &mut LOGGER {
-            for byte in s.bytes() {
-                // Inject a carriage return before a newline
-                if byte == b'\n' {
-                    nb::block!(l.write(b'\r')).unwrap();
-                }
-                nb::block!(l.write(byte)).unwrap();
+    #[cfg(not(feature = "mutex"))]
+    if let Some(l) = unsafe { (*addr_of_mut!(LOGGER)).get_mut() } {
+        for byte in s.bytes() {
+            // Inject a carriage return before a newline
+            if byte == b'\n' {
+                nb::block!(l.write(b'\r')).unwrap();
             }
+            nb::block!(l.write(byte)).unwrap();
         }
     }
 }
