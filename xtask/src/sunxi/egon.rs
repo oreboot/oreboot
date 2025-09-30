@@ -49,9 +49,11 @@ fn align_up_to(len: usize, target_align: usize) -> usize {
     }
 }
 
+const SIZE: usize = 16 * 1024;
+
 pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
     let len = image.len();
-    let length = align_up_to(len, 16 * 1024) as u32;
+    let length = align_up_to(len, SIZE) as u32;
     let jump_instruction = match arch {
         Arch::Arm32 => JUMP_ARM_32,
         Arch::Riscv64 => JUMP_RISCV_64,
@@ -74,18 +76,15 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
 
     let pre = [initial_head.as_bytes(), &image].concat();
     let mut bin = pre.to_vec();
-    bin.resize(16 * 1024, 0);
+    bin.resize(SIZE, 0);
 
     let mut checksum: u32 = 0;
     for c in bin.chunks_exact(4).into_iter() {
         let v = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
         checksum = checksum.wrapping_add(v);
     }
-
-    bin[12] = checksum as u8;
-    bin[13] = (checksum >> 8) as u8;
-    bin[14] = (checksum >> 16) as u8;
-    bin[15] = (checksum >> 24) as u8;
+    // copy back calculated checksum
+    bin[12..15].copy_from_slice(&checksum.to_le_bytes());
 
     bin
 }
