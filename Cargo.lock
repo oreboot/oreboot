@@ -296,7 +296,6 @@ dependencies = [
  "nb 1.1.0",
  "ns16550a",
  "oreboot-arch",
- "oreboot_compression",
  "riscv 0.12.1",
  "rustsbi",
 ]
@@ -539,7 +538,6 @@ dependencies = [
  "log 0.1.0",
  "nb 1.1.0",
  "oreboot-arch",
- "oreboot_compression",
  "riscv 0.12.1",
  "rustsbi",
  "sbi-spec 0.0.4",
@@ -568,10 +566,10 @@ dependencies = [
  "embedded-hal-nb",
  "lazy_static",
  "log 0.1.0",
+ "miniz_oxide",
  "nb 1.1.0",
  "oreboot-arch",
  "oreboot-soc",
- "oreboot_compression",
  "riscv 0.12.1",
  "rustsbi",
  "sbi-spec 0.0.4",
@@ -598,14 +596,6 @@ dependencies = [
  "tock-registers",
  "util",
  "vcell",
-]
-
-[[package]]
-name = "oreboot_compression"
-version = "0.1.0"
-dependencies = [
- "log 0.1.0",
- "miniz_oxide",
 ]
 
 [[package]]
