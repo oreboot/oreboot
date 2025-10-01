@@ -3,7 +3,7 @@
 #![no_main]
 
 use core::arch::{asm, naked_asm};
-use core::intrinsics::transmute;
+use core::mem::transmute;
 use core::panic::PanicInfo;
 use core::ptr::{read_volatile, write_volatile};
 use embedded_hal::digital::OutputPin;

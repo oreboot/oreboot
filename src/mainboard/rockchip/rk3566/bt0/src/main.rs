@@ -10,6 +10,7 @@ extern crate log;
 
 use core::{
     arch::{asm, naked_asm},
+    mem::transmute,
     panic::PanicInfo,
 };
 use log::println;
@@ -131,7 +132,7 @@ pub type EntryPoint = unsafe extern "C" fn();
 // jump to main stage or payload
 fn exec_payload(addr: usize) {
     unsafe {
-        let f: EntryPoint = core::intrinsics::transmute(addr);
+        let f: EntryPoint = transmute(addr);
         f();
     }
 }
