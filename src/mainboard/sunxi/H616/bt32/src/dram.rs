@@ -39,13 +39,19 @@ const MCTL_COM_UNK_0x500: usize = DRAM_COM_BASE + 0x500;
 
 // refer: https://github.com/u-boot/u-boot/blob/master/arch/arm/include/asm/arch-sunxi/dram_sun50i_h616.h#L60
 const MCTL_CTL_MSTR: usize = DRAM_CTL_BASE + 0x000;
+const MCTL_CTL_STATR: usize = DRAM_CTL_BASE + 0x004;
 const MCTL_CTL_CLKEN: usize = DRAM_CTL_BASE + 0x00C;
+const MCTL_CTL_MRCTRL0: usize = DRAM_CTL_BASE + 0x010;
+const MCTL_CTL_MRCTRL1: usize = DRAM_CTL_BASE + 0x014;
+const MCTL_CTL_MRSTATR: usize = DRAM_CTL_BASE + 0x018;
+const MCTL_CTL_MRCTRL2: usize = DRAM_CTL_BASE + 0x01c;
 const MCTL_CTL_PWRCTL: usize = DRAM_CTL_BASE + 0x030;
 const MCTL_CTL_HWLPCTL: usize = DRAM_CTL_BASE + 0x038;
 const MCTL_CTL_RFSHCTL13: usize = DRAM_CTL_BASE + 0x060;
 const MCTL_CTL_ZQCTL: usize = DRAM_CTL_BASE + 0x180;
 const MCTL_CTL_DFIUPD: usize = DRAM_CTL_BASE + 0x1a0;
 const MCTL_CTL_DFIMISC: usize = DRAM_CTL_BASE + 0x1b0;
+const MCTL_CTL_DFISTAT: usize = DRAM_CTL_BASE + 0x1bc;
 const MCTL_CTL_SCHED: usize = DRAM_CTL_BASE + 0x250;
 const MCTL_CTL_ODCFG: usize = DRAM_CTL_BASE + 0x240;
 const MCTL_CTL_ODTMAP: usize = DRAM_CTL_BASE + 0x244;
@@ -140,6 +146,7 @@ fn mctl_init(clockrate: u32) {
 
 #[derive(Debug, Clone, Copy)]
 pub struct dram_para {
+    pub clk: u32,
     //pub type_: SunxiDramType, // we only support LPDDR4 for now
     pub dx_odt: u32,
     pub dx_dri: u32,
@@ -210,12 +217,12 @@ fn mctl_phy_write_leveling(para: &dram_para, config: &dram_config) -> bool {
     clear_mask32(DRAM_PHY_BASE + 0x8, 0xC0);
 
     if config.ranks == 2 {
-        let val = get_bus_width(config);
+        let bus_val = get_bus_width(config);
 
         clearset_bits32(DRAM_PHY_BASE + 0x8, 0xC0, 0x40);
         set_bits32(DRAM_PHY_BASE + 0x8, 0x4);
 
-        wait_for_completion(DRAM_PHY_BASE + 0x188, val, val);
+        wait_for_completion(DRAM_PHY_BASE + 0x188, bus_val, bus_val);
         clear_mask32(DRAM_PHY_BASE + 0x8, 0x4);
     }
 
@@ -229,7 +236,7 @@ fn mask_byte(reg: u32, nr: u32) -> u32 {
     (reg >> (nr * 8)) & 0x1f
 }
 
-unsafe fn mctl_phy_configure_odt(para: &dram_para) {
+fn mctl_phy_configure_odt(para: &dram_para) {
     // LPDDR4
     clearset_bits32(DRAM_PHY_BASE + 0x390, 1 << 5, 1 << 4);
     clearset_bits32(DRAM_PHY_BASE + 0x3d0, 1 << 5, 1 << 4);
@@ -270,27 +277,239 @@ unsafe fn mctl_phy_configure_odt(para: &dram_para) {
     }
 }
 
-fn mctl_phy_bit_delay_compensation() {}
+fn mctl_phy_bit_delay_compensation(para: &dram_para) {}
 
 // Check if these are needed based on
 // params configured
-//fn mctl_phy_read_calibration() {
-//
-//}
-//
-//fn mctl_phy_read_training() {
-//
-//}
-//
-//fn mctl_phy_write_training() {
-//
-//}
+fn mctl_phy_read_calibration(para: &dram_para, config: &dram_config) -> bool {
+    true
+}
+
+fn mctl_phy_read_training(para: &dram_para, config: &dram_config) -> bool {
+    true
+}
+
+fn mctl_phy_write_training(para: &dram_para, config: &dram_config) -> bool {
+    true
+}
 
 fn mctl_set_addrmap(config: &dram_config) {}
 
 fn mctl_set_timing_params(para: &dram_para) {}
 
+const phy_init: [u8; 27] = [
+    0x02, 0x00, 0x17, 0x05, 0x04, 0x19, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x01, 0x18, 0x03, 0x1a,
+];
+
+fn mctl_phy_ca_bit_delay_compensation(para: &dram_para, config: &dram_config) {}
+
+const TPR10_CA_BIT_DELAY: u32 = 1 << 16;
+const TPR10_DX_BIT_DELAY0: u32 = 1 << 17;
+const TPR10_DX_BIT_DELAY1: u32 = 1 << 18;
+
+const TPR10_WRITE_LEVELING: u32 = 1 << 20;
+const TPR10_READ_CALIBRATION: u32 = 1 << 21;
+const TPR10_READ_TRAINING: u32 = 1 << 22;
+const TPR10_WRITE_TRAINING: u32 = 1 << 23;
+
 fn mctl_phy_init(para: &dram_para, config: &dram_config) -> bool {
+    clear_mask32(DRAM_PHY_BASE + 0x4, 0x80);
+
+    let val = get_bus_width(config);
+    clearset_bits32(DRAM_PHY_BASE + 0x3c, 0xf, val);
+
+    let val = 20;
+    let val2 = 10;
+
+    write32(DRAM_PHY_BASE + 0x14, val);
+    write32(DRAM_PHY_BASE + 0x35c, val);
+    write32(DRAM_PHY_BASE + 0x368, val);
+    write32(DRAM_PHY_BASE + 0x374, val);
+
+    write32(DRAM_PHY_BASE + 0x18, 0);
+    write32(DRAM_PHY_BASE + 0x360, 0);
+    write32(DRAM_PHY_BASE + 0x36c, 0);
+    write32(DRAM_PHY_BASE + 0x378, 0);
+
+    write32(DRAM_PHY_BASE + 0x1c, val2);
+    write32(DRAM_PHY_BASE + 0x364, val2);
+    write32(DRAM_PHY_BASE + 0x370, val2);
+    write32(DRAM_PHY_BASE + 0x37c, val2);
+
+    for i in 0..phy_init.len() {
+        write32(DRAM_PHY_BASE + 0xc0 + i * 4, phy_init[i] as u32);
+    }
+
+    if para.tpr10 & TPR10_CA_BIT_DELAY != 0 {
+        mctl_phy_ca_bit_delay_compensation(para, config);
+    }
+
+    let val = para.tpr6 >> 24 & 0xff;
+
+    write32(DRAM_PHY_BASE + 0x3dc, val);
+    write32(DRAM_PHY_BASE + 0x45c, val);
+
+    mctl_phy_configure_odt(para);
+
+    let val = 0x0d;
+    clearset_bits32(DRAM_PHY_BASE + 0x4, 0x7, val);
+    if para.clk <= 672 {
+        write32(DRAM_PHY_BASE + 0x20, 0xf);
+    }
+
+    if para.clk > 500 {
+        clear_mask32(DRAM_PHY_BASE + 0x144, 1 << 7);
+        clear_mask32(DRAM_PHY_BASE + 0x14c, 0xe0);
+    } else {
+        set_bits32(DRAM_PHY_BASE + 0x144, 1 << 7);
+        clearset_bits32(DRAM_PHY_BASE + 0x14c, 0xe0, 0x20);
+    }
+
+    clear_mask32(MCTL_COM_UNK_0x500, 0x200);
+    delay(10);
+
+    clear_mask32(DRAM_PHY_BASE + 0x14c, 0x8);
+
+    wait_for_completion(DRAM_PHY_BASE + 0x180, 4, 4);
+
+    delay(1000);
+
+    write32(DRAM_PHY_BASE + 0x58, 0x37);
+    write32(MCTL_CTL_SWCTL, 0);
+    set_bits32(MCTL_CTL_DFIMISC, 1);
+
+    // DFI init (controller phy interface init)
+    set_bits32(MCTL_CTL_DFIMISC, 0x20);
+    write32(MCTL_CTL_SWCTL, 1);
+    wait_for_completion(MCTL_CTL_SWSTAT, 1, 1);
+
+    // Poll for DFI init complete
+    wait_for_completion(MCTL_CTL_DFISTAT, 1, 1);
+    write32(MCTL_CTL_SWCTL, 0);
+    clear_mask32(MCTL_CTL_DFIMISC, 0x20);
+
+    clear_mask32(MCTL_CTL_PWRCTL, 0x20);
+    write32(MCTL_CTL_SWCTL, 1);
+    wait_for_completion(MCTL_CTL_SWSTAT, 1, 1);
+    wait_for_completion(MCTL_CTL_STATR, 3, 1);
+
+    delay(500);
+
+    write32(MCTL_CTL_SWCTL, 1);
+    wait_for_completion(MCTL_CTL_SWSTAT, 1, 1);
+
+    let mut mr0;
+    let mut mr2;
+
+    if para.tpr2 & 0x100 != 0 {
+        mr0 = 0x1b50;
+        mr2 = 0x10;
+    } else {
+        mr0 = 0x1f14;
+        mr2 = 0x20;
+    }
+
+    write32(MCTL_CTL_MRCTRL1, 0x0);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0x134);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0x21b);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0x333);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0x403);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0xb04);
+    delay(100);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    delay(100);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0xc72);
+    delay(100);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    delay(100);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0xe09);
+    delay(100);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    delay(100);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(MCTL_CTL_MRCTRL1, 0x1624);
+    delay(100);
+    write32(MCTL_CTL_MRCTRL0, 0x8000_0030);
+    delay(100);
+    wait_for_completion(MCTL_CTL_MRSTATR, 1 << 31, 0);
+
+    write32(DRAM_PHY_BASE + 0x54, 0);
+    clear_mask32(MCTL_CTL_RFSHCTL13, 0x1);
+    write32(MCTL_CTL_SWCTL, 1);
+
+    if para.tpr10 & TPR10_WRITE_LEVELING != 0 {
+        for i in 0..5 {
+            if mctl_phy_write_leveling(para, config) {
+                return true;
+            }
+
+            if i == 4 {
+                return false;
+            }
+        }
+    }
+
+    if para.tpr10 & TPR10_READ_CALIBRATION != 0 {
+        for i in 0..5 {
+            if mctl_phy_read_training(para, config) {
+                break;
+            }
+
+            if i == 4 {
+                return false;
+            }
+        }
+    }
+
+    if para.tpr10 & TPR10_READ_TRAINING != 0 {
+        for i in 0..5 {
+            if mctl_phy_read_training(para, config) {
+                return true;
+            }
+
+            if i == 4 {
+                return false;
+            }
+        }
+    }
+
+    if para.tpr10 & TPR10_WRITE_LEVELING != 0 {
+        for i in 0..5 {
+            if mctl_phy_write_training(para, config) {
+                return true;
+            }
+
+            if i == 4 {
+                return false;
+            }
+        }
+    }
+
+    mctl_phy_bit_delay_compensation(para);
+
+    clear_mask32(DRAM_PHY_BASE + 0x60, 0x4);
+
     true
 }
 
