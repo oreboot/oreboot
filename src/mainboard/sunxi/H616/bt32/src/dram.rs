@@ -257,13 +257,13 @@ unsafe fn mctl_phy_configure_odt(para: &dram_para) {
     let val_lo = para.dx_odt;
     let val_hi = 0;
     write32(DRAM_PHY_BASE + 0x380, mask_byte(val_lo, 0));
-    write32(DRAM_PHY_BASE + 0x384, mask_byte(val_lo, 0));
+    write32(DRAM_PHY_BASE + 0x384, mask_byte(val_hi, 0));
     write32(DRAM_PHY_BASE + 0x3c0, mask_byte(val_lo, 1));
-    write32(DRAM_PHY_BASE + 0x3c4, mask_byte(val_lo, 1));
+    write32(DRAM_PHY_BASE + 0x3c4, mask_byte(val_hi, 1));
     write32(DRAM_PHY_BASE + 0x400, mask_byte(val_lo, 2));
-    write32(DRAM_PHY_BASE + 0x404, mask_byte(val_lo, 2));
+    write32(DRAM_PHY_BASE + 0x404, mask_byte(val_hi, 2));
     write32(DRAM_PHY_BASE + 0x440, mask_byte(val_lo, 3));
-    write32(DRAM_PHY_BASE + 0x444, mask_byte(val_lo, 3));
+    write32(DRAM_PHY_BASE + 0x444, mask_byte(val_hi, 3));
 
     unsafe {
         asm!("dsb sy", "isb");
