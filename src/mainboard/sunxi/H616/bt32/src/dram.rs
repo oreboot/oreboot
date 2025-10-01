@@ -38,8 +38,27 @@ const MCTL_COM_BWCR: usize = DRAM_COM_BASE + 0x200;
 const MCTL_COM_UNK_0x500: usize = DRAM_COM_BASE + 0x500;
 
 // refer: https://github.com/u-boot/u-boot/blob/master/arch/arm/include/asm/arch-sunxi/dram_sun50i_h616.h#L60
-const MCTL_CTL_MSTR: usize = 0x000;
-const MCTL_CTL_CLKEN: usize = 0x00C;
+const MCTL_CTL_MSTR: usize = DRAM_CTL_BASE + 0x000;
+const MCTL_CTL_CLKEN: usize = DRAM_CTL_BASE + 0x00C;
+const MCTL_CTL_PWRCTL: usize = DRAM_CTL_BASE + 0x030;
+const MCTL_CTL_HWLPCTL: usize = DRAM_CTL_BASE + 0x038;
+const MCTL_CTL_RFSHCTL13: usize = DRAM_CTL_BASE + 0x060;
+const MCTL_CTL_ZQCTL: usize = DRAM_CTL_BASE + 0x180;
+const MCTL_CTL_DFIUPD: usize = DRAM_CTL_BASE + 0x1a0;
+const MCTL_CTL_DFIMISC: usize = DRAM_CTL_BASE + 0x1b0;
+const MCTL_CTL_SCHED: usize = DRAM_CTL_BASE + 0x250;
+const MCTL_CTL_ODCFG: usize = DRAM_CTL_BASE + 0x240;
+const MCTL_CTL_ODTMAP: usize = DRAM_CTL_BASE + 0x244;
+const MCTL_CTL_SWCTL: usize = DRAM_CTL_BASE + 0x320;
+const MCTL_CTL_SWSTAT: usize = DRAM_CTL_BASE + 0x324;
+
+const MCTL_CTL_UNK2180: usize = DRAM_CTL_BASE + 0x2180;
+const MCTL_CTL_UNK3180: usize = DRAM_CTL_BASE + 0x3180;
+const MCTL_CTL_UNK4180: usize = DRAM_CTL_BASE + 0x4180;
+
+const MCTL_CTL_UNK2240: usize = DRAM_CTL_BASE + 0x2240;
+const MCTL_CTL_UNK3240: usize = DRAM_CTL_BASE + 0x3240;
+const MCTL_CTL_UNK4240: usize = DRAM_CTL_BASE + 0x4240;
 
 #[inline(always)]
 fn clear_mask32(addr: usize, mask: u32) {
@@ -267,13 +286,104 @@ fn mctl_phy_bit_delay_compensation() {}
 //
 //}
 
-//fn mctl_phy_init() -> bool {
-//
-//}
-//
-//fn mctl_ctrl_init() -> bool {
-//
-//}
+fn mctl_set_addrmap(config: &dram_config) {}
+
+fn mctl_set_timing_params(para: &dram_para) {}
+
+fn mctl_phy_init(para: &dram_para, config: &dram_config) -> bool {
+    true
+}
+
+#[inline(always)]
+fn mstr_active_ranks(x: u8) -> u32 {
+    if x == 2 {
+        3 << 24
+    } else {
+        1 << 24
+    }
+}
+
+#[inline(always)]
+fn mstr_burst_len(x: u32) -> u32 {
+    (x >> 1) << 16
+}
+
+fn mctl_ctrl_init(para: &dram_para, config: &dram_config) -> bool {
+    clearset_bits32(MCTL_COM_UNK_0x500, 1 << 24, 0x200);
+    write32(MCTL_CTL_CLKEN, 0x8000);
+
+    set_bits32(MCTL_COM_UNK_0x008, 0xff00);
+
+    write32(DRAM_COM_BASE + 0x50, 1);
+    clearset_bits32(MCTL_CTL_SCHED, 0xff00, 0x3000);
+    write32(MCTL_CTL_HWLPCTL, 0);
+
+    set_bits32(MCTL_COM_UNK_0x008, 0xff00);
+
+    let mut bus_width;
+    if config.bus_full_width {
+        bus_width = 0 << 12;
+    } else {
+        bus_width = 1 << 12;
+    }
+
+    // BIT 5 is the identifier for LPDDR4
+    let val = bus_width | mstr_active_ranks(config.ranks) | 1 << 5 | mstr_burst_len(16);
+    write32(MCTL_CTL_MSTR, val | 1 << 31 | 1 << 30);
+
+    if (config.ranks == 2) {
+        write32(MCTL_CTL_ODTMAP, 0x0303);
+    } else {
+        write32(MCTL_CTL_ODTMAP, 0x0201);
+    }
+    let val = 0x04000400;
+    write32(MCTL_CTL_ODCFG, val);
+    write32(MCTL_CTL_UNK2240, val);
+    write32(MCTL_CTL_UNK3240, val);
+    write32(MCTL_CTL_UNK4240, val);
+
+    write32(MCTL_COM_CR, 1 << 31);
+
+    mctl_set_addrmap(config);
+    mctl_set_timing_params(para);
+
+    let val = 1 << 31 | 1 << 30;
+    set_bits32(MCTL_CTL_PWRCTL, val);
+    set_bits32(MCTL_CTL_DFIUPD, val);
+    set_bits32(MCTL_CTL_UNK2180, val);
+    set_bits32(MCTL_CTL_UNK3180, val);
+    set_bits32(MCTL_CTL_UNK4180, val);
+
+    set_bits32(MCTL_CTL_RFSHCTL13, 1 << 0);
+    set_bits32(MCTL_CTL_DFIMISC, 1 << 0);
+
+    write32(MCTL_COM_MAER0, 0);
+    write32(MCTL_COM_MAER1, 0);
+    write32(MCTL_COM_MAER2, 0);
+
+    write32(MCTL_CTL_PWRCTL, 0x20);
+    set_bits32(MCTL_CTL_CLKEN, 1 << 8);
+
+    clearset_bits32(MCTL_COM_UNK_0x500, 1 << 24, 0x300);
+    delay(10);
+
+    if (!mctl_phy_init(para, config)) {
+        return false;
+    }
+
+    write32(MCTL_CTL_SWCTL, 0);
+    clear_mask32(MCTL_CTL_RFSHCTL13, 1 << 0);
+
+    set_bits32(MCTL_COM_UNK_0x014, 1 << 31);
+    write32(MCTL_COM_MAER0, 0xFFFF_FFFF);
+    write32(MCTL_COM_MAER1, 0x07FF);
+    write32(MCTL_COM_MAER2, 0xFFFF);
+
+    write32(MCTL_CTL_SWCTL, 0x1);
+    wait_for_completion(MCTL_CTL_SWSTAT, 1, 1);
+
+    true
+}
 
 // Power reset and Clock Management
 const PRCM_RES_CAL_CTRL: usize = PRCM_BASE + 0x0000_0310;
