@@ -8,7 +8,7 @@ extern crate log;
 
 use core::{
     arch::{asm, naked_asm},
-    intrinsics::transmute,
+    mem::transmute,
     panic::PanicInfo,
     ptr::{self, read_volatile, write_volatile},
     slice,
