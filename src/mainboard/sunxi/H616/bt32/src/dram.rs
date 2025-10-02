@@ -52,6 +52,7 @@ const MCTL_CTL_ZQCTL: usize = DRAM_CTL_BASE + 0x180;
 const MCTL_CTL_DFIUPD: usize = DRAM_CTL_BASE + 0x1a0;
 const MCTL_CTL_DFIMISC: usize = DRAM_CTL_BASE + 0x1b0;
 const MCTL_CTL_DFISTAT: usize = DRAM_CTL_BASE + 0x1bc;
+const MCTL_CTL_ADDRMAP: usize = DRAM_CTL_BASE + 0x200;
 const MCTL_CTL_SCHED: usize = DRAM_CTL_BASE + 0x250;
 const MCTL_CTL_ODCFG: usize = DRAM_CTL_BASE + 0x240;
 const MCTL_CTL_ODTMAP: usize = DRAM_CTL_BASE + 0x244;
@@ -364,7 +365,6 @@ fn mctl_phy_read_calibration(para: &dram_para, config: &dram_config) -> bool {
     res
 }
 
-// TODO
 fn mctl_phy_read_training(para: &dram_para, config: &dram_config) -> bool {
     let mut res = true;
 
@@ -465,8 +465,111 @@ fn mctl_phy_write_training(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
-// TODO
-fn mctl_set_addrmap(config: &dram_config) {}
+fn mctl_set_addrmap(config: &dram_config) {
+    let mut cols: u32 = 0;
+
+    if !config.bus_full_width {
+        cols -= 1;
+    }
+
+    // ranks
+    if config.ranks == 2 {
+        let val = (config.rows + cols as u8 - 3) as u32;
+        write32(MCTL_CTL_ADDRMAP, val);
+    } else {
+        write32(MCTL_CTL_ADDRMAP, 0x1f);
+    }
+
+    // banks, hardcoded to 8 for now
+    let val = ((cols - 2) | ((cols - 2) << 8) | ((cols - 2) << 16)) as u32;
+    write32(MCTL_CTL_ADDRMAP + (0x4 * 1), val);
+
+    // cols
+    write32(MCTL_CTL_ADDRMAP + (0x4 * 2), 0);
+
+    match cols {
+        7 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x1F1F_1F00);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x1F1F);
+        }
+        8 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x1F1F_0000);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x1F1F);
+        }
+        9 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x1F00_0000);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x1F1F);
+        }
+        10 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x0000_0000);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x1F1F);
+        }
+        11 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x0000_0000);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x1F00);
+        }
+        12 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 3), 0x0000_0000);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 4), 0x0000);
+        }
+        _ => {
+            // Unsupported
+            // TODO: handle error
+        }
+    }
+
+    // row
+    let val = ((cols - 3) | ((cols - 3) << 8) | ((cols - 3) << 16) | ((cols - 3) << 24)) as u32;
+    write32(MCTL_CTL_ADDRMAP + (0x4 * 5), val);
+
+    match config.rows {
+        13 => {
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 6), (cols - 3) | 0x0F0F_0F00);
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), 0x0F0F);
+        }
+        14 => {
+            write32(
+                MCTL_CTL_ADDRMAP + (0x4 * 6),
+                (cols - 3) | ((cols - 3) << 8) | 0x0F0F_0000,
+            );
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), 0x0F0F);
+        }
+        15 => {
+            write32(
+                MCTL_CTL_ADDRMAP + (0x4 * 6),
+                (cols - 3) | ((cols - 3) << 8) | ((cols - 3) << 16) | 0x0F0F_0000,
+            );
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), 0x0F0F);
+        }
+        16 => {
+            write32(
+                MCTL_CTL_ADDRMAP + (0x4 * 6),
+                (cols - 3) | ((cols - 3) << 8) | ((cols - 3) << 16) | ((cols - 3) << 24),
+            );
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), 0x0F0F);
+        }
+        17 => {
+            write32(
+                MCTL_CTL_ADDRMAP + (0x4 * 6),
+                (cols - 3) | ((cols - 3) << 8) | ((cols - 3) << 16) | ((cols - 3) << 24),
+            );
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), (cols - 3) | 0x0F00);
+        }
+        18 => {
+            write32(
+                MCTL_CTL_ADDRMAP + (0x4 * 6),
+                (cols - 3) | ((cols - 3) << 8) | ((cols - 3) << 16) | ((cols - 3) << 24),
+            );
+            write32(MCTL_CTL_ADDRMAP + (0x4 * 7), (cols - 3) | ((cols - 3) << 8));
+        }
+        _ => {
+            // Unsupported
+            // TODO: handle error
+        }
+    }
+
+    write32(MCTL_CTL_ADDRMAP + (0x4 * 8), 0x3F3F);
+}
 
 // TODO
 fn mctl_set_timing_params(para: &dram_para) {}
