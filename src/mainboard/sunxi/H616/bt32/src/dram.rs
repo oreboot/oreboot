@@ -312,7 +312,6 @@ fn mctl_phy_configure_odt(para: &dram_para) {
     }
 }
 
-// TODO
 fn mctl_phy_bit_delay_compensation(para: &dram_para) {}
 
 // Check if these are needed based on
@@ -367,7 +366,98 @@ fn mctl_phy_read_calibration(para: &dram_para, config: &dram_config) -> bool {
 
 // TODO
 fn mctl_phy_read_training(para: &dram_para, config: &dram_config) -> bool {
-    true
+    let mut res = true;
+
+    write32(DRAM_PHY_BASE + 0x800, 0);
+    write32(DRAM_PHY_BASE + 0x81c, 0);
+
+    clearset_bits32(DRAM_PHY_BASE + 0x198, 0x3, 0x2);
+    clearset_bits32(DRAM_PHY_BASE + 0x804, 0x3f, 0xf);
+    clearset_bits32(DRAM_PHY_BASE + 0x808, 0x3f, 0xf);
+    clearset_bits32(DRAM_PHY_BASE + 0xa04, 0x3f, 0xf);
+    clearset_bits32(DRAM_PHY_BASE + 0xa08, 0x3f, 0xf);
+
+    set_bits32(DRAM_PHY_BASE + 0x190, 0x6);
+    set_bits32(DRAM_PHY_BASE + 0x190, 0x1);
+
+    wait_for_completion(DRAM_PHY_BASE + 0x840, 0xc, 0xc);
+
+    if read32(DRAM_PHY_BASE + 0x840) & 0x3 != 0 {
+        res = false;
+    }
+
+    if read32(DRAM_PHY_BASE + 0xa40) & 0x3 != 0 {
+        res = false;
+    }
+
+    let ptr1 = DRAM_PHY_BASE + 0x898;
+    let ptr2 = DRAM_PHY_BASE + 0x850;
+    for i in 0..9 {
+        let val1 = read32(ptr1 + i * 4);
+        let val2 = read32(ptr2 + i * 4);
+        if (val1 - val2) <= 6 {
+            res = false;
+        }
+    }
+
+    let ptr1 = DRAM_PHY_BASE + 0x8bc;
+    let ptr2 = DRAM_PHY_BASE + 0x850;
+    for i in 0..9 {
+        let val1 = read32(ptr1 + i * 4);
+        let val2 = read32(ptr2 + i * 4);
+        if (val1 - val2) <= 6 {
+            res = false;
+        }
+    }
+
+    if config.bus_full_width {
+        let ptr1 = DRAM_PHY_BASE + 0xa98;
+        let ptr2 = DRAM_PHY_BASE + 0xa50;
+        for i in 0..9 {
+            let val1 = read32(ptr1 + i * 4);
+            let val2 = read32(ptr2 + i * 4);
+            if (val1 - val2) <= 6 {
+                res = false;
+            }
+        }
+
+        let ptr1 = DRAM_PHY_BASE + 0xabc;
+        let ptr2 = DRAM_PHY_BASE + 0xa50;
+        for i in 0..9 {
+            let val1 = read32(ptr1 + i * 4);
+            let val2 = read32(ptr2 + i * 4);
+            if (val1 - val2) <= 6 {
+                res = false;
+            }
+        }
+    }
+
+    clear_mask32(DRAM_PHY_BASE + 0x190, 0x3);
+
+    if config.ranks == 2 {
+        clearset_bits32(DRAM_PHY_BASE + 0x198, 0x3, 0x2);
+
+        set_bits32(DRAM_PHY_BASE + 0x190, 0x6);
+        set_bits32(DRAM_PHY_BASE + 0x190, 0x1);
+
+        wait_for_completion(DRAM_PHY_BASE + 0x840, 0xc, 0xc);
+
+        if read32(DRAM_PHY_BASE + 0x840) & 0x3 != 0 {
+            res = false;
+        }
+
+        if config.bus_full_width {
+            wait_for_completion(DRAM_PHY_BASE + 0xa40, 0xc, 0xc);
+            if read32(DRAM_PHY_BASE + 0xa40) & 0x3 != 0 {
+                res = false;
+            }
+        }
+
+        clear_mask32(DRAM_PHY_BASE + 0x190, 0x3);
+    }
+
+    clear_mask32(DRAM_PHY_BASE + 0x198, 0x3);
+    res
 }
 
 // TODO
