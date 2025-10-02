@@ -317,12 +317,55 @@ fn mctl_phy_bit_delay_compensation(para: &dram_para) {}
 
 // Check if these are needed based on
 // params configured
-// TODO
 fn mctl_phy_read_calibration(para: &dram_para, config: &dram_config) -> bool {
-    true
+    let mut res = true;
+
+    clearset_bits32(DRAM_PHY_BASE + 0x8, 0x30, 0x20);
+    set_bits32(DRAM_PHY_BASE + 0x8, 0x1);
+
+    let val = get_bus_width(config);
+    while (read32(DRAM_PHY_BASE + 0x184) & val) != val {
+        if (read32(DRAM_PHY_BASE + 0x184) & 0x20) != 0 {
+            res = false;
+        }
+    }
+
+    clear_mask32(DRAM_PHY_BASE + 0x8, 0x1);
+    clear_mask32(DRAM_PHY_BASE + 0x8, 0x30);
+
+    if config.ranks == 2 {
+        clearset_bits32(DRAM_PHY_BASE + 0x8, 0x30, 0x10);
+        set_bits32(DRAM_PHY_BASE + 0x8, 0x1);
+
+        while (read32(DRAM_PHY_BASE + 0x184) & val) != val {
+            if (read32(DRAM_PHY_BASE + 0x184) & 0x20) != 0 {
+                res = false;
+            }
+        }
+        clear_mask32(DRAM_PHY_BASE + 0x8, 0x1);
+    }
+
+    clear_mask32(DRAM_PHY_BASE + 0x8, 0x30);
+
+    let val = read32(DRAM_PHY_BASE + 0x274) & 7;
+    let tmp = read32(DRAM_PHY_BASE + 0x26c) & 7;
+    let val1 = if val < tmp { tmp } else { val };
+
+    let val = val1;
+    let tmp = read32(DRAM_PHY_BASE + 0x32c) & 7;
+    let val1 = if val < tmp { tmp } else { val };
+
+    let val = val1;
+    let tmp = read32(DRAM_PHY_BASE + 0x334) & 7;
+    let val1 = if val < tmp { tmp } else { val };
+
+    clearset_bits32(DRAM_PHY_BASE + 0x38, 0x7, (val1 + 2) & 7);
+    set_bits32(DRAM_PHY_BASE + 0x4, 0x20);
+
+    res
 }
 
-// TODO 
+// TODO
 fn mctl_phy_read_training(para: &dram_para, config: &dram_config) -> bool {
     true
 }
