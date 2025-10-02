@@ -171,6 +171,41 @@ pub struct dram_config {
     pub tpr14: u32,
 }
 
+// random values for now, these will 
+// be changed during init. Currently there just
+// for initialization of these structures
+impl Default for dram_para {
+    fn default() -> Self {
+        dram_para {
+            clk: 400,
+            dx_odt: 0x0000_0000,
+            dx_dri: 0x0404_0404,
+            ca_dri: 0x0404_0404,
+            tpr0: 0x0000_0000,
+            tpr1: 0x0000_0000,
+            tpr2: 0x0000_0000,
+            tpr6: 0x0000_0000,
+            tpr10: 0x0000_0000,
+        }
+    }
+}
+
+impl Default for dram_config {
+    fn default() -> Self {
+        dram_config {
+            cols: 10,
+            rows: 15,
+            ranks: 1,
+            bus_full_width: false,
+            clk: 400,
+            odt_en: 0,
+            tpr11: 0x0000_0000,
+            tpr12: 0x0000_0000,
+            tpr14: 0x0000_0000,
+        }
+    }
+}
+
 const DRAM_PHY_BASE: usize = 0x04800000;
 
 #[inline(always)]
@@ -604,16 +639,49 @@ fn mctl_ctrl_init(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
+fn mctl_auto_detect_rank_width(para: &dram_para, config: &mut dram_config)  {
+    // not implemented
+}
+
+fn mctl_auto_detect_dram_size(para: &dram_para, config: &mut dram_config)  {
+    // not implemented
+}
+
+fn mctl_core_init(para: &dram_para, config: &dram_config) {
+}
+
+fn mctl_calc_size(config: &dram_config) -> u64 {
+    0
+}
+
+fn mctl_set_master_priority() {
+}
+
 // Power reset and Clock Management
 const PRCM_RES_CAL_CTRL: usize = PRCM_BASE + 0x0000_0310;
 const PRCM_OHMS_240: usize = PRCM_BASE + 0x0000_0318;
 
-fn dram_init() {
+
+fn dram_init() -> u64 {
     // Initialize DRAM settings here
+
+    //let mut para: dram_para;
+    let mut config = dram_config::default();
+    let mut para = dram_para::default();
 
     let cal_ctrl = read32(PRCM_RES_CAL_CTRL) | (1 << 8);
     write32(PRCM_RES_CAL_CTRL, cal_ctrl);
 
     let ohms_240 = read32(PRCM_OHMS_240) & !0x3F;
     write32(PRCM_OHMS_240, ohms_240);
+
+    mctl_auto_detect_rank_width(&para, &mut config);
+    mctl_auto_detect_dram_size(&para, &mut config);
+
+    mctl_core_init(&para, &config);
+    let size = mctl_calc_size(&config);
+
+    mctl_set_master_priority();
+
+    size
 }
