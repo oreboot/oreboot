@@ -312,24 +312,30 @@ fn mctl_phy_configure_odt(para: &dram_para) {
     }
 }
 
+// TODO
 fn mctl_phy_bit_delay_compensation(para: &dram_para) {}
 
 // Check if these are needed based on
 // params configured
+// TODO
 fn mctl_phy_read_calibration(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
+// TODO 
 fn mctl_phy_read_training(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
+// TODO
 fn mctl_phy_write_training(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
+// TODO
 fn mctl_set_addrmap(config: &dram_config) {}
 
+// TODO
 fn mctl_set_timing_params(para: &dram_para) {}
 
 const phy_init: [u8; 27] = [
@@ -337,6 +343,7 @@ const phy_init: [u8; 27] = [
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x01, 0x18, 0x03, 0x1a,
 ];
 
+// TODO
 fn mctl_phy_ca_bit_delay_compensation(para: &dram_para, config: &dram_config) {}
 
 const TPR10_CA_BIT_DELAY: u32 = 1 << 16;
@@ -777,6 +784,7 @@ fn mctl_calc_size(config: &dram_config) -> u64 {
     1 << (config.cols + config.rows + 3) as u64 * width as u64 * config.ranks as u64
 }
 
+// TODO
 fn mctl_set_master_priority() {}
 
 // Power reset and Clock Management
