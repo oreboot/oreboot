@@ -7,3 +7,5 @@ pub const PRCM_BASE: usize = 0x0701_0000; // 1KB
 pub const DRAM_COM_BASE: usize = 0x047FA000; // 20KB
 
 pub const DRAM_CTL_BASE: usize = 0x047FB000; // 20KB
+
+pub const DRAM_BASE: usize = 0x4000_0000;

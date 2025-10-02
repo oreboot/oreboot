@@ -1,4 +1,4 @@
-use crate::mem_map::{CCU_BASE, DRAM_COM_BASE, DRAM_CTL_BASE, PRCM_BASE};
+use crate::mem_map::*;
 use core::arch::{asm, naked_asm};
 use util::mmio::{read32, write32};
 extern crate log;
@@ -171,7 +171,7 @@ pub struct dram_config {
     pub tpr14: u32,
 }
 
-// random values for now, these will 
+// random values for now, these will
 // be changed during init. Currently there just
 // for initialization of these structures
 impl Default for dram_para {
@@ -639,33 +639,153 @@ fn mctl_ctrl_init(para: &dram_para, config: &dram_config) -> bool {
     true
 }
 
-fn mctl_auto_detect_rank_width(para: &dram_para, config: &mut dram_config)  {
-    // not implemented
+fn mctl_auto_detect_rank_width(para: &dram_para, config: &mut dram_config) {
+    // min size supported
+    config.cols = 8;
+    config.rows = 13;
+
+    // keep testing from most demanding
+    // to least demanding
+
+    // 32 bit, rank 2
+    config.bus_full_width = true;
+    config.ranks = 2;
+    if mctl_core_init(para, config) {
+        return;
+    }
+
+    // 32 bit, rank 1
+    config.bus_full_width = true;
+    config.ranks = 1;
+    if mctl_core_init(para, config) {
+        return;
+    }
+
+    // 16 bit, rank 2
+    config.bus_full_width = false;
+    config.ranks = 2;
+    if mctl_core_init(para, config) {
+        return;
+    }
+
+    // 16 bit, rank 1
+    config.bus_full_width = false;
+    config.ranks = 1;
+    if mctl_core_init(para, config) {
+        return;
+    }
 }
 
-fn mctl_auto_detect_dram_size(para: &dram_para, config: &mut dram_config)  {
-    // not implemented
+fn mctl_write_pattern() {
+    let ptr = DRAM_BASE;
+    for i in 0..16 {
+        let addr = ptr + i * 4;
+        if i & 1 != 0 {
+            write32(addr, !addr as u32);
+        } else {
+            write32(addr, addr as u32);
+        }
+    }
 }
 
-fn mctl_core_init(para: &dram_para, config: &dram_config) {
+fn mctl_check_pattern(offset: usize) -> bool {
+    let ptr = DRAM_BASE;
+    for i in 0..16 {
+        let addr = ptr + i * 4;
+        if i & 1 != 0 {
+            if read32(addr + offset / 4) != !addr as u32 {
+                return false;
+            }
+        } else {
+            if read32(addr + offset / 4) != addr as u32 {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn mctl_auto_detect_dram_size(para: &dram_para, config: &mut dram_config) {
+    let mut oldcfg: [u32; 16] = [0; 16];
+    let mut fin_rows = 0;
+    let mut fin_cols = 0;
+
+    // max config for cols, not rows
+    config.cols = 11;
+    config.rows = 13;
+    mctl_core_init(para, config);
+
+    // store initial config to restore later
+    for i in 0..16 {
+        oldcfg[i] = read32(DRAM_BASE + i * 4);
+    }
+
+    mctl_write_pattern();
+
+    let shift = config.bus_full_width as u32 + 1;
+
+    // detect nr of cols
+    for cols in 8..11 {
+        if mctl_check_pattern(1 << (cols + shift)) {
+            fin_cols = cols as u8;
+            break;
+        }
+    }
+
+    // restore config
+    for i in 0..16 {
+        write32(DRAM_BASE + i * 4, oldcfg[i]);
+    }
+
+    // reconfigure to access all rows
+    config.cols = 8;
+    config.rows = 17;
+    mctl_core_init(para, config);
+
+    // store data again
+    for i in 0..16 {
+        oldcfg[i] = read32(DRAM_BASE + i * 4);
+    }
+
+    mctl_write_pattern();
+
+    // detect nr rows
+    for rows in 13..17 {
+        if mctl_check_pattern(1 << (rows + shift)) {
+            fin_rows = rows as u8;
+            break;
+        }
+    }
+
+    // restore config
+    for i in 0..16 {
+        write32(DRAM_BASE + i * 4, oldcfg[i]);
+    }
+
+    config.cols = fin_cols;
+    config.rows = fin_rows;
+}
+
+fn mctl_core_init(para: &dram_para, config: &dram_config) -> bool {
+    mctl_init(para.clk);
+    mctl_ctrl_init(para, config)
 }
 
 fn mctl_calc_size(config: &dram_config) -> u64 {
-    0
+    let width = if config.bus_full_width { 4 } else { 2 };
+
+    1 << (config.cols + config.rows + 3) as u64 * width as u64 * config.ranks as u64
 }
 
-fn mctl_set_master_priority() {
-}
+fn mctl_set_master_priority() {}
 
 // Power reset and Clock Management
 const PRCM_RES_CAL_CTRL: usize = PRCM_BASE + 0x0000_0310;
 const PRCM_OHMS_240: usize = PRCM_BASE + 0x0000_0318;
 
-
 fn dram_init() -> u64 {
     // Initialize DRAM settings here
 
-    //let mut para: dram_para;
     let mut config = dram_config::default();
     let mut para = dram_para::default();
 
