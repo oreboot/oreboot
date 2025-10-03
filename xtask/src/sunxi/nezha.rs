@@ -1,18 +1,17 @@
-use crate::util::{
-    dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump, project_root,
-};
+use crate::util::{dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump};
 use crate::{gdb_detect, Cli, Commands, Env, Memory};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use log::{error, info, trace};
 use std::{
     fs::File,
     io::{self, ErrorKind, Seek, SeekFrom, Write},
+    path::PathBuf,
     process::{self, Command, Stdio},
 };
 
 const ARCH: &str = "riscv64";
 const TARGET: &str = "riscv64imac-unknown-none-elf";
-const BOARD_DIR: &str = "src/mainboard/sunxi/nezha";
+const BOARD_DIR: &str = "sunxi/nezha";
 
 const BT0_ELF: &str = "oreboot-nezha-bt0";
 const BT0_BIN: &str = "oreboot-nezha-bt0.bin";
@@ -80,7 +79,7 @@ fn build_image(env: &Env, features: &[String]) {
 
 fn build_d1_bt0(env: &Env, features: &[String]) {
     trace!("build D1 bt0");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -100,7 +99,7 @@ fn build_d1_bt0(env: &Env, features: &[String]) {
 
 fn build_d1_main(env: &Env) {
     trace!("build D1 main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
+    let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "main", "build");
     if env.supervisor {
         command.arg("--features");
         command.arg("supervisor");
@@ -344,8 +343,4 @@ fn xfel_find_connected_device(xfel: &str) {
         process::exit(1);
     }
     info!("Found {}", String::from_utf8_lossy(&output.stdout).trim());
-}
-
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join(BOARD_DIR)
 }

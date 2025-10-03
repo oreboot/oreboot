@@ -1,6 +1,6 @@
 use crate::util::{
     compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    project_root,
+    platform_dir,
 };
 use crate::{layout_flash, Commands, Env};
 // use fdt;
@@ -8,7 +8,7 @@ use log::{error, info, trace};
 use std::{
     fs::{self, File},
     io,
-    path::Path,
+    path::{Path, PathBuf},
     process,
 };
 
@@ -30,6 +30,8 @@ const FDT_BIN: &str = "emulation-qemu-riscv-board.fdtbin";
 
 const IMAGE_BIN: &str = "emulation-qemu-riscv.bin";
 
+const DIR: &str = "emulation/qemu-riscv";
+
 pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
     match args.command {
         Commands::Make => {
@@ -42,7 +44,12 @@ pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
             xtask_concat_flash_binaries(&args.env);
 
             // dtb
-            compile_board_dt(&args.env, TARGET, &board_project_root(), BOARD_DTB);
+            compile_board_dt(
+                &args.env,
+                TARGET,
+                &platform_dir(&PathBuf::from(DIR)),
+                BOARD_DTB,
+            );
             xtask_build_dtb_image(&args.env);
         }
         _ => {
@@ -53,7 +60,7 @@ pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
 
 fn xtask_build_qemu_riscv_flash_main(env: &Env) {
     trace!("build QEMU RiscV flash main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
+    let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
@@ -120,9 +127,4 @@ fn xtask_build_dtb_image(env: &Env) {
     .unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
-}
-
-// FIXME: factor out, rework, share!
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join("src/mainboard/emulation/qemu-riscv")
 }
