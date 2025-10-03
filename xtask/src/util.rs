@@ -8,12 +8,14 @@ use std::{
 // These utilities help find and run external commands.
 // Those are mostly toolchain components and vendor specific tools.
 
+pub const PLATFORM_BASE_PATH: &str = "src/mainboard";
+
 /// This gets you the `cargo` command in a specific directory.
 /// Use it to build a stage of a mainboard, which is a board's subdirectory.
-pub fn get_cargo_cmd_in(env: &Env, root: PathBuf, dir: &str, command: &str) -> Command {
+pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &str) -> Command {
     let cargo = std::env::var("CARGO").unwrap_or("cargo".to_string());
     trace!("found cargo at {cargo}");
-    let d = root.join(dir);
+    let d = platform_dir(plat_dir).join(stage);
     let mut cmd = Command::new(cargo);
     cmd.current_dir(d);
     cmd.arg(command);
@@ -105,6 +107,17 @@ pub fn project_root() -> &'static Path {
         .ancestors()
         .nth(1)
         .unwrap()
+}
+
+/// Get the full path of the base directory of all platforms.
+pub fn platform_base_dir() -> PathBuf {
+    project_root().join(PLATFORM_BASE_PATH)
+}
+
+/// Get the full path to a specific platform directory.
+/// This is where the final oreboot images for the given platform are found.
+pub fn platform_dir(plat_dir: &PathBuf) -> PathBuf {
+    platform_base_dir().join(plat_dir)
 }
 
 /// Get the target specific build output directory.

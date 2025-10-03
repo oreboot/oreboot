@@ -1,11 +1,15 @@
 use crate::util::{
     compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    project_root,
+    platform_dir,
 };
 use crate::{layout_flash, Cli, Commands, Env};
 use fdt::Fdt;
 use log::{error, info, trace, warn};
-use std::{fs, path::Path, process};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process,
+};
 
 extern crate layoutflash;
 use layoutflash::areas::{create_areas, Area};
@@ -29,6 +33,8 @@ const DTFS_IMAGE: &str = "starfive-visionfive2-dtfs.bin";
 
 const IMAGE: &str = "starfive-visionfive2.bin";
 
+const DIR: &str = "starfive/visionfive2";
+
 pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
@@ -42,7 +48,12 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
             objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
             // dtfs
-            compile_board_dt(&args.env, TARGET, &board_project_root(), BOARD_DTFS);
+            compile_board_dt(
+                &args.env,
+                TARGET,
+                &platform_dir(&PathBuf::from(DIR)),
+                BOARD_DTFS,
+            );
             // final image
             xtask_build_image(&args.env);
         }
@@ -54,7 +65,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
 
 fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
     trace!("build JH7110 bt0");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -85,7 +96,7 @@ fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
 
 fn xtask_build_jh7110_main(env: &Env) {
     trace!("build JH7110 main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
+    let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
     if !status.success() {
@@ -130,9 +141,4 @@ fn xtask_build_image(env: &Env) {
 
     println!("======= DONE =======");
     println!("Output file: {:?}", &out_path.into_os_string());
-}
-
-// FIXME: factor out, rework, share!
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join("src/mainboard/starfive/visionfive2")
 }
