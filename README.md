@@ -10,6 +10,13 @@ oreboot is mostly written in Rust, with assembly where needed.
 
 oreboot currently only plans to support LinuxBoot payloads.
 
+## Community
+
+If you would like to get involved, join any of the following:
+
+- the `#oreboot` channel in the [OSFW Slack](http://slack.osfw.foundation/)
+- our [Matrix community channel](https://matrix.to/#/#oreboot-dev:matrix.org)
+
 ## Demos
 
 - [oreboot for ARM in QEMU](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
