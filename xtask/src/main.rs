@@ -102,12 +102,12 @@ struct Env {
     supervisor: bool,
     #[clap(long, global = true, help = "Mainboard to build")]
     mainboard: Option<String>,
+    #[clap(long, global = true, help = "Board variant")]
+    variant: Option<String>,
     #[clap(long, global = true, help = "Target memory description")]
     memory: Option<Memory>,
-    #[clap(long, global = true, help = "Board variant")]
-    dram_size: Option<DramSize>,
     #[clap(long, global = true, help = "DRAM size")]
-    variant: Option<String>,
+    dram_size: Option<DramSize>,
     #[clap(long, global = true, help = "Path to raw payload")]
     payload: Option<String>,
     #[clap(long, global = true, help = "Path to dtb")]
