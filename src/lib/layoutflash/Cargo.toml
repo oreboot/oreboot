@@ -6,3 +6,7 @@ edition = "2021"
 
 [dependencies]
 fdt = "0.1.4"
+
+[features]
+default = []
+std = []

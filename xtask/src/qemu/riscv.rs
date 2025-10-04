@@ -12,8 +12,7 @@ use std::{
     process,
 };
 
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use layoutflash::layout::create_areas;
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
@@ -107,24 +106,9 @@ fn xtask_build_dtb_image(env: &Env) {
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
     let fdt = fdt::Fdt::new(&dtb).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&fdt, &mut areas);
+    let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(
-        Path::new(&dist_dir),
-        Path::new(&output_file_path),
-        areas.to_vec(),
-    )
-    .unwrap();
+    layout_flash(Path::new(&dist_dir), Path::new(&output_file_path), areas).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
