@@ -1,7 +1,36 @@
-#[cfg(feature = "std")]
+use std::prelude::rust_2021::*;
+
 use std::io::{self, Seek, SeekFrom, Write};
-#[cfg(feature = "std")]
 use std::{env, fs, path::Path};
+
+use crate::areas::Area;
+
+/// Create the areas from the FDT.
+pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
+    let mut areas: Vec<Area> = vec![];
+    let mut offset = 0;
+    for node in fdt.find_all_nodes("/flash-info/areas") {
+        for c in node.children() {
+            let Some(size) = c.property("size").map_or_else(|| None, |e| e.as_usize()) else {
+                return Err("a size MUST be provided".to_string());
+            };
+
+            areas.push(Area {
+                name: c.name,
+                file: c.property("file").map_or_else(|| None, |e| e.as_str()),
+                offset: c
+                    .property("offset")
+                    .map_or_else(|| Some(offset), |e| e.as_usize()),
+                size,
+            });
+            if let Some(o) = c.property("offset") {
+                offset = o.as_usize().unwrap();
+            }
+            offset += c.property("size").unwrap().as_usize().unwrap();
+        }
+    }
+    Ok(areas)
+}
 
 // In earlier versions of this function, we assumed all Areas had a non-zero
 // offset. There was a sort step to sort by offset as a first step.
@@ -20,25 +49,23 @@ use std::{env, fs, path::Path};
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
-#[cfg(feature = "std")]
 pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
     let mut last_area_end = 0;
     for a in areas {
-        println!("Area {:?}: @{:?}, size {:?}", a.name, a.offset, a.size);
-        let offset = match a.offset {
-            Some(x) => x,
-            None => last_area_end,
-        };
+        println!("{a:#?}");
+        let name = a.name;
+        let size = a.size;
+        let offset = a.offset.unwrap_or(last_area_end);
         if offset < last_area_end {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Areas are overlapping, last area finished at offset {}, next area '{}' starts at {}", last_area_end, a.name, offset)));
+            return Err(io::Error::new(io::ErrorKind::InvalidData, format!("Areas are overlapping, last area finished at offset {last_area_end}, next area '{name}' starts at {offset}")));
         }
-        last_area_end = offset + a.size;
+        last_area_end = offset + size;
 
-        println!("<{}> @ 0x{:x}", a.name, last_area_end);
+        println!("<{name}> @ 0x{last_area_end:x}");
         // First fill with 0xff.
         let mut v = Vec::new();
-        v.resize(a.size as usize, 0xff);
+        v.resize(size, 0xff);
         f.seek(SeekFrom::Start(offset as u64))?;
         f.write_all(&v)?;
 
@@ -57,29 +84,28 @@ pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()>
 
             f.seek(SeekFrom::Start(offset as u64))?;
 
-            let data = {
-                if !Path::new(&path).is_absolute() {
-                    fs::read(&dir.join(&path))
-                } else {
-                    fs::read(&path)
-                }
+            let path = Path::new(&path);
+            let image_path = if path.is_absolute() {
+                path.to_path_buf()
+            } else {
+                dir.join(path)
             };
-            let data = match data {
+            println!("Read file {image_path:?}");
+            let data = match fs::read(&image_path) {
                 Err(e) => {
                     return Err(io::Error::new(
                         e.kind(),
-                        format!("Could not open: {}", path),
+                        format!("Could not open: {image_path:?}"),
                     ))
                 }
                 Ok(data) => data,
             };
-            if data.len() > a.size as usize {
+            let file_size = data.len();
+            if file_size > size {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!(
-                        "File {path} is too big to fit into the flash area, file size: {} area size: {}",
-                        data.len(),
-                        a.size
+                        "File {image_path:?} is too big to fit into the flash area, file size: {file_size} area size: {size}",
                     ),
                 ));
             }
@@ -90,20 +116,44 @@ pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()>
 }
 
 #[test]
+fn no_file() {
+    let dtfs = include_bytes!("testdata/no_file.dtb");
+    let fdt = fdt::Fdt::new(dtfs).unwrap();
+    let areas = create_areas(&fdt);
+    assert!(areas.is_ok())
+}
+
+#[test]
+fn no_offset() {
+    let dtfs = include_bytes!("testdata/no_offset.dtb");
+    let fdt = fdt::Fdt::new(dtfs).unwrap();
+    let areas = create_areas(&fdt);
+    assert!(areas.is_ok())
+}
+
+/// Size is a MUST.
+#[test]
+fn no_size() {
+    let dtfs = include_bytes!("testdata/no_size.dtb");
+    let fdt = fdt::Fdt::new(dtfs).unwrap();
+    let areas = create_areas(&fdt);
+    assert!(areas.is_err())
+}
+
+#[test]
 fn read_create() {
-    static DATA: &'static [u8] = include_bytes!("testdata/test.dtb");
-    let fdt = fdt::Fdt::new(&DATA).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        8,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&fdt, &mut areas);
+    use crate::areas::find_fdt;
+    // This is relative to this file.
+    let dtfs = include_bytes!("testdata/test.dtb");
+    let image_fixture = "src/testdata/test.out";
+    // This is relative to from where `cargo test` is run.
+    let dir = Path::new(".");
+    let image = Path::new("out.bin");
+    // This is the same as in `test.dtb` itself (see `./testdata/test.dts`).
+    // Generated via: `dtc -o testdata/test.dtb testdata/test.dts`
+    let dtfs_file = "src/testdata/test.dtb";
+    let fdt = fdt::Fdt::new(dtfs).unwrap();
+    let areas = create_areas(&fdt).unwrap();
     let want: Vec<Area> = vec![
         Area {
             name: "area@0",
@@ -115,7 +165,7 @@ fn read_create() {
             name: "area@1",
             offset: Some(524288),
             size: 524288,
-            file: Some("src/testdata/test.dtb"),
+            file: Some(dtfs_file),
         },
         Area {
             name: "area@2",
@@ -179,10 +229,10 @@ fn read_create() {
         );
     }
 
-    layout_flash(Path::new("out"), areas.to_vec()).unwrap();
+    layout_flash(dir, image, areas.to_vec()).unwrap();
     // Make sure we can read what we wrote.
-    let data = fs::read("out").expect("Unable to read file produced by layout");
-    let reference = fs::read("src/testdata/test.out").expect("Unable to read testdata file");
+    let data = fs::read(&image).expect("Unable to read file produced by layout");
+    let reference = fs::read(&image_fixture).expect("Unable to read image fixture");
     assert_eq!(data, reference, "Data and reference differ");
     let mut vec = Vec::with_capacity(16384);
     vec.resize(16384, 0u8);
@@ -192,5 +242,6 @@ fn read_create() {
             panic!("Unpacked an FDT from a block of zeros!");
         }
     }
-    let fdt = find_fdt(&data).unwrap();
+    let fdt = find_fdt(&data);
+    assert!(fdt.is_ok());
 }

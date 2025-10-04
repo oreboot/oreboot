@@ -1,10 +1,3 @@
-use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    platform_dir,
-};
-use crate::{layout_flash, Commands, Env};
-// use fdt;
-use log::{error, info, trace};
 use std::{
     fs::{self, File},
     io::{self, Seek, SeekFrom},
@@ -12,8 +5,16 @@ use std::{
     process,
 };
 
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use fdt::Fdt;
+use log::{error, info, trace};
+
+use layoutflash::layout::{create_areas, layout_flash};
+
+use crate::util::{
+    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
+    platform_dir,
+};
+use crate::{Commands, Env};
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
@@ -139,25 +140,10 @@ fn xtask_build_dtb_image(env: &Env) {
 
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
-    let fdt = fdt::Fdt::new(&dtb).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&fdt, &mut areas);
+    let fdt = Fdt::new(&dtb).unwrap();
+    let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(
-        Path::new(&dist_dir),
-        Path::new(&output_file_path),
-        areas.to_vec(),
-    )
-    .unwrap();
+    layout_flash(Path::new(&dist_dir), Path::new(&output_file_path), areas).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
