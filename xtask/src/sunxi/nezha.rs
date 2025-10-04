@@ -1,4 +1,6 @@
-use crate::util::{dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy, objdump};
+use crate::util::{
+    dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, Bin,
+};
 use crate::{gdb_detect, Cli, Commands, Env, Memory};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use log::{error, info, trace};
@@ -9,41 +11,51 @@ use std::{
     process::{self, Command, Stdio},
 };
 
+// TODO: detect architecture for binutils
 const ARCH: &str = "riscv64";
-const TARGET: &str = "riscv64imac-unknown-none-elf";
 const BOARD_DIR: &str = "sunxi/nezha";
-
-const BT0_ELF: &str = "oreboot-nezha-bt0";
-const BT0_BIN: &str = "oreboot-nezha-bt0.bin";
-
-const MAIN_ELF: &str = "oreboot-nezha-main";
-const MAIN_BIN: &str = "oreboot-nezha-main.bin";
-
 const IMAGE_BIN: &str = "oreboot-nezha.bin";
+const BT0_STAGE: &str = "bt0";
+const MAIN_STAGE: &str = "main";
+
+struct Stages {
+    bt0: Bin,
+    main: Bin,
+}
 
 pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
+    let dir = PathBuf::from(BOARD_DIR);
+    let bt0 = get_bin_for(&dir, BT0_STAGE);
+    let main = get_bin_for(&dir, MAIN_STAGE);
+    let stages = Stages { bt0, main };
+
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for D1");
-            build_image(&args.env, &features);
+            build_image(&args.env, &stages, &features);
         }
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
             let xfel = find_xfel();
             xfel_find_connected_device(xfel);
-            build_image(&args.env, &features);
-            burn_d1_bt0(xfel, &args.env);
+            build_image(&args.env, &stages, &features);
+            burn_d1_bt0(xfel, &args.env, &stages.bt0);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_d1_bt0(&args.env, &features);
-            objdump(&args.env, binutils_prefix, TARGET, BT0_ELF);
+            build_d1_bt0(&args.env, &stages.bt0, &features);
+            objdump(
+                &args.env,
+                binutils_prefix,
+                &stages.bt0.target,
+                &stages.bt0.elf_name,
+            );
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_d1_bt0(&args.env, &features);
+            build_d1_bt0(&args.env, &stages.bt0, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
@@ -60,25 +72,23 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
                 trace!("saved GDB server");
                 ans
             };
-            debug_gdb(&gdb_path, &gdb_server, &args.env);
+            debug_gdb(&args.env, &stages.bt0, &gdb_path, &gdb_server);
         }
     }
 }
 
-fn build_image(env: &Env, features: &[String]) {
-    // Get binutils first so we can fail early
-    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
+fn build_image(env: &Env, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    build_d1_bt0(env, features);
-    build_d1_main(env);
-    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
-    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-    bt0_egon_header(env);
-    concat_binaries(env);
+    build_d1_bt0(env, &stages.bt0, features);
+    build_d1_main(env, &stages.main);
+    bt0_egon_header(env, &stages.bt0);
+    concat_binaries(env, stages);
 }
 
-fn build_d1_bt0(env: &Env, features: &[String]) {
+fn build_d1_bt0(env: &Env, bin: &Bin, features: &[String]) {
     trace!("build D1 bt0");
+    // Get binutils first so we can fail early
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
@@ -95,10 +105,20 @@ fn build_d1_bt0(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+    objcopy(
+        env,
+        binutils_prefix,
+        &bin.target,
+        ARCH,
+        &bin.elf_name,
+        &bin.bin_name,
+    );
 }
 
-fn build_d1_main(env: &Env) {
+fn build_d1_main(env: &Env, bin: &Bin) {
     trace!("build D1 main");
+    // Get binutils first so we can fail early
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "main", "build");
     if env.supervisor {
         command.arg("--features");
@@ -110,6 +130,14 @@ fn build_d1_main(env: &Env) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+    objcopy(
+        env,
+        binutils_prefix,
+        &bin.target,
+        ARCH,
+        &bin.elf_name,
+        &bin.bin_name,
+    );
 }
 
 const EGON_HEAD_LENGTH: u64 = 0x60;
@@ -118,13 +146,13 @@ const EGON_HEAD_LENGTH: u64 = 0x60;
 // 1. fill in binary length of bt0
 // 2. calculate checksum of bt0 image
 // NOTE: old checksum value must be filled as stamp value
-fn bt0_egon_header(env: &Env) {
+fn bt0_egon_header(env: &Env, bin: &Bin) {
     println!("Filling eGON header...");
-    let path = dist_dir(env, TARGET);
+    let path = dist_dir(env, &bin.target);
     let mut bt0_bin = File::options()
         .read(true)
         .write(true)
-        .open(path.join(BT0_BIN))
+        .open(path.join(&bin.bin_name))
         .expect("open bt0 binary file");
     let bt0_len = bt0_bin.metadata().unwrap().len();
     if bt0_len < EGON_HEAD_LENGTH {
@@ -167,16 +195,16 @@ fn align_up_to(len: u64, target_align: u64) -> u64 {
 const FLASH_IMG_SIZE: u64 = 16 * 1024 * 1024;
 const MAX_COMPRESSED_SIZE: usize = 0x00fc_0000;
 
-fn concat_binaries(env: &Env) {
+fn concat_binaries(env: &Env, stages: &Stages) {
     println!("Stitching final image 🏗️");
-    let dist_dir = dist_dir(env, TARGET);
+    let dist_dir = dist_dir(env, &stages.bt0.target);
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join(BT0_BIN))
+        .open(dist_dir.join(&stages.bt0.bin_name))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join(MAIN_BIN))
+        .open(dist_dir.join(&stages.main.bin_name))
         .expect("open main binary file");
 
     // TODO: evaluate flash layout
@@ -262,10 +290,10 @@ fn concat_binaries(env: &Env) {
     println!("======= DONE =======");
 }
 
-fn burn_d1_bt0(xfel: &str, env: &Env) {
+fn burn_d1_bt0(xfel: &str, env: &Env, bin: &Bin) {
     println!("Write to flash with {xfel}");
     let mut cmd = Command::new(xfel);
-    cmd.current_dir(dist_dir(env, TARGET));
+    cmd.current_dir(dist_dir(env, &bin.target));
     match env.memory {
         Some(Memory::Nand) => cmd.arg("spinand"),
         Some(Memory::Nor) => cmd.arg("spinor"),
@@ -286,10 +314,10 @@ fn burn_d1_bt0(xfel: &str, env: &Env) {
     }
 }
 
-fn debug_gdb(gdb_path: &str, gdb_server: &str, env: &Env) {
+fn debug_gdb(env: &Env, bin: &Bin, gdb_path: &str, gdb_server: &str) {
     let mut command = Command::new(gdb_path);
-    command.current_dir(dist_dir(env, TARGET));
-    command.args(["--eval-command", &format!("file {BT0_ELF}")]);
+    command.current_dir(dist_dir(env, &bin.target));
+    command.args(["--eval-command", &format!("file {}", &bin.elf_name)]);
     command.args(["--eval-command", "set architecture riscv:rv64"]);
     command.args(["--eval-command", "mem 0x0 0xffff ro"]);
     command.args(["--eval-command", "mem 0x20000 0x27fff rw"]);
