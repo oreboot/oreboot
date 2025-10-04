@@ -11,8 +11,7 @@ use std::{
     process,
 };
 
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use layoutflash::layout::create_areas;
 
 use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 
@@ -110,20 +109,10 @@ fn xtask_build_image(env: &Env) {
     let dtfs_path = dir.join(BOARD_DTFS);
     let dtfs_file = fs::read(dtfs_path).expect("dtfs");
     let dtfs = Fdt::new(&dtfs_file).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&dtfs, &mut areas);
+    let areas = create_areas(&dtfs).unwrap();
 
     let dtfs_image_path = dir.join(DTFS_IMAGE);
-    if let Err(e) = layout_flash(Path::new(&dir), Path::new(&dtfs_image_path), areas.to_vec()) {
+    if let Err(e) = layout_flash(Path::new(&dir), Path::new(&dtfs_image_path), areas) {
         error!("layoutflash fail: {e}");
         process::exit(1);
     }

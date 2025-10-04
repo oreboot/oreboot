@@ -51,7 +51,7 @@ checkformat:
 	dprint check
 
 clippy:
-	cargo clippy -- -D warnings
+	$(CARGO) clippy -- -D warnings
 
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
@@ -62,7 +62,7 @@ $(MAINBOARDS):
 
 .PHONY: test
 test:
-	$(CARGOTEST) --package layoutflash
+	$(CARGOTEST) --package layoutflash --features std
 
 # convenience target: this should be the full ci flow
 checkandbuildall: ciprepare clippy checkformat mainboards
