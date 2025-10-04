@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 byteorder = "1"
+cargo_toml = "0.22.3"
 clap = { version = "4.4", features = ["derive"] }
 clap-verbosity-flag = "2.0"
+config = "0.15.18"
 crc = "*"
 ctrlc = "3.2"
 env_logger = "0.9"

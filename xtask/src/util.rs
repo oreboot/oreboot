@@ -25,6 +25,44 @@ pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &st
     cmd
 }
 
+/// Use this to define a per-platform struct of named binaries for the stages.
+/// I.e., something along the lines of:
+/// ```rs
+/// struct Stages {
+///     bt0: Bin,
+///     main: Bin,
+/// }
+/// ```
+pub struct Bin {
+    pub elf_name: String,
+    pub bin_name: String,
+    pub target: String,
+}
+
+const CARGO_CFG: &str = ".cargo/config.toml";
+const CARGO_TOML: &str = "Cargo.toml";
+
+/// See https://doc.rust-lang.org/cargo/reference/config.html
+/// and https://doc.rust-lang.org/cargo/reference/manifest.html
+pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
+    let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
+    let m = cargo_toml::Manifest::from_path(&f);
+    trace!("{f:?}: {m:#?}");
+    let elf_name = m.unwrap().bin.first().unwrap().name.clone().unwrap();
+    let bin_name = format!("{elf_name}.bin");
+    let f = platform_dir(plat_dir).join(stage).join(CARGO_CFG);
+    let settings = config::Config::builder()
+        .add_source(config::File::with_name(f.to_str().unwrap()))
+        .build()
+        .unwrap();
+    let target: String = settings.get("build.target").unwrap();
+    Bin {
+        elf_name,
+        bin_name,
+        target,
+    }
+}
+
 /// Compile the board device tree.
 pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
     trace!("compile board device tree {dtb}");
