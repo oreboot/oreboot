@@ -51,7 +51,7 @@ checkformat:
 	dprint check
 
 clippy:
-	cargo clippy -- -D warnings
+	$(CARGO) clippy -- -D warnings
 
 MAINBOARDS := $(wildcard src/mainboard/*/*/Makefile)
 
