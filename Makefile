@@ -62,7 +62,8 @@ $(MAINBOARDS):
 
 .PHONY: test
 test:
-	$(CARGOTEST) --package layoutflash
+	$(CARGOTEST) --package layoutflash --features std
+	$(CARGOTEST) --package xtask
 
 # convenience target: this should be the full ci flow
 checkandbuildall: ciprepare clippy checkformat mainboards
