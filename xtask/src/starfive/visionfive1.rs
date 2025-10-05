@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::{self, Seek, SeekFrom},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process,
 };
 
@@ -11,36 +11,41 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    platform_dir,
+    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
+    objcopy, platform_dir, Bin,
 };
 use crate::{Commands, Env};
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
+// TODO: detect architecture for binutils
 const ARCH: &str = "riscv64";
-const TARGET: &str = "riscv64imac-unknown-none-elf";
-
-const BT0_BIN: &str = "starfive-visionfive1-bt0.bin";
-const BT0_ELF: &str = "starfive-visionfive1-bt0";
-
-const MAIN_BIN: &str = "starfive-visionfive1-main.bin";
-const MAIN_ELF: &str = "starfive-visionfive1-main";
+// TODO: instead of hardcoding, create one binary per feature set.
+const IMAGE_BIN: &str = "starfive-visionfive1.bin";
+const FDT_BIN: &str = "starfive-visionfive1-dtfs.bin";
 
 const BOARD_DTB: &str = "starfive-visionfive1-board.dtb";
 
-const FDT_BIN: &str = "starfive-visionfive1-board.fdtbin";
-
-const IMAGE_BIN: &str = "starfive-visionfive1.bin";
+const BT0_STAGE: &str = "bt0";
+const MAIN_STAGE: &str = "main";
+struct Stages {
+    bt0: Bin,
+    main: Bin,
+}
 
 const DIR: &str = "starfive/visionfive1";
 
 pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
+    let dir = PathBuf::from(DIR);
+    let bt0 = get_bin_for(&dir, BT0_STAGE);
+    let main = get_bin_for(&dir, MAIN_STAGE);
+    let stages = Stages { bt0, main };
+
     match args.command {
         Commands::Make => {
-            info!("building VisionFive1");
-            build_image(&args.env, &features);
+            info!("Build oreboot image for VisionFive1");
+            build_image(&args.env, &dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -48,10 +53,10 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
+fn xtask_build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
     trace!("build JH7100 flash bt0");
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -66,33 +71,45 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-
-    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
+    objcopy(
+        env,
+        binutils_prefix,
+        &bin.target,
+        ARCH,
+        &bin.elf_name,
+        &bin.bin_name,
+    );
 }
 
-fn xtask_build_jh7100_flash_main(env: &Env) {
+fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     trace!("build JH7100 flash main");
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
+    let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
-
-    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
+    objcopy(
+        env,
+        binutils_prefix,
+        &bin.target,
+        ARCH,
+        &bin.elf_name,
+        &bin.bin_name,
+    );
 }
 
-fn xtask_concat_flash_binaries(env: &Env) {
-    let dist_dir = dist_dir(env, TARGET);
+fn xtask_concat_flash_binaries(env: &Env, stages: &Stages) {
+    let dist_dir = dist_dir(env, &stages.bt0.target);
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join(BT0_BIN))
+        .open(dist_dir.join(&stages.bt0.bin_name))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join(MAIN_BIN))
+        .open(dist_dir.join(&stages.main.bin_name))
         .expect("open main binary file");
 
     let output_file_path = dist_dir.join(IMAGE_BIN);
@@ -116,12 +133,20 @@ fn xtask_concat_flash_binaries(env: &Env) {
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
-fn xtask_build_dtb_image(env: &Env) {
-    let dist_dir = dist_dir(env, TARGET);
-    let dtb_path = dist_dir.join(BOARD_DTB);
+fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
+    let plat_dir = platform_dir(dir);
+    let target_dir = dist_dir(env, &stages.main.target);
+
+    let dtb_path = target_dir.join(BOARD_DTB);
+    compile_board_dt(
+        env,
+        &stages.main.target,
+        &plat_dir,
+        dtb_path.to_str().unwrap(),
+    );
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = dist_dir.join(FDT_BIN);
+    let output_file_path = target_dir.join(FDT_BIN);
     let output_file = File::options()
         .write(true)
         .create(true)
@@ -134,16 +159,15 @@ fn xtask_build_dtb_image(env: &Env) {
     let fdt = Fdt::new(&dtb).unwrap();
     let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(Path::new(&dist_dir), Path::new(&output_file_path), areas).unwrap();
+    layout_flash(&target_dir, &output_file_path, areas).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
-fn build_image(env: &Env, features: &[String]) {
+fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    xtask_build_jh7100_flash_bt0(env, features);
-    xtask_build_jh7100_flash_main(env);
-    xtask_concat_flash_binaries(env);
-    compile_board_dt(env, TARGET, &platform_dir(&PathBuf::from(DIR)), BOARD_DTB);
-    xtask_build_dtb_image(env);
+    xtask_build_jh7100_flash_bt0(env, dir, &stages.bt0, features);
+    xtask_build_jh7100_flash_main(env, dir, &stages.main);
+    xtask_concat_flash_binaries(env, stages);
+    xtask_build_dtb_image(env, dir, stages);
 }
