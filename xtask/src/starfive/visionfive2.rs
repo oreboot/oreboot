@@ -39,24 +39,8 @@ const DIR: &str = "starfive/visionfive2";
 pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
-            info!("building VisionFive2");
-            // Get binutils first so we can fail early
-            let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            // Build the stages - should we parallelize this?
-            xtask_build_jh7110_bt0(&args.env, &features);
-            xtask_build_jh7110_main(&args.env);
-
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-            // dtfs
-            compile_board_dt(
-                &args.env,
-                TARGET,
-                &platform_dir(&PathBuf::from(DIR)),
-                BOARD_DTFS,
-            );
-            // final image
-            xtask_build_image(&args.env);
+            info!("Build oreboot image for VisionFive2");
+            build_image(&args.env, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -66,6 +50,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
 
 fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
     trace!("build JH7110 bt0");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
@@ -93,10 +78,13 @@ fn xtask_build_jh7110_bt0(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+
+    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
 }
 
 fn xtask_build_jh7110_main(env: &Env) {
     trace!("build JH7110 main");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
@@ -104,6 +92,8 @@ fn xtask_build_jh7110_main(env: &Env) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+
+    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
 }
 
 fn xtask_build_image(env: &Env) {
@@ -132,4 +122,15 @@ fn xtask_build_image(env: &Env) {
 
     println!("======= DONE =======");
     println!("Output file: {:?}", &out_path.into_os_string());
+}
+
+fn build_image(env: &Env, features: &[String]) {
+    // Build the stages - should we parallelize this?
+    xtask_build_jh7110_bt0(env, &features);
+    xtask_build_jh7110_main(env);
+
+    // dtfs
+    compile_board_dt(env, TARGET, &platform_dir(&PathBuf::from(DIR)), BOARD_DTFS);
+    // final image
+    xtask_build_image(env);
 }
