@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{fs, path::PathBuf, process};
 
 use fdt::Fdt;
@@ -96,9 +97,9 @@ fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
 
 fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
-    let target_dir = target_dir(env, &stages.main.target);
+    let main_target_dir = target_dir(env, &stages.main.target);
 
-    let dtfs_path = target_dir.join(BOARD_DTFS);
+    let dtfs_path = main_target_dir.join(BOARD_DTFS);
     compile_board_dt(
         env,
         &stages.main.target,
@@ -110,8 +111,16 @@ fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let dtfs = Fdt::new(&dtfs_file).unwrap();
     let areas = create_areas(&dtfs).unwrap();
 
-    let dtfs_image_path = target_dir.join(DTFS_IMAGE);
-    if let Err(e) = layout_flash(&target_dir, &dtfs_image_path, areas) {
+    let stage_bin_map = HashMap::from([
+        (
+            BT0_STAGE,
+            target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
+        ),
+        (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
+    ]);
+
+    let dtfs_image_path = main_target_dir.join(DTFS_IMAGE);
+    if let Err(e) = layout_flash(&main_target_dir, &dtfs_image_path, areas, stage_bin_map) {
         error!("layoutflash fail: {e}");
         process::exit(1);
     }

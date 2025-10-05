@@ -4,11 +4,10 @@
     #address-cells = <1>;
     #size-cells = <1>;
 
-    board-info {
-        compatible = "ore-boardinfo";
-        board-name = "VisionFive 2";
-        category = "StarFive";
-        board-url = "https://www.starfivetech.com/en/site/boards";
+    platform-info {
+        soc-name = "JH7110";
+        vendor = "StarFive";
+        vendor-url = "https://www.starfivetech.com/en/";
     };
 
     // TODO: flash size/type/brand...?
@@ -22,24 +21,20 @@
             };
 
             area@1 {
-                description = "oreboot bt0";
-                compatible = "ore-bt0";
+                compatible = "ore-stage";
                 size = <0x10000>; // 64k
-                file = "starfive-visionfive2-bt0.bin";
+                stage = "bt0";
             };
 
             area@2 {
-                description = "oreboot DTFS";
-                compatible = "ore-dtfs";
+                compatible = "ore-manifest";
                 size = <0x1000>;
-                file = "starfive-visionfive2-board.dtb";
             };
 
             area@3 {
-                description = "oreboot main";
-                compatible = "ore-main";
+                compatible = "ore-stage";
                 size = <0x10000>; // 64k
-                file = "starfive-visionfive2-main.bin";
+                stage = "main";
             };
 
             // FIXME: This currently expands the output image.

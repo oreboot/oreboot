@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::{self, File},
     io::{self, Seek, SeekFrom},
     path::PathBuf,
@@ -141,12 +142,18 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let fdt = Fdt::new(&dtb).unwrap();
     let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(
-        &target_dir(env, &stages.main.target),
-        &output_file_path,
-        areas,
-    )
-    .unwrap();
+    let stage_bin_map = HashMap::from([
+        (
+            BT0_STAGE,
+            target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
+        ),
+        (
+            MAIN_STAGE,
+            target_dir(env, &stages.main.target).join(&stages.main.bin_name),
+        ),
+    ]);
+
+    layout_flash(&plat_dir, &output_file_path, areas, stage_bin_map).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }

@@ -1,9 +1,15 @@
 use std::prelude::rust_2021::*;
 
-use std::io::{self, Seek, SeekFrom, Write};
-use std::{env, fs, path::Path};
+use std::{
+    collections::HashMap,
+    env, fs,
+    io::{self, Seek, SeekFrom, Write},
+    path::{Path, PathBuf},
+};
 
 use crate::areas::{Area, AREAS_PATH};
+
+const EMPTY_BYTE: u8 = 0xff;
 
 /// Create the areas from the FDT.
 pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
@@ -29,6 +35,38 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> 
     Ok(areas)
 }
 
+/// Get a PathBuf to the file to insert into the given area.
+///
+/// If a stage is specified, locate and use the corresponding file.
+/// If a direct file is specified, just include the file.
+fn file_for_area(src_dir: &Path, stages: &HashMap<&str, PathBuf>, area: &Area) -> Option<PathBuf> {
+    if let Some(stage) = &area.stage {
+        let file = stages.get(stage)?;
+        Some(file.to_path_buf())
+    } else if let Some(path) = &area.file {
+        let mut path = path.to_string();
+        // Allow environment variables in the path.
+        for (key, value) in env::vars() {
+            path = str::replace(&path, &format!("$({})", key), &value);
+        }
+
+        // If the path is an unused environment variable, skip it.
+        if path.starts_with("$(") && path.ends_with(")") {
+            return None;
+        }
+
+        let path = Path::new(&path);
+        let file = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            src_dir.join(path)
+        };
+        Some(file)
+    } else {
+        None
+    }
+}
+
 // In earlier versions of this function, we assumed all Areas had a non-zero
 // offset. There was a sort step to sort by offset as a first step.
 // Requiring users to compute all the offsets, and adjust them every time
@@ -46,8 +84,13 @@ pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> 
 // be placed after it. That way, only a limited number of offsets need
 // to be specified, possibly even 0, and the order in the ROM image will be the order
 // specified in the DTS.
-pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()> {
-    let mut f = fs::File::create(path)?;
+pub fn layout_flash(
+    src_dir: &Path,
+    out_path: &Path,
+    areas: Vec<Area>,
+    stages: HashMap<&str, PathBuf>,
+) -> io::Result<()> {
+    let mut f = fs::File::create(out_path)?;
     let mut last_area_end = 0;
     for a in areas {
         println!("{a:#?}");
@@ -60,54 +103,40 @@ pub fn layout_flash(dir: &Path, path: &Path, areas: Vec<Area>) -> io::Result<()>
         last_area_end = offset + size;
 
         println!("<{name}> @ 0x{last_area_end:x}");
-        // First fill with 0xff.
+        // First fill with empty bytes.
+        // TODO: rework to just filling up
         let mut v = Vec::new();
-        v.resize(size, 0xff);
+        v.resize(size, EMPTY_BYTE);
         f.seek(SeekFrom::Start(offset as u64))?;
         f.write_all(&v)?;
 
-        // If a file is specified, write the file.
-        if let Some(path) = &a.file {
-            let mut path = path.to_string();
-            // Allow environment variables in the path.
-            for (key, value) in env::vars() {
-                path = str::replace(&path, &format!("$({})", key), &value);
-            }
-
-            // If the path is an unused environment variable, skip it.
-            if path.starts_with("$(") && path.ends_with(")") {
-                continue;
-            }
-
-            f.seek(SeekFrom::Start(offset as u64))?;
-
-            let path = Path::new(&path);
-            let image_path = if path.is_absolute() {
-                path.to_path_buf()
-            } else {
-                dir.join(path)
-            };
-            println!("Read file {image_path:?}");
-            let data = match fs::read(&image_path) {
-                Err(e) => {
-                    return Err(io::Error::new(
-                        e.kind(),
-                        format!("Could not open: {image_path:?}"),
-                    ))
-                }
-                Ok(data) => data,
-            };
-            let file_size = data.len();
-            if file_size > size {
+        // We allow for omitting a file / leaving it blank.
+        let Some(file) = file_for_area(src_dir, &stages, &a) else {
+            println!("No file supplied");
+            continue;
+        };
+        // Copy stage or custom file to output file.
+        println!("Read file {file:?}");
+        let data = match fs::read(&file) {
+            Ok(data) => data,
+            Err(e) => {
                 return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!(
-                        "File {image_path:?} is too big to fit into the flash area, file size: {file_size} area size: {size}",
-                    ),
-                ));
+                    e.kind(),
+                    format!("Could not open: {file:?}"),
+                ))
             }
-            f.write_all(&data)?;
+        };
+        let file_size = data.len();
+        if file_size > size {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "File {file:?} is too big to fit into the flash area, file size: {file_size} area size: {size}",
+                ),
+            ));
         }
+        f.seek(SeekFrom::Start(offset as u64))?;
+        f.write_all(&data)?;
     }
     Ok(())
 }
@@ -210,7 +239,7 @@ fn read_create() {
 
     // This is relative to from where `cargo test` is run.
     let image = Path::new("out.bin");
-    layout_flash(Path::new("."), image, areas.to_vec()).unwrap();
+    layout_flash(Path::new("."), image, areas.to_vec(), HashMap::new()).unwrap();
 
     // Make sure we can read what we wrote and got the expected result.
     let data = fs::read(&image).expect("Unable to read file produced by layout");
