@@ -1,6 +1,7 @@
 use std::{
-    fs::{self, File},
-    path::{Path, PathBuf},
+    collections::HashMap,
+    fs::{self},
+    path::PathBuf,
     process,
 };
 
@@ -14,9 +15,6 @@ use crate::util::{
     platform_dir, target_dir, Bin,
 };
 use crate::{Commands, Env};
-
-// const SRAM0_SIZE = 128 * 1024;
-const SRAM0_SIZE: u64 = 32 * 1024;
 
 const ARCH: &str = "riscv64";
 
@@ -71,20 +69,15 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     );
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = target_dir.join(IMAGE_BIN);
-    let output_file = File::options()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(&output_file_path)
-        .expect("create output binary file");
-
-    output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
-
     let fdt = Fdt::new(&dtb).unwrap();
     let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(&target_dir, Path::new(&output_file_path), areas).unwrap();
+    let stage_bin_map = HashMap::from([
+        (MAIN_STAGE, target_dir.join(&stages.main.bin_name)), //
+    ]);
+
+    let output_file_path = plat_dir.join(IMAGE_BIN);
+    layout_flash(&target_dir, &output_file_path, areas, stage_bin_map).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }

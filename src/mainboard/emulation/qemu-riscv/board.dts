@@ -4,28 +4,32 @@
     #address-cells = <1>;
     #size-cells = <1>;
 
+    platform-info {
+        soc-name = "RISC-V virt";
+        vendor = "QEMU";
+        vendor-url = "https://www.qemu.org/docs/master/system/riscv/virt.html";
+    };
+
     flash-info {
         compatible = "ore-flashinfo";
-        board-name = "QEMU RISC-V VIRT";
-        category = "Emulation";
+        size =  <0x2000000>;
         areas {
             area@0 {
-                description = "Boot Blob and Romstage";
-                compatible = "ore-bootblob";
-                size = <0x100000>; // 1MiB
-                file = "$(BOOTBLOB)";
+                compatible = "ore-stage";
+                size = <0xf000>;
+                stage = "main";
             };
             area@1 {
-                description = "Fixed DTFS";
-                compatible = "ore-dtfs";
-                size = <0x80000>; // 512KiB
-                file = "$(FIXED_DTFS)";
+                compatible = "ore-manifest";
+                size = <0x1000>;
             };
+            /*
             area@2 {
-                description = "Empty Space";
-                offset = <0x180000>;
-                size = <0x1e80000>; // 1.9MiB
+                compatible = "ore-stage";
+                size = <0x1ff0000>; // remaining space
+                stage = "payload";
             };
+            */
         };
     };
 };
