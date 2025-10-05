@@ -40,22 +40,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("building VisionFive1");
-            let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            // Build the stages - should we parallelize this?
-            xtask_build_jh7100_flash_bt0(&args.env, &features);
-            xtask_build_jh7100_flash_main(&args.env);
-
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-            xtask_concat_flash_binaries(&args.env);
-            // dtb
-            compile_board_dt(
-                &args.env,
-                TARGET,
-                &platform_dir(&PathBuf::from(DIR)),
-                BOARD_DTB,
-            );
-            xtask_build_dtb_image(&args.env);
+            build_image(&args.env, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -65,6 +50,7 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
 
 fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
     trace!("build JH7100 flash bt0");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "bt0", "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
@@ -80,10 +66,13 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+
+    objcopy(env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
 }
 
 fn xtask_build_jh7100_flash_main(env: &Env) {
     trace!("build JH7100 flash main");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
@@ -91,6 +80,8 @@ fn xtask_build_jh7100_flash_main(env: &Env) {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
+
+    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
 }
 
 fn xtask_concat_flash_binaries(env: &Env) {
@@ -146,4 +137,13 @@ fn xtask_build_dtb_image(env: &Env) {
     layout_flash(Path::new(&dist_dir), Path::new(&output_file_path), areas).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
+}
+
+fn build_image(env: &Env, features: &[String]) {
+    // Build the stages - should we parallelize this?
+    xtask_build_jh7100_flash_bt0(env, features);
+    xtask_build_jh7100_flash_main(env);
+    xtask_concat_flash_binaries(env);
+    compile_board_dt(env, TARGET, &platform_dir(&PathBuf::from(DIR)), BOARD_DTB);
+    xtask_build_dtb_image(env);
 }
