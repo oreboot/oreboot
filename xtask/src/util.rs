@@ -66,7 +66,7 @@ pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
 /// Compile the board device tree.
 pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
     trace!("compile board device tree {dtb}");
-    let cwd = dist_dir(env, target);
+    let cwd = target_dir(env, target);
     let mut command = Command::new("dtc");
     command.current_dir(cwd);
     command.arg("-o");
@@ -83,7 +83,7 @@ pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
 /// Create a raw binary from an ELF.
 pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str, bin_path: &str) {
     trace!("objcopy binary, prefix: '{prefix}'");
-    let dir = dist_dir(env, target);
+    let dir = target_dir(env, target);
     let mut cmd = Command::new(format!("{prefix}objcopy"));
     cmd.current_dir(dir);
     cmd.arg(elf_path);
@@ -101,7 +101,7 @@ pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str
 /// Disssemble an ELF for inspection.
 pub fn objdump(env: &Env, prefix: &str, target: &str, elf_path: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = dist_dir(env, target);
+    let dir = target_dir(env, target);
     cmd.current_dir(dir);
     cmd.arg(elf_path);
     cmd.arg("-d");
@@ -159,8 +159,9 @@ pub fn platform_dir(plat_dir: &PathBuf) -> PathBuf {
 }
 
 /// Get the target specific build output directory.
-/// Example: `$OREBOOT_ROOT/target/riscv64imac-unknown-none-elf/release
-pub fn dist_dir(env: &Env, target: &str) -> PathBuf {
+/// This is where the ELF and objcopied binaries of the stages are found.
+/// Example: `$OREBOOT_ROOT/target/riscv64imac-unknown-none-elf/release/`
+pub fn target_dir(env: &Env, target: &str) -> PathBuf {
     let target_dir = project_root().join("target").join(target);
     let mode = if env.release { "release" } else { "debug" };
     target_dir.join(mode)

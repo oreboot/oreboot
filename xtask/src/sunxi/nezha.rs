@@ -1,5 +1,5 @@
 use crate::util::{
-    dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, Bin,
+    find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, target_dir, Bin,
 };
 use crate::{gdb_detect, Cli, Commands, Env, Memory};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -148,7 +148,7 @@ const EGON_HEAD_LENGTH: u64 = 0x60;
 // NOTE: old checksum value must be filled as stamp value
 fn bt0_egon_header(env: &Env, bin: &Bin) {
     println!("Filling eGON header...");
-    let path = dist_dir(env, &bin.target);
+    let path = target_dir(env, &bin.target);
     let mut bt0_bin = File::options()
         .read(true)
         .write(true)
@@ -197,7 +197,7 @@ const MAX_COMPRESSED_SIZE: usize = 0x00fc_0000;
 
 fn concat_binaries(env: &Env, stages: &Stages) {
     println!("Stitching final image 🏗️");
-    let dist_dir = dist_dir(env, &stages.bt0.target);
+    let dist_dir = target_dir(env, &stages.bt0.target);
     let mut bt0_file = File::options()
         .read(true)
         .open(dist_dir.join(&stages.bt0.bin_name))
@@ -293,7 +293,7 @@ fn concat_binaries(env: &Env, stages: &Stages) {
 fn burn_d1_bt0(xfel: &str, env: &Env, bin: &Bin) {
     println!("Write to flash with {xfel}");
     let mut cmd = Command::new(xfel);
-    cmd.current_dir(dist_dir(env, &bin.target));
+    cmd.current_dir(target_dir(env, &bin.target));
     match env.memory {
         Some(Memory::Nand) => cmd.arg("spinand"),
         Some(Memory::Nor) => cmd.arg("spinor"),
@@ -316,7 +316,7 @@ fn burn_d1_bt0(xfel: &str, env: &Env, bin: &Bin) {
 
 fn debug_gdb(env: &Env, bin: &Bin, gdb_path: &str, gdb_server: &str) {
     let mut command = Command::new(gdb_path);
-    command.current_dir(dist_dir(env, &bin.target));
+    command.current_dir(target_dir(env, &bin.target));
     command.args(["--eval-command", &format!("file {}", &bin.elf_name)]);
     command.args(["--eval-command", "set architecture riscv:rv64"]);
     command.args(["--eval-command", "mem 0x0 0xffff ro"]);

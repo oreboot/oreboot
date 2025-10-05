@@ -10,8 +10,8 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
-    objcopy, platform_dir, Bin,
+    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    platform_dir, target_dir, Bin,
 };
 use crate::{Commands, Env};
 
@@ -70,7 +70,7 @@ fn xtask_build_qemu_riscv_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
 
 fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
-    let target_dir = dist_dir(env, &stages.main.target);
+    let target_dir = target_dir(env, &stages.main.target);
 
     let dtb_path = target_dir.join(BOARD_DTB);
     compile_board_dt(
