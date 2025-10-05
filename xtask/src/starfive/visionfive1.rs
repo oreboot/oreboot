@@ -71,14 +71,7 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
@@ -91,14 +84,7 @@ fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {

@@ -80,14 +80,7 @@ fn xtask_build_jh7110_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[Strin
         process::exit(1);
     }
 
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
@@ -101,14 +94,7 @@ fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         process::exit(1);
     }
 
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
