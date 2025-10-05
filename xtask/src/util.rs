@@ -81,15 +81,15 @@ pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
 }
 
 /// Create a raw binary from an ELF.
-pub fn objcopy(env: &Env, prefix: &str, target: &str, arch: &str, elf_path: &str, bin_path: &str) {
+pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
     trace!("objcopy binary, prefix: '{prefix}'");
-    let dir = target_dir(env, target);
+    let dir = target_dir(env, &bin.target);
     let mut cmd = Command::new(format!("{prefix}objcopy"));
     cmd.current_dir(dir);
-    cmd.arg(elf_path);
+    cmd.arg(&bin.elf_name);
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
-    cmd.args(["-O", "binary", bin_path]);
+    cmd.args(["-O", "binary", &bin.bin_name]);
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
     if !status.success() {

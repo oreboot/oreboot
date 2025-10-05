@@ -58,14 +58,7 @@ fn xtask_build_qemu_riscv_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         process::exit(1);
     }
 
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {

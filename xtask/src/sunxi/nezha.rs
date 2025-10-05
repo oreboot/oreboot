@@ -105,14 +105,7 @@ fn build_d1_bt0(env: &Env, bin: &Bin, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 fn build_d1_main(env: &Env, bin: &Bin) {
@@ -130,14 +123,7 @@ fn build_d1_main(env: &Env, bin: &Bin) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(
-        env,
-        binutils_prefix,
-        &bin.target,
-        ARCH,
-        &bin.elf_name,
-        &bin.bin_name,
-    );
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
 const EGON_HEAD_LENGTH: u64 = 0x60;
