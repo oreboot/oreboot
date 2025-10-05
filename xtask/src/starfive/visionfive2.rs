@@ -6,8 +6,8 @@ use log::{error, info, trace, warn};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
-    objcopy, platform_dir, Bin,
+    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    platform_dir, target_dir, Bin,
 };
 use crate::{Cli, Commands, Env};
 
@@ -113,7 +113,7 @@ fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
 
 fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
-    let target_dir = dist_dir(env, &stages.main.target);
+    let target_dir = target_dir(env, &stages.main.target);
 
     let dtfs_path = target_dir.join(BOARD_DTFS);
     compile_board_dt(

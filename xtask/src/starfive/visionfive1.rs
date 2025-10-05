@@ -11,8 +11,8 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
-    objcopy, platform_dir, Bin,
+    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    platform_dir, target_dir, Bin,
 };
 use crate::{Commands, Env};
 
@@ -101,18 +101,18 @@ fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     );
 }
 
-fn xtask_concat_flash_binaries(env: &Env, stages: &Stages) {
-    let dist_dir = dist_dir(env, &stages.bt0.target);
+fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
+    let plat_dir = platform_dir(dir);
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join(&stages.bt0.bin_name))
+        .open(target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join(&stages.main.bin_name))
+        .open(target_dir(env, &stages.main.target).join(&stages.main.bin_name))
         .expect("open main binary file");
 
-    let output_file_path = dist_dir.join(IMAGE_BIN);
+    let output_file_path = plat_dir.join(IMAGE_BIN);
     let mut output_file = File::options()
         .write(true)
         .create(true)
@@ -135,9 +135,8 @@ fn xtask_concat_flash_binaries(env: &Env, stages: &Stages) {
 
 fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
-    let target_dir = dist_dir(env, &stages.main.target);
 
-    let dtb_path = target_dir.join(BOARD_DTB);
+    let dtb_path = target_dir(env, &stages.main.target).join(BOARD_DTB);
     compile_board_dt(
         env,
         &stages.main.target,
@@ -146,7 +145,7 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     );
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = target_dir.join(FDT_BIN);
+    let output_file_path = plat_dir.join(FDT_BIN);
     let output_file = File::options()
         .write(true)
         .create(true)
@@ -159,7 +158,12 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let fdt = Fdt::new(&dtb).unwrap();
     let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(&target_dir, &output_file_path, areas).unwrap();
+    layout_flash(
+        &target_dir(env, &stages.main.target),
+        &output_file_path,
+        areas,
+    )
+    .unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
@@ -168,6 +172,6 @@ fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
     xtask_build_jh7100_flash_bt0(env, dir, &stages.bt0, features);
     xtask_build_jh7100_flash_main(env, dir, &stages.main);
-    xtask_concat_flash_binaries(env, stages);
+    xtask_concat_flash_binaries(env, dir, stages);
     xtask_build_dtb_image(env, dir, stages);
 }
