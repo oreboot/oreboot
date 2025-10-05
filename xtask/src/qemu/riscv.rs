@@ -34,24 +34,12 @@ const IMAGE_BIN: &str = "emulation-qemu-riscv.bin";
 const DIR: &str = "emulation/qemu-riscv";
 
 pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
+    let dir = PathBuf::from(DIR);
+
     match args.command {
         Commands::Make => {
-            info!("building QEMU RiscV");
-            let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            // Build the stages - should we parallelize this?
-            xtask_build_qemu_riscv_flash_main(&args.env);
-
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-            xtask_concat_flash_binaries(&args.env);
-
-            // dtb
-            compile_board_dt(
-                &args.env,
-                TARGET,
-                &platform_dir(&PathBuf::from(DIR)),
-                BOARD_DTB,
-            );
-            xtask_build_dtb_image(&args.env);
+            info!("Build oreboot image for QEMU RISC-V");
+            build_image(&args.env, &dir);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -61,6 +49,7 @@ pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
 
 fn xtask_build_qemu_riscv_flash_main(env: &Env) {
     trace!("build QEMU RiscV flash main");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, &PathBuf::from(DIR), "main", "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
@@ -68,6 +57,8 @@ fn xtask_build_qemu_riscv_flash_main(env: &Env) {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
+
+    objcopy(env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
 }
 
 fn xtask_concat_flash_binaries(env: &Env) {
@@ -92,9 +83,12 @@ fn xtask_concat_flash_binaries(env: &Env) {
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
-fn xtask_build_dtb_image(env: &Env) {
+fn xtask_build_dtb_image(env: &Env, dir: &PathBuf) {
+    let plat_dir = platform_dir(dir);
     let dist_dir = dist_dir(env, TARGET);
+
     let dtb_path = dist_dir.join(BOARD_DTB);
+    compile_board_dt(env, TARGET, &plat_dir, dtb_path.to_str().unwrap());
     let dtb = fs::read(dtb_path).expect("dtb");
 
     let output_file_path = dist_dir.join(FDT_BIN);
@@ -113,4 +107,12 @@ fn xtask_build_dtb_image(env: &Env) {
     layout_flash(Path::new(&dist_dir), Path::new(&output_file_path), areas).unwrap();
     println!("======= DONE =======");
     println!("Output file: {:?}", &output_file_path.into_os_string());
+}
+
+fn build_image(env: &Env, dir: &PathBuf) {
+    // Build the stages - should we parallelize this?
+    xtask_build_qemu_riscv_flash_main(env);
+    xtask_concat_flash_binaries(env);
+
+    xtask_build_dtb_image(env, dir);
 }
