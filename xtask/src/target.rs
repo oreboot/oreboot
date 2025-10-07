@@ -2,6 +2,7 @@ use log::{error, trace};
 use std::path::{Component, Path, PathBuf};
 
 use crate::qemu;
+use crate::spacemit;
 use crate::starfive;
 use crate::sunxi;
 use crate::util::PLATFORM_BASE_PATH;
@@ -15,6 +16,7 @@ pub(crate) struct Target {
 
 #[derive(Debug, Clone, Copy)]
 enum Vendor {
+    Spacemit(spacemit::Board),
     StarFive(crate::starfive::Board),
     Sunxi(crate::sunxi::Board),
     Emulation(crate::qemu::Board),
@@ -25,6 +27,7 @@ impl Target {
         let dir = self.directory;
         let features = self.features;
         match self.vendor_board {
+            Vendor::Spacemit(spacemit) => spacemit.execute_command(command, &dir, features),
             Vendor::Sunxi(sunxi) => sunxi.execute_command(command, &dir, features),
             Vendor::StarFive(starfive) => starfive.execute_command(command, &dir, features),
             Vendor::Emulation(qemu) => qemu.execute_command(command, &dir, features),
@@ -44,6 +47,7 @@ pub(crate) fn parse_target(
     };
     if let Some((vendor, board)) = parse_target_str(cur_path, param_mainboard) {
         let vendor_board = match (vendor.as_ref(), board.as_ref()) {
+            ("spacemit", "k1x") => Vendor::Spacemit(spacemit::Board::K1),
             ("sunxi", "nezha") => Vendor::Sunxi(sunxi::Board::Nezha),
             ("sunxi", "H616") => Vendor::Sunxi(sunxi::Board::H616),
             ("starfive", "visionfive1") => Vendor::StarFive(starfive::Board::VisionFive1),
