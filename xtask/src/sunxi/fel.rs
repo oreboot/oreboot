@@ -1,11 +1,13 @@
-use crate::util::{platform_dir, target_dir, Bin};
-use crate::{Env, Memory};
-use log::{error, info, trace};
 use std::path::PathBuf;
 use std::{
     io::ErrorKind,
     process::{self, Command, Stdio},
 };
+
+use log::{error, info, trace};
+
+use crate::util::{platform_dir, target_dir, Stage};
+use crate::{Env, Memory};
 
 const XFEL_CMD: &str = "xfel";
 const XFEL_URL: &str = "https://github.com/xboot/xfel";
