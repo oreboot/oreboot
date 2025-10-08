@@ -32,20 +32,20 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for D1");
-            build_image(&args.env, &stages, &features);
+            build_image(&args.env, &dir, &stages, &features);
         }
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
             let xfel = find_xfel();
             xfel_find_connected_device(xfel);
-            build_image(&args.env, &stages, &features);
+            build_image(&args.env, &dir, &stages, &features);
             burn_d1_bt0(xfel, &args.env, &stages.bt0);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_d1_bt0(&args.env, &stages.bt0, &features);
+            build_d1_bt0(&args.env, &dir, &stages.bt0, &features);
             objdump(
                 &args.env,
                 binutils_prefix,
@@ -55,7 +55,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_d1_bt0(&args.env, &stages.bt0, &features);
+            build_d1_bt0(&args.env, &dir, &stages.bt0, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
@@ -77,19 +77,19 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
     }
 }
 
-fn build_image(env: &Env, stages: &Stages, features: &[String]) {
+fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    build_d1_bt0(env, &stages.bt0, features);
-    build_d1_main(env, &stages.main);
+    build_d1_bt0(env, dir, &stages.bt0, features);
+    build_d1_main(env, dir, &stages.main);
     bt0_egon_header(env, &stages.bt0);
     concat_binaries(env, stages);
 }
 
-fn build_d1_bt0(env: &Env, bin: &Bin, features: &[String]) {
+fn build_d1_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
     trace!("build D1 bt0");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "bt0", "build");
+    let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -108,11 +108,11 @@ fn build_d1_bt0(env: &Env, bin: &Bin, features: &[String]) {
     objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-fn build_d1_main(env: &Env, bin: &Bin) {
+fn build_d1_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     trace!("build D1 main");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-    let mut command = get_cargo_cmd_in(env, &PathBuf::from(BOARD_DIR), "main", "build");
+    let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     if env.supervisor {
         command.arg("--features");
         command.arg("supervisor");
