@@ -4,7 +4,8 @@ use std::path::{Component, Path};
 use crate::qemu;
 use crate::starfive;
 use crate::sunxi;
-use crate::util::project_root;
+use crate::util::PLATFORM_BASE_PATH;
+use crate::util::{platform_base_dir, project_root};
 
 pub(crate) struct Target {
     vendor_board: Vendor,
@@ -76,11 +77,7 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
             trace!("there is unexpected remaining string");
             return None;
         }
-        let input_mainboard_path = project_root()
-            .join("src")
-            .join("mainboard")
-            .join(vendor)
-            .join(board);
+        let input_mainboard_path = platform_base_dir().join(vendor).join(board);
         if !input_mainboard_path.exists() {
             trace!("path does not exist");
             return None;
@@ -94,11 +91,10 @@ fn parse_target_str(cur_path: &Path, param_mainboard: Option<&str>) -> Option<(S
             return None;
         }
     };
-    trace!("current relative path: {:?}", relative_path);
-    let mainboard_base_path = Path::new("src/mainboard");
+    trace!("current relative path: {relative_path:?}");
     // note(unwrap): both paths are relative
-    let mainboard = pathdiff::diff_paths(relative_path, mainboard_base_path).unwrap();
-    trace!("path diff to mainboard folder: {:?}", mainboard);
+    let mainboard = pathdiff::diff_paths(relative_path, PLATFORM_BASE_PATH).unwrap();
+    trace!("path diff to mainboard folder: {mainboard:?}");
     let mut components = mainboard.components();
     let vendor_board_from_path = match components.next() {
         Some(Component::Normal(vendor)) => {
