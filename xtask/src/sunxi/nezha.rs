@@ -13,7 +13,7 @@ use std::{
 
 // TODO: detect architecture for binutils
 const ARCH: &str = "riscv64";
-const BOARD_DIR: &str = "sunxi/nezha";
+
 const IMAGE_BIN: &str = "oreboot-nezha.bin";
 const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
@@ -23,29 +23,28 @@ struct Stages {
     main: Bin,
 }
 
-pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
-    let dir = PathBuf::from(BOARD_DIR);
-    let bt0 = get_bin_for(&dir, BT0_STAGE);
-    let main = get_bin_for(&dir, MAIN_STAGE);
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
+    let bt0 = get_bin_for(dir, BT0_STAGE);
+    let main = get_bin_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for D1");
-            build_image(&args.env, &dir, &stages, &features);
+            build_image(&args.env, dir, &stages, &features);
         }
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
             let xfel = find_xfel();
             xfel_find_connected_device(xfel);
-            build_image(&args.env, &dir, &stages, &features);
+            build_image(&args.env, dir, &stages, &features);
             burn_d1_bt0(xfel, &args.env, &stages.bt0);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_d1_bt0(&args.env, &dir, &stages.bt0, &features);
+            build_d1_bt0(&args.env, dir, &stages.bt0, &features);
             objdump(
                 &args.env,
                 binutils_prefix,
@@ -55,7 +54,7 @@ pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_d1_bt0(&args.env, &dir, &stages.bt0, &features);
+            build_d1_bt0(&args.env, dir, &stages.bt0, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
