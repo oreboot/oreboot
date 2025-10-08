@@ -1,5 +1,5 @@
 use log::{error, trace};
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
 
 use crate::qemu;
 use crate::starfive;
@@ -10,21 +10,24 @@ use crate::util::{platform_base_dir, project_root};
 pub(crate) struct Target {
     vendor_board: Vendor,
     features: Vec<String>,
+    directory: PathBuf,
 }
 
 #[derive(Debug, Clone, Copy)]
 enum Vendor {
-    StarFive(crate::starfive::Board),
-    Sunxi(crate::sunxi::Board),
-    Emulation(crate::qemu::Board),
+    StarFive(starfive::Board),
+    Sunxi(sunxi::Board),
+    Emulation(qemu::Board),
 }
 
 impl Target {
     pub(crate) fn execute_command(self, command: &crate::Cli) {
+        let dir = self.directory;
+        let features = self.features;
         match self.vendor_board {
-            Vendor::Sunxi(sunxi) => sunxi.execute_command(command, self.features),
-            Vendor::StarFive(starfive) => starfive.execute_command(command, self.features),
-            Vendor::Emulation(qemu) => qemu.execute_command(command, self.features),
+            Vendor::Sunxi(sunxi) => sunxi.execute_command(command, &dir, features),
+            Vendor::StarFive(starfive) => starfive.execute_command(command, &dir, features),
+            Vendor::Emulation(qemu) => qemu.execute_command(command, &dir, features),
         };
     }
 }
@@ -50,6 +53,7 @@ pub(crate) fn parse_target(
         return Some(Target {
             vendor_board,
             features,
+            directory: PathBuf::from(vendor).join(board),
         });
     };
     None

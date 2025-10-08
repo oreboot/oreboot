@@ -30,18 +30,15 @@ struct Stages {
     main: Bin,
 }
 
-const DIR: &str = "starfive/visionfive2";
-
-pub(crate) fn execute_command(args: &Cli, features: Vec<String>) {
-    let dir = PathBuf::from(DIR);
-    let bt0 = get_bin_for(&dir, BT0_STAGE);
-    let main = get_bin_for(&dir, MAIN_STAGE);
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
+    let bt0 = get_bin_for(dir, BT0_STAGE);
+    let main = get_bin_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for VisionFive2");
-            build_image(&args.env, &dir, &stages, &features);
+            build_image(&args.env, dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
