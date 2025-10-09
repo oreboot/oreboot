@@ -29,17 +29,14 @@ struct Stages {
     main: Bin,
 }
 
-const DIR: &str = "emulation/qemu-riscv";
-
-pub(crate) fn execute_command(args: &crate::Cli, _features: Vec<String>) {
-    let dir = PathBuf::from(DIR);
-    let main = get_bin_for(&dir, MAIN_STAGE);
+pub(crate) fn execute_command(args: &crate::Cli, dir: &PathBuf, _features: Vec<String>) {
+    let main = get_bin_for(dir, MAIN_STAGE);
     let stages = Stages { main };
 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for QEMU RISC-V");
-            build_image(&args.env, &dir, &stages);
+            build_image(&args.env, dir, &stages);
         }
         _ => {
             error!("command {:?} not implemented", args.command);

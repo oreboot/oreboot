@@ -14,7 +14,7 @@ use crate::util::{
     compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, target_dir, Bin,
 };
-use crate::{Commands, Env};
+use crate::{Cli, Commands, Env};
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
@@ -34,18 +34,15 @@ struct Stages {
     main: Bin,
 }
 
-const DIR: &str = "starfive/visionfive1";
-
-pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
-    let dir = PathBuf::from(DIR);
-    let bt0 = get_bin_for(&dir, BT0_STAGE);
-    let main = get_bin_for(&dir, MAIN_STAGE);
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
+    let bt0 = get_bin_for(dir, BT0_STAGE);
+    let main = get_bin_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for VisionFive1");
-            build_image(&args.env, &dir, &stages, &features);
+            build_image(&args.env, dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
