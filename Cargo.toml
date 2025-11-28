@@ -12,6 +12,7 @@ default-members = ["xtask"]
 resolver = "2"
 
 [profile.release]
+panic = "abort"
 opt-level = 'z' # Optimize for size.
 lto = true
 # Leave debug symbol information on release compilation mode
