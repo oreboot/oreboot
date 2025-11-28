@@ -13,11 +13,13 @@ resolver = "2"
 
 [profile.release]
 panic = "abort"
+codegen-units = 1
+debug = 0
 opt-level = 'z' # Optimize for size.
 lto = true
 # Leave debug symbol information on release compilation mode
 # That's okay, these symbols won't appear on flash binary
-debug = true
+# debug = true
 
 [profile.dev]
 opt-level = 1 # Use slightly better optimizations.
