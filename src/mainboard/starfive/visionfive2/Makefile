@@ -8,7 +8,7 @@ VF2LOADER ?= vf2-loader
 # full image path, including multiple stages
 IMAGE_BASE  = $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive2
 IMAGE_BT0  := $(IMAGE_BASE)-bt0
-IMAGE      := $(IMAGE_BASE).bin
+IMAGE      := $(OREBOOT)/src/mainboard/starfive/visionfive2/starfive-visionfive2.bin
 
 cibuild: mainboard
 
