@@ -3,7 +3,7 @@ TARGET     = riscv64imac-unknown-none-elf
 # full image path, including multiple stages
 IMAGE_BASE = $(OREBOOT)/target/$(TARGET)/release/starfive-visionfive1
 IMAGE_BT0 := $(IMAGE_BASE)-bt0
-IMAGE   := $(IMAGE_BASE).bin
+IMAGE   := $(OREBOOT)/src/mainboard/starfive/visionfive1/starfive-visionfive1.bin
 VERBOSE ?= -vvvv
 PORT    := /dev/ttyUSB0
 
