@@ -9,6 +9,7 @@ mod target;
 mod util;
 
 mod qemu;
+mod spacemit;
 mod starfive;
 mod sunxi;
 
