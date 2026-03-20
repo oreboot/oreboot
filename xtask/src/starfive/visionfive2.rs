@@ -7,7 +7,7 @@ use log::{error, info, trace, warn};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, target_dir, Bin,
 };
 use crate::{Cli, Commands, Env};
@@ -17,10 +17,6 @@ use super::visionfive2_hdr::{spl_create_hdr, HEADER_SIZE};
 const SRAM_SIZE: usize = 0x20_0000;
 
 const ARCH: &str = "riscv64";
-
-const BOARD_DTFS: &str = "starfive-visionfive2-board.dtb";
-
-const DTFS_IMAGE: &str = "starfive-visionfive2-dtfs.bin";
 
 const IMAGE: &str = "starfive-visionfive2.bin";
 
@@ -99,17 +95,11 @@ fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
     let main_target_dir = target_dir(env, &stages.main.target);
 
-    let dtfs_path = main_target_dir.join(BOARD_DTFS);
-    compile_board_dt(
-        env,
-        &stages.main.target,
-        &plat_dir,
-        dtfs_path.to_str().unwrap(),
-    );
-    let dtfs_file = fs::read(dtfs_path).expect("dtfs");
+    let dtb_path = compile_platform_dt(&plat_dir);
+    let dtb = fs::read(dtb_path).expect("platform DTB");
 
-    let dtfs = Fdt::new(&dtfs_file).unwrap();
-    let areas = create_areas(&dtfs).unwrap();
+    let fdt = Fdt::new(&dtb).unwrap();
+    let areas = create_areas(&fdt).unwrap();
 
     let stage_bin_map = HashMap::from([
         (
@@ -119,21 +109,20 @@ fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
         (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
     ]);
 
-    let dtfs_image_path = main_target_dir.join(DTFS_IMAGE);
-    if let Err(e) = layout_flash(&main_target_dir, &dtfs_image_path, areas, stage_bin_map) {
+    let out_path = plat_dir.join(IMAGE);
+    if let Err(e) = layout_flash(&main_target_dir, &out_path, areas, stage_bin_map) {
         error!("layoutflash fail: {e}");
         process::exit(1);
     }
 
     // TODO: how else do we do layoutflash + header?
-    trace!("add header to {dtfs_image_path:?}");
-    let dat = fs::read(dtfs_image_path).expect("DTFS image");
+    trace!("add header to {out_path:?}");
+    let dat = fs::read(&out_path).expect("DTFS image");
     // HACK: omit LinuxBoot etc so we fit in SRAM
     let cut = core::cmp::min(SRAM_SIZE, dat.len());
     trace!("image size {:08x} cut down to {cut:08x}", dat.len());
     let out = spl_create_hdr(dat[HEADER_SIZE as usize..cut].to_vec());
     trace!("final size {:08x}", out.len());
-    let out_path = plat_dir.join(IMAGE);
     fs::write(out_path.clone(), out).expect("writing final image");
 
     println!("======= DONE =======");

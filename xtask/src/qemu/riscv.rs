@@ -11,14 +11,12 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, target_dir, Bin,
 };
 use crate::{Commands, Env};
 
 const ARCH: &str = "riscv64";
-
-const BOARD_DTB: &str = "emulation-qemu-riscv-board.dtb";
 
 const IMAGE_BIN: &str = "oreboot-emulation-qemu-riscv.bin";
 
@@ -60,14 +58,8 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
     let target_dir = target_dir(env, &stages.main.target);
 
-    let dtb_path = target_dir.join(BOARD_DTB);
-    compile_board_dt(
-        env,
-        &stages.main.target,
-        &plat_dir,
-        dtb_path.to_str().unwrap(),
-    );
-    let dtb = fs::read(dtb_path).expect("dtb");
+    let dtb_path = compile_platform_dt(&plat_dir);
+    let dtb = fs::read(dtb_path).expect("platform DTB");
 
     let fdt = Fdt::new(&dtb).unwrap();
     let areas = create_areas(&fdt).unwrap();

@@ -12,7 +12,7 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_board_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
     platform_dir, target_dir, Bin,
 };
 use crate::{Cli, Commands, Env};
@@ -25,8 +25,6 @@ const ARCH: &str = "riscv64";
 // TODO: instead of hardcoding, create one binary per feature set.
 const IMAGE_BIN: &str = "starfive-visionfive1.bin";
 const FDT_BIN: &str = "starfive-visionfive1-dtfs.bin";
-
-const BOARD_DTB: &str = "starfive-visionfive1-board.dtb";
 
 const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
@@ -119,22 +117,17 @@ fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
 
 fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
+    let main_target_dir = target_dir(env, &stages.main.target);
 
-    let dtb_path = target_dir(env, &stages.main.target).join(BOARD_DTB);
-    compile_board_dt(
-        env,
-        &stages.main.target,
-        &plat_dir,
-        dtb_path.to_str().unwrap(),
-    );
+    let dtb_path = compile_platform_dt(&plat_dir);
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = plat_dir.join(FDT_BIN);
+    let output_path = plat_dir.join(FDT_BIN);
     let output_file = File::options()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(&output_file_path)
+        .open(&output_path)
         .expect("create output binary file");
 
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
@@ -147,15 +140,17 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
             BT0_STAGE,
             target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
         ),
-        (
-            MAIN_STAGE,
-            target_dir(env, &stages.main.target).join(&stages.main.bin_name),
-        ),
+        (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
+        ("payload", main_target_dir.join(&stages.main.bin_name)),
     ]);
 
-    layout_flash(&plat_dir, &output_file_path, areas, stage_bin_map).unwrap();
+    if let Err(e) = layout_flash(&main_target_dir, &output_path, areas, stage_bin_map) {
+        error!("layoutflash fail: {e}");
+        process::exit(1);
+    }
+
     println!("======= DONE =======");
-    println!("Output file: {:?}", &output_file_path.into_os_string());
+    println!("Output file: {:?}", &output_path.into_os_string());
 }
 
 fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
