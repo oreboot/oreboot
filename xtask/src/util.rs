@@ -8,6 +8,7 @@ use std::{
 // These utilities help find and run external commands.
 // Those are mostly toolchain components and vendor specific tools.
 
+// TODO: change into `"src/platform"`.
 pub const PLATFORM_BASE_PATH: &str = "src/mainboard";
 
 /// This gets you the `cargo` command in a specific directory.
@@ -42,13 +43,15 @@ pub struct Bin {
 const CARGO_CFG: &str = ".cargo/config.toml";
 const CARGO_TOML: &str = "Cargo.toml";
 
+/// For a given platform directory and stage, get a [Bin].
+///
 /// See https://doc.rust-lang.org/cargo/reference/config.html
 /// and https://doc.rust-lang.org/cargo/reference/manifest.html
 pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
     let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
-    let m = cargo_toml::Manifest::from_path(&f);
+    let m = cargo_toml::Manifest::from_path(&f).unwrap();
     trace!("{f:?}: {m:#?}");
-    let elf_name = m.unwrap().bin.first().unwrap().name.clone().unwrap();
+    let elf_name = m.bin.first().unwrap().name.clone().unwrap();
     let bin_name = format!("{elf_name}.bin");
     let f = platform_dir(plat_dir).join(stage).join(CARGO_CFG);
     let settings = config::Config::builder()
@@ -63,21 +66,26 @@ pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
     }
 }
 
-/// Compile the board device tree.
-pub fn compile_board_dt(env: &Env, target: &str, root: &Path, dtb: &str) {
-    trace!("compile board device tree {dtb}");
-    let cwd = target_dir(env, target);
+const PLATFORM_DTS: &str = "platform.dts";
+const PLATFORM_DTB: &str = "platform.dtb";
+
+/// Compile the platform device tree.
+pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
+    trace!("compile platform device tree for {plat_dir:?}");
+    let cwd = platform_dir(plat_dir);
+    let dtb_path = cwd.join(PLATFORM_DTB);
     let mut command = Command::new("dtc");
-    command.current_dir(cwd);
+    command.current_dir(&cwd);
     command.arg("-o");
-    command.arg(dtb);
-    command.arg(root.join("board.dts"));
+    command.arg(&dtb_path);
+    command.arg(cwd.join(PLATFORM_DTS));
     let status = command.status().unwrap();
     trace!("dtc returned {status}");
     if !status.success() {
         error!("dtc build failed with {status}");
         process::exit(1);
     }
+    dtb_path
 }
 
 /// Create a raw binary from an ELF.
