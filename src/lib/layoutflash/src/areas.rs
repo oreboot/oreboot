@@ -1,3 +1,5 @@
+use core::fmt::{Formatter, Result as FmtResult};
+
 use fdt::{node::FdtNode, Fdt, FdtError};
 
 pub struct FdtIterator<'a, 'b> {
@@ -27,6 +29,18 @@ pub struct Area<'a> {
     pub offset: Option<usize>,
     pub size: usize,
     pub file: Option<&'a str>,
+}
+
+use core::fmt::Display;
+impl Display for Area<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let n = self.name;
+        let s = self.size;
+        let st = self.stage.unwrap_or("[none]");
+        let o = self.offset.unwrap_or(0);
+        let fi = self.file.unwrap_or("[none]");
+        write!(f, "{n}: 0x{s:08x} bytes; {st}: {fi} @ {o:08x}")
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

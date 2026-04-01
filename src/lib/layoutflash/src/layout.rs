@@ -93,7 +93,7 @@ pub fn layout_flash(
     let mut f = fs::File::create(out_path)?;
     let mut last_area_end = 0;
     for a in areas {
-        println!("{a:#?}");
+        println!("{a}");
         let name = a.name;
         let size = a.size;
         let offset = a.offset.unwrap_or(last_area_end);
@@ -112,11 +112,11 @@ pub fn layout_flash(
 
         // We allow for omitting a file / leaving it blank.
         let Some(file) = file_for_area(src_dir, &stages, &a) else {
-            println!("No file supplied");
+            println!("  No file supplied");
             continue;
         };
         // Copy stage or custom file to output file.
-        println!("Read file {file:?}");
+        println!("  Read file {file:?}");
         let data = match fs::read(&file) {
             Ok(data) => data,
             Err(e) => {
