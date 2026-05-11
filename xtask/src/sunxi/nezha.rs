@@ -45,12 +45,7 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
             build_d1_bt0(&args.env, dir, &stages.bt0, &features);
-            objdump(
-                &args.env,
-                binutils_prefix,
-                &stages.bt0.target,
-                &stages.bt0.elf_name,
-            );
+            objdump(&args.env, &stages.bt0, binutils_prefix);
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
