@@ -30,10 +30,12 @@ struct EgonHead {
     string_pool: [u32; 13],
 }
 
+const JUMP_ARM_32: u32 = 0xea000016;
 const JUMP_RISCV_64: u32 = 0x0600006f;
 
 pub enum Arch {
     Riscv64,
+    Arm32,
 }
 
 const STAMP_VALUE: u32 = 0x5F0A6C39;
@@ -53,6 +55,7 @@ pub fn add_header(image: &[u8], arch: Arch) -> Vec<u8> {
     let len = image.len();
     let length = align_up_to(len, SIZE) as u32;
     let jump_instruction = match arch {
+        Arch::Arm32 => JUMP_ARM_32,
         Arch::Riscv64 => JUMP_RISCV_64,
     };
     // NOTE: We have to initialize the checksum with the stamp value.
