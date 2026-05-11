@@ -107,11 +107,11 @@ pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
 }
 
 /// Disssemble an ELF for inspection.
-pub fn objdump(env: &Env, prefix: &str, target: &str, elf_path: &str) {
+pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = target_dir(env, target);
+    let dir = target_dir(env, &bin.target);
     cmd.current_dir(dir);
-    cmd.arg(elf_path);
+    cmd.arg(&bin.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
 }
