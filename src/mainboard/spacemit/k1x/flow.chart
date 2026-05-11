@@ -1,0 +1,76 @@
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 15
+      bottom: 30
+    rankSpacing: 10
+    nodeSpacing: 25
+    padding: 8
+    wrappingWidth: 250
+
+  theme: "dark"
+  themeVariables:
+    fontFamily: "arial"
+    fontSize: '24px'
+
+    background: '#010'
+    mainBkg: '#000'
+    
+    lineColor: '#F8B229'
+    primaryColor: '#00c'
+    
+    textColor: '#fff5f1'
+    noteTextColor: '#dfc1f0'
+
+    primaryTextColor: '#ff61f0'
+    secondaryTextColor: '#ff61f0'
+
+    tertiaryTextColor: '#eff'
+---
+flowchart LR
+    subgraph ddr::init
+        direction LR
+        top_common_config-->top_ddr_mc_phy_device_init
+        top_ddr_mc_phy_device_init-->adjust_mapping
+        adjust_mapping-->ddr_dfc_table_init
+        ddr_dfc_table_init-->init_table_mc_a0
+        init_table_mc_a0-->training
+        training-->ddfcn[ddr_dfc n]
+    end
+
+    subgraph top_common_config
+        direction LR
+        enable_pll
+        mck6_sw_fc_top
+    end
+
+    subgraph top_ddr_mc_phy_device_init
+        direction LR
+        top_ddr_mc_init
+        top_ddr_phy_init
+    end
+
+    subgraph training
+        direction TB
+        ttfa1[top_training_fp_all 1]-->ddfc1
+        ddfc1[ddr_dfc 1]-->ttfa2
+        ttfa2[top_training_fp_all 2]-->ddfc2
+        ddfc2[ddr_dfc 2]-->ttfa3
+        ttfa3[top_training_fp_all 3]
+    end
+
+    subgraph top_training_fp_all
+        direction LR
+        sr1[self_refresh ON]-->train
+        train-->sr2[self_refresh OFF]
+    end
+
+    subgraph train
+        direction LR
+        fill_tmp
+        write_leveling
+        read_gate_train
+        read_train
+        write_train
+    end
