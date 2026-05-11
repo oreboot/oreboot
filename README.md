@@ -217,11 +217,11 @@ There are two different things in the project:
    can be drivers, SoC init code, and similar.
 2. `src/*` everything else; these are the aforementioned crates
 
-### Adding a new target
+### Adding a new platform
 
-Looking at how other targets are set up for the same architecture is a good
-start. Be aware that oreboot is targeting bare metal, so there is no standard
-library available.
+Looking at how other platforms are set up in order to aim for the same
+architecture is a good start. Be aware that oreboot is targeting bare metal, so
+there is no standard library available.
 
 1. Create a new directory structure for the vendor and platform under
    `src/mainboard/`, e.g., `mkdir -p src/mainboard/acme-silicon/soc-123/`.
@@ -232,11 +232,25 @@ library available.
    - `build.rs` for the linker script
    - `.cargo/config.toml` to define the target
 
-We also add a convenience `Makefile` with the target `build` for every stage and
-a board-level `Makefile` to wrap the stages. This is where you integrate with
-external tools and with the [oreboot build system](xtask/README.md).
-If possible, add a `run` target for `bt0` to run the code immediately. Many SoCs
-have a mask ROM that can load code via USB or serial for doing so.
+For every stage, add a `Makefile` with the target `build` to get started, until
+it is fully integrated with the [oreboot build system](xtask/README.md).
+
+Add a convenience platform-level `Makefile`, which may contain custom targets,
+e.g., to create diagrams, or integrate with external tools, and otherwise builds
+the stages and adds headers or similar if necessary.
+
+If possible, add a `run` target to run the `bt0` stage immediately.
+Many SoCs have a mask ROM that can load code via USB or serial for doing so.
+
+### Formatting
+
+We use [dprint](https://dprint.dev/).
+
+The configuration is in [`dprint.json`](dprint.json).
+Edit it to upgrade [plugins](https://plugins.dprint.dev/). For the exec plugin,
+see [releases on GitHub](https://github.com/dprint/dprint-plugin-exec/releases).
+
+The dprint version itself is maintained in the [`Makefile`](Makefile).
 
 ## Building oreboot
 
