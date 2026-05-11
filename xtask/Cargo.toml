@@ -16,5 +16,7 @@ fdt = "0.1.4"
 log = "0.4"
 miniz_oxide = "0.8.5"
 pathdiff = "0.2"
+zerocopy = "0.8.27"
+zerocopy-derive = "0.8.27"
 
 layoutflash = { path = "../src/lib/layoutflash", features = ["std"] }
