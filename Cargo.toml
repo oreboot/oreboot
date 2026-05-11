@@ -3,9 +3,9 @@
 members = [
   "src/arch",
   "src/cpu",
-  "src/soc",
   "src/lib/*",
   "src/mainboard/*/*/*",
+  "src/soc",
   "xtask",
 ]
 default-members = ["xtask"]
