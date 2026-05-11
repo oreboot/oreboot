@@ -114,6 +114,10 @@ enter supervisor at 40200000 with DTB from 41a00000
 
 </details>
 
+## Rust Style
+
+Follow the [Rust style guide](https://doc.rust-lang.org/style-guide/index.html).
+
 ## Rust Embedded
 
 ![Rust Embedded Working Group Logo](Documentation/img/rust-embedded-logo.png)
