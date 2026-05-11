@@ -1,19 +1,25 @@
-use crate::util::{
-    find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, target_dir, Bin,
-};
-use crate::{gdb_detect, Cli, Commands, Env, Memory};
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use log::{error, info, trace};
 use std::{
     fs::File,
-    io::{self, ErrorKind, Seek, SeekFrom, Write},
+    io::{self, Seek, SeekFrom, Write},
     path::PathBuf,
-    process::{self, Command, Stdio},
+    process::{self, Command},
+};
+
+use log::{error, info, trace};
+
+use crate::util::{
+    find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, platform_dir,
+    target_dir, Bin,
+};
+use crate::{
+    gdb_detect,
+    sunxi::{egon, fel},
+    Cli, Commands, Env,
 };
 
 // TODO: detect architecture for binutils
 const ARCH: &str = "riscv64";
-
+// TODO: instead of hardcoding, create one binary per feature set.
 const IMAGE_BIN: &str = "oreboot-nezha.bin";
 const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
@@ -36,20 +42,19 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
         Commands::Flash => {
             // TODO: print out variant etc
             info!("Build and flash oreboot image for D1");
-            let xfel = find_xfel();
-            xfel_find_connected_device(xfel);
+            fel::xfel_find_connected_device();
             build_image(&args.env, dir, &stages, &features);
-            burn_d1_bt0(xfel, &args.env, &stages.bt0);
+            fel::flash_image(&args.env, dir, IMAGE_BIN);
         }
         Commands::Asm => {
             info!("Build bt0 and view assembly for D1");
             let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            build_d1_bt0(&args.env, dir, &stages.bt0, &features);
+            build_bt0(&args.env, dir, &stages.bt0, &features);
             objdump(&args.env, &stages.bt0, binutils_prefix);
         }
         Commands::Gdb => {
             info!("Debug bt0 for D1 using gdb");
-            build_d1_bt0(&args.env, dir, &stages.bt0, &features);
+            build_bt0(&args.env, dir, &stages.bt0, &features);
             let gdb_path = if let Ok(ans) = gdb_detect::load_gdb_path_from_file() {
                 ans
             } else {
@@ -73,26 +78,25 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
 
 fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    build_d1_bt0(env, dir, &stages.bt0, features);
-    build_d1_main(env, dir, &stages.main);
-    bt0_egon_header(env, &stages.bt0);
-    concat_binaries(env, stages);
+    build_bt0(env, dir, &stages.bt0, features);
+    build_main(env, dir, &stages.main);
+    concat_binaries(env, dir, stages);
 }
 
-fn build_d1_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
-    trace!("build D1 bt0");
+fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
+    trace!("build {BT0_STAGE}");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
-        let command_line_features = features.join(",");
-        trace!("append command line features: {command_line_features}");
+        let platform_features = features.join(",");
+        trace!("append features: {platform_features}");
         command.arg("--no-default-features");
-        command.args(["--features", &command_line_features]);
+        command.args(["--features", &platform_features]);
     } else {
-        trace!("no command line features appended");
+        trace!("no features appended");
     }
-    trace!("run D1 bt0 build command: {command:?}");
+    trace!("run build command: {command:?}");
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
     if !status.success() {
@@ -100,16 +104,26 @@ fn build_d1_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
         process::exit(1);
     }
     objcopy(env, bin, binutils_prefix, ARCH);
+
+    let bin_file = target_dir(env, &bin.target).join(&bin.bin_name);
+    let bt0 = std::fs::read(&bin_file).expect("opening bt0 binary file");
+    let egon_bin = egon::add_header(&bt0, egon::Arch::Riscv64);
+    let mut output_file = File::options()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(&bin_file)
+        .expect("patch bt0 binary file");
+    output_file.write_all(&egon_bin).unwrap();
 }
 
-fn build_d1_main(env: &Env, dir: &PathBuf, bin: &Bin) {
-    trace!("build D1 main");
+fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
+    trace!("build {MAIN_STAGE}");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     if env.supervisor {
-        command.arg("--features");
-        command.arg("supervisor");
+        command.args(["--features", "supervisor"]);
     }
     let status = command.status().unwrap();
     trace!("cargo returned {status}");
@@ -120,71 +134,22 @@ fn build_d1_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-const EGON_HEAD_LENGTH: u64 = 0x60;
-
-// This function does:
-// 1. fill in binary length of bt0
-// 2. calculate checksum of bt0 image
-// NOTE: old checksum value must be filled as stamp value
-fn bt0_egon_header(env: &Env, bin: &Bin) {
-    println!("Filling eGON header...");
-    let path = target_dir(env, &bin.target);
-    let mut bt0_bin = File::options()
-        .read(true)
-        .write(true)
-        .open(path.join(&bin.bin_name))
-        .expect("open bt0 binary file");
-    let bt0_len = bt0_bin.metadata().unwrap().len();
-    if bt0_len < EGON_HEAD_LENGTH {
-        error!("bt0 size {bt0_len} less than minimal header length {EGON_HEAD_LENGTH}");
-    }
-    let new_len = align_up_to(bt0_len, 16 * 1024); // align up to 16KB
-    bt0_bin.set_len(new_len).unwrap();
-    bt0_bin.seek(SeekFrom::Start(0x10)).unwrap();
-    bt0_bin.write_u32::<LittleEndian>(new_len as u32).unwrap();
-
-    // fill in checksum
-    bt0_bin.seek(SeekFrom::Start(0x0C)).unwrap();
-    let stamp = bt0_bin.read_u32::<LittleEndian>().unwrap();
-    if stamp != 0x5F0A6C39 {
-        error!("wrong stamp value; check your generated blob and try again")
-    }
-    let mut checksum: u32 = 0;
-    bt0_bin.rewind().unwrap();
-    loop {
-        match bt0_bin.read_u32::<LittleEndian>() {
-            Ok(val) => checksum = checksum.wrapping_add(val),
-            Err(e) if e.kind() == ErrorKind::UnexpectedEof => break,
-            Err(e) => error!("calculating checksum: {e:?}"),
-        }
-    }
-    bt0_bin.seek(SeekFrom::Start(0x0C)).unwrap();
-    bt0_bin.write_u32::<LittleEndian>(checksum).unwrap();
-    bt0_bin.sync_all().unwrap();
-}
-
-fn align_up_to(len: u64, target_align: u64) -> u64 {
-    let (div, rem) = (len / target_align, len % target_align);
-    if rem != 0 {
-        (div + 1) * target_align
-    } else {
-        len
-    }
-}
-
 const FLASH_IMG_SIZE: u64 = 16 * 1024 * 1024;
+const M_MODE_PAYLOAD_SIZE: u64 = 2 * 1024 * 1024;
 const MAX_COMPRESSED_SIZE: usize = 0x00fc_0000;
 
-fn concat_binaries(env: &Env, stages: &Stages) {
-    println!("Stitching final image 🏗️");
-    let dist_dir = target_dir(env, &stages.bt0.target);
+fn concat_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
+    let plat_dir = platform_dir(dir);
+    let image_path = plat_dir.join(IMAGE_BIN);
+    println!("Stitching final image 🏗️ {image_path:?}");
+
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join(&stages.bt0.bin_name))
+        .open(target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join(&stages.main.bin_name))
+        .open(target_dir(env, &stages.main.target).join(&stages.main.bin_name))
         .expect("open main binary file");
 
     // TODO: evaluate flash layout
@@ -192,17 +157,15 @@ fn concat_binaries(env: &Env, stages: &Stages) {
     let max_main_len = 96 * 1024;
     let dtfs_len = 64 * 1024;
 
-    const M_MODE_PAYLOAD_SIZE: u64 = 2 * 1024 * 1024;
     let payload_offset = bt0_len + max_main_len + dtfs_len;
     let dtb_len = 64 * 1024;
 
-    let output_file_path = dist_dir.join(IMAGE_BIN);
-    let mut output_file = File::options()
+    let mut image_file = File::options()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(&output_file_path)
-        .expect("create output binary file");
+        .open(&image_path)
+        .expect("create image file");
 
     let img_size = match (env.payload.as_deref(), env.supervisor) {
         (Some(_), true) => {
@@ -219,14 +182,14 @@ fn concat_binaries(env: &Env, stages: &Stages) {
         }
     };
     println!("  Size: {img_size} bytes");
-    output_file.set_len(img_size).unwrap(); // FIXME: depend on storage
+    image_file.set_len(img_size).unwrap(); // FIXME: depend on storage
 
     println!("bt0 stage\n  Size: {bt0_len} bytes");
-    io::copy(&mut bt0_file, &mut output_file).expect("copying bt0 stage");
+    io::copy(&mut bt0_file, &mut image_file).expect("copying bt0 stage");
 
     let pos = SeekFrom::Start(bt0_len);
-    output_file.seek(pos).expect("seek after bt0");
-    io::copy(&mut main_file, &mut output_file).expect("copying main stage");
+    image_file.seek(pos).expect("seek after bt0");
+    io::copy(&mut main_file, &mut image_file).expect("copying main stage");
     let main_len = main_file.metadata().unwrap().len();
     println!("main stage\n  Size: {main_len} bytes");
 
@@ -238,7 +201,7 @@ fn concat_binaries(env: &Env, stages: &Stages) {
         let payload = std::fs::read(payload_file).expect("open payload file");
         println!("  Size: {} bytes", payload.len());
         let pos = SeekFrom::Start(payload_offset);
-        output_file.seek(pos).expect("seek after main stage");
+        image_file.seek(pos).expect("seek after main stage");
         println!("  Compressing...");
         let compressed = miniz_oxide::deflate::compress_to_vec_zlib(&payload, 9);
         let size = compressed.len();
@@ -250,54 +213,26 @@ fn concat_binaries(env: &Env, stages: &Stages) {
 
         println!("{:02x?}", &compressed[..0x20]);
 
-        output_file.write_all(&compressed).expect("copying payload");
+        image_file.write_all(&compressed).expect("copying payload");
         if let Some(dtb) = env.dtb.as_deref() {
             println!("DTB\n  File: {dtb}");
             let mut dtb_file = File::options().read(true).open(dtb).expect("open dtb file");
             let pos = SeekFrom::Start(FLASH_IMG_SIZE - dtb_len);
-            output_file.seek(pos).expect("seek to DTB position");
-            io::copy(&mut dtb_file, &mut output_file).expect("copy dtb");
+            image_file.seek(pos).expect("seek to DTB position");
+            io::copy(&mut dtb_file, &mut image_file).expect("copy dtb");
             let dtb_len = dtb_file.metadata().unwrap().len();
             println!("  Size: {dtb_len} bytes");
         }
     }
 
-    if let Some(o) = output_file_path.into_os_string().to_str() {
-        println!("Output\n  File: {o}",);
-    } else {
-        panic!("Could not get final output file.");
-    }
+    println!("Output\n  File: {image_path:?}",);
     println!("======= DONE =======");
-}
-
-fn burn_d1_bt0(xfel: &str, env: &Env, bin: &Bin) {
-    println!("Write to flash with {xfel}");
-    let mut cmd = Command::new(xfel);
-    cmd.current_dir(target_dir(env, &bin.target));
-    match env.memory {
-        Some(Memory::Nand) => cmd.arg("spinand"),
-        Some(Memory::Nor) => cmd.arg("spinor"),
-        // FIXME: error early, not here after minutes of build time!
-        None => {
-            error!("no memory parameter found; use --memory nand or --memory nor");
-            process::exit(1);
-        }
-    };
-    cmd.args(["write", "0"]);
-    cmd.arg(IMAGE_BIN);
-    println!("Command: {cmd:?}");
-    let status = cmd.status().unwrap();
-    trace!("xfel returned {status}");
-    if !status.success() {
-        error!("xfel failed with {status}");
-        process::exit(1);
-    }
 }
 
 fn debug_gdb(env: &Env, bin: &Bin, gdb_path: &str, gdb_server: &str) {
     let mut command = Command::new(gdb_path);
     command.current_dir(target_dir(env, &bin.target));
-    command.args(["--eval-command", &format!("file {}", &bin.elf_name)]);
+    command.args(["--eval-command", &format!("file {}", bin.elf_name)]);
     command.args(["--eval-command", "set architecture riscv:rv64"]);
     command.args(["--eval-command", "mem 0x0 0xffff ro"]);
     command.args(["--eval-command", "mem 0x20000 0x27fff rw"]);
@@ -312,43 +247,4 @@ fn debug_gdb(env: &Env, bin: &Bin, gdb_path: &str, gdb_server: &str) {
         error!("gdb failed with {}", status);
         process::exit(1);
     }
-}
-
-// TODO: factor out generic command detection function
-const CMD: &str = "xfel";
-
-fn find_xfel() -> &'static str {
-    let mut command = Command::new(CMD);
-    command.stdout(Stdio::null());
-    match command.status() {
-        Ok(status) if status.success() => return CMD,
-        Ok(status) => match status.code() {
-            Some(code) => {
-                error!("{CMD} command failed with code {code}");
-                process::exit(code)
-            }
-            None => error!("xfel command terminated by signal"),
-        },
-        Err(e) if e.kind() == ErrorKind::NotFound => error!(
-            "{CMD} not found
-    install xfel from: https://github.com/xboot/xfel"
-        ),
-        Err(e) => error!(
-            "I/O error occurred when detecting xfel: {e}.
-    Please check your xfel program and try again."
-        ),
-    }
-    process::exit(1)
-}
-
-fn xfel_find_connected_device(xfel: &str) {
-    let mut command = Command::new(xfel);
-    command.arg("version");
-    let output = command.output().unwrap();
-    if !output.status.success() {
-        error!("xfel failed with code {}", output.status);
-        error!("Is your device in FEL mode?");
-        process::exit(1);
-    }
-    info!("Found {}", String::from_utf8_lossy(&output.stdout).trim());
 }
