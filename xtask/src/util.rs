@@ -45,8 +45,8 @@ const CARGO_TOML: &str = "Cargo.toml";
 
 /// For a given platform directory and stage, get a [Bin].
 ///
-/// See https://doc.rust-lang.org/cargo/reference/config.html
-/// and https://doc.rust-lang.org/cargo/reference/manifest.html
+/// See <https://doc.rust-lang.org/cargo/reference/config.html>
+/// and <https://doc.rust-lang.org/cargo/reference/manifest.html>
 pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
     let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
     let m = cargo_toml::Manifest::from_path(&f).unwrap();
