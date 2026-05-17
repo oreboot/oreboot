@@ -8,8 +8,8 @@ use std::{
 use log::{error, info, trace};
 
 use crate::util::{
-    analyze, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump,
-    platform_dir, target_dir, Bin,
+    analyze, find_binutils_prefix_or_fail, get_cargo_cmd_in, get_stage_for, objcopy, objdump,
+    platform_dir, target_bin, target_dir, Stage,
 };
 use crate::{
     gdb_detect,
@@ -25,13 +25,13 @@ const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
 
 struct Stages {
-    bt0: Bin,
-    main: Bin,
+    bt0: Stage,
+    main: Stage,
 }
 
 pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
-    let bt0 = get_bin_for(dir, BT0_STAGE);
-    let main = get_bin_for(dir, MAIN_STAGE);
+    let bt0 = get_stage_for(dir, BT0_STAGE);
+    let main = get_stage_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
@@ -93,7 +93,7 @@ fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     concat_binaries(env, dir, stages);
 }
 
-fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
+fn build_bt0(env: &Env, dir: &PathBuf, stage: &Stage, features: &[String]) {
     trace!("build {BT0_STAGE}");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
@@ -113,9 +113,9 @@ fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 
-    let bin_file = target_dir(env, &bin.target).join(&bin.bin_name);
+    let bin_file = target_bin(env, stage);
     let bt0 = std::fs::read(&bin_file).expect("opening bt0 binary file");
     let egon_bin = egon::add_header(&bt0, egon::Arch::Riscv64);
     let mut output_file = File::options()
@@ -127,7 +127,7 @@ fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
     output_file.write_all(&egon_bin).unwrap();
 }
 
-fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
+fn build_main(env: &Env, dir: &PathBuf, stage: &Stage) {
     trace!("build {MAIN_STAGE}");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
@@ -141,7 +141,7 @@ fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
 const FLASH_IMG_SIZE: u64 = 16 * 1024 * 1024;
@@ -155,11 +155,11 @@ fn concat_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
 
     let mut bt0_file = File::options()
         .read(true)
-        .open(target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name))
+        .open(target_bin(env, &stages.bt0))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(target_dir(env, &stages.main.target).join(&stages.main.bin_name))
+        .open(target_bin(env, &stages.main))
         .expect("open main binary file");
 
     // TODO: evaluate flash layout
@@ -239,10 +239,10 @@ fn concat_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
     println!("======= DONE =======");
 }
 
-fn debug_gdb(env: &Env, bin: &Bin, gdb_path: &str, gdb_server: &str) {
+fn debug_gdb(env: &Env, stage: &Stage, gdb_path: &str, gdb_server: &str) {
     let mut command = Command::new(gdb_path);
-    command.current_dir(target_dir(env, &bin.target));
-    command.args(["--eval-command", &format!("file {}", bin.elf_name)]);
+    command.current_dir(target_dir(env, &stage.target));
+    command.args(["--eval-command", &format!("file {}", stage.elf_name)]);
     command.args(["--eval-command", "set architecture riscv:rv64"]);
     command.args(["--eval-command", "mem 0x0 0xffff ro"]);
     command.args(["--eval-command", "mem 0x20000 0x27fff rw"]);
