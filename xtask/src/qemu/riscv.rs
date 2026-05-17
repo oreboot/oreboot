@@ -11,8 +11,8 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    analyze, compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
-    objcopy, platform_dir, target_bin, Bin,
+    analyze, compile_platform_dt, find_binutils_prefix_or_fail, get_cargo_cmd_in, get_stage_for,
+    objcopy, platform_dir, target_bin, Stage,
 };
 use crate::{Cli, Commands, Env};
 
@@ -23,11 +23,11 @@ const IMAGE_BIN: &str = "oreboot-emulation-qemu-riscv.bin";
 
 const MAIN_STAGE: &str = "main";
 struct Stages {
-    main: Bin,
+    main: Stage,
 }
 
 pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
-    let main = get_bin_for(dir, MAIN_STAGE);
+    let main = get_stage_for(dir, MAIN_STAGE);
     let stages = Stages { main };
 
     match args.command {
@@ -46,8 +46,8 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     }
 }
 
-fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
-    trace!("build {MAIN_STAGE}");
+fn build_main(env: &Env, dir: &PathBuf, stage: &Stage) {
+    trace!("build {}", stage.name);
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
@@ -57,7 +57,7 @@ fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
 fn build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
