@@ -12,24 +12,34 @@ use crate::areas::{Area, AREAS_PATH};
 const EMPTY_BYTE: u8 = 0xff;
 
 /// Create the areas from the FDT.
-pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
+pub fn create_areas<'a>(fdt: &fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
     let mut areas: Vec<Area> = vec![];
     let mut offset = 0;
     for node in fdt.find_all_nodes(AREAS_PATH) {
         for c in node.children() {
-            match Area::from_node(c) {
-                Ok(mut a) => {
-                    if a.offset.is_none() {
-                        a.offset = Some(offset);
-                    }
-                    areas.push(a);
-                }
-                Err(e) => return Err(format!("{}: {e:?}", c.name)),
-            }
-            if let Some(o) = c.property("offset") {
-                offset = o.as_usize().unwrap();
-            }
-            offset += c.property("size").unwrap().as_usize().unwrap();
+            let name = c.name;
+            let stage = c
+                .properties()
+                .find(|p| p.name == "stage")
+                .map_or_else(|| None, |e| e.as_str());
+            let file = c
+                .properties()
+                .find(|p| p.name == "file")
+                .map_or_else(|| None, |e| e.as_str());
+            let offset = c
+                .properties()
+                .find(|p| p.name == "offset")
+                .map_or_else(|| None, |e| e.as_usize());
+            let Some(size) = c.properties().find(|p| p.name == "size") else {
+                return Err(format!("{name}: No size provided"));
+            };
+            areas.push(Area {
+                name,
+                stage,
+                file,
+                offset,
+                size: size.as_usize().unwrap(),
+            });
         }
     }
     Ok(areas)
