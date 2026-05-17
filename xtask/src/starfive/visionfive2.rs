@@ -8,7 +8,7 @@ use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
-    platform_dir, target_dir, Bin,
+    platform_dir, target_bin, target_dir, Bin,
 };
 use crate::{Cli, Commands, Env};
 
@@ -102,11 +102,8 @@ fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let areas = create_areas(&fdt).unwrap();
 
     let stage_bin_map = HashMap::from([
-        (
-            BT0_STAGE,
-            target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
-        ),
-        (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
+        (BT0_STAGE, target_bin(env, &stages.bt0)),
+        (MAIN_STAGE, target_bin(env, &stages.main)),
     ]);
 
     let out_path = plat_dir.join(IMAGE);

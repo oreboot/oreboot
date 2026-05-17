@@ -174,3 +174,8 @@ pub fn target_dir(env: &Env, target: &str) -> PathBuf {
     let mode = if env.release { "release" } else { "debug" };
     target_dir.join(mode)
 }
+
+/// Get the target specific build output raw binary file.
+pub fn target_bin(env: &Env, bin: &Bin) -> PathBuf {
+    target_dir(env, &bin.target).join(&bin.bin_name)
+}
