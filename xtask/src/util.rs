@@ -1,9 +1,12 @@
-use crate::Env;
-use log::{error, info, trace};
 use std::{
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
 };
+
+use log::{debug, error, info, trace};
+use serde::{Deserialize, Serialize};
+
+use crate::Env;
 
 // These utilities help find and run external commands.
 // Those are mostly toolchain components and vendor specific tools.
@@ -118,6 +121,74 @@ pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
     cmd.arg(&bin.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct FileSummary {
+    file: String,
+    format: String,
+    arch: String,
+    address_size: String,
+    load_name: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackSizeEntry {
+    functions: Vec<String>,
+    size: usize,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackSize {
+    entry: StackSizeEntry,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackAnalysis {
+    file_summary: FileSummary,
+    stack_sizes: Vec<StackSize>,
+}
+
+/// Analyze an ELF for its stack size using readobj.
+///
+/// NOTE: If this fails, something is wrong with the command invocation.
+/// In that case, check the debug output.
+/// TODO: There may be crates for doing this, or programmatic interfaces.
+pub fn analyze(env: &Env, bin: &Bin) {
+    let mut cmd = Command::new("rust-readobj");
+    let dir = target_dir(env, &bin.target);
+    cmd.current_dir(dir);
+    cmd.arg(&bin.elf_name);
+    cmd.arg("--demangle");
+    cmd.arg("--stack-sizes");
+    cmd.arg("--elf-output-style");
+    cmd.arg("JSON");
+    debug!("{cmd:?}");
+    let output = cmd.output().unwrap();
+    let outstr = str::from_utf8(&output.stdout).unwrap();
+    debug!("{outstr}");
+
+    let mut parsed: Vec<StackAnalysis> = serde_json::from_str(outstr).unwrap();
+    let summary = &parsed[0].file_summary;
+    info!("{summary:#?}");
+
+    let entries = &mut parsed[0].stack_sizes;
+    let sizes = entries.iter().map(|e| e.entry.size).collect::<Vec<usize>>();
+    let total = sizes.into_iter().sum::<usize>();
+    info!("Total stack size: {total}");
+
+    entries.sort_by_key(|e| e.entry.size);
+    let biggest = entries
+        .iter()
+        .rev()
+        .take(10)
+        .map(|e| e.entry.clone())
+        .collect::<Vec<StackSizeEntry>>();
+    info!("Largest entries: {biggest:#?}");
 }
 
 /// Figure out the prefix for a toolchain's binutils.
