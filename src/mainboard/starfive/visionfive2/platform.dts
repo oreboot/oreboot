@@ -18,6 +18,7 @@
                 description = "JH7110 specific header";
                 compatible = "none";
                 size = <0x400>; // 1k
+                stage = "header";
             };
 
             area@1 {
@@ -29,6 +30,7 @@
             area@2 {
                 compatible = "ore-manifest";
                 size = <0x1000>;
+                file = "$(DTFS)";
             };
 
             area@3 {
