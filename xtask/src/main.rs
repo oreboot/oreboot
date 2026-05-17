@@ -14,7 +14,7 @@ mod sunxi;
 
 #[derive(Parser)]
 #[clap(name = "xtask")]
-#[clap(about = "Program that help you build and debug Oreboot project", long_about = None)]
+#[clap(about = "The oreboot build system", long_about = None)]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
@@ -26,13 +26,13 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Make this project
+    /// Make this project, i.e., build a full image
     Make,
-    /// Build flash and burn into target
+    /// Build image and flash to target
     Flash,
-    /// View assembly code
+    /// View assembly code, as in objdump
     Asm,
-    /// Debug code using gdb
+    /// Debug code using gdb, as supported by the platform
     Gdb,
 }
 
