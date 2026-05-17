@@ -7,8 +7,8 @@ use log::{error, info, trace, warn};
 use cast_iron::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
-    platform_dir, target_bin, target_dir, Bin,
+    compile_platform_dt, find_binutils_prefix_or_fail, get_cargo_cmd_in, get_stage_for, objcopy,
+    platform_dir, target_bin, Stage,
 };
 use crate::{Cli, Commands, Env};
 
@@ -24,13 +24,13 @@ const IMAGE: &str = "starfive-visionfive2.bin";
 const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
 struct Stages {
-    bt0: Bin,
-    main: Bin,
+    bt0: Stage,
+    main: Stage,
 }
 
 pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
-    let bt0 = get_bin_for(dir, BT0_STAGE);
-    let main = get_bin_for(dir, MAIN_STAGE);
+    let bt0 = get_stage_for(dir, BT0_STAGE);
+    let main = get_stage_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
@@ -44,7 +44,7 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     }
 }
 
-fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
+fn build_bt0(env: &Env, dir: &PathBuf, stage: &Stage, features: &[String]) {
     trace!("build {BT0_STAGE}");
     // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
@@ -75,10 +75,10 @@ fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
-fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
+fn build_main(env: &Env, dir: &PathBuf, stage: &Stage) {
     trace!("build {MAIN_STAGE}");
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
@@ -88,7 +88,7 @@ fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
 fn build_image(env: &Env, dir: &PathBuf, stages: &Stages) {

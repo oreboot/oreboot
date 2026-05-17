@@ -1,4 +1,4 @@
-use crate::util::platform_dir;
+use crate::util::{platform_dir, Stage};
 use crate::{Env, Memory};
 use log::{error, info, trace};
 use std::path::PathBuf;
