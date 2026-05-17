@@ -1,5 +1,5 @@
 use crate::Env;
-use log::{error, trace};
+use log::{error, info, trace};
 use std::{
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
@@ -70,6 +70,9 @@ const PLATFORM_DTS: &str = "platform.dts";
 const PLATFORM_DTB: &str = "platform.dtb";
 
 /// Compile the platform device tree.
+///
+/// TODO: Use Rust tooling and return Fdt directly.
+/// TODO: Consider a different declarative input format.
 pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
     trace!("compile platform device tree for {plat_dir:?}");
     let cwd = platform_dir(plat_dir);
@@ -98,6 +101,7 @@ pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
     cmd.args(["-O", "binary", &bin.bin_name]);
+    info!("run {cmd:?}");
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
     if !status.success() {
@@ -149,10 +153,8 @@ pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
 
 /// Get the oreboot root directory.
 pub fn project_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
+    let d = env!("CARGO_MANIFEST_DIR");
+    Path::new(d).ancestors().nth(1).unwrap()
 }
 
 /// Get the full path of the base directory of all platforms.
