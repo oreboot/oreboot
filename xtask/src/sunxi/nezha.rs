@@ -73,6 +73,9 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
             };
             debug_gdb(&args.env, &stages.bt0, &gdb_path, &gdb_server);
         }
+        _ => {
+            todo!("implement {:?} command", args.command);
+        }
     }
 }
 
