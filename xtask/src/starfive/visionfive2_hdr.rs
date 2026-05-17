@@ -135,8 +135,8 @@ pub fn spl_create_hdr(payload: Vec<u8>) -> Vec<u8> {
 
 #[test]
 fn test_hdr() {
-    static HOSTS: &[u8] = include_bytes!("testdata/hosts");
-    static HOSTS_OUT: &[u8] = include_bytes!("testdata/hosts.normal.out");
+    static HOSTS: &[u8] = include_bytes!("./testdata/hosts");
+    static HOSTS_OUT: &[u8] = include_bytes!("./testdata/hosts.normal.out");
 
     let out = spl_create_hdr(HOSTS.to_vec());
     assert_eq!(HOSTS_OUT.len(), out.len());
