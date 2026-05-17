@@ -30,6 +30,8 @@ enum Commands {
     Make,
     /// Build image and flash to target
     Flash,
+    /// Run from SRAM, as supported by the platform
+    Run,
     /// View assembly code, as in objdump
     Asm,
     /// Debug code using gdb, as supported by the platform
