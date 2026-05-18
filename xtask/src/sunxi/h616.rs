@@ -2,7 +2,7 @@ use std::{fs::File, io::Write, path::PathBuf, process};
 
 use log::{error, info, trace};
 
-use crate::util::{get_bin_for, get_cargo_cmd_in, objcopy, target_dir, Bin};
+use crate::util::{get_cargo_cmd_in, get_stage_for, objcopy, target_bin, Stage};
 use crate::{Cli, Commands, Env};
 
 use super::{egon, fel};
@@ -18,11 +18,11 @@ const BT32_STAGE: &str = "bt32";
 const IMAGE_BIN: &str = "oreboot_allwinner_h616.bin";
 
 struct Stages {
-    bt32: Bin,
+    bt32: Stage,
 }
 
 pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
-    let bt32 = get_bin_for(dir, BT32_STAGE);
+    let bt32 = get_stage_for(dir, BT32_STAGE);
     let stages = Stages { bt32 };
 
     match args.command {
@@ -69,7 +69,7 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     }
 }
 
-fn build_bt32(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
+fn build_bt32(env: &Env, dir: &PathBuf, stage: &Stage, features: &[String]) {
     trace!("build H616 bt32");
     // Get binutils first so we can fail early
     let binutils_prefix = "arm-linux-gnueabi-";
@@ -89,8 +89,8 @@ fn build_bt32(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-    objcopy(env, &bin, binutils_prefix, ARCH);
-    let bin_file = target_dir(env, &bin.target).join(&bin.bin_name);
+    objcopy(env, stage, binutils_prefix, ARCH);
+    let bin_file = target_bin(env, stage);
     let bt32 = std::fs::read(&bin_file).expect("opening bt32 binary file");
     let egon_bin = egon::add_header(&bt32, egon::Arch::Arm32);
     let mut output_file = File::options()
