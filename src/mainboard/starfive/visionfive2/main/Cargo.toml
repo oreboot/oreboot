@@ -9,11 +9,11 @@ authors = [
 edition = "2021"
 
 [dependencies]
-embedded-hal = "1.0.0"
-embedded-hal-nb = "1.0.0"
+embedded-hal.workspace = true
+embedded-hal-nb.workspace = true
 nb = "1"
 riscv = "0.10.1"
-spin = "0.9"
+spin.workspace = true
 
 [dependencies.soc]
 path = "../../../../soc"
