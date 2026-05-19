@@ -13,7 +13,7 @@ use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
-    platform_dir, target_dir, Bin,
+    platform_dir, target_bin, target_dir, Bin,
 };
 use crate::{Cli, Commands, Env};
 
@@ -41,7 +41,7 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for VisionFive1");
-            build_image(&args.env, dir, &stages, &features);
+            build(&args.env, dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -49,8 +49,9 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     }
 }
 
-fn xtask_build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
-    trace!("build JH7100 flash bt0");
+fn build_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
+    trace!("build {BT0_STAGE}");
+    // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
@@ -70,8 +71,9 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &
     objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
-    trace!("build JH7100 flash main");
+fn build_main(env: &Env, dir: &PathBuf, bin: &Bin) {
+    trace!("build {MAIN_STAGE}");
+    // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     let status = command.status().unwrap();
@@ -83,8 +85,11 @@ fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
+fn concat_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
+    let img_path = plat_dir.join(IMAGE_BIN);
+    println!("Stitching final image 🏗️ {img_path:?}");
+
     let mut bt0_file = File::options()
         .read(true)
         .open(target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name))
@@ -94,28 +99,28 @@ fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
         .open(target_dir(env, &stages.main.target).join(&stages.main.bin_name))
         .expect("open main binary file");
 
-    let output_file_path = plat_dir.join(IMAGE_BIN);
-    let mut output_file = File::options()
+    let mut img_file = File::options()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(&output_file_path)
+        .open(&img_path)
         .expect("create output binary file");
 
-    output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
+    // FIXME: depend on storage
+    img_file.set_len(SRAM0_SIZE).unwrap();
 
     let bt0_len = 30 * 1024;
-    io::copy(&mut bt0_file, &mut output_file).expect("copy bt0 binary");
-    output_file
+    io::copy(&mut bt0_file, &mut img_file).expect("copy bt0 binary");
+    img_file
         .seek(SeekFrom::Start(bt0_len))
         .expect("seek after bt0 copy");
-    io::copy(&mut main_file, &mut output_file).expect("copy main binary");
+    io::copy(&mut main_file, &mut img_file).expect("copy main binary");
 
     println!("======= DONE =======");
-    println!("Output file: {:?}", &output_file_path.into_os_string());
+    println!("Output file: {:?}", &img_path.into_os_string());
 }
 
-fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
+fn build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
     let main_target_dir = target_dir(env, &stages.main.target);
 
@@ -136,12 +141,10 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let areas = create_areas(&fdt).unwrap();
 
     let stage_bin_map = HashMap::from([
-        (
-            BT0_STAGE,
-            target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
-        ),
-        (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
-        ("payload", main_target_dir.join(&stages.main.bin_name)),
+        (BT0_STAGE, target_bin(env, &stages.bt0)),
+        (MAIN_STAGE, target_bin(env, &stages.main)),
+        // TODO: use actual payload, this is a hack
+        ("payload", target_bin(env, &stages.main)),
     ]);
 
     if let Err(e) = layout_flash(&main_target_dir, &output_path, areas, stage_bin_map) {
@@ -153,10 +156,10 @@ fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     println!("Output file: {:?}", &output_path.into_os_string());
 }
 
-fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
+fn build(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    xtask_build_jh7100_flash_bt0(env, dir, &stages.bt0, features);
-    xtask_build_jh7100_flash_main(env, dir, &stages.main);
-    xtask_concat_flash_binaries(env, dir, stages);
-    xtask_build_dtb_image(env, dir, stages);
+    build_bt0(env, dir, &stages.bt0, features);
+    build_main(env, dir, &stages.main);
+    concat_binaries(env, dir, stages);
+    build_image(env, dir, stages);
 }
