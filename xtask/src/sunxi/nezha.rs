@@ -8,8 +8,8 @@ use std::{
 use log::{error, info, trace};
 
 use crate::util::{
-    find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump, platform_dir,
-    target_dir, Bin,
+    analyze, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy, objdump,
+    platform_dir, target_dir, Bin,
 };
 use crate::{
     gdb_detect,
@@ -72,6 +72,13 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
                 ans
             };
             debug_gdb(&args.env, &stages.bt0, &gdb_path, &gdb_server);
+        }
+        Commands::Analyze => {
+            info!("Build bt0 and analyze for D1");
+            build_bt0(&args.env, dir, &stages.bt0, &features);
+            analyze(&args.env, &stages.bt0);
+            build_main(&args.env, dir, &stages.bt0);
+            analyze(&args.env, &stages.main);
         }
         _ => {
             todo!("implement {:?} command", args.command);

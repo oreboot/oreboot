@@ -11,8 +11,8 @@ use log::{error, info, trace};
 use layoutflash::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
-    platform_dir, target_bin, Bin,
+    analyze, compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in,
+    objcopy, platform_dir, target_bin, Bin,
 };
 use crate::{Cli, Commands, Env};
 
@@ -34,6 +34,11 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
         Commands::Make => {
             info!("Build oreboot image for QEMU RISC-V");
             build(&args.env, dir, &stages, &features);
+        }
+        Commands::Analyze => {
+            info!("Build and analyze main stage");
+            build_main(&args.env, dir, &stages.main);
+            analyze(&args.env, &stages.main);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
