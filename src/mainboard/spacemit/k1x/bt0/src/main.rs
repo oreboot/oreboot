@@ -6,8 +6,6 @@
 #[macro_use]
 extern crate log;
 
-const MAIN: &[u8] = include_bytes!("../../plan9x.bin");
-
 use core::{
     arch::{asm, naked_asm},
     intrinsics::transmute,
