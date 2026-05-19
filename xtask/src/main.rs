@@ -32,6 +32,8 @@ enum Commands {
     Flash,
     /// Run without flashing, as supported by the platform
     Run,
+    /// Analyze stack sizes and other properties
+    Analyze,
     /// View assembly code, as in objdump
     Asm,
     /// Debug code using gdb, as supported by the platform
