@@ -1,7 +1,7 @@
 use std::{env, process, str::FromStr};
 
 use clap::{Args, Parser, Subcommand};
-use clap_verbosity_flag::Verbosity;
+use clap_verbosity_flag::{InfoLevel, Verbosity};
 use log::{error, info};
 
 mod gdb_detect;
@@ -21,7 +21,7 @@ struct Cli {
     #[clap(flatten)]
     env: Env,
     #[clap(flatten)]
-    verbose: Verbosity,
+    verbose: Verbosity<InfoLevel>,
 }
 
 #[derive(Subcommand, Debug)]
