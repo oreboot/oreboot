@@ -133,6 +133,10 @@ SoC vendors are expected to provide documentation to their cores, peripherals
 and other blocks and/or their SVD files, so that we can generate the PAC and HAL
 crates, or ideally, the vendor should _provide and maintain_ those as well.
 
+If you are a vendor, we encourage you to get in touch with us, and look at the
+[Embedonomicon](https://docs.rust-embedded.org/embedonomicon/soc-support.html)
+that guides you through enabling Rust support for your SoCs.
+
 The Rust Embedded book offers [design patterns and implementation guidelines](https://docs.rust-embedded.org/book/design-patterns/hal/index.html) as well as
 a [glossary](https://docs.rust-embedded.org/book/appendix/glossary.html) to gain
 an understanding of the structure.
