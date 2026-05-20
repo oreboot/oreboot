@@ -122,8 +122,7 @@ pub const IMAGE_FIXTURE: &[u8] = include_bytes!("testdata/test.out");
 
 #[test]
 fn iterator() {
-    let data = include_bytes!("testdata/test.dtb");
-    let fdt = fdt::Fdt::new(data).unwrap();
+    let fdt = Fdt::new(TEST_DTB).unwrap();
     let it = &mut fdt.find_all_nodes("/flash-info/areas");
     let areas = FdtIterator::new(it);
     let count = areas.map(|e| e.children().count()).sum::<usize>();

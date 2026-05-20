@@ -34,39 +34,6 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
-// Allwinner SoCs need a special header. For details, see also:
-// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/board/sunxi/README.sunxi64
-// https://linux-sunxi.org/EGON
-
-// Use global assembly for a 4 byte jump instruction to _start.
-// The reason is that rust adds an extra `unimp` insn after the jump if inline assembly is used.
-// This messes up the location of the eGON header
-core::arch::global_asm!(
-    ".section .head.text, \"ax\"",
-    ".global _head_jump",
-    "_head_jump:",
-    "    j start"
-);
-
-// eGON.BT0 header. This header is identified by D1 ROM code
-// to copy BT0 stage bootloader into SRAM memory.
-// NOTE: The "real" header includes the initial jump.
-// It must be 32-byte aligned. See also:
-// https://github.com/u-boot/u-boot/blob/fe2ce09a0753634543c32cafe85eb87a625f76ca/include/sunxi_image.h#L80
-#[repr(C)]
-pub struct EgonHead {
-    magic: [u8; 8],
-    checksum: u32,
-    length: u32,
-    _padding: [u32; 19],
-}
-
-use core::mem::size_of;
-// Ugly but does the job to assert the alignment.
-const _: () = assert!((size_of::<EgonHead>() + 4) % 0x20 == 0);
-
-const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
-
 // TODO: determine offets/sizes at build time
 // memory load addresses
 const LIN_ADDR: usize = RAM_BASE + 0x0400_0000; // Linux will be decompressed in payloader
@@ -76,16 +43,6 @@ const ORE_SIZE: usize = 0x1_8000; // 96K
 const DTF_SIZE: usize = 0x1_0000; // 64K
 const LIN_SIZE: usize = 0x00fc_0000;
 const DTB_SIZE: usize = 0x0001_0000;
-
-#[used]
-#[link_section = ".head.egon"]
-// NOTE: The real checksum and length are filled in by xtask.
-pub static EGON_HEAD: EgonHead = EgonHead {
-    magic: *b"eGON.BT0",
-    checksum: STAMP_CHECKSUM,
-    length: 0,
-    _padding: [0; 19],
-};
 
 const STACK_SIZE: usize = 2 * 1024;
 
@@ -219,7 +176,8 @@ This bit will be reset to 1’b0.
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
 #[unsafe(naked)]
-#[no_mangle]
+#[export_name = "start"]
+#[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
     naked_asm!(
         // 1. clear cache and processor states
@@ -245,11 +203,9 @@ pub unsafe extern "C" fn start() -> ! {
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
-        "la     a0, {egon_head}",
         "call   {main}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        egon_head  =   sym EGON_HEAD,
         main       =   sym main,
     )
 }
@@ -413,6 +369,7 @@ fn init_logger(s: Serial) {
     });
 }
 
+#[no_mangle]
 extern "C" fn main() {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();

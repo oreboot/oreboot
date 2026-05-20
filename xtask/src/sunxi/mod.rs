@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use super::Cli;
 
+mod egon;
+mod fel;
 mod nezha;
 
 #[derive(Debug, Clone, Copy)]

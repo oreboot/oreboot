@@ -4,17 +4,24 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-byteorder = "1"
-cargo_toml = "0.22.3"
+# CLI
 clap = { version = "4.4", features = ["derive"] }
 clap-verbosity-flag = "2.0"
-config = "0.15.18"
-crc = "*"
 ctrlc = "3.2"
 env_logger = "0.9"
-fdt = "0.1.4"
 log = "0.4"
+
+# files and formats
+cargo_toml = "0.22.3"
+config = "0.15.18"
+fdt = "0.1.4"
 miniz_oxide = "0.8.5"
 pathdiff = "0.2"
+zerocopy = "0.8.27"
+zerocopy-derive = "0.8.27"
+
+# bit/byte manipulation, crypto and hashing
+byteorder = "1"
+crc = "*"
 
 layoutflash = { path = "../src/lib/layoutflash", features = ["std"] }

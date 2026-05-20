@@ -45,8 +45,8 @@ const CARGO_TOML: &str = "Cargo.toml";
 
 /// For a given platform directory and stage, get a [Bin].
 ///
-/// See https://doc.rust-lang.org/cargo/reference/config.html
-/// and https://doc.rust-lang.org/cargo/reference/manifest.html
+/// See <https://doc.rust-lang.org/cargo/reference/config.html>
+/// and <https://doc.rust-lang.org/cargo/reference/manifest.html>
 pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
     let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
     let m = cargo_toml::Manifest::from_path(&f).unwrap();
@@ -107,11 +107,11 @@ pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
 }
 
 /// Disssemble an ELF for inspection.
-pub fn objdump(env: &Env, prefix: &str, target: &str, elf_path: &str) {
+pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = target_dir(env, target);
+    let dir = target_dir(env, &bin.target);
     cmd.current_dir(dir);
-    cmd.arg(elf_path);
+    cmd.arg(&bin.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
 }
@@ -173,4 +173,9 @@ pub fn target_dir(env: &Env, target: &str) -> PathBuf {
     let target_dir = project_root().join("target").join(target);
     let mode = if env.release { "release" } else { "debug" };
     target_dir.join(mode)
+}
+
+/// Get the target specific build output raw binary file.
+pub fn target_bin(env: &Env, bin: &Bin) -> PathBuf {
+    target_dir(env, &bin.target).join(&bin.bin_name)
 }
