@@ -4,11 +4,11 @@ use std::{fs, path::PathBuf, process};
 use fdt::Fdt;
 use log::{error, info, trace, warn};
 
-use layoutflash::layout::{create_areas, layout_flash};
+use cast_iron::layout::{create_areas, layout_flash};
 
 use crate::util::{
-    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
-    platform_dir, target_bin, target_dir, Bin,
+    compile_platform_dt, find_binutils_prefix_or_fail, get_cargo_cmd_in, get_stage_for, objcopy,
+    platform_dir, target_bin, Stage,
 };
 use crate::{Cli, Commands, Env};
 
@@ -18,24 +18,25 @@ const SRAM_SIZE: usize = 0x20_0000;
 
 const ARCH: &str = "riscv64";
 
+// TODO: instead of hardcoding, create one binary per feature set.
 const IMAGE: &str = "starfive-visionfive2.bin";
 
 const BT0_STAGE: &str = "bt0";
 const MAIN_STAGE: &str = "main";
 struct Stages {
-    bt0: Bin,
-    main: Bin,
+    bt0: Stage,
+    main: Stage,
 }
 
 pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
-    let bt0 = get_bin_for(dir, BT0_STAGE);
-    let main = get_bin_for(dir, MAIN_STAGE);
+    let bt0 = get_stage_for(dir, BT0_STAGE);
+    let main = get_stage_for(dir, MAIN_STAGE);
     let stages = Stages { bt0, main };
 
     match args.command {
         Commands::Make => {
             info!("Build oreboot image for VisionFive2");
-            build_image(&args.env, dir, &stages, &features);
+            build(&args.env, dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -43,8 +44,9 @@ pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) 
     }
 }
 
-fn xtask_build_jh7110_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
-    trace!("build JH7110 bt0");
+fn build_bt0(env: &Env, dir: &PathBuf, stage: &Stage, features: &[String]) {
+    trace!("build {BT0_STAGE}");
+    // Get binutils first so we can fail early
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
@@ -73,12 +75,11 @@ fn xtask_build_jh7110_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[Strin
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
-fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
-    trace!("build JH7110 main");
+fn build_main(env: &Env, dir: &PathBuf, stage: &Stage) {
+    trace!("build {MAIN_STAGE}");
     let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
     let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     let status = command.status().unwrap();
@@ -87,13 +88,12 @@ fn xtask_build_jh7110_main(env: &Env, dir: &PathBuf, bin: &Bin) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
-
-    objcopy(env, bin, binutils_prefix, ARCH);
+    objcopy(env, stage, binutils_prefix, ARCH);
 }
 
-fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
+fn build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
     let plat_dir = platform_dir(dir);
-    let main_target_dir = target_dir(env, &stages.main.target);
+    let img_path = plat_dir.join(IMAGE);
 
     let dtb_path = compile_platform_dt(&plat_dir);
     let dtb = fs::read(dtb_path).expect("platform DTB");
@@ -106,30 +106,28 @@ fn xtask_build_image(env: &Env, dir: &PathBuf, stages: &Stages) {
         (MAIN_STAGE, target_bin(env, &stages.main)),
     ]);
 
-    let out_path = plat_dir.join(IMAGE);
-    if let Err(e) = layout_flash(&main_target_dir, &out_path, areas, stage_bin_map) {
+    if let Err(e) = layout_flash(&plat_dir, &img_path, areas, stage_bin_map) {
         error!("layoutflash fail: {e}");
         process::exit(1);
     }
 
     // TODO: how else do we do layoutflash + header?
-    trace!("add header to {out_path:?}");
-    let dat = fs::read(&out_path).expect("DTFS image");
+    trace!("add header to {img_path:?}");
+    let dat = fs::read(&img_path).expect("platform image");
     // HACK: omit LinuxBoot etc so we fit in SRAM
     let cut = core::cmp::min(SRAM_SIZE, dat.len());
     trace!("image size {:08x} cut down to {cut:08x}", dat.len());
     let out = spl_create_hdr(dat[HEADER_SIZE as usize..cut].to_vec());
     trace!("final size {:08x}", out.len());
-    fs::write(out_path.clone(), out).expect("writing final image");
+    fs::write(img_path.clone(), out).expect("writing final image");
 
     println!("======= DONE =======");
-    println!("Output file: {:?}", &out_path.into_os_string());
+    println!("Output file: {:?}", &img_path.into_os_string());
 }
 
-fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
+fn build(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
     // Build the stages - should we parallelize this?
-    xtask_build_jh7110_bt0(env, dir, &stages.bt0, features);
-    xtask_build_jh7110_main(env, dir, &stages.main);
-
-    xtask_build_image(env, dir, stages);
+    build_bt0(env, dir, &stages.bt0, features);
+    build_main(env, dir, &stages.main);
+    build_image(env, dir, stages);
 }

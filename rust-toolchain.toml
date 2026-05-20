@@ -5,4 +5,5 @@ targets = [
   "riscv32imac-unknown-none-elf",
   "riscv64imac-unknown-none-elf",
   "aarch64-unknown-none-softfloat",
+  "armv7a-none-eabi",
 ]

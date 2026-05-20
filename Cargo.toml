@@ -26,3 +26,4 @@ lto = true
 [workspace.dependencies]
 embedded-hal = "=1.0.0"
 embedded-hal-nb = "=1.0.0"
+spin = "=0.11.0"

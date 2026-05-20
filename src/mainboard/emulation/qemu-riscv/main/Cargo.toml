@@ -12,7 +12,7 @@ ns16550a = "0.1.0"
 riscv = "=0.12.1"
 rustsbi = { version = "=0.4.0", features = ["machine"] }
 
-layoutflash = { path = "../../../../lib/layoutflash" }
+cast_iron = { path = "../../../../lib/cast_iron" }
 log = { path = "../../../../lib/log" }
 oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
 oreboot_compression = { path = "../../../../lib/compression" }

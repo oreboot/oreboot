@@ -1,9 +1,12 @@
-use crate::Env;
-use log::{error, trace};
 use std::{
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
 };
+
+use log::{debug, error, info, trace};
+use serde::{Deserialize, Serialize};
+
+use crate::Env;
 
 // These utilities help find and run external commands.
 // Those are mostly toolchain components and vendor specific tools.
@@ -30,11 +33,12 @@ pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &st
 /// I.e., something along the lines of:
 /// ```rs
 /// struct Stages {
-///     bt0: Bin,
-///     main: Bin,
+///     bt0: Stage,
+///     main: Stage,
 /// }
 /// ```
-pub struct Bin {
+pub struct Stage {
+    pub name: String,
     pub elf_name: String,
     pub bin_name: String,
     pub target: String,
@@ -43,23 +47,25 @@ pub struct Bin {
 const CARGO_CFG: &str = ".cargo/config.toml";
 const CARGO_TOML: &str = "Cargo.toml";
 
-/// For a given platform directory and stage, get a [Bin].
+/// For a given platform directory and stage name, get a [Stage].
 ///
 /// See <https://doc.rust-lang.org/cargo/reference/config.html>
 /// and <https://doc.rust-lang.org/cargo/reference/manifest.html>
-pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
-    let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
+pub fn get_stage_for(plat_dir: &PathBuf, name: &str) -> Stage {
+    let f = platform_dir(plat_dir).join(name).join(CARGO_TOML);
     let m = cargo_toml::Manifest::from_path(&f).unwrap();
     trace!("{f:?}: {m:#?}");
     let elf_name = m.bin.first().unwrap().name.clone().unwrap();
     let bin_name = format!("{elf_name}.bin");
-    let f = platform_dir(plat_dir).join(stage).join(CARGO_CFG);
+    let f = platform_dir(plat_dir).join(name).join(CARGO_CFG);
     let settings = config::Config::builder()
         .add_source(config::File::with_name(f.to_str().unwrap()))
         .build()
         .unwrap();
     let target: String = settings.get("build.target").unwrap();
-    Bin {
+    let name = name.into();
+    Stage {
+        name,
         elf_name,
         bin_name,
         target,
@@ -70,6 +76,9 @@ const PLATFORM_DTS: &str = "platform.dts";
 const PLATFORM_DTB: &str = "platform.dtb";
 
 /// Compile the platform device tree.
+///
+/// TODO: Use Rust tooling and return Fdt directly.
+/// TODO: Consider a different declarative input format.
 pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
     trace!("compile platform device tree for {plat_dir:?}");
     let cwd = platform_dir(plat_dir);
@@ -89,15 +98,16 @@ pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
 }
 
 /// Create a raw binary from an ELF.
-pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
+pub fn objcopy(env: &Env, stage: &Stage, prefix: &str, arch: &str) {
     trace!("objcopy binary, prefix: '{prefix}'");
-    let dir = target_dir(env, &bin.target);
+    let dir = target_dir(env, &stage.target);
     let mut cmd = Command::new(format!("{prefix}objcopy"));
     cmd.current_dir(dir);
-    cmd.arg(&bin.elf_name);
+    cmd.arg(&stage.elf_name);
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
-    cmd.args(["-O", "binary", &bin.bin_name]);
+    cmd.args(["-O", "binary", &stage.bin_name]);
+    info!("run {cmd:?}");
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
     if !status.success() {
@@ -107,13 +117,81 @@ pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
 }
 
 /// Disssemble an ELF for inspection.
-pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
+pub fn objdump(env: &Env, stage: &Stage, prefix: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = target_dir(env, &bin.target);
+    let dir = target_dir(env, &stage.target);
     cmd.current_dir(dir);
-    cmd.arg(&bin.elf_name);
+    cmd.arg(&stage.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct FileSummary {
+    file: String,
+    format: String,
+    arch: String,
+    address_size: String,
+    load_name: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackSizeEntry {
+    functions: Vec<String>,
+    size: usize,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackSize {
+    entry: StackSizeEntry,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct StackAnalysis {
+    file_summary: FileSummary,
+    stack_sizes: Vec<StackSize>,
+}
+
+/// Analyze an ELF for its stack size using readobj.
+///
+/// NOTE: If this fails, something is wrong with the command invocation.
+/// In that case, check the debug output.
+/// TODO: There may be crates for doing this, or programmatic interfaces.
+pub fn analyze(env: &Env, stage: &Stage) {
+    let mut cmd = Command::new("rust-readobj");
+    let dir = target_dir(env, &stage.target);
+    cmd.current_dir(dir);
+    cmd.arg(&stage.elf_name);
+    cmd.arg("--demangle");
+    cmd.arg("--stack-sizes");
+    cmd.arg("--elf-output-style");
+    cmd.arg("JSON");
+    debug!("{cmd:?}");
+    let output = cmd.output().unwrap();
+    let outstr = str::from_utf8(&output.stdout).unwrap();
+    debug!("{outstr}");
+
+    let mut parsed: Vec<StackAnalysis> = serde_json::from_str(outstr).unwrap();
+    let summary = &parsed[0].file_summary;
+    info!("{summary:#?}");
+
+    let entries = &mut parsed[0].stack_sizes;
+    let sizes = entries.iter().map(|e| e.entry.size).collect::<Vec<usize>>();
+    let total = sizes.into_iter().sum::<usize>();
+    info!("Total stack size: {total}");
+
+    entries.sort_by_key(|e| e.entry.size);
+    let biggest = entries
+        .iter()
+        .rev()
+        .take(10)
+        .map(|e| e.entry.clone())
+        .collect::<Vec<StackSizeEntry>>();
+    info!("Largest entries: {biggest:#?}");
 }
 
 /// Figure out the prefix for a toolchain's binutils.
@@ -149,10 +227,8 @@ pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
 
 /// Get the oreboot root directory.
 pub fn project_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
+    let d = env!("CARGO_MANIFEST_DIR");
+    Path::new(d).ancestors().nth(1).unwrap()
 }
 
 /// Get the full path of the base directory of all platforms.
@@ -176,6 +252,6 @@ pub fn target_dir(env: &Env, target: &str) -> PathBuf {
 }
 
 /// Get the target specific build output raw binary file.
-pub fn target_bin(env: &Env, bin: &Bin) -> PathBuf {
-    target_dir(env, &bin.target).join(&bin.bin_name)
+pub fn target_bin(env: &Env, stage: &Stage) -> PathBuf {
+    target_dir(env, &stage.target).join(&stage.bin_name)
 }

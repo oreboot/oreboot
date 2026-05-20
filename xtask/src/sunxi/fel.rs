@@ -1,20 +1,27 @@
-use crate::util::platform_dir;
-use crate::{Env, Memory};
-use log::{error, info, trace};
 use std::path::PathBuf;
 use std::{
     io::ErrorKind,
     process::{self, Command, Stdio},
 };
 
+use log::{error, info, trace};
+
+use crate::util::{platform_dir, target_dir, Stage};
+use crate::{Env, Memory};
+
 const XFEL_CMD: &str = "xfel";
 const XFEL_URL: &str = "https://github.com/xboot/xfel";
+const SUNXI_FEL_CMD: &str = "sunxi-fel";
+const SUNXI_FEL_URL: &str = "https://github.com/linux-sunxi/sunxi-tools";
+
 enum FelCommand {
     Xfel,
+    SunxiFel,
 }
 
 fn find_cmd(cmd: FelCommand) -> &'static str {
     let (cmd, url) = match cmd {
+        FelCommand::SunxiFel => (SUNXI_FEL_CMD, SUNXI_FEL_URL),
         FelCommand::Xfel => (XFEL_CMD, XFEL_URL),
     };
     let mut command = Command::new(cmd);
@@ -36,6 +43,14 @@ fn find_cmd(cmd: FelCommand) -> &'static str {
         },
     }
     process::exit(1)
+}
+
+pub(crate) fn find_xfel() -> &'static str {
+    find_cmd(FelCommand::Xfel)
+}
+
+pub(crate) fn find_sunxi_fel() -> &'static str {
+    find_cmd(FelCommand::SunxiFel)
 }
 
 pub(crate) fn xfel_find_connected_device() {
@@ -77,4 +92,27 @@ fn run_command(cmd: &mut Command) {
         error!("{cmd:?} failed with {status}");
         process::exit(1);
     }
+}
+
+pub(crate) fn xfel_run(env: &Env, stage: &Stage, addr: usize) {
+    let xfel = find_cmd(FelCommand::Xfel);
+    let target_dir = target_dir(env, &stage.target);
+    println!("Run with {xfel}");
+    let mut command = Command::new(xfel);
+    command.current_dir(&target_dir);
+    command.args(["write", format!("0x{addr:x}").as_str(), &stage.bin_name]);
+    run_command(&mut command);
+    let mut command = Command::new(xfel);
+    command.current_dir(&target_dir);
+    command.args(["exec", format!("0x{addr:x}").as_str()]);
+    run_command(&mut command);
+}
+
+pub(crate) fn sunxi_fel_run(env: &Env, stage: &Stage) {
+    let cmd = find_sunxi_fel();
+    println!("Run with {cmd}");
+    let mut command = Command::new(cmd);
+    command.current_dir(target_dir(env, &stage.target));
+    command.args(["spl", &stage.bin_name]);
+    run_command(&mut command);
 }

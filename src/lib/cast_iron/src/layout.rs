@@ -11,25 +11,40 @@ use crate::areas::{Area, AREAS_PATH};
 
 const EMPTY_BYTE: u8 = 0xff;
 
-/// Create the areas from the FDT.
-pub fn create_areas<'a>(fdt: &'a fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, String> {
+#[derive(Debug, Clone, PartialEq)]
+pub enum DtfsError {
+    MissingSize(String),
+}
+
+/// Create the areas aka DTFS (device tree file system) from the FDT.
+pub fn create_areas<'a>(fdt: &fdt::Fdt<'a>) -> Result<Vec<Area<'a>>, DtfsError> {
     let mut areas: Vec<Area> = vec![];
     let mut offset = 0;
     for node in fdt.find_all_nodes(AREAS_PATH) {
         for c in node.children() {
-            match Area::from_node(c) {
-                Ok(mut a) => {
-                    if a.offset.is_none() {
-                        a.offset = Some(offset);
-                    }
-                    areas.push(a);
-                }
-                Err(e) => return Err(format!("{}: {e:?}", c.name)),
-            }
-            if let Some(o) = c.property("offset") {
-                offset = o.as_usize().unwrap();
-            }
-            offset += c.property("size").unwrap().as_usize().unwrap();
+            let name = c.name;
+            let stage = c
+                .properties()
+                .find(|p| p.name == "stage")
+                .map_or_else(|| None, |e| e.as_str());
+            let file = c
+                .properties()
+                .find(|p| p.name == "file")
+                .map_or_else(|| None, |e| e.as_str());
+            let offset = c
+                .properties()
+                .find(|p| p.name == "offset")
+                .map_or_else(|| None, |e| e.as_usize());
+            let Some(size) = c.properties().find(|p| p.name == "size") else {
+                return Err(DtfsError::MissingSize(name.to_string()));
+            };
+            areas.push(Area {
+                name,
+                stage,
+                file,
+                offset,
+                size: size.as_usize().unwrap(),
+            });
         }
     }
     Ok(areas)
@@ -141,6 +156,9 @@ pub fn layout_flash(
     Ok(())
 }
 
+// To generate test DTBs:
+// `dtc -o src/testdata/foo.dt{b,s}`
+
 #[test]
 fn no_file() {
     let dtfs = include_bytes!("testdata/no_file.dtb");
@@ -163,7 +181,7 @@ fn no_size() {
     let dtfs = include_bytes!("testdata/no_size.dtb");
     let fdt = fdt::Fdt::new(dtfs).unwrap();
     let areas = create_areas(&fdt);
-    assert!(areas.is_err())
+    assert_eq!(areas, Err(DtfsError::MissingSize(String::from("area@0"))))
 }
 
 // This is the same as in `test.dtb` itself (see `./testdata/test.dts`).

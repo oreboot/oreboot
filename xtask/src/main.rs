@@ -9,6 +9,7 @@ mod target;
 mod util;
 
 mod qemu;
+mod spacemit;
 mod starfive;
 mod sunxi;
 
@@ -30,6 +31,10 @@ enum Commands {
     Make,
     /// Build image and flash to target
     Flash,
+    /// Run from SRAM, as supported by the platform
+    Run,
+    /// Analyze stack sizes and other properties
+    Analyze,
     /// View assembly code, as in objdump
     Asm,
     /// Debug code using gdb, as supported by the platform
