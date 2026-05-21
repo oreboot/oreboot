@@ -40,6 +40,9 @@ SECTIONS {
         *(.sbss .sbss.*)
         ebss = .;
     } > SRAM
+    .stack_sizes (INFO) : {
+        KEEP(*(.stack_sizes));
+    }
     /DISCARD/ : {
         *(.eh_frame)
     }

@@ -36,6 +36,9 @@ SECTIONS {
         *(.sbss .sbss.*)
         ebss = .;
     } > DDR
+    .stack_sizes (INFO) : {
+        KEEP(*(.stack_sizes));
+    }
     /DISCARD/ : {
         *(.eh_frame)
     }
