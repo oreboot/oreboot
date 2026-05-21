@@ -120,6 +120,7 @@ pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
 /// We may be able to drop this at some point, since we specify the toolchain
 /// components that we need.
 fn find_binutils_prefix(arch: &str) -> Option<String> {
+    trace!("find binutils prefix");
     for prefix in [
         "rust-".to_string(),
         format!("{arch}-unknown-elf-"),
@@ -130,6 +131,7 @@ fn find_binutils_prefix(arch: &str) -> Option<String> {
         cmd.stdout(Stdio::null());
         let status = cmd.status().unwrap();
         if status.success() {
+            trace!("found binutils with prefix '{prefix}'");
             return Some(prefix);
         }
     }
@@ -138,13 +140,11 @@ fn find_binutils_prefix(arch: &str) -> Option<String> {
 
 /// Find the binutils directory. This only needs to be done once per invocation.
 pub fn find_binutils_prefix_or_fail(arch: &str) -> String {
-    trace!("find binutils");
-    if let Some(ans) = find_binutils_prefix(arch) {
-        trace!("found binutils, prefix is '{ans}'");
-        return ans;
-    }
-    error!("No binutils found, try `cargo install cargo-binutils`");
-    process::exit(1)
+    let Some(prefix) = find_binutils_prefix(arch) else {
+        error!("No binutils found, try `cargo install cargo-binutils`");
+        process::exit(1)
+    };
+    prefix
 }
 
 /// Get the oreboot root directory.
