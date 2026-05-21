@@ -5,6 +5,8 @@ target = "riscv64imac-unknown-none-elf"
 rustflags = [
   "-C",
   "link-arg=-Tlink.ld",
+  "-C",
+  "target-feature=+zicsr,+zifencei",
   "-Z",
   "emit-stack-sizes",
 ]
