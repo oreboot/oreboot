@@ -5,4 +5,14 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+nb = "1"
 ns16550a = "0.1.0"
+riscv = "=0.12.1"
+rustsbi = { version = "=0.4.0", features = ["machine"] }
+
+layoutflash = { path = "../../../../lib/layoutflash" }
+log = { path = "../../../../lib/log" }
+oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
+oreboot_compression = { path = "../../../../lib/compression" }

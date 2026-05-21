@@ -5,7 +5,6 @@ authors = ["Oreboot Authors"]
 edition = "2021"
 
 [dependencies]
-consts = { path = "../lib/consts" }
 log = { path = "../lib/log", optional = true }
 oreboot-arch = { path = "../arch", optional = true }
 oreboot-cpu = { path = "../cpu", optional = true }

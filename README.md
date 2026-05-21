@@ -10,6 +10,13 @@ oreboot is mostly written in Rust, with assembly where needed.
 
 oreboot currently only plans to support LinuxBoot payloads.
 
+## Community
+
+If you would like to get involved, join any of the following:
+
+- the `#oreboot` channel in the [OSFW Slack](http://slack.osfw.foundation/)
+- our [Matrix community channel](https://matrix.to/#/#oreboot-dev:matrix.org)
+
 ## Demos
 
 - [oreboot for ARM in QEMU](https://asciinema.org/a/Ne4Fwa4Wpt95dorEoVnHwiEkP)
@@ -107,6 +114,10 @@ enter supervisor at 40200000 with DTB from 41a00000
 
 </details>
 
+## Rust Style
+
+Follow the [Rust style guide](https://doc.rust-lang.org/style-guide/index.html).
+
 ## Rust Embedded
 
 ![Rust Embedded Working Group Logo](Documentation/img/rust-embedded-logo.png)
@@ -132,12 +143,31 @@ To get a general understanding of how oreboot and firmware in general works,
 have a look at the [boot flow documentation](Documentation/boot-flow.md). It
 describes how firmware is stored and boots up on a platform / SoC.
 
+## Dilemma of drivers
+
+Note that oreboot does not aim to turn into its own operating system.
+Accordingly, we intend to keep the amount and functionality of drivers low.
+However, by design of SoCs, we do have to implement something to load code:
+
+- SPI flash, SD cards and eMMC are rather simple to load from, but require
+  special mechanisms and tools to write to the storage part
+- USB and ethernet are more flexible for development as they allow for loading
+  code from another machine, but are more complex to implement
+- UART is simple for data transfer, but very slow for larger payloads, such as
+  a Linux kernel
+
+In many cases, no full driver is needed, since we only need to e.g. read from
+storage, and we need no rich file systems. To avoid colliding with the needs and
+specifics of an OS, we recommend clearly separating storage parts holding the
+firmware and operating system, respectively. For example, put the firmware in a
+SPI flash and the OS on an NVMe SSD.
+
 ## Getting oreboot
 
 Clone this repo and enter its directory, i.e.:
 
 ```sh
-git clone git://github.com/oreboot/oreboot
+git clone https://github.com/oreboot/oreboot.git
 cd oreboot
 ```
 
@@ -183,21 +213,44 @@ You should definitely do this before reporting any issues.
 
 There are two different things in the project:
 
-1. `src/mainboards/*` the actual targets; those depend on and share crates, which
-   can be drivers, SoC init code, and similar. For mainboards, `Cargo.lock`
-   **must** be tracked.
-2. `src/*` everything else; these are the aforementioned crates, for which, we
-   do not track the `Cargo.lock` files.
+1. `src/mainboard/*` the actual targets; those depend on and share crates, which
+   can be drivers, SoC init code, and similar.
+2. `src/*` everything else; these are the aforementioned crates
 
-Checking in a mainboard's `Cargo.lock` file records the state of its dependencies
-at the time of a successful build, enabling reproducibility. Ideally, a lock file
-is updated follwoing successful boot on hardware.
+### Adding a new platform
 
-For more, see: https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries
-
-When creating a new mainboard, looking at how others are set up for the same
+Looking at how other platforms are set up in order to aim for the same
 architecture is a good start. Be aware that oreboot is targeting bare metal, so
 there is no standard library available.
+
+1. Create a new directory structure for the vendor and platform under
+   `src/mainboard/`, e.g., `mkdir -p src/mainboard/acme-silicon/soc-123/`.
+2. Add the sub directories `bt0` for DRAM init and `main` for
+   the main oreboot stage. Each stage needs at least
+   - `Cargo.toml` to define the crate as usual
+   - `src/main.rs` as usual for the entry point
+   - `build.rs` for the linker script
+   - `.cargo/config.toml` to define the target
+
+For every stage, add a `Makefile` with the target `build` to get started, until
+it is fully integrated with the [oreboot build system](xtask/README.md).
+
+Add a convenience platform-level `Makefile`, which may contain custom targets,
+e.g., to create diagrams, or integrate with external tools, and otherwise builds
+the stages and adds headers or similar if necessary.
+
+If possible, add a `run` target to run the `bt0` stage immediately.
+Many SoCs have a mask ROM that can load code via USB or serial for doing so.
+
+### Formatting
+
+We use [dprint](https://dprint.dev/).
+
+The configuration is in [`dprint.json`](dprint.json).
+Edit it to upgrade [plugins](https://plugins.dprint.dev/). For the exec plugin,
+see [releases on GitHub](https://github.com/dprint/dprint-plugin-exec/releases).
+
+The dprint version itself is maintained in the [`Makefile`](Makefile).
 
 ## Building oreboot
 
@@ -225,37 +278,6 @@ make mainboards
 make -j mainboards
 ```
 
-## QEMU
-
-```
-# Install QEMU for your target platform, e.g. x86
-sudo apt install qemu-system-x86
-
-# Build release build and start with QEMU
-cd src/mainboard/emulation/qemu-q35 && make run
-# Quit qemu with CTRL-A X
-```
-
-To build QEMU from source for RISC-V:
-
-```
-git clone https://github.com/qemu/qemu && cd qemu
-mkdir build-riscv64 && cd build-riscv64
-../configure --target-list=riscv64-softmmu
-make -j$(nproc)
-# QEMU binary is at riscv64-softmmu/qemu-system-riscv64
-```
-
-To build QEMU from source for aarch64:
-
-```
-git clone https://github.com/qemu/qemu && cd qemu
-mkdir build-aarch64 && cd build-aarch64
-../configure --target-list=aarch64-softmmu
-make -j$(nproc)
-# QEMU binary is at aarch64-softmmu/qemu-system-aarch64
-```
-
 ## Mainboards
 
 Similar to coreboot, the structure in oreboot is per vendor and mainboard.
@@ -263,20 +285,8 @@ Multiple architectures and SoCs are supported respectively, and their common
 code is shared between the boards. Boards may have variants if minor deviations
 would otherwise cause too much code duplication.
 
-### Emulation
-
-- `qemu-riscv`
-
-### Hardware
-
-#### RISC-V
-
-##### Allwinner D1 SoC
-
-- Sipeed Lichee RV Dock / Dock Pro
-- MangoPi MQ-Pro
-- DongshanPi Nezha STU
-- Allwinner Nezha
+See `src/mainboard/` for supported platforms, including
+`src/mainboard/emulation/` for QEMU.
 
 ### Previous Implementations
 
@@ -295,10 +305,6 @@ oreboot seeks to support:
 
 ## Ground Rules
 
-- `Makefile`s must be simple. Use `xtask` instead for control flow, e.g., adding
-  headers or checksums to the binaries, sitchting images, etc..
-- `Cargo.toml` in the respective `src/mainboard/$VENDOR/$BOARD` (sub)directories
-  allow for board-specific dependencies and building all stages in parallel.
 - All code and markup is auto-formatted with `make format` with no exceptions.
   A CI check will tell if a change does not adhere to the formatting rules.
 - There will be no code written in C. We write all code in Rust.

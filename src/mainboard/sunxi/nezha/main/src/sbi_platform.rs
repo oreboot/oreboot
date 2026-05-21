@@ -1,19 +1,29 @@
 use core::arch::asm;
-use log::println;
-use oreboot_soc::sunxi::d1::clint::{msip, mtimecmp};
-use riscv::register::{mie, mip};
-use rustsbi::spec::binary::SbiRet;
-use rustsbi::HartMask;
 
-pub fn init() {
+use riscv::register::{mhartid, mie, mip};
+use rustsbi::spec::binary::SbiRet;
+use rustsbi::{HartMask, RustSBI};
+
+use log::println;
+use oreboot_arch::riscv64::xuantie;
+use oreboot_soc::sunxi::d1::clint::msip;
+use util::mmio::write64le;
+
+#[derive(RustSBI)]
+pub struct PlatSbi {
+    ipi: Ipi,
+    reset: Reset,
+    timer: Timer,
+}
+
+pub fn init() -> PlatSbi {
     init_pmp();
-    init_plic();
-    println!("timer init");
-    rustsbi::init_timer(&Timer);
-    println!("reset init");
-    rustsbi::init_reset(&Reset);
-    println!("ipi init");
-    rustsbi::init_ipi(&Ipi);
+    xuantie::init_plic();
+    PlatSbi {
+        ipi: Ipi,
+        reset: Reset,
+        timer: Timer,
+    }
 }
 
 /**
@@ -37,21 +47,7 @@ fn init_pmp() {
     pmpaddr4::write(0xffffffffusize >> 2);
 }
 
-fn init_plic() {
-    let mut addr: usize;
-    unsafe {
-        // What? 0xfc1 is BADADDR as per C906 manual; this seems to work though
-        asm!("csrr {}, 0xfc1", out(reg) addr); // 0x1000_0000, RISC-V PLIC
-        let a = addr + 0x001ffffc; // 0x101f_fffc
-        if false {
-            println!("BADADDR {:x} SOME ADDR {:x}", addr, a);
-        }
-        // allow S-mode to access PLIC regs, D1 manual p210
-        core::ptr::write_volatile(a as *mut u8, 0x1);
-    }
-}
-
-struct Ipi;
+pub struct Ipi;
 impl rustsbi::Ipi for Ipi {
     fn send_ipi(&self, hart_mask: HartMask) -> SbiRet {
         // TODO: This was a member function in previous RustSBI
@@ -69,12 +65,15 @@ impl rustsbi::Ipi for Ipi {
     }
 }
 
-struct Timer;
+pub struct Timer;
 impl rustsbi::Timer for Timer {
-    fn set_timer(&self, stime_value: u64) {
-        // clear any pending timer
+    fn set_timer(&self, value: u64) {
+        // Clear any pending timer
         unsafe { mip::clear_stimer() };
-        mtimecmp::write(stime_value);
+        // Set new value for this hart
+        let hartid = mhartid::read();
+        let mtime_cmp = xuantie::get_mtime_compare_reg() + 4 * hartid;
+        write64le(mtime_cmp, value);
         // Reenable the interrupt
         unsafe { mie::set_mtimer() }
     }

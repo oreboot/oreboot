@@ -52,15 +52,27 @@ RISC-V mentions SBI, the Supervisor Binary Interface, in the ISA spec Volume 2,
 [Privileged Specification](https://riscv.org/technical/specifications/). It now
 evolves as [SBI specifcation](https://github.com/riscv-non-isa/riscv-sbi-doc).
 
-The role of SBI is to set up or delegate exception and interrupt handling,
-register functions for the OS to call into, and drop into a lower privileged
-mode named S-mode. While having less access to the hardware, it makes an [MMU](https://en.wikipedia.org/wiki/Memory_management_unit) with [paged virtual memory](https://www.sifive.com/blog/all-aboard-part-9-paging-and-mmu-in-risc-v-linux-kernel)
-available. RISC-V complements this in the (UNIX-class) [platform specification](https://github.com/riscv/riscv-platform-specs).
+The role of SBI is to set up or delegate exception and interrupt handling, offer
+necessary services for the OS to call, and drop into a lower privileged mode
+named S-mode. While S-mode has less access to the hardware, it makes an
+[MMU](https://en.wikipedia.org/wiki/Memory_management_unit) available with
+[paged virtual memory](https://www.sifive.com/blog/all-aboard-part-9-paging-and-mmu-in-risc-v-linux-kernel).
+
+Historical note: RISC-V used to complement the SBI spec with the (UNIX-class)
+[platform specification](https://github.com/riscv/riscv-platform-specs). That
+has
+[evolved](https://riscv.org/riscv-news/2024/10/risc-v-announces-ratification-of-the-rva23-profile-standard/)
+into [architecture profiles](https://github.com/riscv/riscv-profiles).
+
+Note that the SBI spec does not mandate which exceptions to delegate, so the
+implementation in firmware eventually defines the platform the OS runs on.
 
 Finally, in S-mode, we execute the operating system. This is where we hand over
 to [LinuxBoot](https://linuxboot.org), our boot loader environment. In oreboot,
 we implement SBI via [RustSBI](https://github.com/rustsbi/rustsbi), a Rust crate
-offering all the necessary functions we need as a library.
+defining the necessary traits and basic functions. Per SoC and possibly board,
+we need to implement the specifics in oreboot, e.g., the backing mechanism for
+the timer.
 
 ### Stage 3: Payload (LinuxBoot)
 

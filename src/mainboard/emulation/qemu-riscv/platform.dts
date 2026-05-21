@@ -1,0 +1,35 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    platform-info {
+        soc-name = "RISC-V virt";
+        vendor = "QEMU";
+        vendor-url = "https://www.qemu.org/docs/master/system/riscv/virt.html";
+    };
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        size =  <0x2000000>;
+        areas {
+            area@0 {
+                compatible = "ore-stage";
+                size = <0xf000>;
+                stage = "main";
+            };
+            area@1 {
+                compatible = "ore-manifest";
+                size = <0x1000>;
+            };
+            /*
+            area@2 {
+                compatible = "ore-stage";
+                size = <0x1ff0000>; // remaining space
+                stage = "payload";
+            };
+            */
+        };
+    };
+};

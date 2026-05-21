@@ -6,7 +6,6 @@ edition = "2021"
 
 [dependencies]
 console = { path = "../../../console" }
-consts = { path = "../../../lib/consts" }
 device_tree = { path = "../../../lib/device_tree" }
 payloads = { path = "../../../../payloads" }
 print = { path = "../../../lib/print" }

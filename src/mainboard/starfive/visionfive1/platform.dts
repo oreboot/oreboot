@@ -1,0 +1,38 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    platform-info {
+        soc-name = "JH7100";
+        vendor = "StarFive";
+        vendor-url = "https://www.starfivetech.com/en/";
+    };
+
+    flash-info {
+        compatible = "ore-flashinfo";
+        size =  <0x1000000>;
+        areas {
+            area@0 {
+                compatible = "ore-stage";
+                size = <0x7f000>; // 508KiB
+                stage = "bt0";
+            };
+            area@1 {
+                compatible = "ore-manifest";
+                size = <0x1000>;
+            };
+            area@2 {
+                compatible = "ore-stage";
+                size = <0x100000>; // 1MiB
+                stage = "main";
+            };
+            area@3 {
+                compatible = "ore-stage";
+                size = <0xe80000>; // remaining space
+                stage = "payload";
+            };
+        };
+    };
+};

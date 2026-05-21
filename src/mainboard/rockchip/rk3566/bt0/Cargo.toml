@@ -1,0 +1,15 @@
+[package]
+name = "rk3566-bt0"
+version = "0.1.0"
+authors = ["oreboot authors"]
+edition = "2021"
+
+[dependencies]
+aarch64-cpu = "9.4.0"
+embedded-hal = "1.0.0"
+embedded-hal-nb = "1.0.0"
+nb = "1"
+spin = "0.9"
+
+log = { path = "../../../../lib/log" }
+util = { path = "../../../../lib/util" }

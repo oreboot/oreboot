@@ -1,11 +1,11 @@
 #![doc = include_str!("README.md")]
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 
-use core::intrinsics::transmute;
+use core::arch::{asm, naked_asm};
+use core::mem::transmute;
+use core::panic::PanicInfo;
 use core::ptr::{read_volatile, write_volatile};
-use core::{arch::asm, panic::PanicInfo};
 use embedded_hal::digital::OutputPin;
 use oreboot_soc::sunxi::d1::pac::ccu::{dma_bgr, DMA_BGR};
 use oreboot_soc::sunxi::d1::{
@@ -34,97 +34,20 @@ use flash::SpiNand;
 use flash::SpiNor;
 use mctl::RAM_BASE;
 
-// taken from oreboot
-pub type EntryPoint = unsafe extern "C" fn(r0: usize, r1: usize);
-
-const STACK_SIZE: usize = 1 * 1024; // 1KiB
-
-#[link_section = ".bss.uninit"]
-static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-
-/// Jump over head data to executable code.
-///
-/// # Safety
-///
-/// Naked function.
-#[naked]
-#[link_section = ".head.text"]
-#[export_name = "_head_jump"]
-pub unsafe extern "C" fn head_jump() {
-    asm!(
-        ".option push",
-        ".option rvc",
-        "c.j    0x68", // 0x60: eGON.BT0 header; 0x08: FlashHead
-        ".option pop",
-        // sym _start,
-        options(noreturn)
-    )
-}
-
-// todo: option(noreturn) generates an extra `unimp` insn
-
-// eGON.BT0 header. This header is identified by D1 ROM code
-// to copy BT0 stage bootloader into SRAM memory.
-// This header takes 0x60 bytes.
-#[repr(C)]
-pub struct EgonHead {
-    magic: [u8; 8],
-    checksum: u32,
-    length: u32,
-    pub_head_size: u32,
-    fel_script_address: u32,
-    fel_uenv_length: u32,
-    dt_name_offset: u32,
-    dram_size: u32,
-    boot_media: u32,
-    string_pool: [u32; 13],
-}
-
-const STAMP_CHECKSUM: u32 = 0x5F0A6C39;
-
 // TODO: determine offets/sizes at build time
 // memory load addresses
 const LIN_ADDR: usize = RAM_BASE + 0x0400_0000; // Linux will be decompressed in payloader
-const DTB_ADDR: usize = RAM_BASE + 0x01a0_0000; // dtb must be 2MB aligned and behind Linux
+const DTB_ADDR: usize = RAM_BASE + 0x0220_0000; // dtb must be 2MB aligned and behind Linux
 const ORE_ADDR: usize = RAM_BASE;
 const ORE_SIZE: usize = 0x1_8000; // 96K
 const DTF_SIZE: usize = 0x1_0000; // 64K
 const LIN_SIZE: usize = 0x00fc_0000;
 const DTB_SIZE: usize = 0x0001_0000;
 
-// clobber used by KEEP(*(.head.egon)) in link script
-#[link_section = ".head.egon"]
-pub static EGON_HEAD: EgonHead = EgonHead {
-    magic: *b"eGON.BT0",
-    checksum: STAMP_CHECKSUM, // real checksum filled by blob generator
-    length: 0,                // real size filled by blob generator
-    pub_head_size: 0,
-    fel_script_address: 0,
-    fel_uenv_length: 0,
-    dt_name_offset: 0,
-    dram_size: 0,
-    boot_media: 0,
-    string_pool: [0; 13],
-};
+const STACK_SIZE: usize = 2 * 1024;
 
-// Private use; not designed as conventional header structure.
-// Real data filled by xtask.
-// This header takes 0x8 bytes. When modifying this structure, make sure
-// the offset in `head_jump` function is also modified.
-#[repr(C)]
-pub struct MainStageHead {
-    offset: u32,
-    length: u32,
-}
-
-// clobber used by KEEP(*(.head.main)) in link script
-// To avoid optimization, always read from flash page. Do NOT use this
-// variable directly.
-#[link_section = ".head.main"]
-pub static MAIN_STAGE_HEAD: MainStageHead = MainStageHead {
-    offset: 0, // real offset filled by xtask
-    length: 0, // real size filled by xtask
-};
+#[link_section = ".bss.uninit"]
+static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
 /*
 see https://linux-sunxi.org/D1 for the C906 manual
@@ -252,11 +175,11 @@ This bit will be reset to 1’b0.
 ///
 /// See also what mainline U-Boot does
 /// <https://github.com/smaeul/u-boot/blob/55103cc657a4a84eabc9ae2dabfcab149b07934f/board/sunxi/board-riscv.c#L72-L75>
-#[naked]
-#[export_name = "_start"]
+#[unsafe(naked)]
+#[export_name = "start"]
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // 1. clear cache and processor states
         "csrw   mie, zero",
         // enable theadisaee and maee
@@ -280,13 +203,10 @@ pub unsafe extern "C" fn start() -> ! {
         "la     sp, {stack}",
         "li     t0, {stack_size}",
         "add    sp, sp, t0",
-        "la     a0, {egon_head}",
         "call   {main}",
         stack      =   sym BT0_STACK,
         stack_size = const STACK_SIZE,
-        egon_head  =   sym EGON_HEAD,
         main       =   sym main,
-        options(noreturn)
     )
 }
 
@@ -402,7 +322,7 @@ const RST_BIT: u32 = 1 << 16;
 fn udelay(micros: usize) {
     unsafe {
         for _ in 0..micros {
-            core::arch::asm!("nop")
+            asm!("nop")
         }
     }
 }
@@ -449,6 +369,7 @@ fn init_logger(s: Serial) {
     });
 }
 
+#[no_mangle]
 extern "C" fn main() {
     // there was configure_ccu_clocks, but ROM code have already done configuring for us
     let p = Peripherals::take().unwrap();

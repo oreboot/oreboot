@@ -1,4 +1,3 @@
-#![feature(naked_functions, asm_const)]
 #![no_std]
 #![no_main]
 // TODO: remove when done debugging crap
@@ -12,8 +11,8 @@ extern crate jh71xx_hal as hal;
 use layoutflash::areas::{find_fdt, FdtIterator};
 
 use core::{
-    arch::asm,
-    intrinsics::transmute,
+    arch::{asm, naked_asm},
+    mem::transmute,
     panic::PanicInfo,
     ptr::{self, addr_of, addr_of_mut},
 };
@@ -59,12 +58,12 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // Clear feature disable CSR to '0' to turn on all features
         // TODO: do in Rust
         "csrwi  0x7c1, 0",
@@ -94,7 +93,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         payload    =   sym exec_payload,
         reset      =   sym reset,
-        options(noreturn)
     )
 }
 

@@ -1,53 +1,47 @@
-use crate::util::{
-    compile_board_dt, dist_dir, find_binutils_prefix_or_fail, get_cargo_cmd_in, objcopy,
-    project_root,
-};
-use crate::{layout_flash, Commands, Env};
-// use fdt;
-use log::{error, info, trace};
 use std::{
+    collections::HashMap,
     fs::{self, File},
     io::{self, Seek, SeekFrom},
-    path::Path,
+    path::PathBuf,
     process,
 };
 
-extern crate layoutflash;
-use layoutflash::areas::{create_areas, Area};
+use fdt::Fdt;
+use log::{error, info, trace};
+
+use layoutflash::layout::{create_areas, layout_flash};
+
+use crate::util::{
+    compile_platform_dt, find_binutils_prefix_or_fail, get_bin_for, get_cargo_cmd_in, objcopy,
+    platform_dir, target_dir, Bin,
+};
+use crate::{Cli, Commands, Env};
 
 // const SRAM0_SIZE = 128 * 1024;
 const SRAM0_SIZE: u64 = 32 * 1024;
 
+// TODO: detect architecture for binutils
 const ARCH: &str = "riscv64";
-const TARGET: &str = "riscv64imac-unknown-none-elf";
-
-const BT0_BIN: &str = "starfive-visionfive1-bt0.bin";
-const BT0_ELF: &str = "starfive-visionfive1-bt0";
-
-const MAIN_BIN: &str = "starfive-visionfive1-main.bin";
-const MAIN_ELF: &str = "starfive-visionfive1-main";
-
-const BOARD_DTB: &str = "starfive-visionfive1-board.dtb";
-
-const FDT_BIN: &str = "starfive-visionfive1-board.fdtbin";
-
+// TODO: instead of hardcoding, create one binary per feature set.
 const IMAGE_BIN: &str = "starfive-visionfive1.bin";
+const FDT_BIN: &str = "starfive-visionfive1-dtfs.bin";
 
-pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
+const BT0_STAGE: &str = "bt0";
+const MAIN_STAGE: &str = "main";
+struct Stages {
+    bt0: Bin,
+    main: Bin,
+}
+
+pub(crate) fn execute_command(args: &Cli, dir: &PathBuf, features: Vec<String>) {
+    let bt0 = get_bin_for(dir, BT0_STAGE);
+    let main = get_bin_for(dir, MAIN_STAGE);
+    let stages = Stages { bt0, main };
+
     match args.command {
         Commands::Make => {
-            info!("building VisionFive1");
-            let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
-            // Build the stages - should we parallelize this?
-            xtask_build_jh7100_flash_bt0(&args.env, &features);
-            xtask_build_jh7100_flash_main(&args.env);
-
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, BT0_ELF, BT0_BIN);
-            objcopy(&args.env, binutils_prefix, TARGET, ARCH, MAIN_ELF, MAIN_BIN);
-            xtask_concat_flash_binaries(&args.env);
-            // dtb
-            compile_board_dt(&args.env, TARGET, &board_project_root(), BOARD_DTB);
-            xtask_build_dtb_image(&args.env);
+            info!("Build oreboot image for VisionFive1");
+            build_image(&args.env, dir, &stages, &features);
         }
         _ => {
             error!("command {:?} not implemented", args.command);
@@ -55,9 +49,10 @@ pub(crate) fn execute_command(args: &crate::Cli, features: Vec<String>) {
     }
 }
 
-fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
+fn xtask_build_jh7100_flash_bt0(env: &Env, dir: &PathBuf, bin: &Bin, features: &[String]) {
     trace!("build JH7100 flash bt0");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "bt0", "build");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
+    let mut command = get_cargo_cmd_in(env, dir, BT0_STAGE, "build");
     if !features.is_empty() {
         let command_line_features = features.join(",");
         trace!("append command line features: {command_line_features}");
@@ -72,34 +67,38 @@ fn xtask_build_jh7100_flash_bt0(env: &Env, features: &[String]) {
         error!("cargo build failed with {status}");
         process::exit(1);
     }
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-fn xtask_build_jh7100_flash_main(env: &Env) {
+fn xtask_build_jh7100_flash_main(env: &Env, dir: &PathBuf, bin: &Bin) {
     trace!("build JH7100 flash main");
-    let mut command = get_cargo_cmd_in(env, board_project_root(), "main", "build");
+    let binutils_prefix = &find_binutils_prefix_or_fail(ARCH);
+    let mut command = get_cargo_cmd_in(env, dir, MAIN_STAGE, "build");
     let status = command.status().unwrap();
     trace!("cargo returned {}", status);
     if !status.success() {
         error!("cargo build failed with {}", status);
         process::exit(1);
     }
+    objcopy(env, bin, binutils_prefix, ARCH);
 }
 
-fn xtask_concat_flash_binaries(env: &Env) {
-    let dist_dir = dist_dir(env, TARGET);
+fn xtask_concat_flash_binaries(env: &Env, dir: &PathBuf, stages: &Stages) {
+    let plat_dir = platform_dir(dir);
     let mut bt0_file = File::options()
         .read(true)
-        .open(dist_dir.join(BT0_BIN))
+        .open(target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name))
         .expect("open bt0 binary file");
     let mut main_file = File::options()
         .read(true)
-        .open(dist_dir.join(MAIN_BIN))
+        .open(target_dir(env, &stages.main.target).join(&stages.main.bin_name))
         .expect("open main binary file");
 
-    let output_file_path = dist_dir.join(IMAGE_BIN);
+    let output_file_path = plat_dir.join(IMAGE_BIN);
     let mut output_file = File::options()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&output_file_path)
         .expect("create output binary file");
 
@@ -116,44 +115,48 @@ fn xtask_concat_flash_binaries(env: &Env) {
     println!("Output file: {:?}", &output_file_path.into_os_string());
 }
 
-fn xtask_build_dtb_image(env: &Env) {
-    let dist_dir = dist_dir(env, TARGET);
-    let dtb_path = dist_dir.join(BOARD_DTB);
+fn xtask_build_dtb_image(env: &Env, dir: &PathBuf, stages: &Stages) {
+    let plat_dir = platform_dir(dir);
+    let main_target_dir = target_dir(env, &stages.main.target);
+
+    let dtb_path = compile_platform_dt(&plat_dir);
     let dtb = fs::read(dtb_path).expect("dtb");
 
-    let output_file_path = dist_dir.join(FDT_BIN);
+    let output_path = plat_dir.join(FDT_BIN);
     let output_file = File::options()
         .write(true)
         .create(true)
-        .open(&output_file_path)
+        .truncate(true)
+        .open(&output_path)
         .expect("create output binary file");
 
     output_file.set_len(SRAM0_SIZE).unwrap(); // FIXME: depend on storage
 
-    let fdt = fdt::Fdt::new(&dtb).unwrap();
-    let mut areas: Vec<Area> = vec![];
-    areas.resize(
-        16,
-        Area {
-            name: "",
-            offset: None,
-            size: 0,
-            file: None,
-        },
-    );
-    let areas = create_areas(&fdt, &mut areas);
+    let fdt = Fdt::new(&dtb).unwrap();
+    let areas = create_areas(&fdt).unwrap();
 
-    layout_flash(
-        Path::new(&dist_dir),
-        Path::new(&output_file_path),
-        areas.to_vec(),
-    )
-    .unwrap();
+    let stage_bin_map = HashMap::from([
+        (
+            BT0_STAGE,
+            target_dir(env, &stages.bt0.target).join(&stages.bt0.bin_name),
+        ),
+        (MAIN_STAGE, main_target_dir.join(&stages.main.bin_name)),
+        ("payload", main_target_dir.join(&stages.main.bin_name)),
+    ]);
+
+    if let Err(e) = layout_flash(&main_target_dir, &output_path, areas, stage_bin_map) {
+        error!("layoutflash fail: {e}");
+        process::exit(1);
+    }
+
     println!("======= DONE =======");
-    println!("Output file: {:?}", &output_file_path.into_os_string());
+    println!("Output file: {:?}", &output_path.into_os_string());
 }
 
-// FIXME: factor out, rework, share!
-fn board_project_root() -> std::path::PathBuf {
-    project_root().join("src/mainboard/starfive/visionfive1")
+fn build_image(env: &Env, dir: &PathBuf, stages: &Stages, features: &[String]) {
+    // Build the stages - should we parallelize this?
+    xtask_build_jh7100_flash_bt0(env, dir, &stages.bt0, features);
+    xtask_build_jh7100_flash_main(env, dir, &stages.main);
+    xtask_concat_flash_binaries(env, dir, stages);
+    xtask_build_dtb_image(env, dir, stages);
 }

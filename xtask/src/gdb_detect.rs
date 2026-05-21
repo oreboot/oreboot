@@ -1,7 +1,7 @@
 use log::{error, info};
 use std::fs;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 pub fn detect_gdb_path() -> String {
@@ -82,6 +82,7 @@ pub fn save_gdb_path_to_file(gdb_path: &str) {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(true)
         .open(
             project_root()
                 .join("target")
@@ -107,6 +108,7 @@ pub fn save_gdb_server_to_file(gdb_server: &str) {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(true)
         .open(
             project_root()
                 .join("target")
@@ -126,10 +128,9 @@ pub fn load_gdb_server_from_file() -> io::Result<String> {
     )
 }
 
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR"))
+fn project_root() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
         .nth(1)
         .unwrap()
-        .to_path_buf()
 }

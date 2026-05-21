@@ -1,4 +1,3 @@
-#![feature(naked_functions, asm_sym, asm_const)]
 #![no_std]
 #![no_main]
 // TODO: remove when done debugging crap
@@ -8,8 +7,8 @@
 extern crate log;
 
 use core::{
-    arch::asm,
-    intrinsics::transmute,
+    arch::{asm, naked_asm},
+    mem::transmute,
     panic::PanicInfo,
     ptr::{self, read_volatile, write_volatile},
     slice,
@@ -63,12 +62,12 @@ static mut BT0_STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 /// # Safety
 ///
 /// Naked function.
-#[naked]
+#[unsafe(naked)]
 #[export_name = "_start"]
 #[link_section = ".text.entry"]
 #[allow(named_asm_labels)]
 pub unsafe extern "C" fn start() -> ! {
-    asm!(
+    naked_asm!(
         // clear feature disable CSR
         "csrwi  0x7c1, 0",
         "csrw   mtvec, t0",
@@ -94,7 +93,6 @@ pub unsafe extern "C" fn start() -> ! {
         stack_size = const STACK_SIZE,
         payload    =   sym exec_payload,
         reset      =   sym reset,
-        options(noreturn)
     )
 }
 

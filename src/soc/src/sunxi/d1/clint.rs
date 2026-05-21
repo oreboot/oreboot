@@ -6,18 +6,7 @@ pub const UART_USR: usize = 0x7c;
 
 pub const CLINT_BASE: usize = 0x0400_0000;
 pub const MSIP0: usize = 0;
-pub const MTIMECMPL: usize = 0x4000;
 
-pub mod mtimecmp {
-    use super::{write_reg, CLINT_BASE, MTIMECMPL};
-    pub fn write(word: u64) {
-        unsafe {
-            let mask = u64::MAX;
-            write_reg(CLINT_BASE, MTIMECMPL, (word & mask) as u32);
-            write_reg(CLINT_BASE, MTIMECMPL + 4, (word >> 32) as u32);
-        }
-    }
-}
 pub mod msip {
     use super::{write_reg, CLINT_BASE, MSIP0};
 
