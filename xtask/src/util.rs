@@ -33,11 +33,12 @@ pub fn get_cargo_cmd_in(env: &Env, plat_dir: &PathBuf, stage: &str, command: &st
 /// I.e., something along the lines of:
 /// ```rs
 /// struct Stages {
-///     bt0: Bin,
-///     main: Bin,
+///     bt0: Stage,
+///     main: Stage,
 /// }
 /// ```
-pub struct Bin {
+pub struct Stage {
+    pub name: String,
     pub elf_name: String,
     pub bin_name: String,
     pub target: String,
@@ -46,23 +47,25 @@ pub struct Bin {
 const CARGO_CFG: &str = ".cargo/config.toml";
 const CARGO_TOML: &str = "Cargo.toml";
 
-/// For a given platform directory and stage, get a [Bin].
+/// For a given platform directory and stage name, get a [Stage].
 ///
 /// See <https://doc.rust-lang.org/cargo/reference/config.html>
 /// and <https://doc.rust-lang.org/cargo/reference/manifest.html>
-pub fn get_bin_for(plat_dir: &PathBuf, stage: &str) -> Bin {
-    let f = platform_dir(plat_dir).join(stage).join(CARGO_TOML);
+pub fn get_stage_for(plat_dir: &PathBuf, name: &str) -> Stage {
+    let f = platform_dir(plat_dir).join(name).join(CARGO_TOML);
     let m = cargo_toml::Manifest::from_path(&f).unwrap();
     trace!("{f:?}: {m:#?}");
     let elf_name = m.bin.first().unwrap().name.clone().unwrap();
     let bin_name = format!("{elf_name}.bin");
-    let f = platform_dir(plat_dir).join(stage).join(CARGO_CFG);
+    let f = platform_dir(plat_dir).join(name).join(CARGO_CFG);
     let settings = config::Config::builder()
         .add_source(config::File::with_name(f.to_str().unwrap()))
         .build()
         .unwrap();
     let target: String = settings.get("build.target").unwrap();
-    Bin {
+    let name = name.into();
+    Stage {
+        name,
         elf_name,
         bin_name,
         target,
@@ -92,15 +95,15 @@ pub fn compile_platform_dt(plat_dir: &PathBuf) -> PathBuf {
 }
 
 /// Create a raw binary from an ELF.
-pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
+pub fn objcopy(env: &Env, stage: &Stage, prefix: &str, arch: &str) {
     trace!("objcopy binary, prefix: '{prefix}'");
-    let dir = target_dir(env, &bin.target);
+    let dir = target_dir(env, &stage.target);
     let mut cmd = Command::new(format!("{prefix}objcopy"));
     cmd.current_dir(dir);
-    cmd.arg(&bin.elf_name);
+    cmd.arg(&stage.elf_name);
     cmd.arg(format!("--binary-architecture={arch}"));
     cmd.arg("--strip-all");
-    cmd.args(["-O", "binary", &bin.bin_name]);
+    cmd.args(["-O", "binary", &stage.bin_name]);
     let status = cmd.status().unwrap();
     trace!("objcopy returned {status}");
     if !status.success() {
@@ -110,11 +113,11 @@ pub fn objcopy(env: &Env, bin: &Bin, prefix: &str, arch: &str) {
 }
 
 /// Disssemble an ELF for inspection.
-pub fn objdump(env: &Env, bin: &Bin, prefix: &str) {
+pub fn objdump(env: &Env, stage: &Stage, prefix: &str) {
     let mut cmd = Command::new(format!("{prefix}objdump"));
-    let dir = target_dir(env, &bin.target);
+    let dir = target_dir(env, &stage.target);
     cmd.current_dir(dir);
-    cmd.arg(&bin.elf_name);
+    cmd.arg(&stage.elf_name);
     cmd.arg("-d");
     cmd.status().unwrap();
 }
@@ -167,11 +170,11 @@ struct StackAnalysis {
 /// NOTE: If this fails, something is wrong with the command invocation.
 /// In that case, check the debug output.
 /// TODO: There may be crates for doing this, or programmatic interfaces.
-pub fn analyze(env: &Env, bin: &Bin) {
+pub fn analyze(env: &Env, stage: &Stage) {
     let mut cmd = Command::new("rust-readobj");
-    let dir = target_dir(env, &bin.target);
+    let dir = target_dir(env, &stage.target);
     cmd.current_dir(dir);
-    cmd.arg(&bin.elf_name);
+    cmd.arg(&stage.elf_name);
     cmd.arg("--demangle");
     cmd.arg("--stack-sizes");
     cmd.arg("--elf-output-style");
@@ -259,6 +262,6 @@ pub fn target_dir(env: &Env, target: &str) -> PathBuf {
 }
 
 /// Get the target specific build output raw binary file.
-pub fn target_bin(env: &Env, bin: &Bin) -> PathBuf {
-    target_dir(env, &bin.target).join(&bin.bin_name)
+pub fn target_bin(env: &Env, stage: &Stage) -> PathBuf {
+    target_dir(env, &stage.target).join(&stage.bin_name)
 }
