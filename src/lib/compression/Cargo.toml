@@ -1,9 +1,0 @@
-[package]
-name = "oreboot_compression"
-version = "0.1.0"
-authors = ["oreboot authors"]
-edition = "2021"
-
-[dependencies]
-log = { path = "../log" }
-miniz_oxide = { version = "0.8.5", default-features = false }
