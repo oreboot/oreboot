@@ -1,0 +1,2 @@
+# T-Head TH1520
+SUBSYSTEM=="usb", ATTR{idVendor}="2345", ATTR{idProduct}=="7654", GROUP="plugdev"
