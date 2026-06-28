@@ -16,11 +16,12 @@ pub fn init() -> PlatSbi {
 }
 
 fn init_pmp() {
-    let cfg = 0x0f0f0f0f0fusize; // pmpaddr0-1 and pmpaddr2-3 are read-only
+    let cfg = 0x0f090fusize; // pmpaddr1 is read-only
     reg::pmpcfg0::write(cfg);
     reg::pmpcfg2::write(0); // nothing active here
     reg::pmpaddr0::write(0x80000000usize >> 2);
     reg::pmpaddr1::write(0x80200000usize >> 2);
+    reg::pmpaddr2::write(0xffffffffusize >> 2);
 }
 
 use core::ptr::{read_volatile, write_volatile};
