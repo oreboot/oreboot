@@ -16,12 +16,35 @@ pub fn init() -> PlatSbi {
 }
 
 fn init_pmp() {
-    let cfg = 0x0f090fusize; // pmpaddr1 is read-only
+    // pmpcfg0 packs eight 8-bit entries (RV64: entries 0..=7). Each byte:
+    //
+    //   bit    7   6   5   4   3   2   1   0
+    //        +---+---+---+---+---+---+---+---+
+    //        | L | - | - | A | A | X | W | R |
+    //        +---+---+---+---+---+---+---+---+
+    //          |             |     |   |   |
+    //          |             |     |   |   +--> R : read
+    //          |             |     |   +------> W : write
+    //          |             |     +----------> X : execute
+    //          |             +----------------> A : 0=OFF, 1=TOR, 2=NA4, 3=NAPOT
+    //          +------------------------------> L : lock
+    //
+    //   0x0f = R|W|X | TOR      0x09 = R | TOR      0x1f = R|W|X | NAPOT
+    //
+    //   entry 0: TOR   [0x0, 0x8000_0000)            RWX  MMIO / low memory
+    //   entry 1: TOR   [0x8000_0000, 0x8020_0000)    R    oreboot/SBI firmware
+    //   entry 2: NAPOT [0x0, 0xffff_ffff_ffff_ffff]  RWX  payload RAM
+    //
+    // Note: `entry 2` uses NAPOT with pmpaddr = all-ones, the spec's encoding for the
+    // entire address space. Being the highest-numbered entry it is lowest priority,
+    // so entries 0 and 1 still protect their ranges;
+    // NAPOT (unlike TOR) can also cover the uppermost word.
+    let cfg = 0x1f090fusize;
     reg::pmpcfg0::write(cfg);
     reg::pmpcfg2::write(0); // nothing active here
     reg::pmpaddr0::write(0x80000000usize >> 2);
     reg::pmpaddr1::write(0x80200000usize >> 2);
-    reg::pmpaddr2::write(0xffffffffusize >> 2);
+    reg::pmpaddr2::write(usize::MAX);
 }
 
 use core::ptr::{read_volatile, write_volatile};
