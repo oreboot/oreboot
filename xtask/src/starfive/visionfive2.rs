@@ -4,7 +4,7 @@ use std::{fs, path::PathBuf, process};
 use fdt::Fdt;
 use log::{error, info, trace, warn};
 
-use layoutflash::layout::{create_areas, layout_flash};
+use cast_iron::layout::{create_areas, layout_flash};
 
 use crate::util::{
     compile_platform_dt, find_binutils_prefix_or_fail, get_cargo_cmd_in, get_stage_for, objcopy,

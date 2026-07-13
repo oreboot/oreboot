@@ -1,8 +1,7 @@
 [package]
-name = "layoutflash"
+name = "cast_iron"
 version = "0.1.0"
-authors = ["Ryan O'Leary <ryanoleary@google.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 fdt = "0.1.4"
