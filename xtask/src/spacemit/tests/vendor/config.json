@@ -1,0 +1,140 @@
+{
+  "_comment": {
+    "info": "bootinfo build configuration script",
+    "key word": {
+      "image": "image definition",
+      "module": "image module definition",
+      "data": "image item data config"
+    }
+  },
+  "info": {
+    "arch": "RISCV64",
+    "description": "spacemit k1x fsbl image"
+  },
+  "image": [
+    {
+      "module": "ROTPK",
+      "data": [
+        {
+          "pubkey": {
+            "name": "rsakeypair0",
+            "algorithm": "RSA2048",
+            "source": "key/rsakeypair0_prv.key",
+            "align": 256
+          }
+        }
+      ]
+    },
+    {
+      "module": "image_header",
+      "data": [
+        {
+          "structure": [
+            "name, header0, 0",
+            "magic, AIHD, 4",
+            "version, 1, 1",
+            "secure, 0, 1",
+            "reserved, 0, 2",
+            "imgsize, 0x0200, 8",
+            "load_addr, 0x100, 8",
+            "pad, 0xA5, 8"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "image_config",
+      "data": [
+        {
+          "structure": [
+            "name, keydata, 0",
+            "key_default, 0, 4",
+            "table_num, 2, 4",
+            {
+              "structure": [
+                "name, keytable0, 0",
+                "key_name, spl, 16",
+                "key_id, 0, 4"
+              ]
+            },
+            "pad, 0, 452"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "oem_pubkey",
+      "data": [
+        {
+          "structure": [
+            "name, oem_key, 0",
+            {
+              "pubkey": {
+                "name": "spl_pubkey",
+                "algorithm": "RSA2048",
+                "source": "key/spl_pubkey_prv.key",
+                "align": 256
+              }
+            },
+            "reserved, 0, 1792"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "cert0",
+      "data": [
+        {
+          "signature": {
+            "name": "signature0",
+            "algorithm": "SHA256+RSA2048",
+            "key": "rsakeypair0",
+            "source": "header0 + keydata + oem_key",
+            "align": 256
+          }
+        }
+      ]
+    },
+    {
+      "module": "padding",
+      "data": [
+        {
+          "structure": ["pad, 0, 992"]
+        }
+      ]
+    },
+    {
+      "module": "spl",
+      "data": [
+        {
+          "structure": [
+            "name, header1, 0",
+            "magic, AIHD, 4",
+            "version, 1, 1",
+            "secure, 0, 1",
+            "reserved, 0, 2",
+            "imgsize, sizeof(fsbl), 8",
+            "load_addr, 0x300, 8",
+            "pad, 0xA5, 8"
+          ]
+        },
+        {
+          "file": {
+            "name": "fsbl",
+            "source": "../fixtures/nothing.bin",
+            "align": 32
+          }
+        },
+        {
+          "signature": {
+            "name": "signature1",
+            "algorithm": "SHA256+RSA2048",
+            "key": "spl_pubkey",
+            "source": "header1 + fsbl",
+            "align": 256
+          }
+        }
+      ]
+    }
+  ]
+}
