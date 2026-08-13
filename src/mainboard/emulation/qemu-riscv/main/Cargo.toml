@@ -15,4 +15,3 @@ rustsbi = { version = "=0.4.0", features = ["machine"] }
 layoutflash = { path = "../../../../lib/layoutflash" }
 log = { path = "../../../../lib/log" }
 oreboot-arch = { path = "../../../../arch", features = ["riscv64"] }
-oreboot_compression = { path = "../../../../lib/compression" }

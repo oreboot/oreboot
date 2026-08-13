@@ -6,7 +6,7 @@ use core::panic::PanicInfo;
 use core::ptr::read_volatile;
 use embedded_hal::digital::OutputPin;
 use log::{print, println};
-use oreboot_compression::decompress;
+use oreboot_arch::riscv64::xuantie;
 use oreboot_soc::sunxi::d1::{
     ccu::Clocks,
     clint::CLINT_BASE,
@@ -33,33 +33,37 @@ const DTB_SIZE: usize = 0x0001_0000;
 const COMPRESSED_ADDR: usize = RAM_BASE + 0x0400_0000;
 const COMPRESSED_SIZE: usize = 0x00fe_0000;
 
-fn decompress_lb() {
-    // check for Device Tree header, d00dfeed
-    let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
-    if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {dtb:08x}");
-    } else {
-        println!("DTB looks fine, yay!");
-    }
+fn decompress() {
+    use miniz_oxide::inflate as moi;
+    use miniz_oxide::inflate::core as moc;
 
-    unsafe {
-        decompress(COMPRESSED_ADDR, PAYLOAD_ADDR, COMPRESSED_SIZE, PAYLOAD_SIZE);
-    }
+    // This flag means inflate should try parsing a zlib header.
+    // We provide zlib compressed payloads including the header by convention.
+    const FLAGS: u32 = moc::inflate_flags::TINFL_FLAG_PARSE_ZLIB_HEADER;
 
-    // check for kernel to be okay
-    let a = PAYLOAD_ADDR + 0x30;
-    let r = unsafe { read_volatile(a as *mut u32) };
-    if r == u32::from_le_bytes(*b"RISC") {
-        println!("Payload looks like Linux Image, yay!");
-    } else {
-        panic!("Payload does not look like Linux Image: {r:x}");
-    }
-    // Recheck on DTB, kernel should not run into it
-    let dtb = unsafe { read_volatile(DTB_ADDR as *mut u32) };
-    if dtb != 0xedfe0dd0 {
-        panic!("DTB looks wrong: {dtb:08x} - was it overridden?");
-    } else {
-        println!("DTB still fine, yay!");
+    let in_ptr = core::ptr::with_exposed_provenance::<u8>(COMPRESSED_ADDR);
+    let input = unsafe { core::slice::from_raw_parts(in_ptr, COMPRESSED_SIZE) };
+
+    let out_ptr = core::ptr::with_exposed_provenance_mut::<u8>(PAYLOAD_ADDR);
+    let output = unsafe {
+        core::ptr::write_bytes(out_ptr, 0, PAYLOAD_SIZE);
+        core::slice::from_raw_parts_mut(out_ptr, PAYLOAD_SIZE)
+    };
+
+    println!(
+        "Decompress {COMPRESSED_SIZE} bytes from {input:p} to {output:p}, reserved {PAYLOAD_SIZE} bytes",
+    );
+
+    let mut decompressor = moc::DecompressorOxide::new();
+    let (status, _, out_bytes) = moc::decompress(&mut decompressor, &input, output, 0, FLAGS);
+
+    match status {
+        moi::TINFLStatus::Done => {
+            println!("Success, decompressed {out_bytes} bytes :)");
+        }
+        _ => {
+            panic!("Decompression error {status:?}");
+        }
     }
 }
 
@@ -310,8 +314,31 @@ extern "C" fn main() -> usize {
         print!("RISC-V vendor {:x} arch {:x} imp {:x}\r\n", vid, arch, imp);
     }
 
+    decompress();
+
     let use_sbi = cfg!(feature = "supervisor");
     if use_sbi {
+        // NOTE: We currently just expect a Linux payload, i.e., a Linux Image
+        // and a corresponding DTB.
+
+        // check for Device Tree header; note that the magic is in big endian
+        const DT_MAGIC: u32 = 0xd00dfeed_u32.to_be();
+        let dtb = unsafe { read_volatile(DTB_ADDR as *const u32) };
+        if dtb != DT_MAGIC {
+            panic!("DTB looks wrong: {dtb:08x}");
+        } else {
+            println!("DTB looks fine, yay!");
+        }
+
+        // check for kernel to be okay
+        let a = PAYLOAD_ADDR + 0x30;
+        let r = unsafe { read_volatile(a as *const u32) };
+        if r == u32::from_le_bytes(*b"RISC") {
+            println!("Payload looks like Linux Image, yay!");
+        } else {
+            panic!("Payload does not look like Linux Image: {r:x}");
+        }
+
         use oreboot_arch::riscv64::sbi as ore_sbi;
         let sbi = sbi_platform::init();
         init_csrs();
@@ -319,7 +346,6 @@ extern "C" fn main() -> usize {
         ore_sbi::runtime::init();
         ore_sbi::info::print_info(PLATFORM, VERSION);
 
-        decompress_lb();
         println!("Enter supervisor at {PAYLOAD_ADDR:08x} with DTB from {DTB_ADDR:08x}");
 
         let hart_id = riscv::register::mhartid::read();
@@ -338,9 +364,6 @@ extern "C" fn main() -> usize {
             asm!("csrs 0x7c0, {}", in(reg) 0x00018000);
         }
         println!("You are NOT MY SUPERVISOR!");
-        unsafe {
-            decompress(COMPRESSED_ADDR, PAYLOAD_ADDR, COMPRESSED_SIZE, PAYLOAD_SIZE);
-        }
         println!("Running payload at 0x{PAYLOAD_ADDR:x}");
         unsafe {
             let f: unsafe extern "C" fn() = core::mem::transmute(PAYLOAD_ADDR);
